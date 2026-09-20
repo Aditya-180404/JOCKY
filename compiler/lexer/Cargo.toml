@@ -1,0 +1,12 @@
+[package]
+name = "traceforge-lexer"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+traceforge-ast = { path = "../ast" }
+thiserror = { workspace = true }
+serde = { workspace = true }

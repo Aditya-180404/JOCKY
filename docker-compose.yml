@@ -1,0 +1,123 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: traceforge
+      POSTGRES_USER: traceforge
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-traceforge_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U traceforge -d traceforge"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and job queues
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # MinIO for object storage (S3-compatible)
+  minio:
+    image: quay.io/minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-traceforge}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-traceforge_dev}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # Backend API (Rust/Axum)
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    environment:
+      DATABASE_URL: postgres://traceforge:traceforge_dev@postgres:5432/traceforge
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-traceforge}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-traceforge_dev}
+      MINIO_BUCKET: traceforge-artifacts
+      JWT_SECRET: ${JWT_SECRET:-dev_secret_change_in_production}
+      RUST_LOG: info
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./compiler:/app/compiler
+      - ./runtime:/app/runtime
+      - ./packages/shared-types:/app/packages/shared-types
+
+  # Compiler Worker (Rust)
+  compiler-worker:
+    build:
+      context: .
+      dockerfile: docker/compiler-worker.Dockerfile
+    environment:
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-traceforge}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-traceforge_dev}
+      MINIO_BUCKET: traceforge-artifacts
+      DATABASE_URL: postgres://traceforge:traceforge_dev@postgres:5432/traceforge
+      RUST_LOG: info
+    depends_on:
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./compiler:/app/compiler
+      - ./runtime:/app/runtime
+      - ./packages/shared-types:/app/packages/shared-types
+
+  # Frontend (React + Vite)
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    environment:
+      VITE_API_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ./apps/web:/app/apps/web
+      - ./packages/shared-types:/app/packages/shared-types
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

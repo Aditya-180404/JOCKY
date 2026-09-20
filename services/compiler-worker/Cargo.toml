@@ -1,0 +1,32 @@
+[package]
+name = "traceforge-compiler-worker"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+
+[[bin]]
+name = "traceforge-compiler-worker"
+path = "src/main.rs"
+
+[dependencies]
+traceforge-lexer = { path = "../../compiler/lexer" }
+traceforge-parser = { path = "../../compiler/parser" }
+traceforge-ast = { path = "../../compiler/ast" }
+traceforge-semantic = { path = "../../compiler/semantic" }
+traceforge-ir = { path = "../../compiler/ir" }
+traceforge-backend = { path = "../../compiler/backend" }
+traceforge-runtime = { path = "../../runtime" }
+traceforge-shared-types = { path = "../../packages/shared-types" }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+redis = { version = "0.23", features = ["tokio-comp", "connection-manager"] }
+aws-sdk-s3 = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+sha2 = { workspace = true }
+tempfile = "3.5"

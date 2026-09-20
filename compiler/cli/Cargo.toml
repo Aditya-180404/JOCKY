@@ -1,0 +1,26 @@
+[package]
+name = "traceforge-cli"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+
+[[bin]]
+name = "traceforge"
+path = "src/main.rs"
+
+[dependencies]
+traceforge-lexer = { path = "../lexer" }
+traceforge-parser = { path = "../parser" }
+traceforge-ast = { path = "../ast" }
+traceforge-semantic = { path = "../semantic" }
+traceforge-ir = { path = "../ir" }
+traceforge-backend = { path = "../backend" }
+traceforge-runtime = { path = "../../runtime" }
+anyhow = { workspace = true }
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+sha2 = { workspace = true }

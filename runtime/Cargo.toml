@@ -1,0 +1,20 @@
+[package]
+name = "traceforge-runtime"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+traceforge-runtime-system = { path = "system" }
+traceforge-runtime-process = { path = "process" }
+traceforge-runtime-network = { path = "network" }
+traceforge-runtime-filesystem = { path = "filesystem" }
+traceforge-runtime-logs = { path = "logs" }
+traceforge-runtime-evidence = { path = "evidence" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+sha2 = { workspace = true }

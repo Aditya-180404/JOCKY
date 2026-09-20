@@ -1,0 +1,36 @@
+[package]
+name = "traceforge-api"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+
+[[bin]]
+name = "traceforge-api"
+path = "src/main.rs"
+
+[dependencies]
+traceforge-shared-types = { path = "../../packages/shared-types" }
+traceforge-lexer = { path = "../../compiler/lexer" }
+traceforge-parser = { path = "../../compiler/parser" }
+traceforge-ast = { path = "../../compiler/ast" }
+traceforge-semantic = { path = "../../compiler/semantic" }
+traceforge-ir = { path = "../../compiler/ir" }
+traceforge-runtime = { path = "../../runtime" }
+anyhow = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+sqlx = { workspace = true }
+redis = { version = "0.23", features = ["tokio-comp", "connection-manager"] }
+aws-sdk-s3 = { workspace = true }
+aws-config = { workspace = true }
+argon2 = { workspace = true }
+jsonwebtoken = { workspace = true }
+uuid = { workspace = true, features = ["v4", "serde"] }
+chrono = { workspace = true, features = ["serde"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+validator = { version = "0.16", features = ["derive"] }

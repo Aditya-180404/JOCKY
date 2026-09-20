@@ -1,0 +1,248 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg-primary: #0a0f1a;
+    --color-bg-secondary: #111827;
+    --color-bg-tertiary: #1e293b;
+    --color-border: #1e293b;
+    --color-border-hover: #334155;
+    --color-text-primary: #f1f5f9;
+    --color-text-secondary: #94a3b8;
+    --color-text-muted: #64748b;
+    --color-accent-blue: #3b82f6;
+    --color-accent-green: #10b981;
+    --color-accent-amber: #f59e0b;
+    --color-accent-red: #ef4444;
+    --color-accent-purple: #8b5cf6;
+  }
+
+  * {
+    @apply border-forensic-800;
+  }
+
+  body {
+    @apply bg-forensic-950 text-forensic-50 font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-forensic-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-forensic-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-forensic-600;
+  }
+
+  /* Focus styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-accent-blue ring-offset-2 ring-offset-forensic-950;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-accent-blue/30 text-white;
+  }
+}
+
+@layer components {
+  /* Button variants */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-accent-blue text-white hover:bg-blue-600 active:bg-blue-700 focus-visible:ring-accent-blue;
+  }
+
+  .btn-secondary {
+    @apply btn bg-forensic-800 text-forensic-100 hover:bg-forensic-700 active:bg-forensic-600 border border-forensic-700 focus-visible:ring-forensic-600;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-forensic-300 hover:bg-forensic-800 active:bg-forensic-700 focus-visible:ring-forensic-600;
+  }
+
+  .btn-danger {
+    @apply btn bg-accent-red text-white hover:bg-red-600 active:bg-red-700 focus-visible:ring-accent-red;
+  }
+
+  .btn-success {
+    @apply btn bg-accent-green text-white hover:bg-green-600 active:bg-green-700 focus-visible:ring-accent-green;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  /* Input styles */
+  .input {
+    @apply w-full px-3 py-2 bg-forensic-800 border border-forensic-700 rounded-lg text-forensic-100 placeholder-forensic-500 transition-all duration-200;
+    @apply focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/20 focus:outline-none;
+  }
+
+  .input-error {
+    @apply border-accent-red focus:border-accent-red focus:ring-accent-red/20;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-forensic-300 mb-1.5;
+  }
+
+  /* Card styles */
+  .card {
+    @apply bg-forensic-900/50 border border-forensic-800 rounded-xl backdrop-blur-sm;
+  }
+
+  .card-hover {
+    @apply card hover:border-forensic-700 transition-colors duration-200;
+  }
+
+  /* Table styles */
+  .table-container {
+    @apply overflow-x-auto rounded-lg border border-forensic-800;
+  }
+
+  .table {
+    @apply w-full text-sm;
+  }
+
+  .table th {
+    @apply px-4 py-3 text-left font-medium text-forensic-400 bg-forensic-900/50 border-b border-forensic-800;
+  }
+
+  .table td {
+    @apply px-4 py-3 text-forensic-200 border-b border-forensic-800/50;
+  }
+
+  .table tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .table tbody tr {
+    @apply hover:bg-forensic-800/50 transition-colors duration-150;
+  }
+
+  /* Badge styles */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-success {
+    @apply badge bg-green-500/20 text-green-400 border border-green-500/30;
+  }
+
+  .badge-warning {
+    @apply badge bg-amber-500/20 text-amber-400 border border-amber-500/30;
+  }
+
+  .badge-danger {
+    @apply badge bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+
+  .badge-info {
+    @apply badge bg-blue-500/20 text-blue-400 border border-blue-500/30;
+  }
+
+  .badge-neutral {
+    @apply badge bg-forensic-700 text-forensic-300 border border-forensic-600;
+  }
+
+  /* Code/pre styles */
+  .code-block {
+    @apply bg-forensic-950 border border-forensic-800 rounded-lg p-4 font-mono text-sm overflow-x-auto;
+  }
+
+  /* Modal/Dialog */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4;
+  }
+
+  .modal-content {
+    @apply bg-forensic-900 border border-forensic-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col;
+  }
+
+  .modal-header {
+    @apply px-6 py-4 border-b border-forensic-800 flex items-center justify-between;
+  }
+
+  .modal-body {
+    @apply p-6 overflow-y-auto;
+  }
+
+  .modal-footer {
+    @apply px-6 py-4 border-t border-forensic-800 flex items-center justify-end gap-3;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    @apply fixed inset-y-0 left-0 z-40 w-64 bg-forensic-900 border-r border-forensic-800 transform transition-transform duration-300 ease-in-out;
+  }
+
+  .sidebar-collapsed {
+    @apply w-16;
+  }
+
+  /* Header */
+  .header {
+    @apply fixed top-0 right-0 left-0 z-30 h-16 bg-forensic-900/80 backdrop-blur-md border-b border-forensic-800;
+  }
+
+  /* Main content */
+  .main-content {
+    @apply pt-16 pl-64 min-h-screen bg-forensic-950 transition-all duration-300;
+  }
+
+  .main-content-expanded {
+    @apply pl-16;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}

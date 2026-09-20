@@ -1,0 +1,33 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Rust build artifacts
+/target/
+**/target/
+
+# Node.js and Vite artifacts
+node_modules/
+dist/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test and coverage output
+coverage/
+*.lcov
+
+# Local development data
+.cache/
+.minio/
+
+# Editor and operating system files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
