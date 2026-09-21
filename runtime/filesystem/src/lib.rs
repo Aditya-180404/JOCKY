@@ -78,7 +78,7 @@ pub fn enumerate_files(
         if !is_dir && hash_algorithm != "none" {
             match hash_algorithm {
                 "sha256" => {
-                    if let Ok(hash) = calculate_file_hash(entry.path(), &Sha256::new()) {
+                    if let Ok(hash) = calculate_file_hash(entry.path()) {
                         info.sha256 = Some(hash);
                     }
                 }
@@ -98,17 +98,26 @@ pub fn enumerate_files(
     Ok(results)
 }
 
-fn calculate_file_hash<D: Digest + Default>(path: &Path, _hasher: &D) -> Result<String, Box<dyn std::error::Error>> {
+fn calculate_file_hash(path: &Path) -> Result<String, Box<dyn std::error::Error>> {
+    use std::io::Read;
     let mut file = fs::File::open(path)?;
-    let mut hasher = D::default();
-    std::io::copy(&mut file, &mut hasher)?;
-    Ok(format!("{:x}", hasher.finalize()))
+    let mut hasher = Sha256::new();
+    let mut buffer = [0u8; 8192];
+    loop {
+        let count = file.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        hasher.update(&buffer[..count]);
+    }
+    let result = hasher.finalize();
+    Ok(format!("{:x}", result))
 }
 
 pub fn calculate_hash(path: &str, algorithm: &str) -> Result<String, Box<dyn std::error::Error>> {
     let path = Path::new(path);
     match algorithm {
-        "sha256" => calculate_file_hash(path, &Sha256::new()),
+        "sha256" => calculate_file_hash(path),
         _ => Err("Unsupported hash algorithm".into()),
     }
 }

@@ -230,6 +230,8 @@ impl Lexer {
             "sha256" => TokenKind::Sha256,
             "sha1" => TokenKind::Sha1,
             "md5" => TokenKind::Md5,
+            "and" => TokenKind::And,
+            "or" => TokenKind::Or,
             _ => TokenKind::Identifier(value),
         };
 

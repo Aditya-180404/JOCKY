@@ -11,3 +11,4 @@ traceforge-ast = { path = "../ast" }
 traceforge-ir = { path = "../ir" }
 thiserror = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }

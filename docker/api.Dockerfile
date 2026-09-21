@@ -16,8 +16,11 @@ COPY compiler ./compiler
 COPY runtime ./runtime
 COPY packages/shared-types ./packages/shared-types
 COPY services/compiler-worker ./services/compiler-worker
+COPY migrations ./migrations
 
 # Build the API
+ARG DATABASE_URL=postgres://traceforge:traceforge_dev@host.docker.internal:5433/traceforge
+ENV DATABASE_URL=${DATABASE_URL}
 RUN cargo build --release --bin traceforge-api
 
 # Runtime stage

@@ -68,6 +68,8 @@ pub enum TokenKind {
     Sha256,
     Sha1,
     Md5,
+    And,
+    Or,
 
     // Literals
     Identifier(String),
@@ -200,6 +202,19 @@ pub enum Stmt {
     Metadata(Vec<(String, Expr)>, Span),
 }
 
+impl Stmt {
+    pub fn span(&self) -> Span {
+        match self {
+            Stmt::Collect { span, .. } => *span,
+            Stmt::Export { span, .. } => *span,
+            Stmt::Filter { span, .. } => *span,
+            Stmt::Where { span, .. } => *span,
+            Stmt::Limit { span, .. } => *span,
+            Stmt::Metadata(_, span) => *span,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum CollectTarget {
     SystemInfo,
@@ -226,7 +241,7 @@ pub enum HashAlgorithm {
     Md5,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ExportFormat {
     Json,
     Csv,

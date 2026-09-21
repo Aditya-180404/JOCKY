@@ -29,10 +29,10 @@ pub fn enumerate_connections() -> Result<Vec<serde_json::Value>, Box<dyn std::er
         for socket in sockets {
             let (protocol, local_addr, local_port, remote_addr, remote_port, state, pid) = match socket.protocol_socket_info {
                 ProtocolSocketInfo::Tcp(tcp) => {
-                    ("tcp", tcp.local_addr, tcp.local_port, tcp.remote_addr, tcp.remote_port, format!("{:?}", tcp.state), tcp.associated_pids.first().copied())
+                    ("tcp", tcp.local_addr, tcp.local_port, tcp.remote_addr, tcp.remote_port, format!("{:?}", tcp.state), socket.associated_pids.first().copied())
                 }
                 ProtocolSocketInfo::Udp(udp) => {
-                    ("udp", udp.local_addr, udp.local_port, udp.remote_addr, udp.remote_port, "UNCONNECTED".to_string(), udp.associated_pids.first().copied())
+                    ("udp", udp.local_addr, udp.local_port, udp.local_addr, 0, "UNCONNECTED".to_string(), socket.associated_pids.first().copied())
                 }
             };
 

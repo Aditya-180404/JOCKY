@@ -12,4 +12,6 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 procfs = "0.15"
+chrono = { workspace = true }
+libc = "0.2"
 sha2 = { workspace = true }

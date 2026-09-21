@@ -17,9 +17,6 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import clsx from 'clsx';
 
-// Missing import - removed duplicate
-// import { Eye } from 'lucide-react';
-
 export function Evidence() {
   const [evidenceList, setEvidenceList] = useState<EvidenceResponse[]>([]);
   const [pagination, setPagination] = useState({ page: 1, per_page: 20, total: 0 });
@@ -243,6 +240,3 @@ export function Evidence() {
     </div>
   );
 }
-
-// Missing import
-import { Eye } from 'lucide-react';

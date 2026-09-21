@@ -14,7 +14,7 @@ import {
 import clsx from 'clsx';
 
 export function Settings() {
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'organization'>('profile');
   const [profile, setProfile] = useState({ fullName: '', email: '' });
   const [password, setPassword] = useState({ current: '', new: '', confirm: '' });

@@ -29,7 +29,8 @@ use tools::{create_tool, list_tools, get_tool, create_tool_version, build_tool, 
 use investigations::{create_investigation, list_investigations, get_investigation, run_investigation};
 use evidence::{upload_evidence, get_evidence, verify_evidence};
 use audit::list_audit_logs;
-use middleware::{auth_middleware, require_role, AuthUser};
+use middleware::auth_middleware;
+pub(crate) use middleware::AuthUser;
 
 #[derive(Clone)]
 struct AppState {
@@ -63,7 +64,7 @@ async fn main() -> anyhow::Result<()> {
     info!("Connected to PostgreSQL");
 
     // Run migrations
-    sqlx::migrate!("./migrations").run(&db_pool).await?;
+    sqlx::migrate!("../../migrations").run(&db_pool).await?;
     info!("Database migrations applied");
 
     // Connect to Redis
@@ -137,7 +138,7 @@ async fn main() -> anyhow::Result<()> {
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
     info!("API server listening on http://0.0.0.0:8080");
 
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app.with_state(state.clone())).await?;
 
     Ok(())
 }

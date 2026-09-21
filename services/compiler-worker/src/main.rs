@@ -17,7 +17,6 @@ use traceforge_ir::{BuildConfig, TargetArch, TargetPlatform, serialize_ir};
 use traceforge_backend::Backend;
 use traceforge_shared_types::{Build, BuildStatus};
 
-#[derive(Clone)]
 struct AppState {
     redis: redis::Client,
     s3: S3Client,
@@ -99,6 +98,7 @@ impl Worker {
     async fn run(&self) -> anyhow::Result<()> {
         let mut interval = interval(Duration::from_secs(5));
         let mut shutdown = signal::ctrl_c();
+        tokio::pin!(shutdown);
 
         loop {
             tokio::select! {
@@ -156,6 +156,7 @@ impl Worker {
             Ok(metadata) => {
                 // Upload artifact to S3
                 let artifact_path = build_dir.join(&job.tool_name);
+                let artifact_size = std::fs::metadata(&artifact_path)?.len();
                 let s3_key = format!("artifacts/{}/{}", job.tool_version_id, job.tool_name);
                 self.upload_artifact(&artifact_path, &s3_key).await?;
 
@@ -163,7 +164,7 @@ impl Worker {
                 self.update_build_status(job.build_id, BuildStatus::Success, Some(metadata.artifact_hash.clone())).await?;
 
                 // Update tool version with artifact info
-                self.update_tool_version(&job, &metadata, &s3_key).await?;
+                self.update_tool_version(&job, &metadata, artifact_size, &s3_key).await?;
 
                 info!("Build completed successfully: {}", job.tool_version_id);
             }
@@ -263,15 +264,15 @@ impl Worker {
             None
         };
 
-        sqlx::query!(
+        sqlx::query(
             r#"
             UPDATE builds SET status = $1, completed_at = $2
             WHERE id = $3
             "#,
-            status as i32,
-            completed_at,
-            build_id
         )
+        .bind(status as i32)
+        .bind(completed_at)
+        .bind(build_id)
         .execute(&self.state.db)
         .await?;
 
@@ -279,29 +280,27 @@ impl Worker {
     }
 
     async fn update_build_log(&self, build_id: uuid::Uuid, log: &str) -> anyhow::Result<()> {
-        sqlx::query!(
-            "UPDATE builds SET build_log = $1 WHERE id = $2",
-            log,
-            build_id
-        )
+        sqlx::query("UPDATE builds SET build_log = $1 WHERE id = $2")
+        .bind(log)
+        .bind(build_id)
         .execute(&self.state.db)
         .await?;
         Ok(())
     }
 
-    async fn update_tool_version(&self, job: &BuildJob, metadata: &traceforge_ir::ArtifactMetadata, s3_key: &str) -> anyhow::Result<()> {
-        sqlx::query!(
+    async fn update_tool_version(&self, job: &BuildJob, metadata: &traceforge_ir::ArtifactMetadata, artifact_size: u64, s3_key: &str) -> anyhow::Result<()> {
+        sqlx::query(
             r#"
             UPDATE tool_versions
             SET artifact_path = $1, artifact_hash = $2, artifact_size = $3, is_published = true, published_at = $4
             WHERE id = $5
             "#,
-            s3_key,
-            metadata.artifact_hash,
-            metadata.artifact_size as i64,
-            chrono::Utc::now(),
-            job.tool_version_id
         )
+        .bind(s3_key)
+        .bind(&metadata.artifact_hash)
+        .bind(artifact_size as i64)
+        .bind(chrono::Utc::now())
+        .bind(job.tool_version_id)
         .execute(&self.state.db)
         .await?;
         Ok(())

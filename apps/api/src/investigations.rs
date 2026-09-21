@@ -4,7 +4,7 @@ use std::sync::Arc;
 use axum::{
     extract::{State, Path, Query, Json, Extension},
     http::StatusCode,
-    response::IntoResponse,
+    response::{IntoResponse, Response},
 };
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -334,11 +334,11 @@ struct EvidenceRow {
     created_at: DateTime<Utc>,
 }
 
-fn error_response(status: StatusCode, error: &str, message: &str) -> impl IntoResponse {
+fn error_response(status: StatusCode, error: &str, message: &str) -> Response {
     (status, Json(ErrorResponse {
         error: error.to_string(),
         message: message.to_string(),
         code: None,
         request_id: None,
-    }))
+    })).into_response()
 }

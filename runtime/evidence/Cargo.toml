@@ -7,9 +7,15 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
+traceforge-runtime-system = { path = "../system" }
+traceforge-runtime-process = { path = "../process" }
+traceforge-runtime-network = { path = "../network" }
+traceforge-runtime-filesystem = { path = "../filesystem" }
+traceforge-runtime-logs = { path = "../logs" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 chrono = { workspace = true }
 sha2 = { workspace = true }
+whoami = "1.5"

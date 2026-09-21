@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
-import { ToolResponse, ToolVersionResponse } from '../types/api';
+import { ToolResponse } from '../types/api';
 import {
   ArrowLeft,
   Download,

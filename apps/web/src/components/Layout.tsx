@@ -7,14 +7,11 @@ import {
   Database,
   FileText,
   Search,
-  Settings,
-  Users,
   LogOut,
   ChevronLeft,
   ChevronRight,
   Shield,
   Activity,
-  Home,
 } from 'lucide-react';
 import clsx from 'clsx';
 

@@ -4,7 +4,7 @@ use std::sync::Arc;
 use axum::{
     extract::{State, Json, Extension},
     http::{StatusCode, HeaderMap},
-    response::IntoResponse,
+    response::{IntoResponse, Response},
 };
 use sqlx::PgPool;
 use argon2::{Argon2, PasswordHash, PasswordVerifier, PasswordHasher, password_hash::SaltString};
@@ -16,12 +16,13 @@ use validator::Validate;
 use tracing::{info, warn, error};
 
 use traceforge_shared_types::{User, Role, Session, ErrorResponse};
+use crate::{AppState, AuthUser};
 
 #[derive(Clone)]
 pub struct AuthState {
     encoding_key: EncodingKey,
-    decoding_key: DecodingKey,
-    validation: Validation,
+    pub(crate) decoding_key: DecodingKey,
+    pub(crate) validation: Validation,
 }
 
 impl AuthState {
@@ -103,7 +104,7 @@ pub async fn register(
 
     let mut tx = match state.db.begin().await {
         Ok(tx) => tx,
-        Err(e) => {
+        Err(e) => { 
             error!("Database transaction error: {}", e);
             return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to start transaction");
         }
@@ -123,7 +124,7 @@ pub async fn register(
         Ok(None) => {
             // Create organization
             let org_id = Uuid::new_v4();
-            sqlx::query!(
+            if let Err(e) = sqlx::query!(
                 "INSERT INTO organizations (id, name, slug, description) VALUES ($1, $2, $3, $4)",
                 org_id,
                 payload.organization_name,
@@ -131,11 +132,10 @@ pub async fn register(
                 None::<String>
             )
             .execute(&mut *tx)
-            .await
-            .map_err(|e| {
+            .await {
                 error!("Failed to create organization: {}", e);
-                error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create organization")
-            })?;
+                return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create organization");
+            }
             org_id
         }
         Err(e) => {
@@ -160,16 +160,17 @@ pub async fn register(
     // Hash password
     let salt = SaltString::generate(&mut rand::thread_rng());
     let argon2 = Argon2::default();
-    let password_hash = argon2.hash_password(payload.password.as_bytes(), &salt)
-        .map_err(|e| {
+    let password_hash = match argon2.hash_password(payload.password.as_bytes(), &salt) {
+        Ok(hash) => hash.to_string(),
+        Err(e) => {
             error!("Password hashing error: {}", e);
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Failed to hash password")
-        })?
-        .to_string();
+            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Failed to hash password");
+        }
+    };
 
     // Create user
     let user_id = Uuid::new_v4();
-    sqlx::query!(
+    if let Err(e) = sqlx::query!(
         r#"
         INSERT INTO users (id, organization_id, email, password_hash, full_name, role)
         VALUES ($1, $2, $3, $4, $5, 'INVESTIGATOR')
@@ -181,15 +182,14 @@ pub async fn register(
         payload.full_name
     )
     .execute(&mut *tx)
-    .await
-    .map_err(|e| {
+    .await {
         error!("Failed to create user: {}", e);
-        error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create user")
-    })?;
+        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create user");
+    }
 
     // Create default project
     let project_id = Uuid::new_v4();
-    sqlx::query!(
+    if let Err(e) = sqlx::query!(
         "INSERT INTO projects (id, organization_id, name, description, created_by) VALUES ($1, $2, $3, $4, $5)",
         project_id,
         org_id,
@@ -198,22 +198,24 @@ pub async fn register(
         user_id
     )
     .execute(&mut *tx)
-    .await
-    .map_err(|e| {
+    .await {
         error!("Failed to create default project: {}", e);
-        error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create default project")
-    })?;
+        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create default project");
+    }
 
-    tx.commit().await.map_err(|e| {
+    if let Err(e) = tx.commit().await {
         error!("Transaction commit error: {}", e);
-        error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to commit transaction")
-    })?;
+        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to commit transaction");
+    }
 
     // Generate tokens
-    let tokens = generate_tokens(user_id, org_id, Role::Investigator, &state.auth).map_err(|e| {
-        error!("Token generation error: {}", e);
-        error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Failed to generate tokens")
-    })?;
+    let tokens = match generate_tokens(user_id, org_id, Role::Investigator, &state.auth) {
+        Ok(tokens) => tokens,
+        Err(e) => {
+            error!("Token generation error: {}", e);
+            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Failed to generate tokens");
+        }
+    };
 
     info!("User registered: {} (org: {})", payload.email, org_id);
 
@@ -270,11 +272,13 @@ pub async fn login(
     }
 
     // Verify password
-    let parsed_hash = PasswordHash::new(&user.password_hash)
-        .map_err(|e| {
+    let parsed_hash = match PasswordHash::new(&user.password_hash) {
+        Ok(hash) => hash,
+        Err(e) => {
             error!("Password hash parse error: {}", e);
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Invalid password hash")
-        })?;
+            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Invalid password hash");
+        }
+    };
 
     let argon2 = Argon2::default();
     if argon2.verify_password(payload.password.as_bytes(), &parsed_hash).is_err() {
@@ -283,17 +287,20 @@ pub async fn login(
     }
 
     // Generate tokens
-    let role = Role::from_str(&user.role.as_str()).unwrap_or(Role::Viewer);
-    let tokens = generate_tokens(user.id, user.organization_id, role, &state.auth).map_err(|e| {
-        error!("Token generation error: {}", e);
-        error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Failed to generate tokens")
-    })?;
+    let role = user.role;
+    let tokens = match generate_tokens(user.id, user.organization_id, role, &state.auth) {
+        Ok(tokens) => tokens,
+        Err(e) => {
+            error!("Token generation error: {}", e);
+            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Failed to generate tokens");
+        }
+    };
 
     // Create session
     let access_token_hash = sha256_hash(&tokens.0);
     let session_id = Uuid::new_v4();
     let expires_at = Utc::now() + Duration::hours(1);
-    sqlx::query!(
+    if let Err(e) = sqlx::query!(
         "INSERT INTO sessions (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, $4)",
         session_id,
         user.id,
@@ -301,11 +308,10 @@ pub async fn login(
         expires_at
     )
     .execute(&state.db)
-    .await
-    .map_err(|e| {
+    .await {
         error!("Failed to create session: {}", e);
-        error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create session")
-    })?;
+        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create session");
+    }
 
     // Update last login
     sqlx::query!("UPDATE users SET last_login_at = $1 WHERE id = $2", Utc::now(), user.id)
@@ -376,7 +382,7 @@ pub async fn me(
                     id: user.id,
                     email: user.email,
                     full_name: user.full_name,
-                    role: Role::from_str(&user.role.as_str()).unwrap_or(Role::Viewer),
+                    role: user.role,
                     organization_id: user.organization_id,
                 },
                 organization: OrganizationResponse {
@@ -428,11 +434,14 @@ pub async fn refresh_token(
         return error_response(StatusCode::FORBIDDEN, "Account disabled", "This account has been disabled");
     }
 
-    let role = Role::from_str(&user.role.as_str()).unwrap_or(Role::Viewer);
-    let tokens = generate_tokens(user.id, user.organization_id, role, &state.auth).map_err(|e| {
-        error!("Token generation error: {}", e);
-        error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Failed to generate tokens")
-    })?;
+    let role = user.role;
+    let tokens = match generate_tokens(user.id, user.organization_id, role, &state.auth) {
+        Ok(tokens) => tokens,
+        Err(e) => {
+            error!("Token generation error: {}", e);
+            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Failed to generate tokens");
+        }
+    };
 
     // Update session
     let access_token_hash = sha256_hash(&tokens.0);
@@ -503,13 +512,13 @@ fn sha256_hash(input: &str) -> String {
     format!("{:x}", hasher.finalize())
 }
 
-fn error_response(status: StatusCode, error: &str, message: &str) -> impl IntoResponse {
+fn error_response(status: StatusCode, error: &str, message: &str) -> Response {
     (status, Json(ErrorResponse {
         error: error.to_string(),
         message: message.to_string(),
         code: None,
         request_id: None,
-    }))
+    })).into_response()
 }
 
 #[derive(sqlx::FromRow)]

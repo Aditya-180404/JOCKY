@@ -8,11 +8,7 @@ import {
   FileText,
   Search,
   Plus,
-  Clock,
-  CheckCircle,
-  AlertCircle,
   Activity,
-  ExternalLink,
   ChevronRight,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -37,11 +33,10 @@ export function Dashboard() {
 
   const loadDashboard = async () => {
     try {
-      const [toolsRes, investigationsRes, evidenceRes, buildsRes] = await Promise.all([
+      const [toolsRes, investigationsRes, evidenceRes] = await Promise.all([
         api.get('/api/tools', { params: { per_page: 5 } }),
         api.get('/api/investigations', { params: { per_page: 5 } }),
         api.get('/api/evidence', { params: { per_page: 5 } }),
-        api.get('/api/tools', { params: { per_page: 1 } }), // Build stats would need separate endpoint
       ]);
 
       setStats({

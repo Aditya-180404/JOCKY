@@ -4,7 +4,7 @@ use std::sync::Arc;
 use axum::{
     extract::{State, Path, Query, Json, Extension, Multipart},
     http::StatusCode,
-    response::IntoResponse,
+    response::{IntoResponse, Response},
 };
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -12,6 +12,7 @@ use chrono::{DateTime, Utc};
 use validator::Validate;
 use tracing::{info, error};
 use serde::{Deserialize, Serialize};
+use redis::AsyncCommands;
 
 use traceforge_shared_types::{Tool, ToolVersion, Build, BuildStatus, PaginatedResponse, Pagination, ErrorResponse};
 
@@ -399,7 +400,7 @@ pub async fn build_tool(
     let build_id = Uuid::new_v4();
     let now = Utc::now();
 
-    sqlx::query!(
+    if let Err(e) = sqlx::query!(
         "INSERT INTO builds (id, tool_version_id, status, started_at, created_at) VALUES ($1, $2, $3, $4, $5)",
         build_id,
         version.id,
@@ -408,11 +409,10 @@ pub async fn build_tool(
         now
     )
     .execute(&state.db)
-    .await
-    .map_err(|e| {
+    .await {
         error!("Failed to create build: {}", e);
-        error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create build")
-    })?;
+        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create build");
+    }
 
     // Queue build job
     let job = BuildJob {
@@ -424,27 +424,30 @@ pub async fn build_tool(
         target_arch: payload.target_arch.unwrap_or(version.target_arch),
     };
 
-    let mut redis = state.redis.get_async_connection().await.map_err(|e| {
-        error!("Redis connection error: {}", e);
-        error_response(StatusCode::INTERNAL_SERVER_ERROR, "Queue error", "Failed to connect to queue")
-    })?;
+    let mut redis = match state.redis.get_async_connection().await {
+        Ok(redis) => redis,
+        Err(e) => {
+            error!("Redis connection error: {}", e);
+            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Queue error", "Failed to connect to queue");
+        }
+    };
 
-    redis.rpush("build_queue", serde_json::to_string(&job).unwrap())
-        .await
-        .map_err(|e| {
-            error!("Failed to queue build: {}", e);
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "Queue error", "Failed to queue build")
-        })?;
+    if let Err(e) = redis.rpush("build_queue", serde_json::to_string(&job).unwrap()).await {
+        error!("Failed to queue build: {}", e);
+        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Queue error", "Failed to queue build");
+    }
 
     // Update build status to running
-    sqlx::query!(
+    if let Err(e) = sqlx::query!(
         "UPDATE builds SET status = $1 WHERE id = $2",
         BuildStatus::Running as i32,
         build_id
     )
     .execute(&state.db)
     .await
-    .ok();
+    {
+        error!("Failed to update build status: {}", e);
+    }
 
     info!("Build queued: {} for tool version {}", build_id, version.id);
 
@@ -486,17 +489,16 @@ pub async fn publish_tool(
     };
 
     let now = Utc::now();
-    sqlx::query!(
+    if let Err(e) = sqlx::query!(
         "UPDATE tool_versions SET is_published = true, published_at = $1 WHERE id = $2",
         now,
         version.id
     )
     .execute(&state.db)
-    .await
-    .map_err(|e| {
+    .await {
         error!("Failed to publish tool: {}", e);
-        error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to publish tool")
-    })?;
+        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to publish tool");
+    }
 
     info!("Tool published: {} version {}", id, version.version);
 
@@ -575,13 +577,13 @@ fn calculate_compiler_hash() -> anyhow::Result<String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
-fn error_response(status: StatusCode, error: &str, message: &str) -> impl IntoResponse {
+fn error_response(status: StatusCode, error: &str, message: &str) -> Response {
     (status, Json(ErrorResponse {
         error: error.to_string(),
         message: message.to_string(),
         code: None,
         request_id: None,
-    }))
+    })).into_response()
 }
 
 #[derive(sqlx::FromRow)]
@@ -616,7 +618,7 @@ struct ToolVersionRow {
     created_at: DateTime<Utc>,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, serde::Serialize)]
 struct BuildJob {
     build_id: Uuid,
     tool_version_id: Uuid,

@@ -1,15 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import Editor from '@monaco-editor/react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import MonacoEditor from '@monaco-editor/react';
 import { api } from '../services/api';
 import { ToolResponse } from '../types/api';
 import {
   Play,
   Check,
-  Save,
   Download,
   Upload,
-  Settings,
   ChevronDown,
   AlertCircle,
   Info,
@@ -53,8 +51,6 @@ type Diagnostic = {
 
 export function Editor() {
   const { toolId } = useParams<{ toolId: string }>();
-  const navigate = useNavigate();
-  const editorRef = useRef<any>(null);
   const [source, setSource] = useState(DEFAULT_SOURCE);
   const [target, setTarget] = useState('linux-x64');
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
@@ -72,10 +68,10 @@ export function Editor() {
 
   const loadTool = async (id: string) => {
     try {
-      const response = await api.get(`/api/tools/${id}`);
-      setTool(response.data);
-      if (response.data.versions.length > 0) {
-        const latest = response.data.versions[0];
+      const res = await api.get(`/api/tools/${id}`);
+      setTool(res.data);
+      if (res.data.versions.length > 0) {
+        const latest = res.data.versions[0];
         // In a real app, we'd fetch the source from storage
         setVersion(latest.version);
       }
@@ -96,7 +92,7 @@ export function Editor() {
     setDiagnostics([]);
 
     try {
-      const response = await api.post('/api/tools/validate', { source });
+      await api.post('/api/tools/validate', { source });
       setOutput('Validation successful');
       // In a real implementation, the API would return diagnostics
     } catch (error: any) {
@@ -121,13 +117,13 @@ export function Editor() {
     try {
       if (toolId) {
         // Build existing tool version
-        const response = await api.post(`/api/tools/${toolId}/build`, {
+        const res = await api.post(`/api/tools/${toolId}/build`, {
           target_platform: platform,
           target_arch: arch,
         });
-        setOutput(`Build queued: ${response.data.build_id}`);
+        setOutput(`Build queued: ${res.data.build_id}`);
         // Poll for build status
-        pollBuild(response.data.build_id);
+        pollBuild(res.data.build_id);
       } else {
         // Create tool and build
         const toolName = extractToolName(source) || 'investigation';
@@ -137,7 +133,7 @@ export function Editor() {
         });
         const newTool = createRes.data;
 
-        const versionRes = await api.post(`/api/tools/${newTool.id}/versions`, {
+        await api.post(`/api/tools/${newTool.id}/versions`, {
           version: '0.1.0',
           source,
           target_platform: platform,
@@ -220,13 +216,6 @@ export function Editor() {
     return match ? match[1].replace(/[^a-zA-Z0-9_-]/g, '-') : null;
   };
 
-  const getStatusColor = () => {
-    if (output.includes('successful')) return 'text-accent-green';
-    if (output.includes('failed') || output.includes('error')) return 'text-accent-red';
-    if (output.includes('queued') || output.includes('Compiling') || output.includes('Validating')) return 'text-accent-amber';
-    return 'text-forensic-400';
-  };
-
   return (
     <div className="h-full flex flex-col">
       {/* Toolbar */}
@@ -301,8 +290,7 @@ export function Editor() {
           </div>
 
           <div className="flex-1 relative">
-            <Editor
-              ref={editorRef}
+            <MonacoEditor
               height="100%"
               defaultLanguage="traceforge"
               value={source}

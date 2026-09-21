@@ -4,7 +4,7 @@ use std::sync::Arc;
 use axum::{
     extract::{State, Path, Json, Extension, Multipart},
     http::StatusCode,
-    response::IntoResponse,
+    response::{IntoResponse, Response},
 };
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -273,10 +273,13 @@ pub async fn verify_evidence(
         .await;
 
     let data = match obj {
-        Ok(o) => o.body.collect().await.map_err(|e| {
-            error!("Failed to read evidence from S3: {}", e);
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "Verification failed", "Failed to read evidence")
-        })?.into_bytes(),
+        Ok(o) => match o.body.collect().await {
+            Ok(body) => body.into_bytes(),
+            Err(e) => {
+                error!("Failed to read evidence from S3: {}", e);
+                return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Verification failed", "Failed to read evidence");
+            }
+        },
         Err(e) => {
             error!("Failed to get evidence from S3: {}", e);
             return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Verification failed", "Failed to get evidence");
@@ -330,13 +333,13 @@ async fn log_audit(
     .ok();
 }
 
-fn error_response(status: StatusCode, error: &str, message: &str) -> impl IntoResponse {
+fn error_response(status: StatusCode, error: &str, message: &str) -> Response {
     (status, Json(ErrorResponse {
         error: error.to_string(),
         message: message.to_string(),
         code: None,
         request_id: None,
-    }))
+    })).into_response()
 }
 
 #[derive(sqlx::FromRow)]

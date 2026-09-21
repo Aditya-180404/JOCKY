@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
-import { AuditLogResponse, PaginatedResponse, UserResponse } from '../types/api';
+import { AuditLogResponse, PaginatedResponse } from '../types/api';
 import {
   Users,
   Activity,
   Search,
   Filter,
-  ChevronDown,
-  Download,
   Eye,
   Shield,
   AlertCircle,
@@ -18,9 +16,7 @@ import clsx from 'clsx';
 
 export function Admin() {
   const [auditLogs, setAuditLogs] = useState<AuditLogResponse[]>([]);
-  const [users, setUsers] = useState<UserResponse[]>([]);
   const [pagination, setPagination] = useState({ page: 1, per_page: 50, total: 0 });
-  const [loading, setLoading] = useState(true);
   const [actionFilter, setActionFilter] = useState('');
   const [userFilter, setUserFilter] = useState('');
   const [activeTab, setActiveTab] = useState<'audit' | 'users'>('audit');
@@ -30,7 +26,6 @@ export function Admin() {
   }, [pagination.page, actionFilter, userFilter, activeTab]);
 
   const loadData = async () => {
-    setLoading(true);
     try {
       if (activeTab === 'audit') {
         const response = await api.get<PaginatedResponse<AuditLogResponse>>('/api/audit-logs', {
@@ -38,14 +33,9 @@ export function Admin() {
         });
         setAuditLogs(response.data.data);
         setPagination(prev => ({ ...prev, total: response.data.pagination.total }));
-      } else {
-        // In a real implementation, there would be a users endpoint
-        setUsers([]);
       }
     } catch (error) {
       console.error('Failed to load admin data:', error);
-    } finally {
-      setLoading(false);
     }
   };
 

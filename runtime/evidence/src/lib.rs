@@ -50,9 +50,7 @@ impl EvidenceCollector {
             investigation_name: investigation_name.to_string(),
             tool_name: "traceforge-tool".to_string(),
             tool_version: "0.1.0".to_string(),
-            host_identifier: hostname::get()
-                .map(|h| h.to_string_lossy().to_string())
-                .unwrap_or_else(|_| "unknown".to_string()),
+            host_identifier: whoami::devicename(),
             output_format: "json".to_string(),
             output_path: format!("{}.json", investigation_name),
             data: Vec::new(),

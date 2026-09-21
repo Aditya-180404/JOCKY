@@ -40,7 +40,7 @@ impl SystemInfo {
 
             let arch = std::env::consts::ARCH.to_string();
 
-            let cpu_count = num_cpus::get();
+            let cpu_count = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
 
             let meminfo = fs::read_to_string("/proc/meminfo")?;
             let total_memory_kb = meminfo.lines()

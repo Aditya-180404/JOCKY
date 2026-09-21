@@ -2,9 +2,9 @@
 
 use std::sync::Arc;
 use axum::{
-    extract::{State, Query, Extension},
+    extract::{State, Query, Extension, Json},
     http::StatusCode,
-    response::IntoResponse,
+    response::{IntoResponse, Response},
 };
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -133,13 +133,13 @@ pub async fn list_audit_logs(
     }
 }
 
-fn error_response(status: StatusCode, error: &str, message: &str) -> impl IntoResponse {
+fn error_response(status: StatusCode, error: &str, message: &str) -> Response {
     (status, Json(ErrorResponse {
         error: error.to_string(),
         message: message.to_string(),
         code: None,
         request_id: None,
-    }))
+    })).into_response()
 }
 
 #[derive(sqlx::FromRow)]
@@ -151,7 +151,7 @@ struct AuditLogRow {
     resource_type: Option<String>,
     resource_id: Option<Uuid>,
     result: AuditResult,
-    ip_address: Option<sqlx::types::IpNetwork>,
+    ip_address: Option<std::net::IpAddr>,
     user_agent: Option<String>,
     metadata: Option<serde_json::Value>,
     created_at: DateTime<Utc>,

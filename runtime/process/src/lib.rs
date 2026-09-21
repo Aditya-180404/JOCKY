@@ -41,17 +41,20 @@ pub fn enumerate_processes(fields: &[String]) -> Result<Vec<serde_json::Value>, 
         let procs = procfs::process::all_processes()?;
         let mut results = Vec::new();
 
-        for proc in procs {
+        let boot_time_sec = procfs::boot_time_secs().ok();
+        for proc_res in procs {
+            let Ok(proc) = proc_res else { continue };
             let mut info = ProcessInfo {
                 pid: proc.pid(),
                 ppid: proc.stat().ok().map(|s| s.ppid),
                 name: proc.stat().ok().map(|s| s.comm).unwrap_or_default(),
-                command_line: proc.cmdline().ok().map(|c| c.0).unwrap_or_default(),
+                command_line: proc.cmdline().ok().unwrap_or_default(),
                 executable_path: proc.exe().ok().map(|p| p.to_string_lossy().to_string()),
                 start_time: proc.stat().ok().and_then(|s| {
                     let start_time = s.starttime as f64 / procfs::ticks_per_second() as f64;
-                    let boot_time = procfs::uptime()?.boot_time;
-                    chrono::DateTime::from_timestamp(boot_time as i64 + start_time as i64, 0)
+                    boot_time_sec.and_then(|boot_time| {
+                        chrono::DateTime::from_timestamp(boot_time as i64 + start_time as i64, 0)
+                    })
                 }),
                 user: proc.stat().ok().and_then(|s| {
                     fs::read_to_string(format!("/proc/{}/status", proc.pid())).ok()
@@ -159,8 +162,17 @@ fn get_groupname(gid: u32) -> Option<String> {
 }
 
 fn calculate_file_sha256(path: &str) -> Result<String, Box<dyn std::error::Error>> {
+    use std::io::Read;
     let mut file = fs::File::open(path)?;
     let mut hasher = Sha256::new();
-    std::io::copy(&mut file, &mut hasher)?;
-    Ok(format!("{:x}", hasher.finalize()))
+    let mut buffer = [0u8; 8192];
+    loop {
+        let count = file.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        hasher.update(&buffer[..count]);
+    }
+    let result = hasher.finalize();
+    Ok(format!("{:x}", result))
 }

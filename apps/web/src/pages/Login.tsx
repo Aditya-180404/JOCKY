@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Activity, Mail, Lock, AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
-import clsx from 'clsx';
 
 export function Login() {
   const { login } = useAuth();

@@ -2,18 +2,18 @@
 
 use std::sync::Arc;
 use axum::{
-    extract::{State, Request, Extension},
-    http::{StatusCode, HeaderMap},
+    extract::{State, Request},
+    http::StatusCode,
     middleware::Next,
-    response::Response,
+    response::{IntoResponse, Response},
 };
-use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
+use jsonwebtoken::decode;
 use uuid::Uuid;
-use tracing::{warn, debug};
+use tracing::warn;
 
-use traceforge_shared_types::{Role, User};
+use traceforge_shared_types::Role;
 
-use crate::auth::{AuthState, Claims};
+use crate::auth::Claims;
 
 #[derive(Clone)]
 pub struct AuthUser {
@@ -76,7 +76,12 @@ pub async fn auth_middleware(
         Err(_) => return (StatusCode::UNAUTHORIZED, "Invalid token").into_response(),
     };
 
-    let role = Role::from_str(&claims.role).unwrap_or(Role::Viewer);
+    let role = match claims.role.as_str() {
+        "ADMIN" => Role::Admin,
+        "INVESTIGATOR" => Role::Investigator,
+        "DEVELOPER" => Role::Developer,
+        _ => Role::Viewer,
+    };
 
     // Update session last accessed
     sqlx::query!(
@@ -94,29 +99,14 @@ pub async fn auth_middleware(
         organization_id,
         role,
         token,
-        db: state.db.clone(),
+        db: Arc::new(state.db.clone()),
     };
 
     request.extensions_mut().insert(auth_user);
     next.run(request).await
 }
 
-pub fn require_role(allowed_roles: Vec<Role>) -> axum::middleware::MiddlewareFn<AppState> {
-    axum::middleware::from_fn(move |request: Request, next: Next| {
-        let allowed = allowed_roles.clone();
-        async move {
-            let auth_user = request.extensions().get::<AuthUser>();
-
-            match auth_user {
-                Some(user) if allowed.contains(&user.role) => next.run(request).await,
-                Some(_) => (StatusCode::FORBIDDEN, "Insufficient permissions").into_response(),
-                None => (StatusCode::UNAUTHORIZED, "Authentication required").into_response(),
-            }
-        }
-    })
-}
-
-fn sha256_hash(input: &str) -> String {
+pub(crate) fn sha256_hash(input: &str) -> String {
     use sha2::{Digest, Sha256};
     let mut hasher = Sha256::new();
     hasher.update(input.as_bytes());
