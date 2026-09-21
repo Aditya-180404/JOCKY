@@ -364,7 +364,7 @@ pub async fn me(
         "#,
         auth_user.user_id
     )
-    .fetch_one(&auth_user.db)
+    .fetch_one(&*auth_user.db)
     .await;
 
     let org = sqlx::query_as!(
@@ -372,7 +372,7 @@ pub async fn me(
         "SELECT id, name, slug, description, created_at, updated_at FROM organizations WHERE id = $1",
         auth_user.organization_id
     )
-    .fetch_one(&auth_user.db)
+    .fetch_one(&*auth_user.db)
     .await;
 
     match (user, org) {

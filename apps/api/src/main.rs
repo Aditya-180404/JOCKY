@@ -4,10 +4,10 @@ use std::sync::Arc;
 use axum::{
     routing::{get, post, put, delete},
     Router, Json, extract::{State, Path, Query, Extension},
-    http::{StatusCode, HeaderMap},
+    http::{StatusCode, HeaderMap, HeaderValue},
     response::IntoResponse,
 };
-use tower_http::cors::{CorsLayer, Any};
+use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use sqlx::PgPool;
 use redis::Client as RedisClient;
@@ -129,9 +129,10 @@ async fn main() -> anyhow::Result<()> {
         .layer(Extension(state.clone()))
         // CORS
         .layer(CorsLayer::new()
-            .allow_origin(Any)
-            .allow_methods(Any)
-            .allow_headers(Any))
+            .allow_origin(HeaderValue::from_static("http://localhost:3000"))
+            .allow_methods([axum::http::Method::GET, axum::http::Method::POST, axum::http::Method::PUT, axum::http::Method::DELETE, axum::http::Method::OPTIONS])
+            .allow_headers([axum::http::header::CONTENT_TYPE, axum::http::header::AUTHORIZATION])
+            .allow_credentials(true))
         // Tracing
         .layer(TraceLayer::new_for_http());
 

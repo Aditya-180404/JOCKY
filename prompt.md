@@ -1,244 +1,169 @@
-# TRACEFORGE — COMPLETE PROJECT DEVELOPMENT SPECIFICATION
+# TRACEFORGE — FULL-SCALE FORENSIC PROGRAMMING LANGUAGE & PLATFORM
 
-You are the principal software architect, compiler engineer, backend engineer, frontend engineer, DevOps engineer, and security engineer responsible for building the project described below.
+You are the principal compiler engineer, cybersecurity engineer, digital-forensics engineer, backend engineer, frontend engineer, DevOps engineer, and software architect responsible for building this project.
 
-You are working on a real software repository. Do not merely describe code. Inspect the repository, create the required files, implement the features, run tests, diagnose failures, and iteratively improve the implementation.
+You are working inside an actual software repository.
+
+Do not merely explain what should be built.
+
+Inspect the repository, design the architecture, implement the software, create files, run tests, diagnose failures, fix them, and continuously move the project toward a production-quality working system.
+
+The project is a direct implementation of the supplied cybersecurity/digital-forensics problem statement.
+
+The product must not be reduced to merely a web dashboard.
+
+The actual product consists of:
+
+1. A new forensic programming language.
+2. A compiler/toolchain for Windows and Linux.
+3. A web-based development environment.
+4. A downloadable standalone compiler.
+5. A forensic script/tool repository.
+6. A cloud-based investigation management platform.
+7. Multi-system forensic analysis.
+8. Security-analysis capabilities corresponding to the techniques described in the problem statement.
+9. Evidence integrity and blockchain anchoring.
+10. CI/CD and reproducible tool generation.
 
 The project name is currently:
 
 TRACEFORGE
 
-IMPORTANT:
-The name is provisional. Do not hard-code the project name into architecture where it would make future renaming difficult.
+Treat this as a provisional product name and keep naming configurable.
 
 ---
 
-# 1. PROJECT PURPOSE
+# 1. CORE PRODUCT VISION
 
-TraceForge is a cloud-based digital-forensics development and distribution platform.
+TraceForge is a domain-specific programming language and forensic analysis platform for creating, compiling, distributing, executing, and managing computer and network forensic investigations.
 
-The platform introduces a domain-specific programming language for forensic investigations.
+The system has TWO equal execution models.
 
-Investigators should be able to:
+## MODEL A — LOCAL
 
-1. Open a web-based IDE.
-2. Write forensic investigation programs using the TraceForge language.
-3. Validate and compile the program.
-4. Generate a portable forensic tool.
-5. Version and publish the tool.
-6. Store the tool in a centralized repository.
-7. Download and reuse previously created tools.
-8. Execute tools on authorized forensic/lab machines.
-9. Collect forensic evidence.
-10. Upload evidence to the platform.
-11. Verify evidence integrity cryptographically.
-12. View investigation results from a web dashboard.
+A user downloads the TraceForge compiler from the website.
 
-The primary MVP is CLOUD-FIRST.
+They install it on Windows or Linux.
 
-Do NOT make VPN infrastructure, remote network pivoting, reverse shells, or mandatory Windows/Linux agents part of the MVP.
+They can then write:
 
-Optional enterprise agents may be designed as a future extension.
+process_triage.tfg
 
----
+and compile locally:
 
-# 2. IMPORTANT SECURITY BOUNDARY
+Linux:
 
-This is a defensive digital-forensics platform.
+./traceforge process_triage.tfg -o process_triage
 
-The platform must NOT implement:
+Windows:
 
-- antivirus/EDR bypass
-- EDR tampering
-- security-product disabling
-- process hollowing
-- reflective DLL injection
-- thread hijacking
-- API unhooking
-- direct-syscall evasion
-- BYOVD exploitation
-- vulnerable-driver exploitation
-- credential theft
-- persistence mechanisms
-- covert C2
-- domain-fronting infrastructure
-- malicious payload generation
-- polymorphic malware generation
-- stealth mechanisms intended to defeat security products
+traceforge.exe process_triage.tfg -o process_triage.exe
 
-The original problem statement mentions these concepts, but TraceForge must interpret them from a defensive forensic perspective.
+Explicit targets:
 
-The compiler may perform normal optimization, deterministic/reproducible compilation, platform-specific compilation, and code generation.
+./traceforge process_triage.tfg 
+    --target linux-x64 
+    -o process_triage
 
-Security and forensic operations must be explicit, auditable, permission-controlled, and reproducible.
+./traceforge process_triage.tfg 
+    --target windows-x64 
+    -o process_triage.exe
+
+The generated forensic tool can then be executed in the user's authorized forensic/lab environment.
+
+The user does NOT need the cloud platform to compile their language.
 
 ---
 
-# 3. CORE PRODUCT
+# 2. MODEL B — CLOUD
 
-Build these components:
+The same language and compiler must be available through the TraceForge web platform.
 
-TRACEFORGE PLATFORM
+Browser:
 
-├── Web frontend
-├── Web IDE
-├── TraceForge language
-├── TraceForge compiler
-├── Compiler service
-├── Tool repository
-├── Tool/version management
-├── Investigation management
-├── Evidence management
-├── Evidence integrity system
-├── Authentication
-├── Authorization/RBAC
-├── Audit logging
-└── API
+Web IDE
+   ↓
+TraceForge source
+   ↓
+Cloud compiler
+   ↓
+Build artifact
+   ↓
+Repository
+   ↓
+Download
+   ↓
+Local execution
 
-Future components:
+The cloud platform additionally provides:
 
-├── Windows Agent
-├── Linux Agent
-├── Enterprise deployment server
-└── Private/on-premise deployment
+- collaboration
+- tool repository
+- version management
+- investigations
+- evidence management
+- centralized analysis
+- organization management
+- audit logs
+- integrity verification
+- multi-host management
+- optional agent architecture
 
-The future components should have clean interfaces but do not allow them to delay the MVP.
+The local compiler and cloud compiler MUST use the same language specification and compiler implementation.
 
----
-
-# 4. RECOMMENDED HIGH-LEVEL ARCHITECTURE
-
-Use this architecture:
-
-                    TRACEFORGE CLOUD
-
-                         Browser
-                            |
-             +--------------+--------------+
-             |              |              |
-             v              v              v
-         Web IDE        Repository      Dashboard
-             |              |              |
-             +--------------+--------------+
-                            |
-                            v
-                       REST API
-                            |
-             +--------------+--------------+
-             |              |              |
-             v              v              v
-       Auth Service    Compiler Service   Investigation API
-                            |
-                            v
-                       TraceForge IR
-                            |
-                            v
-                         LLVM/backend
-                            |
-                  +---------+---------+
-                  |                   |
-                  v                   v
-             Windows             Linux
-               .exe               ELF
-                  |                   |
-                  +---------+---------+
-                            |
-                            v
-                       Evidence
-                            |
-                            v
-                     SHA-256 hashing
-                            |
-                            v
-                       Merkle tree
-                            |
-                            v
-                 Optional blockchain anchor
+There must not be two incompatible TraceForge languages.
 
 ---
 
-# 5. WEB APPLICATION
+# 3. PROBLEM-STATEMENT MAPPING
 
-Build a modern web application.
+The supplied problem statement requires:
 
-Required pages:
+- independent/custom programming language
+- LLVM/custom IR concepts
+- cross-platform compiler
+- computer forensics
+- network forensics
+- malicious-activity analysis
+- polymorphic/generated representations
+- CI/CD
+- custom cryptographic mechanisms
+- in-memory execution concepts
+- process injection concepts
+- API monitoring/unhooking concepts
+- direct syscall concepts
+- BYOVD concepts
+- kernel-level security concepts
+- central management
+- multiple-system analysis
+- cloud/CDN communication
+- blockchain
+- evidence integrity
 
-/                     Landing page
-/login                Authentication
-/register             Registration
-/dashboard            Main dashboard
-/editor               TraceForge IDE
-/repository           Tool repository
-/repository/:id       Tool details
-/investigations       Investigations
-/investigations/:id   Investigation details
-/evidence              Evidence
-/evidence/:id         Evidence details
-/settings              User settings
-/admin                 Administrative dashboard
+TraceForge must provide a corresponding implementation or defensive forensic-analysis module for every major area.
 
-The UI should be professional and appropriate for cybersecurity/digital-forensics software.
+Where a technique in the source statement represents security-evasion or kernel-subversion behavior, implement the corresponding capability as:
 
-Use a dark security/forensics-oriented interface but maintain readability and accessibility.
+- detection
+- forensic acquisition/analysis
+- controlled laboratory simulation
+- telemetry generation
+- threat research
+- defensive validation
 
-Do not create an excessive cyberpunk aesthetic.
+Do NOT implement mechanisms whose purpose is to disable security products, evade EDR/AV, exploit vulnerable drivers, steal credentials, or conceal malicious activity on real systems.
 
----
-
-# 6. WEB IDE
-
-The IDE must contain:
-
-- code editor
-- syntax highlighting
-- language selection
-- file tree
-- Run/Validate button
-- Compile button
-- Build target selector
-- compiler output panel
-- diagnostics panel
-- generated artifact information
-- SHA-256
-- version information
-- publish button
-
-Example:
-
-Target:
-
-[ Windows x64 ]
-
-or
-
-[ Linux x64 ]
-
-Buttons:
-
-[Validate] [Compile] [Publish]
-
-Output:
-
-Compilation successful
-
-Artifact:
-process-triage.exe
-
-SHA-256:
-...
-
-Compiler:
-TraceForge Compiler 0.1.0
+The product should demonstrate that it understands and analyzes those techniques rather than becoming a malware/evasion framework.
 
 ---
 
-# 7. TRACEFORGE LANGUAGE
+# 4. LANGUAGE
 
-Create a small domain-specific language.
+Create a real programming language called TraceForge.
 
-Do NOT attempt to create a full general-purpose language.
+File extension:
 
-The language is specifically designed for forensic collection and investigation.
+.tfg
 
 Example:
 
@@ -262,842 +187,1399 @@ investigation "process_triage" {
 
 Another example:
 
-investigation "host_baseline" {
+investigation "network_triage" {
 
-    collect system_info
-
-    collect processes
-
-    collect network_connections
-
-    collect files "/tmp" {
-        recursive true
-        hash sha256
+    collect network_connections {
+        local_address
+        local_port
+        remote_address
+        remote_port
+        protocol
+        process
     }
 
-    export evidence "baseline.json"
+    analyze suspicious_connections
+
+    export evidence "network.json"
 }
 
 ---
 
-# 8. INITIAL LANGUAGE FEATURES
+# 5. LANGUAGE PHILOSOPHY
 
-Implement these first:
+TraceForge is NOT intended to replace Rust, C, C++, Python, or Go.
 
-collect system_info
+It is a domain-specific language optimized for:
+
+- digital forensics
+- incident response
+- system investigation
+- network investigation
+- evidence collection
+- timeline analysis
+- threat detection
+- forensic reporting
+
+The language should make complex forensic operations simple.
+
+Example:
 
 collect processes
 
-collect network_connections
+should translate into the appropriate platform-specific implementation.
 
-collect files
+---
 
-collect logs
+# 6. LANGUAGE FEATURES
 
-hash evidence
+Initial syntax must support:
 
-export evidence
+investigation
+
+collect
+
+analyze
 
 filter
 
 where
 
-limit
+if
+
+for
+
+function
+
+module
+
+export
+
+hash
+
+timeline
+
+alert
 
 metadata
 
-investigation
+target
 
-The language should eventually support:
+capability
 
-- variables
-- conditions
-- structured records
-- filters
-- functions
-- reusable modules
-- error handling
+evidence
 
-Do not implement unnecessary language features until the core DSL works.
+report
+
+Future syntax may include:
+
+variables
+arrays
+objects
+conditions
+loops
+functions
+modules
+imports
+error handling
+
+Do not add unnecessary language complexity before the core language is functional.
 
 ---
 
-# 9. LANGUAGE PIPELINE
+# 7. COMPILER ARCHITECTURE
 
-Implement a real compiler pipeline:
+Implement a real compiler.
 
-Source
-  |
+Pipeline:
+
+TraceForge source
+       ↓
 Lexer
-  |
+       ↓
 Parser
-  |
+       ↓
 AST
-  |
-Semantic Analysis
-  |
-JOCKY/TraceForge IR
-  |
+       ↓
+Semantic analysis
+       ↓
+TraceForge IR
+       ↓
 Backend
-  |
-Target artifact
+       ↓
+Native executable
 
-Use the following internal architecture:
+The architecture must be:
 
 frontend/
-    lexer
-    parser
-    ast
-    diagnostics
+    lexer/
+    parser/
+    ast/
+    diagnostics/
 
 semantic/
-    typechecker
-    validator
+    analyzer/
+    typechecker/
+    capability_checker/
 
 ir/
-    ir_definition
-    ir_builder
+    definitions/
+    builder/
+    serializer/
 
 backend/
-    llvm
-    windows
-    linux
+    llvm/
+    windows/
+    linux/
 
 runtime/
-    process
-    network
-    filesystem
-    system
-    logs
-    evidence
+    system/
+    process/
+    network/
+    filesystem/
+    logs/
+    memory/
+    evidence/
+    timeline/
 
-Do not tightly couple the parser directly to OS-specific implementation.
-
----
-
-# 10. IR
-
-Create an intermediate representation.
-
-Example:
-
-{
-  "version": "0.1",
-  "investigation": "process_triage",
-  "operations": [
-    {
-      "operation": "process.enumerate"
-    },
-    {
-      "operation": "process.command_line"
-    },
-    {
-      "operation": "process.sha256"
-    },
-    {
-      "operation": "network.connections"
-    }
-  ],
-  "integrity": {
-    "algorithm": "SHA-256"
-  }
-}
-
-The IR must be:
-
-- deterministic
-- versioned
-- serializable
-- testable
-- independent of the web frontend
+cli/
 
 ---
 
-# 11. COMPILER
+# 8. LLVM
 
-Create a command-line compiler:
+Use LLVM as the machine-code generation infrastructure where practical.
+
+The team must NOT unnecessarily fork the entire Rust compiler.
+
+Preferred:
+
+TraceForge frontend
+       ↓
+TraceForge AST
+       ↓
+TraceForge IR
+       ↓
+LLVM IR
+       ↓
+LLVM
+       ↓
+Native artifact
+
+The compiler itself should be written in Rust.
+
+---
+
+# 9. STANDALONE COMPILER
+
+The downloadable compiler is a FIRST-CLASS product component.
+
+The website must provide downloads for:
+
+TraceForge Compiler — Windows x64
+TraceForge Compiler — Linux x64
+
+Future:
+
+Windows ARM64
+Linux ARM64
+macOS
+
+The compiler package should contain:
 
 traceforge
-
-Example:
-
-traceforge validate process_triage.tfg
-
-traceforge compile process_triage.tfg --target windows-x64
-
-traceforge compile process_triage.tfg --target linux-x64
-
-traceforge build process_triage.tfg
-
-traceforge inspect process_triage.tfg
-
-traceforge hash process_triage.exe
-
-The compiler should return useful diagnostics.
-
-Example:
-
-ERROR:
-line 7:
-unknown field 'foo' for process record
-
-WARNING:
-operation requires capability PROCESS_READ
+standard library/runtime
+documentation
+example .tfg programs
+license
+version metadata
 
 ---
 
-# 12. FORENSIC RUNTIME
+# 10. CLI DESIGN
 
-Create a safe runtime/library for supported forensic operations.
+The CLI must support:
 
-Initial modules:
+traceforge --help
 
-runtime.system
-runtime.process
-runtime.network
-runtime.filesystem
-runtime.logs
-runtime.evidence
+traceforge --version
+
+traceforge check script.tfg
+
+traceforge compile script.tfg
+
+traceforge build script.tfg
+
+traceforge run script.tfg
+
+traceforge inspect script.tfg
+
+traceforge fmt script.tfg
+
+traceforge hash artifact
+
+traceforge target list
 
 Examples:
 
-runtime.process.enumerate()
+./traceforge process.tfg -o process
 
-runtime.network.connections()
+./traceforge process.tfg 
+    --target linux-x64 
+    -o process
 
-runtime.filesystem.hash()
+./traceforge process.tfg 
+    --target windows-x64 
+    -o process.exe
 
-runtime.system.info()
+Compilation output:
 
-All operations must be read-only unless explicitly required by a legitimate forensic workflow.
+TraceForge Compiler 0.1.0
+
+Source:
+process.tfg
+
+Target:
+linux-x64
+
+Capabilities:
+PROCESS_READ
+SYSTEM_INFO_READ
+
+Compilation:
+SUCCESS
+
+Output:
+./process
+
+SHA-256:
+...
 
 ---
 
-# 13. CAPABILITY MODEL
+# 11. COMPILER INSTALLATION
 
-Every forensic operation must have explicit capabilities.
+Provide installation methods.
 
-Example:
+Linux:
 
-PROCESS_READ
-NETWORK_READ
-FILESYSTEM_READ
-LOG_READ
-SYSTEM_INFO_READ
-FILE_HASH
+tar archive
+installer script where appropriate
+optional package
 
-The tool metadata must contain its required capabilities.
+Windows:
 
-Example:
+.zip
+installer
 
-Tool:
+The website must provide:
 
-Windows Process Investigator
+Download compiler
+Documentation
+Release notes
+Checksums
+Signature information
+
+Users must be able to verify the downloaded compiler.
+
+---
+
+# 12. REPRODUCIBLE BUILDS
+
+Every compiler build must have:
+
+version
+source commit
+compiler hash
+dependency versions
+target platform
+target architecture
+build metadata
+artifact SHA-256
+
+Where practical, support reproducible builds.
+
+---
+
+# 13. FORENSIC STANDARD LIBRARY
+
+Create a TraceForge forensic standard library.
+
+Modules:
+
+system
+process
+network
+filesystem
+logs
+memory
+registry
+persistence
+timeline
+hash
+evidence
+report
+
+Examples:
+
+system.info()
+
+process.enumerate()
+
+network.connections()
+
+filesystem.hash(path)
+
+logs.windows_events()
+
+logs.journald()
+
+timeline.create()
+
+evidence.hash()
+
+---
+
+# 14. WINDOWS FORENSICS
+
+Implement supported forensic collection using documented Windows interfaces and appropriate forensic mechanisms.
+
+Initial capabilities:
+
+system information
+process enumeration
+parent-child relationships
+command lines
+loaded modules
+file metadata
+SHA-256
+network connections
+Windows Event Logs
+services
+scheduled tasks
+startup/persistence indicators
+registry metadata where appropriate
+
+The implementation must prioritize read-only forensic collection.
+
+---
+
+# 15. LINUX FORENSICS
+
+Implement:
+
+system information
+/proc analysis
+process enumeration
+command lines
+network sockets
+filesystem metadata
+SHA-256
+journald
+authentication logs
+services
+cron
+startup mechanisms
+kernel information
+
+Again, prioritize read-only forensic collection.
+
+---
+
+# 16. NETWORK FORENSICS
+
+Provide:
+
+connection enumeration
+local/remote addresses
+ports
+protocol
+process association
+DNS information where available
+network timeline
+connection filtering
+suspicious connection analysis
+
+Support investigation queries such as:
+
+collect network_connections
+
+where remote_port == 4444
+
+export evidence "connections.json"
+
+---
+
+# 17. MALICIOUS-ACTIVITY ANALYSIS
+
+TraceForge must include forensic detection modules for suspicious behavior.
+
+Examples:
+
+suspicious parent-child process relationships
+unsigned processes
+unexpected executable locations
+suspicious network connections
+unusual process memory characteristics
+unusual thread start addresses
+unexpected loaded modules
+persistence mechanisms
+suspicious drivers
+known vulnerable drivers
+abnormal privilege changes
+suspicious command-line arguments
+
+Results should include:
+
+indicator
+severity
+evidence
+reason
+timestamp
+host
+process
+confidence
+
+---
+
+# 18. MEMORY / IN-MEMORY EXECUTION ANALYSIS
+
+The problem statement mentions fileless execution and techniques such as:
+
+process hollowing
+reflective loading
+thread hijacking
+API unhooking
+direct system calls
+
+TraceForge must provide a forensic-analysis layer capable of identifying indicators associated with these techniques.
+
+Examples:
+
+memory-region analysis
+executable private memory detection
+memory protection anomalies
+thread start-address analysis
+module mapping analysis
+unexpected executable regions
+suspicious process relationships
+
+The platform may include controlled laboratory demonstrations that generate benign telemetry for these techniques.
+
+Do not create real-world EDR bypass or stealth execution functionality.
+
+---
+
+# 19. DRIVER / BYOVD ANALYSIS
+
+The problem statement explicitly mentions BYOVD and vulnerable drivers.
+
+TraceForge must implement a driver-security analysis module.
 
 Capabilities:
 
-PROCESS_READ
-NETWORK_READ
-FILE_HASH
+enumerate loaded drivers
+collect driver names
+versions
+paths
+signatures
+hashes
+publisher information
+load times where available
 
-The system must prevent a tool from silently obtaining capabilities it did not declare.
+Identify potentially vulnerable drivers using a maintained vulnerability database/signature set.
+
+Produce:
+
+Driver:
+example.sys
+
+SHA-256:
+...
+
+Publisher:
+...
+
+Version:
+...
+
+Security status:
+Potentially vulnerable
+
+Recommended action:
+Investigate/remove/update
+
+Do NOT exploit the driver.
+
+Do NOT disable EDR.
+
+Do NOT manipulate kernel structures.
 
 ---
 
-# 14. TOOL REPOSITORY
+# 20. SECURITY-PRODUCT TELEMETRY
 
-Create a repository similar conceptually to a package/tool repository.
+Implement defensive analysis of security-product behavior.
 
-Every tool must have:
+Where available, collect/analyze:
 
-- unique ID
-- name
-- description
-- version
-- author
-- platform
-- architecture
-- source hash
-- compiler version
-- artifact hash
-- capabilities
-- creation date
-- publication date
-- signature status
-- changelog
+security events
+EDR alerts
+AV events
+driver events
+process events
+Windows event telemetry
+Linux audit telemetry
+
+Correlate these with forensic observations.
+
+---
+
+# 21. POLYMORPHISM / CODE-VARIATION RESEARCH MODULE
+
+The problem statement discusses polymorphic generation.
+
+TraceForge must provide a safe research implementation that demonstrates representation variation without generating malware or bypassing security products.
+
+Possible features:
+
+AST normalization
+IR transformation
+equivalent-code generation for benign programs
+different optimization profiles
+symbol/layout variation
+deterministic build profiles
+binary-diff analysis
 
 Example:
 
-Windows Process Investigator
+Same TraceForge program:
+
+process.tfg
+
+Build A:
+Profile: forensic-debug
+
+Build B:
+Profile: forensic-release
+
+The system can demonstrate how generated representations differ while maintaining:
+
+source identity
+build provenance
+signature
+artifact hash
+reproducibility metadata
+
+The purpose is research and compiler engineering, not security-evasion payload generation.
+
+---
+
+# 22. CRYPTOGRAPHY
+
+Implement cryptography for:
+
+evidence integrity
+artifact integrity
+authentication
+signatures
+secure transport
+tool verification
+
+Use established cryptographic libraries.
+
+Do NOT invent cryptographic algorithms.
+
+Use:
+
+SHA-256 for hashing
+
+modern digital signatures
+
+TLS/mTLS where appropriate
+
+secure password hashing
+
+---
+
+# 23. TOOL SIGNING
+
+Every published TraceForge tool should be signed.
+
+Metadata:
+
+tool_id
+version
+source_hash
+artifact_hash
+compiler_version
+capabilities
+signature
+publisher
+timestamp
+
+Before execution, the local CLI should be able to verify the artifact.
+
+Example:
+
+traceforge verify process.exe
+
+Result:
+
+Signature:
+VALID
+
+Artifact hash:
+VALID
+
+Publisher:
+TraceForge Repository
 
 Version:
 1.2.0
 
-Platform:
-Windows
+---
+
+# 24. TOOL REPOSITORY
+
+Create a central repository.
+
+Users can:
+
+search tools
+browse categories
+view versions
+view source
+view capabilities
+view signatures
+view hashes
+download tools
+publish tools
+deprecate versions
+
+Categories:
+
+Process Analysis
+Network Forensics
+Windows Forensics
+Linux Forensics
+Log Analysis
+Memory Analysis
+Persistence Analysis
+Malware Triage
+File Analysis
+Timeline Analysis
+
+---
+
+# 25. CLOUD COMPILER
+
+The web IDE must use the same compiler implementation as the standalone CLI.
 
 Architecture:
-x64
 
-Capabilities:
-PROCESS_READ
-NETWORK_READ
-FILE_HASH
+Web IDE
+   ↓
+API
+   ↓
+Compiler Worker
+   ↓
+TraceForge Compiler
+   ↓
+Artifact
+   ↓
+Repository
 
-Compiler:
-TraceForge 0.1.0
+The compiler worker must execute inside an isolated build environment.
 
-SHA-256:
-...
-
-Status:
-SIGNED
+Never compile untrusted code directly inside the main API process.
 
 ---
 
-# 15. VERSIONING
+# 26. CENTRAL MANAGEMENT
 
-Support semantic versioning.
+The cloud platform must support multiple authorized systems.
+
+Conceptually:
+
+TraceForge Cloud
+       |
+       +--- Organization A
+       |       |
+       |       +--- Host 1
+       |       +--- Host 2
+       |
+       +--- Organization B
+               |
+               +--- Host 1
+               +--- Host 2
+
+The first MVP may use manually uploaded evidence.
+
+Then implement optional agents.
+
+---
+
+# 27. OPTIONAL AGENT ARCHITECTURE
+
+The agent is OPTIONAL.
+
+It must NOT be required for the basic product.
+
+The future architecture:
+
+TraceForge Cloud
+       |
+       | authenticated outbound connection
+       |
+Organization Gateway
+       |
+       +--- Windows Agent
+       +--- Linux Agent
+
+The agent should:
+
+register
+authenticate
+heartbeat
+receive authorized investigation jobs
+verify tool signature
+check capabilities
+execute approved forensic tool
+collect evidence
+hash evidence
+upload evidence
+report status
+
+Do not use pivoting, reverse shells, or covert tunnels.
+
+---
+
+# 28. VPN
+
+VPN is OPTIONAL.
+
+TraceForge must not require organizations to build custom VPN infrastructure.
+
+The architecture should support:
+
+direct HTTPS/mTLS
+organization proxy
+enterprise gateway
+site-to-site VPN where the organization already has one
+
+Do not make VPN a prerequisite for the MVP.
+
+---
+
+# 29. CLOUD/CDN COMMUNICATION
+
+The original problem statement mentions trusted cloud infrastructure/CDNs and domain-fronting concepts.
+
+TraceForge should instead use:
+
+HTTPS
+TLS
+mTLS
+standard cloud APIs
+authenticated API endpoints
+optional enterprise proxy
+
+Do not implement domain-fronting or traffic concealment.
+
+The system should be transparent and auditable.
+
+---
+
+# 30. INVESTIGATION MANAGEMENT
+
+Investigators can create:
+
+Investigation ID
+Title
+Description
+Severity
+Hosts
+Tools
+Evidence
+Timeline
+Analysts
+Notes
+Findings
+Reports
 
 Example:
 
-1.0.0
-1.1.0
-1.1.1
-2.0.0
+INC-2026-001
 
-Never overwrite an immutable published tool version.
+Hosts:
+WIN-01
+WIN-02
+LINUX-01
 
-A new build must create a new version.
+Tools:
+Process Investigator v1.2
+Network Investigator v1.1
 
-Users must be able to inspect historical versions.
-
----
-
-# 16. EVIDENCE SYSTEM
-
-Evidence must have metadata.
-
-Example:
-
-Evidence ID:
-EV-000001
-
-Investigation:
-INC-000001
-
-Tool:
-Windows Process Investigator
-
-Tool version:
-1.2.0
-
-Host:
-HOST-01
-
-Collection time:
-...
-
-SHA-256:
-...
-
-Evidence size:
-...
-
-The platform must calculate SHA-256 for uploaded evidence.
+Evidence:
+EV-001
+EV-002
+EV-003
 
 ---
 
-# 17. MERKLE TREE
+# 31. EVIDENCE INTEGRITY
 
-Implement optional evidence batching.
+Every evidence object must have:
 
-Example:
+Evidence ID
+Investigation ID
+Host
+Tool
+Tool version
+Collection timestamp
+SHA-256
+Size
+Metadata
 
-Evidence A → SHA256
-Evidence B → SHA256
-Evidence C → SHA256
-Evidence D → SHA256
+Implement:
 
-       ↓
-
-Merkle tree
-
-       ↓
-
-Merkle root
-
-Store the Merkle root with the investigation.
-
-The actual evidence should NOT be placed on a blockchain.
-
-Only integrity metadata or an anchor should be considered for blockchain storage.
+SHA-256
+Merkle trees
+integrity verification
 
 ---
 
-# 18. BLOCKCHAIN INTEGRITY
+# 32. BLOCKCHAIN
 
-Implement this as an optional module.
+Blockchain is an integrity/timestamping layer.
 
-Interface:
+Do NOT store forensic evidence itself on-chain.
+
+Architecture:
+
+Evidence
+   ↓
+SHA-256
+   ↓
+Evidence hashes
+   ↓
+Merkle Tree
+   ↓
+Merkle Root
+   ↓
+Blockchain Anchor
+
+Implement a local/mock blockchain adapter first.
+
+Create an abstraction:
 
 BlockchainAnchor
 
 Methods:
 
-anchor(hash)
+anchor()
+verify()
+lookup()
 
-verify(hash)
-
-get_transaction(hash)
-
-For the MVP, create a mock/local ledger implementation.
-
-Do not make the entire project dependent on a real blockchain network.
-
-The demonstration must work without blockchain credentials.
+Allow a real blockchain implementation later.
 
 ---
 
-# 19. DATABASE
+# 33. WEB IDE
 
-Use a relational database.
+Build a professional IDE.
 
-Recommended:
+Components:
 
-PostgreSQL
-
-Create models/tables for:
-
-users
-organizations
-roles
-projects
-investigations
-tools
-tool_versions
-builds
-artifacts
-evidence
-evidence_hashes
-audit_logs
-
-Use migrations.
-
-Do not store binary artifacts directly inside relational database rows.
-
-Use object/file storage for artifacts.
-
----
-
-# 20. OBJECT STORAGE
-
-Abstract storage behind an interface.
+file explorer
+Monaco editor
+syntax highlighting
+autocomplete
+diagnostics
+compiler output
+terminal-like build output
+target selector
+capability display
+artifact information
+source hash
+artifact hash
+publish button
 
 Example:
 
-ArtifactStorage
+TARGET
 
-put()
-get()
-delete()
-exists()
-checksum()
+[ Linux x64 ]
 
-The first implementation may use local filesystem storage for development.
+[ Windows x64 ]
 
-The architecture must allow S3-compatible storage later.
+BUILD
+
+[ Validate ] [ Compile ] [ Publish ]
 
 ---
 
-# 21. AUTHENTICATION
+# 34. DASHBOARD
+
+Dashboard should display:
+
+active investigations
+recent evidence
+tool repository
+builds
+hosts
+alerts
+integrity status
+compiler versions
+tool versions
+
+Use charts only where useful.
+
+---
+
+# 35. SECURITY ARCHITECTURE
 
 Implement:
 
-- registration
-- login
-- logout
-- password hashing
-- sessions or secure JWT strategy
-- role-based authorization
+RBAC
+organization isolation
+capability-based tool permissions
+signed artifacts
+audit logs
+secure sessions
+TLS
+input validation
+rate limiting
+secure file handling
 
 Roles:
 
 ADMIN
 INVESTIGATOR
 DEVELOPER
+ANALYST
 VIEWER
 
-Do not store plaintext passwords.
+---
+
+# 36. MULTI-TENANCY
+
+Organization A must never access:
+
+Organization B's tools
+Organization B's evidence
+Organization B's investigations
+Organization B's hosts
+
+Enforce isolation at the backend/database layer.
+
+Never rely solely on frontend checks.
 
 ---
 
-# 22. MULTI-TENANCY
+# 37. AUDIT LOGGING
 
-Organizations must be isolated.
-
-A user belongs to an organization.
-
-Tools, investigations, evidence, and projects must respect organization boundaries.
-
-Example:
-
-Organization A must never be able to query Organization B's evidence.
-
-Enforce this server-side.
-
-Do not rely only on frontend filtering.
-
----
-
-# 23. AUDIT LOGGING
-
-Record security-sensitive actions:
+Audit:
 
 LOGIN
 LOGOUT
 CREATE_TOOL
-COMPILE_TOOL
+BUILD_TOOL
 PUBLISH_TOOL
 DOWNLOAD_TOOL
 CREATE_INVESTIGATION
-RUN_INVESTIGATION
+EXECUTE_TOOL
 UPLOAD_EVIDENCE
 VERIFY_EVIDENCE
 CHANGE_PERMISSION
+CREATE_USER
+DELETE_USER
 
-Each event should contain:
+Include:
 
 timestamp
 user
 organization
-action
 resource
+action
 result
-IP metadata where appropriate
 
 ---
 
-# 24. API
+# 38. DATABASE
 
-Create a clean REST API.
+Use PostgreSQL.
 
-Example endpoints:
+Tables/models:
+
+users
+organizations
+roles
+projects
+investigations
+hosts
+tools
+tool_versions
+builds
+artifacts
+evidence
+evidence_hashes
+merkle_roots
+blockchain_anchors
+audit_logs
+
+Binary artifacts must use object storage rather than database BLOBs.
+
+---
+
+# 39. OBJECT STORAGE
+
+Create an abstraction:
+
+ArtifactStorage
+
+Methods:
+
+put()
+get()
+delete()
+exists()
+hash()
+
+Development:
+
+local filesystem or local object-storage emulator.
+
+Production:
+
+S3-compatible storage.
+
+---
+
+# 40. API
+
+Create REST APIs.
+
+Authentication:
 
 POST /api/auth/register
 POST /api/auth/login
 POST /api/auth/logout
 
+Compiler:
+
+POST /api/builds
+GET /api/builds/:id
+GET /api/builds/:id/logs
+
+Tools:
+
 GET /api/tools
 POST /api/tools
 GET /api/tools/:id
 GET /api/tools/:id/versions
-POST /api/tools/:id/build
 POST /api/tools/:id/publish
+
+Investigations:
 
 GET /api/investigations
 POST /api/investigations
 GET /api/investigations/:id
 
+Evidence:
+
 POST /api/evidence
 GET /api/evidence/:id
 POST /api/evidence/:id/verify
 
+Hosts:
+
+GET /api/hosts
+POST /api/hosts
+
+Audit:
+
 GET /api/audit-logs
 
-Use OpenAPI documentation.
+Generate OpenAPI documentation.
 
 ---
 
-# 25. COMPILER SERVICE
+# 41. CLI PACKAGE COMMANDS
 
-The web platform must not execute arbitrary compiler jobs directly inside the main API process.
+In addition to compilation, the CLI should support repository interaction.
 
-Create a compiler service/worker architecture.
+Examples:
 
-Flow:
+traceforge login
 
-Browser
-  |
-  v
-API
-  |
-  v
-Build Job
-  |
-  v
-Queue
-  |
-  v
-Compiler Worker
-  |
-  v
-Sandboxed build environment
-  |
-  v
-Artifact
-  |
-  v
-Artifact storage
+traceforge search "process"
 
-Build jobs must have:
+traceforge install process-investigator
 
-- timeout
-- memory limit
-- CPU limit
-- filesystem isolation
-- network restrictions
-- job status
-- build logs
+traceforge list
 
-Never allow submitted code to freely access the host system.
+traceforge info process-investigator
+
+traceforge update
+
+traceforge verify process-investigator
+
+traceforge publish process-investigator
+
+This allows TraceForge to function like a forensic developer ecosystem rather than merely a compiler.
 
 ---
 
-# 26. WEB EDITOR SECURITY
+# 42. EXAMPLE WORKFLOW
 
-The web editor accepts user-controlled source code.
+Developer:
 
-Therefore:
+Write:
 
-- sanitize displayed compiler output
-- prevent XSS
-- validate file names
-- restrict upload size
-- validate project structure
-- never execute uploaded binaries in the web server
-- compile in isolated workers
-- enforce authentication
-- enforce organization boundaries
+process.tfg
 
----
+Compile locally:
 
-# 27. FRONTEND TECHNOLOGY
+./traceforge process.tfg -o process
 
-Choose a modern maintainable stack.
+Run:
 
-Preferred:
+./process
 
-React
-TypeScript
-Vite
-Tailwind CSS
+Or compile Windows:
 
-Use a proper component structure.
+./traceforge process.tfg 
+    --target windows-x64 
+    -o process.exe
 
-Do not create a single gigantic frontend file.
+Publish:
 
-Suggested:
+./traceforge publish process
 
-src/
-    components/
-    pages/
-    layouts/
-    hooks/
-    services/
-    api/
-    types/
-    editor/
-    repository/
-    dashboard/
+Another investigator:
 
-Use Monaco Editor or another professional code editor for the TraceForge IDE.
+traceforge search process
 
----
+traceforge install process-investigator
 
-# 28. BACKEND TECHNOLOGY
+traceforge run process-investigator
 
-Choose a language appropriate for the platform.
+Evidence is generated.
 
-Preferred:
+The investigator uploads it to the cloud.
 
-Rust or TypeScript for backend services.
+The cloud verifies:
 
-The compiler itself should be implemented in Rust.
+tool identity
+tool version
+tool signature
+evidence hash
 
-The backend may also use Rust if practical.
+Then:
 
-Do not introduce unnecessary microservices.
-
-For the MVP, a modular monolith + compiler worker is preferred.
+SHA-256
+   ↓
+Merkle tree
+   ↓
+Blockchain anchor
 
 ---
 
-# 29. COMPILER TECHNOLOGY
+# 43. CI/CD
 
-Use Rust for the TraceForge compiler.
+Create automated CI/CD.
 
-Do NOT fork the entire Rust compiler unless there is a demonstrated technical reason.
+Pipeline:
 
-Preferred architecture:
+Git commit
+   ↓
+Lint
+   ↓
+Unit tests
+   ↓
+Compiler tests
+   ↓
+Security tests
+   ↓
+Build
+   ↓
+Cross-platform build
+   ↓
+Artifact signing
+   ↓
+SHA-256
+   ↓
+SBOM
+   ↓
+Release
 
-TraceForge frontend
-      ↓
-TraceForge AST
-      ↓
-TraceForge IR
-      ↓
-LLVM/backend integration
+Every release should generate:
 
-Reuse LLVM/compiler infrastructure where practical.
-
-The purpose is to create a new forensic DSL, not a clone of Rust.
+Linux compiler
+Windows compiler
+documentation
+checksums
+signature
+SBOM
 
 ---
 
-# 30. PROJECT STRUCTURE
+# 44. PROJECT STRUCTURE
 
 Use a monorepo.
 
 Suggested:
 
 traceforge/
-│
-├── apps/
-│   ├── web/
-│   └── api/
-│
-├── compiler/
-│   ├── lexer/
-│   ├── parser/
-│   ├── ast/
-│   ├── semantic/
-│   ├── ir/
-│   ├── backend/
-│   └── cli/
-│
-├── runtime/
-│   ├── system/
-│   ├── process/
-│   ├── network/
-│   ├── filesystem/
-│   ├── logs/
-│   └── evidence/
-│
-├── services/
-│   └── compiler-worker/
-│
-├── packages/
-│   ├── shared-types/
-│   └── api-client/
-│
-├── examples/
-│   ├── process-triage/
-│   ├── network-triage/
-│   └── system-baseline/
-│
-├── tests/
-│
-├── docs/
-│
-├── docker/
-│
-├── docker-compose.yml
-├── README.md
-└── LICENSE
 
-Adapt this structure if the repository already has an established architecture.
+apps/
+    web/
+    api/
 
----
+compiler/
+    lexer/
+    parser/
+    ast/
+    semantic/
+    ir/
+    backend/
+    cli/
 
-# 31. DEVELOPMENT METHODOLOGY
+runtime/
+    system/
+    process/
+    network/
+    filesystem/
+    logs/
+    memory/
+    evidence/
+    timeline/
 
-Do NOT attempt to implement everything at once.
+services/
+    compiler-worker/
 
-Work in phases.
+repository/
+    client/
+    server/
 
-PHASE 0:
-Inspect repository.
+packages/
+    shared-types/
+    api-client/
 
-PHASE 1:
-Create architecture and project skeleton.
+examples/
+    process-triage/
+    network-triage/
+    windows-forensics/
+    linux-forensics/
+    memory-analysis/
 
-PHASE 2:
-Implement TraceForge lexer/parser/AST.
+tests/
 
-PHASE 3:
-Implement semantic validation.
+docs/
 
-PHASE 4:
-Implement TraceForge IR.
+docker/
 
-PHASE 5:
-Implement CLI compiler.
+.github/
 
-PHASE 6:
-Implement forensic runtime.
+README.md
+LICENSE
 
-PHASE 7:
-Generate a working Linux artifact.
-
-PHASE 8:
-Implement Windows target/build pipeline.
-
-PHASE 9:
-Implement backend API.
-
-PHASE 10:
-Implement database.
-
-PHASE 11:
-Implement repository.
-
-PHASE 12:
-Implement web IDE.
-
-PHASE 13:
-Implement investigation dashboard.
-
-PHASE 14:
-Implement evidence integrity.
-
-PHASE 15:
-Implement authentication/RBAC/audit logs.
-
-PHASE 16:
-Integrate everything.
-
-PHASE 17:
-Testing and hardening.
-
-Do not move to the next major phase while the current phase is fundamentally broken.
+Adapt this to the existing repository if necessary.
 
 ---
 
-# 32. TEST-DRIVEN DEVELOPMENT
+# 45. TECHNOLOGY
 
-Every major compiler component must have tests.
+Compiler:
 
-Required tests:
+Rust
 
-lexer tests
-parser tests
-AST tests
-semantic tests
-IR tests
-compiler tests
-runtime tests
-API tests
-authentication tests
-authorization tests
-repository tests
-evidence hashing tests
-Merkle tests
-frontend tests
+Compiler backend:
 
-Include:
+LLVM
 
-unit tests
-integration tests
-end-to-end tests
+Frontend:
+
+React
+TypeScript
+Vite
+Tailwind CSS
+Monaco Editor
+
+Backend:
+
+Rust or TypeScript
+
+Database:
+
+PostgreSQL
+
+Object storage:
+
+S3-compatible abstraction
+
+Containerization:
+
+Docker
+
+CI:
+
+GitHub Actions or equivalent
 
 ---
 
-# 33. FIRST DEMONSTRATION TARGET
+# 46. TESTING
 
-The first complete vertical slice must support:
+Create tests for:
 
-SOURCE:
+lexer
+parser
+AST
+semantic analysis
+IR
+LLVM generation
+CLI
+runtime
+Windows collector
+Linux collector
+network collector
+evidence hashing
+Merkle trees
+signatures
+repository
+API
+authentication
+authorization
+multi-tenancy
+frontend
+compiler worker
+
+Create end-to-end tests for:
+
+.tfg source
+   ↓
+compiler
+   ↓
+artifact
+   ↓
+execution
+   ↓
+evidence
+   ↓
+upload
+   ↓
+verification
+
+---
+
+# 47. FIRST COMPLETE VERTICAL SLICE
+
+Do NOT attempt the entire system first.
+
+The first complete working slice MUST be:
+
+1. Write:
 
 investigation "process_triage" {
 
@@ -1108,126 +1590,120 @@ investigation "process_triage" {
     export evidence "processes.json"
 }
 
+2. Save as:
+
+process.tfg
+
+3. Run:
+
+./traceforge check process.tfg
+
+4. Compile:
+
+./traceforge process.tfg -o process
+
+5. Execute:
+
+./process
+
+6. Generate:
+
+processes.json
+
+7. Calculate SHA-256.
+
+8. Upload to cloud.
+
+9. Display evidence in dashboard.
+
+10. Verify evidence integrity.
+
+11. Publish the compiled tool to the repository.
+
+12. Download the same tool from the repository.
+
+This vertical slice must work before expanding the system.
+
+---
+
+# 48. SECOND VERTICAL SLICE
+
+Implement:
+
+network.tfg
+
+collect network_connections
+
 Then:
 
-Browser editor
-      ↓
-Save source
-      ↓
-Validate
-      ↓
-Compile
-      ↓
-Generate artifact
-      ↓
-Calculate SHA-256
-      ↓
-Publish tool
-      ↓
-Repository
-      ↓
-Download artifact
-      ↓
-Run locally
-      ↓
-Generate evidence
-      ↓
-Upload evidence
-      ↓
-Verify hash
-      ↓
-Display in dashboard
-
-This vertical slice is more important than adding many unfinished features.
+compile
+execute
+collect
+hash
+upload
+display
+analyze
 
 ---
 
-# 34. LOCAL DEVELOPMENT
+# 49. THIRD VERTICAL SLICE
 
-The project must be runnable locally.
+Implement:
 
-Provide:
+security_analysis.tfg
 
-docker-compose.yml
+which analyzes:
 
-Services should include only what is necessary, such as:
+process anomalies
+network anomalies
+suspicious modules
+suspicious memory characteristics
+driver information
 
-frontend
-backend
-database
-compiler-worker
-object-storage/local-storage
-
-Provide:
-
-.env.example
-
-Do not commit secrets.
-
-Provide a one-command or minimal-command development setup.
-
-Example:
-
-docker compose up --build
-
-or a documented equivalent.
+The result must be a forensic report, not an evasion payload.
 
 ---
 
-# 35. DOCUMENTATION
+# 50. DOCUMENTATION
 
 Create:
 
 README.md
-
 docs/architecture.md
-
 docs/language.md
-
 docs/compiler.md
-
+docs/cli.md
+docs/web-ide.md
+docs/repository.md
+docs/forensics.md
+docs/security-analysis.md
+docs/evidence-integrity.md
+docs/blockchain.md
+docs/agent.md
 docs/api.md
-
-docs/security.md
-
-docs/development.md
-
 docs/deployment.md
-
+docs/development.md
 docs/threat-model.md
-
-The documentation must explain:
-
-What TraceForge is
-Why it exists
-Architecture
-Language syntax
-Compiler pipeline
-Repository
-Evidence integrity
-Security model
-Deployment
-Future agent architecture
 
 ---
 
-# 36. THREAT MODEL
+# 51. THREAT MODEL
 
-Document threats including:
+Document:
 
-malicious source submission
-malicious compiler input
+untrusted source code
+malicious tool submissions
+compiler worker compromise
 artifact tampering
+repository compromise
 evidence tampering
+credential compromise
 cross-tenant access
-stolen credentials
-unauthorized tool execution
-supply-chain compromise
-malicious repository artifact
-compiler worker escape
-object-storage compromise
+malicious agents
+supply-chain attacks
+vulnerable dependencies
 
-For each threat document:
+For each:
 
 asset
 attacker
@@ -1237,248 +1713,327 @@ residual risk
 
 ---
 
-# 37. FUTURE AGENT INTERFACE
+# 52. DOWNLOAD PAGE
 
-Do not implement the agent as an MVP requirement.
-
-However, define an interface so it can later exist.
+Create a dedicated compiler download page.
 
 Example:
 
-Agent
+TraceForge Compiler
 
-register()
-heartbeat()
-receive_job()
-verify_job()
-execute_authorized_tool()
-upload_evidence()
-report_status()
+Latest:
+v0.1.0
 
-Future architecture:
+Windows x64
+[Download]
 
-TraceForge Cloud
-       |
-       | authenticated outbound connection
-       |
-TraceForge Enterprise Gateway
-       |
-       +---- Windows Agent
-       |
-       +---- Linux Agent
+Linux x64
+[Download]
 
-Do not use pivoting or reverse shells as the mechanism.
-
----
-
-# 38. REPRODUCIBILITY
-
-Build metadata must contain:
-
-source hash
-compiler version
-compiler hash
-dependency information
-target platform
-target architecture
-build timestamp
-artifact SHA-256
-
-Where practical, make builds reproducible.
-
----
-
-# 39. SOFTWARE SUPPLY CHAIN
-
-Generate an SBOM for released components.
-
-Track:
-
-dependencies
-versions
-licenses
-hashes
-
-Use dependency auditing tools where available.
-
----
-
-# 40. CI/CD
-
-Create CI workflows for:
-
-lint
-unit tests
-integration tests
-compiler tests
-frontend tests
-backend tests
-security scanning
-SBOM generation
-build
-
-Do not automatically publish production artifacts from untrusted pull requests.
-
----
-
-# 41. ERROR HANDLING
-
-Never silently swallow errors.
-
-Errors must contain:
-
-error code
-human-readable message
-technical context where safe
-request/job ID
-
-The frontend must display useful errors.
-
----
-
-# 42. LOGGING
-
-Use structured logging.
-
-Example:
-
-{
-  "timestamp": "...",
-  "level": "INFO",
-  "service": "compiler-worker",
-  "job_id": "...",
-  "event": "build_completed",
-  "artifact_hash": "..."
-}
-
-Never log:
-
-passwords
-tokens
-private keys
-sensitive credentials
-
----
-
-# 43. DESIGN PRINCIPLE
-
-Prefer:
-
-simple
-modular
-testable
-auditable
-reproducible
-secure
-
-over:
-
-clever
-over-engineered
-highly distributed
-unnecessary abstraction
-
-A functioning vertical slice is more valuable than 100 incomplete features.
-
----
-
-# 44. YOUR OPERATING RULES AS THE CODING AGENT
-
-When working on the repository:
-
-1. Inspect the existing repository before making changes.
-
-2. Do not overwrite working code without understanding it.
-
-3. Before implementing a feature, identify:
-   - files involved
-   - dependencies
-   - interfaces
-   - tests required
-
-4. Implement incrementally.
-
-5. Run tests after meaningful changes.
-
-6. If tests fail:
-   - inspect the failure
-   - identify the root cause
-   - fix the implementation
-   - rerun the relevant tests
-
-7. Do not hide test failures.
-
-8. Do not mark TODOs as completed.
-
-9. Do not create fake implementations merely to make tests pass.
-
-10. If an external dependency is unavailable, create a clean abstraction and a local/mock implementation where appropriate.
-
-11. Never put secrets in source code.
-
-12. Never expose credentials in logs.
-
-13. Keep compiler, backend, frontend, runtime, and repository responsibilities separated.
-
-14. Prefer small commits/changes.
-
-15. Keep documentation synchronized with architecture changes.
-
----
-
-# 45. RESPONSE FORMAT
-
-For every development task:
-
-First state:
-
-CURRENT PHASE:
+SHA-256:
 ...
 
-OBJECTIVE:
+Signature:
 ...
 
-FILES TO CHANGE:
+Source:
 ...
 
-Then implement the changes.
-
-After implementation report:
-
-IMPLEMENTED:
+Release notes:
 ...
 
-TESTS:
+Documentation:
 ...
 
-RESULT:
-PASS / PARTIAL / BLOCKED
-
-NEXT STEP:
-...
-
-Do not claim something works unless you actually tested it.
-y
+The page must make clear that the compiler can operate independently of the cloud platform.
 
 ---
 
-# 46. START NOW
+# 53. LOCAL-FIRST PRINCIPLE
 
-Do not immediately generate thousands of lines of code.
+A user must be able to use TraceForge without internet access after installing the compiler and runtime.
 
-First:
+Local compilation:
 
-1. Inspect the repository.
-2. Determine whether an existing project exists.
-3. Identify the current technology stack.
-4. Identify available build tools.
-5. Identify available runtimes.
-6. Produce a concise implementation plan.
-7. Create the initial project architecture.
-8. Implement the smallest working TraceForge language vertical slice.
-9. Test it.
-10. Continue phase-by-phase.
+.tfg
+ ↓
+TraceForge compiler
+ ↓
+native artifact
 
-The ultimate goal is a working, demonstrable TraceForge platform rather than a collection of disconnected code samples.
+Cloud functionality is an enhancement, not a compiler dependency.
 
-BEGIN.
+The local compiler must not require cloud authentication for normal compilation.
+
+---
+
+# 54. CLOUD-FIRST PLATFORM PRINCIPLE
+
+The web platform provides:
+
+IDE
+repository
+collaboration
+investigations
+central management
+evidence
+integrity
+analytics
+organization management
+
+But the language itself remains portable.
+
+---
+
+# 55. NO ARTIFICIAL MOCKING
+
+Do not create fake compiler output that merely looks like a binary.
+
+If the system claims:
+
+"compiled successfully"
+
+there must actually be a generated executable or valid target artifact.
+
+If LLVM support is temporarily unavailable, clearly report that the backend is incomplete rather than pretending it works.
+
+---
+
+# 56. NO FAKE FORENSICS
+
+Do not generate random fake process/network/evidence data and call it forensic collection.
+
+Development mocks are acceptable only when explicitly labeled as mocks.
+
+Real local forensic collection must be implemented for supported platforms.
+
+---
+
+# 57. SECURITY RESEARCH BOUNDARY
+
+The project must be capable of:
+
+DETECTING
+ANALYZING
+CORRELATING
+REPORTING
+SIMULATING IN A CONTROLLED LAB
+
+security techniques mentioned in the problem statement.
+
+It must not become a tool for:
+
+EDR bypass
+AV bypass
+security-product disabling
+kernel compromise
+credential theft
+covert persistence
+malware delivery
+real-world exploit deployment
+
+---
+
+# 58. DEVELOPMENT WORKFLOW FOR THE CODING AGENT
+
+Before modifying anything:
+
+1. Inspect repository.
+2. Identify existing files.
+3. Identify language/toolchain.
+4. Identify build system.
+5. Identify tests.
+6. Identify current implementation status.
+
+Then provide:
+
+CURRENT PHASE
+OBJECTIVE
+FILES TO CHANGE
+IMPLEMENTATION PLAN
+
+Then implement.
+
+After implementation:
+
+IMPLEMENTED
+TESTS RUN
+TEST RESULTS
+KNOWN LIMITATIONS
+NEXT PHASE
+
+Never claim a feature is complete unless it was actually implemented and tested.
+
+---
+
+# 59. DO NOT BUILD EVERYTHING IN ONE RESPONSE
+
+Implement incrementally.
+
+Phase 0:
+Repository inspection
+
+Phase 1:
+Monorepo and architecture
+
+Phase 2:
+TraceForge language
+
+Phase 3:
+Compiler + CLI
+
+Phase 4:
+Linux runtime
+
+Phase 5:
+Windows runtime
+
+Phase 6:
+Evidence subsystem
+
+Phase 7:
+Web API
+
+Phase 8:
+Database
+
+Phase 9:
+Repository
+
+Phase 10:
+Web IDE
+
+Phase 11:
+Dashboard
+
+Phase 12:
+Security-analysis modules
+
+Phase 13:
+Blockchain integrity
+
+Phase 14:
+CI/CD
+
+Phase 15:
+Optional agent architecture
+
+Phase 16:
+End-to-end testing
+
+Phase 17:
+Release packaging
+
+---
+
+# 60. FINAL ACCEPTANCE CRITERIA
+
+The project is considered MVP-complete only when a user can perform this complete workflow:
+
+LOCAL:
+
+Download compiler
+   ↓
+Install compiler
+   ↓
+Create .tfg program
+   ↓
+Validate
+   ↓
+Compile
+   ↓
+Generate native executable
+   ↓
+Execute
+   ↓
+Collect forensic evidence
+   ↓
+Hash evidence
+
+CLOUD:
+
+Open TraceForge
+   ↓
+Write .tfg
+   ↓
+Compile
+   ↓
+View diagnostics
+   ↓
+Generate artifact
+   ↓
+Publish
+   ↓
+Repository
+   ↓
+Version
+   ↓
+Download
+   ↓
+Execute locally
+   ↓
+Upload evidence
+   ↓
+Verify integrity
+   ↓
+Investigation dashboard
+   ↓
+Merkle root
+   ↓
+Optional blockchain anchor
+
+MULTI-HOST:
+
+Cloud
+   ↓
+Authorized organization
+   ↓
+Authorized hosts
+   ↓
+Forensic tools
+   ↓
+Evidence
+   ↓
+Central analysis
+
+---
+
+# 61. START
+
+Begin immediately.
+
+Do NOT generate a massive fictional implementation.
+
+First inspect the repository.
+
+Then determine what already exists.
+
+Then create the architecture.
+
+Then implement the first working vertical slice:
+
+.tfg
+   ↓
+lexer
+   ↓
+parser
+   ↓
+AST
+   ↓
+IR
+   ↓
+compiler
+   ↓
+native Linux executable
+   ↓
+real local forensic collection
+   ↓
+SHA-256 evidence
+   ↓
+cloud upload
+   ↓
+dashboard
+
+After that works, implement Windows compilation/runtime and continue through the remaining phases.
+
+The objective is a real, testable, demonstrable forensic programming ecosystem—not a prototype consisting of static UI screens.

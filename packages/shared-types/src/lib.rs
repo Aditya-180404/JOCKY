@@ -5,7 +5,8 @@ use uuid::Uuid;
 use chrono::{DateTime, Utc};
 
 /// User roles
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "VARCHAR", rename_all = "UPPERCASE")]
 #[serde(rename_all = "UPPERCASE")]
 pub enum Role {
     Admin,
@@ -134,7 +135,8 @@ pub struct Investigation {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "VARCHAR", rename_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
 pub enum InvestigationStatus {
     Draft,
@@ -187,7 +189,8 @@ pub struct AuditLog {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "VARCHAR", rename_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
 pub enum AuditResult {
     Success,

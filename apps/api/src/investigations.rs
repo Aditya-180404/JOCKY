@@ -123,7 +123,7 @@ pub async fn create_investigation(
     // Verify tool version exists if provided
     if let Some(tool_version_id) = payload.tool_version_id {
         let version = sqlx::query!(
-            "SELECT id FROM tool_versions tv JOIN tools t ON tv.tool_id = t.id WHERE tv.id = $1 AND t.organization_id = $2",
+            "SELECT tv.id FROM tool_versions tv JOIN tools t ON tv.tool_id = t.id WHERE tv.id = $1 AND t.organization_id = $2",
             tool_version_id,
             auth.organization_id
         )

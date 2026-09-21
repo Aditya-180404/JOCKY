@@ -145,7 +145,7 @@ export function Register() {
                   className="input pl-28"
                   placeholder="acme-corp"
                   required
-                  pattern="[a-z0-9-]+"
+                  pattern="[a-z0-9\-]+"
                   disabled={loading}
                 />
               </div>

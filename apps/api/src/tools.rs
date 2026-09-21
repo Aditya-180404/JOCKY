@@ -337,7 +337,7 @@ pub async fn create_tool_version(
         compiler_hash,
         payload.target_platform,
         payload.target_arch,
-        &ir.required_capabilities.iter().map(|c| c.as_str()).collect::<Vec<_>>(),
+        &ir.required_capabilities.iter().map(|c| c.as_str().to_string()).collect::<Vec<_>>(),
         now
     )
     .execute(&state.db)
@@ -432,7 +432,7 @@ pub async fn build_tool(
         }
     };
 
-    if let Err(e) = redis.rpush("build_queue", serde_json::to_string(&job).unwrap()).await {
+    if let Err(e) = redis.rpush::<_, _, ()>("build_queue", serde_json::to_string(&job).unwrap()).await {
         error!("Failed to queue build: {}", e);
         return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Queue error", "Failed to queue build");
     }
