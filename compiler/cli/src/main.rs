@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 use traceforge_ir::{BuildConfig, TargetArch, TargetPlatform};
 use traceforge_lexer::Lexer;
-use traceforge_parser::Parser;
+use traceforge_parser::Parser as TfParser;
 use traceforge_semantic::SemanticAnalyzer;
 use traceforge_backend::Backend;
 
@@ -90,10 +90,16 @@ fn validate(file: &PathBuf) -> anyhow::Result<()> {
     println!("Validating {}", file.display());
 
     let source = std::fs::read_to_string(file)?;
+
+    // Debug: print tokens
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize()?;
+    println!("Tokens:");
+    for (i, token) in tokens.iter().enumerate() {
+        println!("  [{}] {:?}", i, token.kind);
+    }
 
-    let mut parser = Parser::new(tokens);
+    let mut parser = TfParser::new(tokens);
     let (ast, diags) = parser.parse_with_diagnostics();
 
     if !diags.is_empty() {
@@ -129,7 +135,7 @@ fn compile(file: &PathBuf, target: &str, arch: &str, output: &PathBuf, opt: &str
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize()?;
 
-    let mut parser = Parser::new(tokens);
+    let mut parser = TfParser::new(tokens);
     let (ast, diags) = parser.parse_with_diagnostics();
 
     if !diags.is_empty() {
@@ -179,6 +185,9 @@ fn compile(file: &PathBuf, target: &str, arch: &str, output: &PathBuf, opt: &str
         strip_symbols: true,
     };
 
+    println!("  Output directory: {}", output.display());
+    println!("  Investigation name: {}", ir.name);
+
     let backend = Backend::new(config);
     let mut metadata = backend.generate(&ir, output)?;
 
@@ -212,7 +221,7 @@ fn inspect(file: &PathBuf, format: &str) -> anyhow::Result<()> {
             }
         }
         "ast" => {
-            let mut parser = Parser::new(tokens);
+            let mut parser = TfParser::new(tokens);
             let (ast, diags) = parser.parse_with_diagnostics();
             if !diags.is_empty() {
                 print_diagnostics(&diags);
@@ -222,7 +231,7 @@ fn inspect(file: &PathBuf, format: &str) -> anyhow::Result<()> {
             }
         }
         "ir" | "json" => {
-            let mut parser = Parser::new(tokens);
+            let mut parser = TfParser::new(tokens);
             let (ast, diags) = parser.parse_with_diagnostics();
             if !diags.is_empty() {
                 print_diagnostics(&diags);

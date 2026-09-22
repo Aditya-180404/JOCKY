@@ -68,7 +68,12 @@ impl Parser {
 
         self.consume(TokenKind::Investigation, "expected 'investigation'")?;
 
-        let name = self.consume_identifier("expected investigation name")?;
+        // Accept either a string literal or identifier for investigation name
+        let name = if self.check(TokenKind::String("".to_string())) {
+            self.consume_string("expected investigation name")?
+        } else {
+            self.consume_identifier("expected investigation name")?
+        };
 
         let mut metadata = Vec::new();
         if self.check(TokenKind::Metadata) {
@@ -210,7 +215,16 @@ impl Parser {
             self.advance(); // consume '{'
 
             while !self.check(TokenKind::RightBrace) && !self.check(TokenKind::Eof) {
-                let key = self.consume_identifier("expected option name")?;
+                // Accept Identifier, Hash, Recursive as option names
+                let key = if self.check(TokenKind::Hash) {
+                    self.advance();
+                    "hash".to_string()
+                } else if self.check(TokenKind::Recursive) {
+                    self.advance();
+                    "recursive".to_string()
+                } else {
+                    self.consume_identifier("expected option name")?
+                };
 
                 match key.as_str() {
                     "recursive" => {
@@ -218,8 +232,48 @@ impl Parser {
                         options.recursive = self.consume_boolean("expected boolean value")?;
                     }
                     "hash" => {
-                        self.consume(TokenKind::Colon, "expected ':' after 'hash'")?;
-                        options.hash_algorithm = Some(self.parse_hash_algorithm()?);
+                        // Check for hash.sha256 syntax (field access style)
+                        if self.check(TokenKind::Dot) {
+                            self.advance(); // consume '.'
+                            // After dot, could be identifier or keyword (sha256, sha1, md5)
+                            let token = self.current_token().clone();
+                            let algo = match token.kind {
+                                TokenKind::Identifier(name) => {
+                                    self.advance();
+                                    name
+                                }
+                                TokenKind::Sha256 => {
+                                    self.advance();
+                                    "sha256".to_string()
+                                }
+                                TokenKind::Sha1 => {
+                                    self.advance();
+                                    "sha1".to_string()
+                                }
+                                TokenKind::Md5 => {
+                                    self.advance();
+                                    "md5".to_string()
+                                }
+                                _ => {
+                                    self.add_diagnostic(Diagnostic::error(
+                                        format!("Expected hash algorithm after '.', found {:?}", token.kind),
+                                        token.span,
+                                    ));
+                                    self.advance();
+                                    "sha256".to_string()
+                                }
+                            };
+                            options.hash_algorithm = Some(match algo.as_str() {
+                                "sha256" => HashAlgorithm::Sha256,
+                                "sha1" => HashAlgorithm::Sha1,
+                                "md5" => HashAlgorithm::Md5,
+                                _ => HashAlgorithm::Sha256,
+                            });
+                        } else {
+                            // Original hash: sha256 syntax
+                            self.consume(TokenKind::Colon, "expected ':' after 'hash'")?;
+                            options.hash_algorithm = Some(self.parse_hash_algorithm()?);
+                        }
                     }
                     "filter" => {
                         self.consume(TokenKind::Colon, "expected ':' after 'filter'")?;
@@ -239,8 +293,12 @@ impl Parser {
                     }
                 }
 
-                if !self.check(TokenKind::RightBrace) {
-                    self.consume(TokenKind::Comma, "expected ',' between options")?;
+                // Comma is optional - allow both comma-separated and newline-separated
+                if !self.check(TokenKind::RightBrace) && !self.check(TokenKind::Eof) {
+                    if self.check(TokenKind::Comma) {
+                        self.advance(); // consume comma
+                    }
+                    // If next token is an identifier or known keyword, continue without comma
                 }
             }
 
@@ -282,13 +340,26 @@ impl Parser {
 
         self.consume(TokenKind::Evidence, "expected 'evidence' after 'export'")?;
 
+        // Check if next token is a string - could be format or path
         let format = if self.check(TokenKind::String("".to_string())) {
-            let format_str = self.consume_string("expected export format")?;
-            match format_str.to_lowercase().as_str() {
-                "json" => ExportFormat::Json,
-                "csv" => ExportFormat::Csv,
-                "xml" => ExportFormat::Xml,
-                _ => ExportFormat::Json,
+            // Peek at the string value to determine if it's a format or path
+            let token = self.current_token().clone();
+            if let TokenKind::String(s) = &token.kind {
+                // If it looks like a file path (contains . or /), treat as path
+                if s.contains('.') || s.contains('/') || s.contains('\\') {
+                    ExportFormat::Json
+                } else {
+                    // Otherwise treat as format
+                    self.advance();
+                    match s.to_lowercase().as_str() {
+                        "json" => ExportFormat::Json,
+                        "csv" => ExportFormat::Csv,
+                        "xml" => ExportFormat::Xml,
+                        _ => ExportFormat::Json,
+                    }
+                }
+            } else {
+                ExportFormat::Json
             }
         } else {
             ExportFormat::Json

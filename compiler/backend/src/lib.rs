@@ -33,24 +33,27 @@ impl Backend {
     }
 
     fn generate_linux(&self, ir: &IrInvestigation, output_dir: &Path) -> Result<ArtifactMetadata, BackendError> {
-        std::fs::create_dir_all(output_dir)?;
+        // Create a temporary project directory inside output_dir
+        let project_dir = output_dir.join(&ir.name);
+        let src_dir = project_dir.join("src");
+        std::fs::create_dir_all(&src_dir)?;
 
         // Generate Rust source code
         let rust_code = self.generate_rust_code(ir)?;
-        let src_path = output_dir.join("main.rs");
+        let src_path = src_dir.join("main.rs");
         std::fs::write(&src_path, rust_code)?;
 
         // Generate Cargo.toml
         let cargo_toml = self.generate_cargo_toml(ir)?;
-        std::fs::write(output_dir.join("Cargo.toml"), cargo_toml)?;
+        std::fs::write(project_dir.join("Cargo.toml"), cargo_toml)?;
 
         // Compile with cargo
         let artifact_name = format!("{}-linux-{}", ir.name, self.arch_suffix());
         let output_path = output_dir.join(&artifact_name);
 
         let status = std::process::Command::new("cargo")
-            .args(["build", "--release", "--target-dir", output_dir.to_str().unwrap()])
-            .current_dir(output_dir)
+            .args(["build", "--release", "--target-dir", project_dir.join("target").to_str().unwrap()])
+            .current_dir(&project_dir)
             .status()?;
 
         if !status.success() {
@@ -58,19 +61,16 @@ impl Backend {
         }
 
         // Find the compiled binary
-        let binary_path = output_dir.join("release").join(&artifact_name);
+        let binary_path = project_dir.join("target").join("release").join(&artifact_name);
         if !binary_path.exists() {
-            // Try alternative location
-            let alt_path = output_dir.join(&artifact_name);
-            if alt_path.exists() {
-                std::fs::rename(&alt_path, &binary_path)?;
-            } else {
-                return Err(BackendError::CompilationError("Binary not found after build".to_string()));
-            }
+            return Err(BackendError::CompilationError("Binary not found after build".to_string()));
         }
 
+        // Copy binary to output directory
+        std::fs::copy(&binary_path, &output_path)?;
+
         // Calculate artifact hash
-        let artifact_hash = self.calculate_sha256(&binary_path)?;
+        let artifact_hash = self.calculate_sha256(&output_path)?;
 
         // Generate metadata
         let metadata = ArtifactMetadata {
@@ -279,8 +279,10 @@ name = "{}"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+
 [dependencies]
-traceforge-runtime = {{ path = "../../../../runtime" }}
+traceforge-runtime = {{ path = "../../../runtime" }}
 {}
 "#,
             ir.name.replace('-', "_"),

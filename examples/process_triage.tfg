@@ -1,0 +1,17 @@
+investigation "process_triage" {
+
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        parent
+        command_line
+        start_time
+        hash.sha256
+    }
+
+    collect network_connections
+
+    export evidence "process_triage_evidence.json"
+}
