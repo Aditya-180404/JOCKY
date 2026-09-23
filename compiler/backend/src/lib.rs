@@ -88,9 +88,9 @@ impl Backend {
                 }
                 #[cfg(not(target_os = "windows"))]
                 {
-                    return Err(BackendError::CompilationError(
+                    Err(BackendError::CompilationError(
                         "Windows native compilation on non-Windows hosts requires a configured cross-compilation toolchain (e.g. x86_64-pc-windows-gnu or cargo-xwin).".to_string(),
-                    ));
+                    ))
                 }
             }
         }
@@ -208,9 +208,9 @@ impl Backend {
         #[cfg(not(target_os = "windows"))]
         {
             let _ = (ir, output_dir);
-            return Err(BackendError::CompilationError(
+            Err(BackendError::CompilationError(
                 "Windows native compilation on non-Windows hosts requires a configured cross-compilation toolchain (e.g. x86_64-pc-windows-gnu or cargo-xwin).".to_string(),
-            ));
+            ))
         }
 
         #[cfg(target_os = "windows")]

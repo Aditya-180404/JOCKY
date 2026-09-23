@@ -1046,7 +1046,7 @@ fn launch_ide(port: u16) -> anyhow::Result<()> {
     #[cfg(target_os = "linux")]
     {
         let _ = std::process::Command::new("xdg-open")
-            .arg(&format!("http://localhost:{}", port))
+            .arg(format!("http://localhost:{}", port))
             .spawn();
     }
 

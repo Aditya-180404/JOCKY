@@ -65,7 +65,7 @@ pub fn enumerate_processes(
                                 .find(|l| l.starts_with("Uid:"))
                                 .and_then(|l| l.split_whitespace().nth(1))
                                 .and_then(|uid| uid.parse::<u32>().ok())
-                                .and_then(|uid| get_username(uid))
+                                .and_then(get_username)
                         })
                 }),
                 group: proc.stat().ok().and_then(|_s| {
@@ -77,7 +77,7 @@ pub fn enumerate_processes(
                                 .find(|l| l.starts_with("Gid:"))
                                 .and_then(|l| l.split_whitespace().nth(1))
                                 .and_then(|gid| gid.parse::<u32>().ok())
-                                .and_then(|gid| get_groupname(gid))
+                                .and_then(get_groupname)
                         })
                 }),
                 state: proc.stat().ok().map(|s| format!("{:?}", s.state)),
