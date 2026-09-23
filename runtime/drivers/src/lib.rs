@@ -10,6 +10,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+#[allow(unused_imports)]
 use std::path::Path;
 
 /// A loaded kernel driver or module record
@@ -159,6 +160,89 @@ fn uname_r() -> String {
         .output()
         .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
         .unwrap_or_default()
+}
+
+#[cfg(target_os = "windows")]
+fn enumerate_windows_drivers() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut records = Vec::new();
+
+    // Query driverquery.exe /FO CSV /NH (standard defensive tool available on all Windows installations)
+    if let Ok(output) = std::process::Command::new("driverquery.exe")
+        .args(["/FO", "CSV", "/NH"])
+        .output()
+    {
+        if output.status.success() {
+            let text = String::from_utf8_lossy(&output.stdout);
+            for line in text.lines() {
+                let trimmed = line.trim();
+                if trimmed.is_empty() {
+                    continue;
+                }
+                let cols: Vec<String> = trimmed
+                    .split(',')
+                    .map(|s| s.trim_matches('"').trim().to_string())
+                    .collect();
+                if !cols.is_empty() {
+                    let name = cols[0].clone();
+                    let vulns = check_vulnerability_indicators(&name, None);
+                    let record = DriverRecord {
+                        name,
+                        path: None,
+                        size_bytes: None,
+                        load_order: None,
+                        state: "Running".to_string(),
+                        ref_count: None,
+                        sha256: None,
+                        vulnerability_indicators: vulns,
+                        collected_at: Utc::now(),
+                    };
+                    records.push(serde_json::to_value(record)?);
+                }
+            }
+            if !records.is_empty() {
+                return Ok(records);
+            }
+        }
+    }
+
+    // Fallback: check Windows system drivers directory
+    let sys_drivers = std::path::Path::new(r"C:\Windows\System32\drivers");
+    if sys_drivers.exists() {
+        if let Ok(entries) = std::fs::read_dir(sys_drivers) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path
+                    .extension()
+                    .and_then(|e| e.to_str())
+                    .map(|e| e.eq_ignore_ascii_case("sys"))
+                    .unwrap_or(false)
+                {
+                    let name = path
+                        .file_stem()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or("unknown")
+                        .to_string();
+                    let vulns = check_vulnerability_indicators(&name, None);
+                    let size_bytes = entry.metadata().map(|m| m.len()).ok();
+                    let sha256 = hash_file_sha256(&path.to_string_lossy()).ok();
+                    let record = DriverRecord {
+                        name,
+                        path: Some(path.to_string_lossy().to_string()),
+                        size_bytes,
+                        load_order: None,
+                        state: "OnDisk".to_string(),
+                        ref_count: None,
+                        sha256,
+                        vulnerability_indicators: vulns,
+                        collected_at: Utc::now(),
+                    };
+                    records.push(serde_json::to_value(record)?);
+                }
+            }
+        }
+    }
+
+    Ok(records)
 }
 
 /// Hash a file with SHA-256

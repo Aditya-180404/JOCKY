@@ -88,9 +88,17 @@ impl Backend {
                 }
                 #[cfg(not(target_os = "windows"))]
                 {
-                    Err(BackendError::CompilationError(
-                        "Windows native compilation on non-Windows hosts requires a configured cross-compilation toolchain (e.g. x86_64-pc-windows-gnu or cargo-xwin).".to_string(),
-                    ))
+                    let mingw_available = std::process::Command::new("x86_64-w64-mingw32-gcc")
+                        .arg("--version")
+                        .status()
+                        .map(|s| s.success())
+                        .unwrap_or(false);
+                    if !mingw_available {
+                        return Err(BackendError::CompilationError(
+                            "Windows cross-compilation on non-Windows hosts requires x86_64-w64-mingw32-gcc and rustup target x86_64-pc-windows-gnu.".to_string(),
+                        ));
+                    }
+                    Ok(())
                 }
             }
         }
@@ -163,18 +171,27 @@ impl Backend {
         }
 
         // Find the compiled binary
-        let binary_path = project_dir
-            .join("target")
-            .join("release")
-            .join(&artifact_name);
+        let pkg_binary_name = ir.name.replace('-', "_");
+        let release_dir = project_dir.join("target").join("release");
+        let binary_path = if release_dir.join(&pkg_binary_name).exists() {
+            release_dir.join(&pkg_binary_name)
+        } else if release_dir.join(&ir.name).exists() {
+            release_dir.join(&ir.name)
+        } else {
+            release_dir.join(&artifact_name)
+        };
+
         if !binary_path.exists() {
-            return Err(BackendError::CompilationError(
-                "Binary not found after build".to_string(),
-            ));
+            return Err(BackendError::CompilationError(format!(
+                "Binary not found after build: {}",
+                binary_path.display()
+            )));
         }
 
         // Copy binary to output directory
         std::fs::copy(&binary_path, &output_path)?;
+        let default_bin = output_dir.join(&ir.name);
+        let _ = std::fs::copy(&binary_path, &default_bin);
 
         // Calculate artifact hash
         let artifact_hash = self.calculate_sha256(&output_path)?;
@@ -205,26 +222,6 @@ impl Backend {
         ir: &IrInvestigation,
         output_dir: &Path,
     ) -> Result<ArtifactMetadata, BackendError> {
-        #[cfg(not(target_os = "windows"))]
-        {
-            let _ = (ir, output_dir);
-            Err(BackendError::CompilationError(
-                "Windows native compilation on non-Windows hosts requires a configured cross-compilation toolchain (e.g. x86_64-pc-windows-gnu or cargo-xwin).".to_string(),
-            ))
-        }
-
-        #[cfg(target_os = "windows")]
-        {
-            self.generate_windows_native(ir, output_dir)
-        }
-    }
-
-    #[cfg(target_os = "windows")]
-    fn generate_windows_native(
-        &self,
-        ir: &IrInvestigation,
-        output_dir: &Path,
-    ) -> Result<ArtifactMetadata, BackendError> {
         let project_dir = output_dir.join(&ir.name);
         let src_dir = project_dir.join("src");
         std::fs::create_dir_all(&src_dir)?;
@@ -240,19 +237,32 @@ impl Backend {
         let output_path = output_dir.join(&artifact_name);
 
         let target_dir = project_dir.join("target");
-        let status = std::process::Command::new("cargo")
-            .args(["build", "--release", "--target-dir", "target"])
-            .current_dir(&project_dir)
-            .status()?;
+        let mut cmd = std::process::Command::new("cargo");
+        cmd.args(["build", "--release", "--target-dir", "target"]);
+
+        #[cfg(not(target_os = "windows"))]
+        {
+            cmd.args(["--target", "x86_64-pc-windows-gnu"]);
+            cmd.env("CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER", "x86_64-w64-mingw32-gcc");
+        }
+
+        let status = cmd.current_dir(&project_dir).status()?;
 
         if !status.success() {
             return Err(BackendError::CompilationError(
-                "Cargo build failed for Windows native target".to_string(),
+                "Cargo build failed for Windows target".to_string(),
             ));
         }
 
         let pkg_binary_name = format!("{}.exe", ir.name.replace('-', "_"));
+        #[cfg(target_os = "windows")]
         let binary_path = target_dir.join("release").join(&pkg_binary_name);
+        #[cfg(not(target_os = "windows"))]
+        let binary_path = target_dir
+            .join("x86_64-pc-windows-gnu")
+            .join("release")
+            .join(&pkg_binary_name);
+
         if !binary_path.exists() {
             return Err(BackendError::CompilationError(format!(
                 "Binary not found after build: {}",

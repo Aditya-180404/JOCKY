@@ -1,0 +1,85 @@
+{
+  "name": "process_triage",
+  "target": null,
+  "metadata": [],
+  "statements": [
+    {
+      "Collect": {
+        "target": "SystemInfo",
+        "options": {
+          "fields": [],
+          "recursive": false,
+          "hash_algorithm": null,
+          "filter": null,
+          "limit": null
+        },
+        "span": {
+          "start_line": 3,
+          "start_column": 5,
+          "end_line": 3,
+          "end_column": 24
+        }
+      }
+    },
+    {
+      "Collect": {
+        "target": "Processes",
+        "options": {
+          "fields": [
+            "pid",
+            "name",
+            "parent",
+            "command_line",
+            "start_time"
+          ],
+          "recursive": false,
+          "hash_algorithm": "Sha256",
+          "filter": null,
+          "limit": null
+        },
+        "span": {
+          "start_line": 5,
+          "start_column": 5,
+          "end_line": 12,
+          "end_column": 6
+        }
+      }
+    },
+    {
+      "Collect": {
+        "target": "NetworkConnections",
+        "options": {
+          "fields": [],
+          "recursive": false,
+          "hash_algorithm": null,
+          "filter": null,
+          "limit": null
+        },
+        "span": {
+          "start_line": 14,
+          "start_column": 5,
+          "end_line": 14,
+          "end_column": 32
+        }
+      }
+    },
+    {
+      "Export": {
+        "format": "Json",
+        "path": "process_triage_evidence.json",
+        "span": {
+          "start_line": 16,
+          "start_column": 5,
+          "end_line": 16,
+          "end_column": 51
+        }
+      }
+    }
+  ],
+  "span": {
+    "start_line": 1,
+    "start_column": 1,
+    "end_line": 17,
+    "end_column": 2
+  }
+}

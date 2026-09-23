@@ -7,7 +7,7 @@ use traceforge_ir::{BuildConfig, TargetArch, TargetPlatform};
 use traceforge_lexer::Lexer;
 use traceforge_parser::Parser as TfParser;
 use traceforge_semantic::SemanticAnalyzer;
-use traceforge_runtime_evidence::{VerificationStatus, verify_evidence};
+use traceforge_runtime::{VerificationStatus, verify_evidence};
 
 #[derive(Parser)]
 #[command(
@@ -697,6 +697,135 @@ fn calculate_file_hash(file: &Path) -> anyhow::Result<String> {
     let mut hasher = Sha256::new();
     std::io::copy(&mut input, &mut hasher)?;
     Ok(format!("{:x}", hasher.finalize()))
+}
+
+fn emit_all_artifacts(file: &Path, output: &Path) -> anyhow::Result<()> {
+    let source = std::fs::read_to_string(file)?;
+    std::fs::create_dir_all(output)?;
+
+    let mut lexer = Lexer::new(&source);
+    let tokens = lexer.tokenize()?;
+    let tokens_path = output.join("tokens.txt");
+    let mut token_str = String::new();
+    for token in &tokens {
+        token_str.push_str(&format!("{:?}\n", token));
+    }
+    std::fs::write(&tokens_path, token_str)?;
+    println!("  Tokens emitted to: {}", tokens_path.display());
+
+    let mut parser = TfParser::new(tokens);
+    let (ast, _diags) = parser.parse_with_diagnostics();
+    if let Some(ast) = &ast {
+        let ast_json = serde_json::to_string_pretty(ast)?;
+        let ast_path = output.join("ast.json");
+        std::fs::write(&ast_path, ast_json)?;
+        println!("  AST emitted to: {}", ast_path.display());
+
+        let mut analyzer = SemanticAnalyzer::new();
+        let (ir, _sem_diags) = analyzer.analyze_with_diagnostics(ast);
+        if let Some(ir) = &ir {
+            let ir_json = serde_json::to_string_pretty(ir)?;
+            let ir_path = output.join("ir.json");
+            std::fs::write(&ir_path, ir_json)?;
+            println!("  IR emitted to: {}", ir_path.display());
+
+            let manifest = serde_json::json!({
+                "investigation": ir.name,
+                "required_capabilities": ir.required_capabilities.iter().map(|c| c.as_str()).collect::<Vec<_>>(),
+                "operations_count": ir.operations.len(),
+            });
+            let manifest_path = output.join("capabilities.json");
+            std::fs::write(&manifest_path, serde_json::to_string_pretty(&manifest)?)?;
+            println!("  Capabilities emitted to: {}", manifest_path.display());
+        }
+    }
+
+    Ok(())
+}
+
+fn evidence_verify(evidence: &Path, meta: &Path) -> anyhow::Result<()> {
+    println!("Verifying evidence: {}", evidence.display());
+    println!("Using metadata:    {}", meta.display());
+
+    let result = verify_evidence(
+        evidence.to_str().unwrap_or_default(),
+        meta.to_str().unwrap_or_default(),
+    ).map_err(|e| anyhow::anyhow!("Verification error: {}", e))?;
+
+    match &result.status {
+        VerificationStatus::Verified => {
+            println!("✓ Evidence verification SUCCESSFUL (Integrity Intact)");
+            if let Some(hash) = &result.calculated_hash {
+                println!("  SHA-256 Hash: {}", hash);
+            }
+            if let Some(valid) = result.merkle_root_valid {
+                println!("  Merkle Tree:  {}", if valid { "Valid" } else { "Invalid" });
+            }
+            println!("  Verified at:  {}", result.verified_at);
+            Ok(())
+        }
+        VerificationStatus::Tampered { reason } => {
+            eprintln!("✗ Evidence TAMPERED / INTEGRITY FAILED");
+            eprintln!("  Reason: {}", reason);
+            if let Some(calc) = &result.calculated_hash {
+                eprintln!("  Calculated SHA-256: {}", calc);
+            }
+            if let Some(stored) = &result.stored_hash {
+                eprintln!("  Expected SHA-256:   {}", stored);
+            }
+            anyhow::bail!("Evidence failed integrity check: {}", reason);
+        }
+        VerificationStatus::Missing { detail } => {
+            eprintln!("✗ Evidence verification file missing");
+            eprintln!("  Detail: {}", detail);
+            anyhow::bail!("Verification missing file: {}", detail);
+        }
+    }
+}
+
+fn evidence_inspect(file: &Path) -> anyhow::Result<()> {
+    println!("Inspecting evidence: {}", file.display());
+    let content = std::fs::read_to_string(file)?;
+    let val: serde_json::Value = serde_json::from_str(&content)?;
+
+    println!("------------------------------------------------------------");
+    if let Some(meta) = val.get("metadata") {
+        println!("Metadata:");
+        if let Some(inv) = meta.get("investigation_name").and_then(|v| v.as_str()) {
+            println!("  Investigation: {}", inv);
+        }
+        if let Some(host) = meta.get("host_identifier").and_then(|v| v.as_str()) {
+            println!("  Host:          {}", host);
+        }
+        if let Some(dt) = meta.get("collected_at").and_then(|v| v.as_str()) {
+            println!("  Collected At:  {}", dt);
+        }
+        if let Some(h) = meta.get("evidence_hash").and_then(|v| v.as_str()) {
+            println!("  Evidence Hash: {}", h);
+        }
+        if let Some(m) = meta.get("merkle_root").and_then(|v| v.as_str()) {
+            println!("  Merkle Root:   {}", m);
+        }
+    }
+
+    if let Some(records) = val.get("records").and_then(|r| r.as_array()) {
+        println!("Records Count: {}", records.len());
+        if !records.is_empty() {
+            println!("\nSample Record [0]:");
+            println!("{}", serde_json::to_string_pretty(&records[0])?);
+        }
+    } else if let Some(arr) = val.as_array() {
+        println!("Array Items: {}", arr.len());
+        if !arr.is_empty() {
+            println!("\nSample Item [0]:");
+            println!("{}", serde_json::to_string_pretty(&arr[0])?);
+        }
+    } else {
+        println!("Payload Structure: Object");
+        println!("{}", serde_json::to_string_pretty(&val)?);
+    }
+    println!("------------------------------------------------------------");
+    Ok(())
 }
 
 fn init_project(name: &str) -> anyhow::Result<()> {

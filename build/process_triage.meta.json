@@ -2,16 +2,16 @@
   "investigation_name": "process_triage",
   "source_hash": "77dca1d7146536d7ded62aa8c88cb6af921c67284dcf11888af11e68e5a49084",
   "compiler_version": "0.1.0",
-  "compiler_hash": "1e539f20b535e97ff4b44a983fb120ade3f6769bc7114212b50e92030b6321e2",
-  "target_platform": "Windows",
+  "compiler_hash": "a450483e68d62b8454dbf4835558e53a61cfbda7d5f3d18b7e607cc9b953d88e",
+  "target_platform": "Linux",
   "target_arch": "X64",
-  "build_timestamp": "2026-09-23T00:58:04.763058500+00:00",
-  "artifact_hash": "e84fb6df0c2b0782fcb036f87487e4af6d6f3e7f828fa80e57bb101454e3933f",
+  "build_timestamp": "2026-09-23T16:03:57.573614068+00:00",
+  "artifact_hash": "8bd953bd03cb3914911af5db94c992b4d66793253afc1961233a39c295258337",
   "required_capabilities": [
     "PROCESS_READ",
-    "NETWORK_READ",
+    "FILE_HASH",
     "SYSTEM_INFO_READ",
-    "FILE_HASH"
+    "NETWORK_READ"
   ],
   "ir_version": "0.1"
 }
