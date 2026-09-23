@@ -164,13 +164,11 @@ impl SemanticAnalyzer {
                     span,
                 } => {
                     let ir_stages = self.convert_pipeline_stages(stages)?;
-                    operations.push(IrOperation::EvidencePipeline(
-                        IrEvidencePipelineOperation {
-                            variable: variable.clone(),
-                            stages: ir_stages,
-                            span: *span,
-                        },
-                    ));
+                    operations.push(IrOperation::EvidencePipeline(IrEvidencePipelineOperation {
+                        variable: variable.clone(),
+                        stages: ir_stages,
+                        span: *span,
+                    }));
                 }
                 Stmt::Export { format, path, span } => {
                     operations.push(IrOperation::Export(IrExportOperation {
@@ -400,38 +398,40 @@ impl SemanticAnalyzer {
     /// Infer capabilities from expressions that contain collect sub-expressions
     fn infer_capabilities_from_expr(&mut self, expr: &Expr) {
         match expr {
-            Expr::Collect { target, options, .. } => {
-                match target {
-                    CollectTarget::Processes => {
-                        self.required_capabilities.insert(Capability::ProcessRead);
-                        if options.hash_algorithm.is_some() {
-                            self.required_capabilities.insert(Capability::FileHash);
-                        }
+            Expr::Collect {
+                target, options, ..
+            } => match target {
+                CollectTarget::Processes => {
+                    self.required_capabilities.insert(Capability::ProcessRead);
+                    if options.hash_algorithm.is_some() {
+                        self.required_capabilities.insert(Capability::FileHash);
                     }
-                    CollectTarget::NetworkConnections => {
-                        self.required_capabilities.insert(Capability::NetworkRead);
-                    }
-                    CollectTarget::SystemInfo => {
-                        self.required_capabilities.insert(Capability::SystemInfoRead);
-                    }
-                    CollectTarget::Files { .. } => {
-                        self.required_capabilities.insert(Capability::FilesystemRead);
-                        if options.hash_algorithm.is_some() {
-                            self.required_capabilities.insert(Capability::FileHash);
-                        }
-                    }
-                    CollectTarget::Logs { .. } => {
-                        self.required_capabilities.insert(Capability::LogRead);
-                    }
-                    CollectTarget::Drivers => {
-                        self.required_capabilities.insert(Capability::DriverRead);
-                    }
-                    CollectTarget::Timeline { .. } => {
-                        self.required_capabilities.insert(Capability::TimelineRead);
-                    }
-                    CollectTarget::Evidence { .. } => {}
                 }
-            }
+                CollectTarget::NetworkConnections => {
+                    self.required_capabilities.insert(Capability::NetworkRead);
+                }
+                CollectTarget::SystemInfo => {
+                    self.required_capabilities
+                        .insert(Capability::SystemInfoRead);
+                }
+                CollectTarget::Files { .. } => {
+                    self.required_capabilities
+                        .insert(Capability::FilesystemRead);
+                    if options.hash_algorithm.is_some() {
+                        self.required_capabilities.insert(Capability::FileHash);
+                    }
+                }
+                CollectTarget::Logs { .. } => {
+                    self.required_capabilities.insert(Capability::LogRead);
+                }
+                CollectTarget::Drivers => {
+                    self.required_capabilities.insert(Capability::DriverRead);
+                }
+                CollectTarget::Timeline { .. } => {
+                    self.required_capabilities.insert(Capability::TimelineRead);
+                }
+                CollectTarget::Evidence { .. } => {}
+            },
             Expr::Pipeline { source, .. } => {
                 self.infer_capabilities_from_expr(source);
             }
@@ -553,11 +553,7 @@ impl SemanticAnalyzer {
                 }
                 Ok(serde_json::Value::Object(map))
             }
-            Expr::Pipeline {
-                source,
-                stages,
-                ..
-            } => {
+            Expr::Pipeline { source, stages, .. } => {
                 // Represent pipeline as JSON
                 let mut stage_arr = Vec::new();
                 for stage in stages {
@@ -750,7 +746,11 @@ mod tests {
             }
         "#;
         let (ir, diags) = analyze_source(source);
-        assert!(diags.is_empty(), "Expected no diagnostics, got: {:?}", diags);
+        assert!(
+            diags.is_empty(),
+            "Expected no diagnostics, got: {:?}",
+            diags
+        );
         let ir = ir.unwrap();
         assert!(ir.required_capabilities.contains(&Capability::DriverRead));
     }
@@ -764,7 +764,11 @@ mod tests {
             }
         "#;
         let (ir, diags) = analyze_source(source);
-        assert!(diags.is_empty(), "Expected no diagnostics, got: {:?}", diags);
+        assert!(
+            diags.is_empty(),
+            "Expected no diagnostics, got: {:?}",
+            diags
+        );
         let ir = ir.unwrap();
         assert!(ir.required_capabilities.contains(&Capability::TimelineRead));
     }
@@ -779,7 +783,11 @@ mod tests {
             }
         "#;
         let (ir, diags) = analyze_source(source);
-        assert!(diags.is_empty(), "Expected no diagnostics, got: {:?}", diags);
+        assert!(
+            diags.is_empty(),
+            "Expected no diagnostics, got: {:?}",
+            diags
+        );
         let ir = ir.unwrap();
         assert_eq!(ir.target, Some("windows".to_string()));
     }

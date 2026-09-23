@@ -94,7 +94,8 @@ impl Parser {
         let mut target = None;
         if self.check(TokenKind::Target) {
             self.advance();
-            target = Some(self.consume_identifier("expected target platform (e.g. windows, linux)")?);
+            target =
+                Some(self.consume_identifier("expected target platform (e.g. windows, linux)")?);
         }
 
         let mut statements = Vec::new();
@@ -210,7 +211,10 @@ impl Parser {
                     }))
                 } else {
                     self.add_diagnostic(Diagnostic::error(
-                        format!("Unexpected identifier '{}' in statement position, expected '='", name),
+                        format!(
+                            "Unexpected identifier '{}' in statement position, expected '='",
+                            name
+                        ),
                         start_span,
                     ));
                     self.synchronize();
@@ -236,7 +240,9 @@ impl Parser {
     }
 
     fn parse_evidence_statement(&mut self) -> Result<Stmt, Vec<Diagnostic>> {
-        let start_span = self.consume(TokenKind::Evidence, "expected 'evidence'")?.span;
+        let start_span = self
+            .consume(TokenKind::Evidence, "expected 'evidence'")?
+            .span;
         let var_name = self.consume_identifier("expected variable name after 'evidence'")?;
         let mut stages = Vec::new();
         while self.match_token(TokenKind::Pipe) {
@@ -298,7 +304,10 @@ impl Parser {
                         let src = self.consume_identifier("expected timeline source event type")?;
                         sources.push(src);
                     }
-                    self.consume(TokenKind::RightBrace, "expected '}' closing timeline sources")?;
+                    self.consume(
+                        TokenKind::RightBrace,
+                        "expected '}' closing timeline sources",
+                    )?;
                 }
                 Ok(CollectTarget::Timeline { sources })
             }

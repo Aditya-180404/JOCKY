@@ -48,7 +48,10 @@ fn rustup_target_installed(target: &str) -> bool {
         .any(|installed_target| installed_target == target)
 }
 
-fn windows_cross_compile_requirement_message(mingw_available: bool, target_installed: bool) -> String {
+fn windows_cross_compile_requirement_message(
+    mingw_available: bool,
+    target_installed: bool,
+) -> String {
     let missing = {
         let mut missing = Vec::new();
         if !mingw_available {
@@ -289,7 +292,10 @@ impl Backend {
         #[cfg(not(target_os = "windows"))]
         {
             cmd.args(["--target", "x86_64-pc-windows-gnu"]);
-            cmd.env("CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER", "x86_64-w64-mingw32-gcc");
+            cmd.env(
+                "CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER",
+                "x86_64-w64-mingw32-gcc",
+            );
         }
 
         let status = cmd.current_dir(&project_dir).status()?;

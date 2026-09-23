@@ -376,7 +376,8 @@ mod tests {
 
     #[test]
     fn test_tokenize_pipeline_and_extended_tokens() {
-        let mut lexer = Lexer::new("target windows\nsuspicious = proc | where cmd contains \"powershell\"");
+        let mut lexer =
+            Lexer::new("target windows\nsuspicious = proc | where cmd contains \"powershell\"");
         let tokens = lexer.tokenize().unwrap();
 
         assert!(matches!(tokens[0].kind, TokenKind::Target));

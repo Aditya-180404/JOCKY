@@ -90,17 +90,33 @@ pub struct IrEvidencePipelineOperation {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "stage")]
 pub enum IrPipelineStage {
-    Where { condition: serde_json::Value, span: Span },
-    Filter { condition: serde_json::Value, span: Span },
-    Hash { algorithm: String, span: Span },
-    Timeline { span: Span },
-    Export { path: String, span: Span },
-    Limit { count: serde_json::Value, span: Span },
+    Where {
+        condition: serde_json::Value,
+        span: Span,
+    },
+    Filter {
+        condition: serde_json::Value,
+        span: Span,
+    },
+    Hash {
+        algorithm: String,
+        span: Span,
+    },
+    Timeline {
+        span: Span,
+    },
+    Export {
+        path: String,
+        span: Span,
+    },
+    Limit {
+        count: serde_json::Value,
+        span: Span,
+    },
 }
 
 /// IR Version for compatibility checking
 pub const IR_VERSION: &str = "0.1";
-
 
 /// Serialize IR to JSON
 pub fn serialize_ir(investigation: &IrInvestigation) -> Result<String, serde_json::Error> {

@@ -233,7 +233,10 @@ impl EvidenceCollector {
 
         println!("Evidence written to: {}", self.output_path);
         println!("SHA-256: {}", metadata.evidence_hash);
-        println!("Merkle root: {}", metadata.merkle_root.as_deref().unwrap_or("(empty)"));
+        println!(
+            "Merkle root: {}",
+            metadata.merkle_root.as_deref().unwrap_or("(empty)")
+        );
         println!("Size: {} bytes", metadata.evidence_size);
 
         Ok(metadata)
@@ -712,7 +715,8 @@ pub fn verify_evidence(
     if merkle_root_valid == Some(false) {
         return Ok(VerificationResult {
             status: VerificationStatus::Tampered {
-                reason: "Merkle root mismatch: individual evidence items have been modified".to_string(),
+                reason: "Merkle root mismatch: individual evidence items have been modified"
+                    .to_string(),
             },
             evidence_path: evidence_path_str,
             metadata_path: metadata_path_str,
@@ -748,7 +752,11 @@ pub fn generate_merkle_proof(
     let mut index = leaf_index;
 
     while level.len() > 1 {
-        let sibling_index = if index.is_multiple_of(2) { index + 1 } else { index - 1 };
+        let sibling_index = if index.is_multiple_of(2) {
+            index + 1
+        } else {
+            index - 1
+        };
         let sibling = if sibling_index < level.len() {
             level[sibling_index].clone()
         } else {
@@ -851,7 +859,6 @@ pub fn compute_merkle_root(hashes: &[String]) -> String {
 fn merkle_root(hashes: &[String]) -> String {
     compute_merkle_root(hashes)
 }
-
 
 fn format_hash(bytes: &[u8]) -> String {
     let mut hasher = Sha256::new();

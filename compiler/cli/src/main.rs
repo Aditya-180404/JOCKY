@@ -6,8 +6,8 @@ use traceforge_backend::Backend;
 use traceforge_ir::{BuildConfig, TargetArch, TargetPlatform};
 use traceforge_lexer::Lexer;
 use traceforge_parser::Parser as TfParser;
+use traceforge_runtime::{verify_evidence, VerificationStatus};
 use traceforge_semantic::SemanticAnalyzer;
-use traceforge_runtime::{VerificationStatus, verify_evidence};
 
 #[derive(Parser)]
 #[command(
@@ -227,9 +227,8 @@ fn main() -> anyhow::Result<()> {
         Commands::Verify { artifact } => verify_artifact(&artifact),
         Commands::Evidence { command } => match command {
             EvidenceCommands::Verify { evidence, meta } => {
-                let meta_path = meta.unwrap_or_else(|| {
-                    PathBuf::from(format!("{}.meta.json", evidence.display()))
-                });
+                let meta_path = meta
+                    .unwrap_or_else(|| PathBuf::from(format!("{}.meta.json", evidence.display())));
                 evidence_verify(&evidence, &meta_path)
             }
             EvidenceCommands::Inspect { file } => evidence_inspect(&file),
@@ -750,7 +749,8 @@ fn evidence_verify(evidence: &Path, meta: &Path) -> anyhow::Result<()> {
     let result = verify_evidence(
         evidence.to_str().unwrap_or_default(),
         meta.to_str().unwrap_or_default(),
-    ).map_err(|e| anyhow::anyhow!("Verification error: {}", e))?;
+    )
+    .map_err(|e| anyhow::anyhow!("Verification error: {}", e))?;
 
     match &result.status {
         VerificationStatus::Verified => {
@@ -759,7 +759,10 @@ fn evidence_verify(evidence: &Path, meta: &Path) -> anyhow::Result<()> {
                 println!("  SHA-256 Hash: {}", hash);
             }
             if let Some(valid) = result.merkle_root_valid {
-                println!("  Merkle Tree:  {}", if valid { "Valid" } else { "Invalid" });
+                println!(
+                    "  Merkle Tree:  {}",
+                    if valid { "Valid" } else { "Invalid" }
+                );
             }
             println!("  Verified at:  {}", result.verified_at);
             Ok(())

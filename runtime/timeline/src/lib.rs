@@ -207,10 +207,7 @@ impl ForensicTimeline {
                     .as_deref()
                     .map(escape_csv)
                     .unwrap_or_default(),
-                event
-                    .process_id
-                    .map(|p| p.to_string())
-                    .unwrap_or_default(),
+                event.process_id.map(|p| p.to_string()).unwrap_or_default(),
                 event.path.as_deref().map(escape_csv).unwrap_or_default(),
                 event
                     .network_endpoint
@@ -245,14 +242,20 @@ pub fn normalize_record(
     let obj = record.as_object()?;
 
     // Determine timestamp from various field names
-    let timestamp = ["timestamp", "start_time", "created_at", "time", "event_time"]
-        .iter()
-        .find_map(|field| {
-            obj.get(*field)
-                .and_then(|v| v.as_str())
-                .and_then(|s| s.parse::<DateTime<Utc>>().ok())
-        })
-        .unwrap_or_else(Utc::now);
+    let timestamp = [
+        "timestamp",
+        "start_time",
+        "created_at",
+        "time",
+        "event_time",
+    ]
+    .iter()
+    .find_map(|field| {
+        obj.get(*field)
+            .and_then(|v| v.as_str())
+            .and_then(|s| s.parse::<DateTime<Utc>>().ok())
+    })
+    .unwrap_or_else(Utc::now);
 
     // Detect source type from record fields
     let (source, event_type) = detect_source_and_type(obj);
@@ -336,16 +339,17 @@ pub fn normalize_record(
     Some(event)
 }
 
-fn detect_source_and_type(
-    obj: &serde_json::Map<String, serde_json::Value>,
-) -> (String, String) {
+fn detect_source_and_type(obj: &serde_json::Map<String, serde_json::Value>) -> (String, String) {
     // Network events
     if obj.contains_key("remote_address") || obj.contains_key("local_port") {
         let state = obj
             .get("state")
             .and_then(|v| v.as_str())
             .unwrap_or("unknown");
-        return ("network".to_string(), format!("connection_{}", state.to_lowercase()));
+        return (
+            "network".to_string(),
+            format!("connection_{}", state.to_lowercase()),
+        );
     }
 
     // Process events
@@ -355,9 +359,7 @@ fn detect_source_and_type(
 
     // File events
     if obj.contains_key("path")
-        && (obj.contains_key("size")
-            || obj.contains_key("permissions")
-            || obj.contains_key("hash"))
+        && (obj.contains_key("size") || obj.contains_key("permissions") || obj.contains_key("hash"))
     {
         return ("filesystem".to_string(), "file_observed".to_string());
     }

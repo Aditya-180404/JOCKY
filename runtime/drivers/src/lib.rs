@@ -40,18 +40,50 @@ pub struct VulnerabilityIndicator {
 /// These are names associated with publicly known vulnerable drivers used in BYOVD attacks.
 /// Source: https://github.com/magicsword-io/LOLDrivers (community-maintained, public)
 static KNOWN_VULNERABLE_DRIVER_NAMES: &[(&str, &str, &str)] = &[
-    ("rtcore64", "MSI Afterburner vulnerable driver - BYOVD target", "CRITICAL"),
-    ("gdrv", "Gigabyte driver vulnerable to BYOVD exploitation", "CRITICAL"),
+    (
+        "rtcore64",
+        "MSI Afterburner vulnerable driver - BYOVD target",
+        "CRITICAL",
+    ),
+    (
+        "gdrv",
+        "Gigabyte driver vulnerable to BYOVD exploitation",
+        "CRITICAL",
+    ),
     ("aswvmm", "Avast vulnerable driver", "HIGH"),
-    ("asrdrv10", "ASRock vulnerable driver - privilege escalation risk", "HIGH"),
+    (
+        "asrdrv10",
+        "ASRock vulnerable driver - privilege escalation risk",
+        "HIGH",
+    ),
     ("cpuz", "CPU-Z driver - kernel memory read risk", "MEDIUM"),
-    ("winio", "WinIO vulnerable driver - direct hardware access", "HIGH"),
-    ("inpoutx64", "InpOut vulnerable driver - kernel I/O risk", "MEDIUM"),
-    ("physmem", "PhysMem vulnerable driver - physical memory access", "CRITICAL"),
+    (
+        "winio",
+        "WinIO vulnerable driver - direct hardware access",
+        "HIGH",
+    ),
+    (
+        "inpoutx64",
+        "InpOut vulnerable driver - kernel I/O risk",
+        "MEDIUM",
+    ),
+    (
+        "physmem",
+        "PhysMem vulnerable driver - physical memory access",
+        "CRITICAL",
+    ),
     ("amifldrv64", "AMI flash driver - kernel write risk", "HIGH"),
-    ("drvmap", "Driver mapper tool associated with evasion", "HIGH"),
+    (
+        "drvmap",
+        "Driver mapper tool associated with evasion",
+        "HIGH",
+    ),
     ("atillk64", "ATI/AMD legacy driver - BYOVD target", "HIGH"),
-    ("zemana", "Zemana AntiLogger driver - privilege escalation", "HIGH"),
+    (
+        "zemana",
+        "Zemana AntiLogger driver - privilege escalation",
+        "HIGH",
+    ),
 ];
 
 /// Enumerate loaded kernel drivers/modules (defensive, read-only)
@@ -293,7 +325,10 @@ pub fn summarize_drivers(records: &[serde_json::Value]) -> DriverEnumerationSumm
     let mut medium = 0usize;
 
     for record in records {
-        if let Some(vulns) = record.get("vulnerability_indicators").and_then(|v| v.as_array()) {
+        if let Some(vulns) = record
+            .get("vulnerability_indicators")
+            .and_then(|v| v.as_array())
+        {
             if !vulns.is_empty() {
                 drivers_with_vulns += 1;
                 for vuln in vulns {
