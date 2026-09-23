@@ -748,7 +748,7 @@ pub fn generate_merkle_proof(
     let mut index = leaf_index;
 
     while level.len() > 1 {
-        let sibling_index = if index % 2 == 0 { index + 1 } else { index - 1 };
+        let sibling_index = if index.is_multiple_of(2) { index + 1 } else { index - 1 };
         let sibling = if sibling_index < level.len() {
             level[sibling_index].clone()
         } else {
@@ -758,7 +758,7 @@ pub fn generate_merkle_proof(
 
         proof.push(MerkleProofNode {
             sibling_hash: sibling,
-            position: if index % 2 == 0 {
+            position: if index.is_multiple_of(2) {
                 MerkleNodePosition::Right
             } else {
                 MerkleNodePosition::Left

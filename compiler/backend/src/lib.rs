@@ -20,6 +20,52 @@ pub struct Backend {
     config: BuildConfig,
 }
 
+fn command_exists(executable: &str) -> bool {
+    std::process::Command::new(executable)
+        .arg("--version")
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
+}
+
+fn rustup_target_installed(target: &str) -> bool {
+    let output = match std::process::Command::new("rustup")
+        .args(["target", "list", "--installed"])
+        .output()
+    {
+        Ok(output) => output,
+        Err(_) => return false,
+    };
+
+    if !output.status.success() {
+        return false;
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    stdout
+        .lines()
+        .map(str::trim)
+        .any(|installed_target| installed_target == target)
+}
+
+fn windows_cross_compile_requirement_message(mingw_available: bool, target_installed: bool) -> String {
+    let missing = {
+        let mut missing = Vec::new();
+        if !mingw_available {
+            missing.push("x86_64-w64-mingw32-gcc");
+        }
+        if !target_installed {
+            missing.push("rustup target x86_64-pc-windows-gnu");
+        }
+        missing
+    };
+
+    format!(
+        "Windows cross-compilation on non-Windows hosts requires {}.",
+        missing.join(" and ")
+    )
+}
+
 impl Backend {
     pub fn new(config: BuildConfig) -> Self {
         Self { config }
@@ -88,14 +134,14 @@ impl Backend {
                 }
                 #[cfg(not(target_os = "windows"))]
                 {
-                    let mingw_available = std::process::Command::new("x86_64-w64-mingw32-gcc")
-                        .arg("--version")
-                        .status()
-                        .map(|s| s.success())
-                        .unwrap_or(false);
-                    if !mingw_available {
+                    let mingw_available = command_exists("x86_64-w64-mingw32-gcc");
+                    let target_installed = rustup_target_installed("x86_64-pc-windows-gnu");
+                    if !(mingw_available && target_installed) {
                         return Err(BackendError::CompilationError(
-                            "Windows cross-compilation on non-Windows hosts requires x86_64-w64-mingw32-gcc and rustup target x86_64-pc-windows-gnu.".to_string(),
+                            windows_cross_compile_requirement_message(
+                                mingw_available,
+                                target_installed,
+                            ),
                         ));
                     }
                     Ok(())
