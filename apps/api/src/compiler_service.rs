@@ -715,8 +715,7 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
 pub async fn download_file_handler(Path(filename): Path<String>) -> impl IntoResponse {
     let sanitized = filename
         .replace("..", "")
-        .replace('/', "")
-        .replace('\\', "");
+        .replace(['/', '\\'], "");
     let package_path = std::path::PathBuf::from("./packages").join(&sanitized);
     let build_path = std::path::PathBuf::from("./build").join(&sanitized);
     let target_path = std::path::PathBuf::from("./target/release").join(&sanitized);

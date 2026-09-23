@@ -1,7 +1,7 @@
 //! TraceForge CLI - Command-line interface for the TraceForge compiler
 
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use traceforge_backend::Backend;
 use traceforge_ir::{BuildConfig, TargetArch, TargetPlatform};
 use traceforge_lexer::Lexer;
@@ -222,7 +222,7 @@ fn main() -> anyhow::Result<()> {
     }
 }
 
-fn run(file: &PathBuf, target: &str, arch: &str, output: &PathBuf) -> anyhow::Result<()> {
+fn run(file: &Path, target: &str, arch: &str, output: &Path) -> anyhow::Result<()> {
     compile(file, target, arch, output, "speed")?;
 
     let target_platform = match target.to_lowercase().as_str() {
@@ -297,7 +297,7 @@ fn arch_suffix(arch: &str) -> anyhow::Result<&'static str> {
     }
 }
 
-fn fmt(file: &PathBuf, write: bool) -> anyhow::Result<()> {
+fn fmt(file: &Path, write: bool) -> anyhow::Result<()> {
     let source = std::fs::read_to_string(file)?;
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize()?;
@@ -332,7 +332,7 @@ fn list_targets() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn validate(file: &PathBuf) -> anyhow::Result<()> {
+fn validate(file: &Path) -> anyhow::Result<()> {
     println!("Validating {}", file.display());
 
     let source = std::fs::read_to_string(file)?;
@@ -384,10 +384,10 @@ fn validate(file: &PathBuf) -> anyhow::Result<()> {
 }
 
 fn compile(
-    file: &PathBuf,
+    file: &Path,
     target: &str,
     arch: &str,
-    output: &PathBuf,
+    output: &Path,
     opt: &str,
 ) -> anyhow::Result<()> {
     println!("Compiling {}", file.display());
@@ -485,7 +485,7 @@ fn compile(
     Ok(())
 }
 
-fn inspect(file: &PathBuf, format: &str) -> anyhow::Result<()> {
+fn inspect(file: &Path, format: &str) -> anyhow::Result<()> {
     let source = std::fs::read_to_string(file)?;
 
     let mut lexer = Lexer::new(&source);
@@ -530,7 +530,7 @@ fn inspect(file: &PathBuf, format: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn hash_file(file: &PathBuf) -> anyhow::Result<()> {
+fn hash_file(file: &Path) -> anyhow::Result<()> {
     use sha2::{Digest, Sha256};
 
     let mut file = std::fs::File::open(file)?;
@@ -542,7 +542,7 @@ fn hash_file(file: &PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn verify_artifact(artifact: &PathBuf) -> anyhow::Result<()> {
+fn verify_artifact(artifact: &Path) -> anyhow::Result<()> {
     if !artifact.is_file() {
         anyhow::bail!("Artifact does not exist: {}", artifact.display());
     }
@@ -654,7 +654,7 @@ fn verify_artifact(artifact: &PathBuf) -> anyhow::Result<()> {
     }
 }
 
-fn calculate_file_hash(file: &PathBuf) -> anyhow::Result<String> {
+fn calculate_file_hash(file: &Path) -> anyhow::Result<String> {
     use sha2::{Digest, Sha256};
 
     let mut input = std::fs::File::open(file)?;
@@ -973,7 +973,7 @@ fn repo_update(tool: Option<&str>) -> anyhow::Result<()> {
     anyhow::bail!("Repository update is not implemented by the current API")
 }
 
-fn repo_publish(file: &PathBuf, version: &str, description: &str) -> anyhow::Result<()> {
+fn repo_publish(file: &Path, version: &str, description: &str) -> anyhow::Result<()> {
     if !file.is_file() {
         anyhow::bail!("Source file not found: {}", file.display());
     }
@@ -1004,7 +1004,7 @@ fn repo_publish(file: &PathBuf, version: &str, description: &str) -> anyhow::Res
         .unwrap_or("traceforge-tool");
     let tool_response: serde_json::Value = ureq::post(&format!("{}/api/tools", api_url))
         .set("Authorization", &format!("Bearer {}", token))
-        .send_json(&serde_json::json!({ "name": tool_name, "description": description }))
+        .send_json(serde_json::json!({ "name": tool_name, "description": description }))
         .map_err(|e| anyhow::anyhow!("Tool creation failed: {e}"))?
         .into_json()?;
     let tool_id = tool_response
@@ -1013,7 +1013,7 @@ fn repo_publish(file: &PathBuf, version: &str, description: &str) -> anyhow::Res
         .ok_or_else(|| anyhow::anyhow!("API did not return a tool id"))?;
     let version_response = ureq::post(&format!("{}/api/tools/{}/versions", api_url, tool_id))
         .set("Authorization", &format!("Bearer {}", token))
-        .send_json(&serde_json::json!({
+        .send_json(serde_json::json!({
             "version": version,
             "source": source,
             "target_platform": "windows",

@@ -116,9 +116,9 @@ impl Backend {
         #[cfg(target_os = "windows")]
         {
             let _ = (ir, output_dir);
-            return Err(BackendError::CompilationError(
+            Err(BackendError::CompilationError(
                 "Linux native artifacts require a Linux host or configured cross-compilation toolchain (e.g. cross or x86_64-unknown-linux-gnu)".to_string(),
-            ));
+            ))
         }
 
         #[cfg(not(target_os = "windows"))]

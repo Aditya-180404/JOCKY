@@ -75,25 +75,20 @@ pub fn enumerate_connections() -> Result<Vec<serde_json::Value>, Box<dyn std::er
 
         if let Ok(output) = tcp_output {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            if let Ok(value) = serde_json::from_str::<serde_json::Value>(&stdout) {
-                match value {
-                    serde_json::Value::Array(items) => {
-                        for item in items {
-                            if let Some(map) = item.as_object() {
-                                results.push(serde_json::json!({
-                                    "protocol": "tcp",
-                                    "local_address": map.get("LocalAddress").and_then(|v| v.as_str()).unwrap_or("0.0.0.0"),
-                                    "local_port": map.get("LocalPort").and_then(|v| v.as_u64()).unwrap_or(0) as u16,
-                                    "remote_address": map.get("RemoteAddress").and_then(|v| v.as_str()).unwrap_or("0.0.0.0"),
-                                    "remote_port": map.get("RemotePort").and_then(|v| v.as_u64()).unwrap_or(0) as u16,
-                                    "state": map.get("State").and_then(|v| v.as_str()).unwrap_or("UNKNOWN"),
-                                    "pid": map.get("OwningProcess").and_then(|v| v.as_u64()).map(|v| v as u32),
-                                    "process_name": None::<String>
-                                }));
-                            }
-                        }
+            if let Ok(serde_json::Value::Array(items)) = serde_json::from_str::<serde_json::Value>(&stdout) {
+                for item in items {
+                    if let Some(map) = item.as_object() {
+                        results.push(serde_json::json!({
+                            "protocol": "tcp",
+                            "local_address": map.get("LocalAddress").and_then(|v| v.as_str()).unwrap_or("0.0.0.0"),
+                            "local_port": map.get("LocalPort").and_then(|v| v.as_u64()).unwrap_or(0) as u16,
+                            "remote_address": map.get("RemoteAddress").and_then(|v| v.as_str()).unwrap_or("0.0.0.0"),
+                            "remote_port": map.get("RemotePort").and_then(|v| v.as_u64()).unwrap_or(0) as u16,
+                            "state": map.get("State").and_then(|v| v.as_str()).unwrap_or("UNKNOWN"),
+                            "pid": map.get("OwningProcess").and_then(|v| v.as_u64()).map(|v| v as u32),
+                            "process_name": None::<String>
+                        }));
                     }
-                    _ => {}
                 }
             }
         }

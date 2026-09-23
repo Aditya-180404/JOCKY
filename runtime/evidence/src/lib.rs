@@ -395,7 +395,7 @@ fn evaluate(
     expression: &serde_json::Value,
     record: &serde_json::Value,
 ) -> Result<bool, Box<dyn std::error::Error>> {
-    Ok(truthy(&evaluate_value(expression, record)?)?)
+    truthy(&evaluate_value(expression, record)?)
 }
 
 fn evaluate_value(
@@ -597,7 +597,7 @@ fn merkle_root(hashes: &[String]) -> String {
 
     let mut level = hashes.to_vec();
     while level.len() > 1 {
-        let mut next_level = Vec::with_capacity((level.len() + 1) / 2);
+        let mut next_level = Vec::with_capacity(level.len().div_ceil(2));
         for pair in level.chunks(2) {
             let right = pair.get(1).unwrap_or(&pair[0]);
             next_level.push(format_hash(format!("{}{}", pair[0], right).as_bytes()));

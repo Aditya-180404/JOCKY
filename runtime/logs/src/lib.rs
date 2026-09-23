@@ -150,7 +150,7 @@ fn collect_file_logs(path: &str) -> Result<Vec<serde_json::Value>, Box<dyn std::
     let content = fs::read_to_string(path)?;
     let mut results = Vec::new();
 
-    for (_i, line) in content.lines().rev().take(1000).enumerate() {
+    for line in content.lines().rev().take(1000) {
         let entry = LogEntry {
             timestamp: None,
             level: extract_log_level(line),

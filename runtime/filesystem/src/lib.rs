@@ -72,16 +72,9 @@ pub fn enumerate_files(
             permissions: file_permissions(&metadata),
             owner_uid: file_owner_uid(&metadata),
             owner_gid: file_owner_gid(&metadata),
-            modified_time: chrono::DateTime::from(std::time::SystemTime::from(
-                metadata.modified()?,
-            )),
-            accessed_time: chrono::DateTime::from(std::time::SystemTime::from(
-                metadata.accessed()?,
-            )),
-            created_time: metadata
-                .created()
-                .ok()
-                .map(|t| chrono::DateTime::from(std::time::SystemTime::from(t))),
+            modified_time: chrono::DateTime::from(metadata.modified()?),
+            accessed_time: chrono::DateTime::from(metadata.accessed()?),
+            created_time: metadata.created().ok().map(chrono::DateTime::from),
             sha256: None,
             sha1: None,
             md5: None,
@@ -167,33 +160,6 @@ pub fn calculate_hash(path: &str, algorithm: &str) -> Result<String, Box<dyn std
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::calculate_hash;
-    use std::fs;
-
-    #[test]
-    fn calculates_supported_hash_algorithms() {
-        let path = std::env::temp_dir().join(format!("traceforge-hash-{}.txt", std::process::id()));
-        fs::write(&path, b"abc").unwrap();
-
-        assert_eq!(
-            calculate_hash(path.to_str().unwrap(), "sha256").unwrap(),
-            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-        );
-        assert_eq!(
-            calculate_hash(path.to_str().unwrap(), "sha1").unwrap(),
-            "a9993e364706816aba3e25717850c26c9cd0d89d"
-        );
-        assert_eq!(
-            calculate_hash(path.to_str().unwrap(), "md5").unwrap(),
-            "900150983cd24fb0d6963f7d28e17f72"
-        );
-
-        fs::remove_file(path).unwrap();
-    }
-}
-
 #[cfg(unix)]
 fn file_permissions(metadata: &fs::Metadata) -> String {
     format!("{:o}", metadata.mode() & 0o777)
@@ -226,4 +192,31 @@ fn file_owner_gid(metadata: &fs::Metadata) -> u32 {
 #[cfg(not(unix))]
 fn file_owner_gid(_: &fs::Metadata) -> u32 {
     0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::calculate_hash;
+    use std::fs;
+
+    #[test]
+    fn calculates_supported_hash_algorithms() {
+        let path = std::env::temp_dir().join(format!("traceforge-hash-{}.txt", std::process::id()));
+        fs::write(&path, b"abc").unwrap();
+
+        assert_eq!(
+            calculate_hash(path.to_str().unwrap(), "sha256").unwrap(),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        assert_eq!(
+            calculate_hash(path.to_str().unwrap(), "sha1").unwrap(),
+            "a9993e364706816aba3e25717850c26c9cd0d89d"
+        );
+        assert_eq!(
+            calculate_hash(path.to_str().unwrap(), "md5").unwrap(),
+            "900150983cd24fb0d6963f7d28e17f72"
+        );
+
+        fs::remove_file(path).unwrap();
+    }
 }

@@ -343,11 +343,11 @@ mod tests {
 
     #[test]
     fn test_tokenize_numbers() {
-        let mut lexer = Lexer::new("42 3.14");
+        let mut lexer = Lexer::new("42 3.5");
         let tokens = lexer.tokenize().unwrap();
 
         assert!(matches!(tokens[0].kind, TokenKind::Integer(42)));
-        assert!(matches!(tokens[1].kind, TokenKind::Float(f) if (f - 3.14).abs() < f64::EPSILON));
+        assert!(matches!(tokens[1].kind, TokenKind::Float(f) if (f - 3.5).abs() < f64::EPSILON));
     }
 
     #[test]

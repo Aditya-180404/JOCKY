@@ -317,11 +317,8 @@ impl Parser {
                 }
 
                 // Comma is optional - allow both comma-separated and newline-separated
-                if !self.check(TokenKind::RightBrace) && !self.check(TokenKind::Eof) {
-                    if self.check(TokenKind::Comma) {
-                        self.advance(); // consume comma
-                    }
-                    // If next token is an identifier or known keyword, continue without comma
+                if !self.check(TokenKind::RightBrace) && !self.check(TokenKind::Eof) && self.check(TokenKind::Comma) {
+                    self.advance(); // consume comma
                 }
             }
 

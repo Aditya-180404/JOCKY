@@ -330,16 +330,20 @@ impl Capability {
             Capability::FileHash => "FILE_HASH",
         }
     }
+}
 
-    pub fn from_str(s: &str) -> Option<Self> {
+impl std::str::FromStr for Capability {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "PROCESS_READ" => Some(Capability::ProcessRead),
-            "NETWORK_READ" => Some(Capability::NetworkRead),
-            "FILESYSTEM_READ" => Some(Capability::FilesystemRead),
-            "LOG_READ" => Some(Capability::LogRead),
-            "SYSTEM_INFO_READ" => Some(Capability::SystemInfoRead),
-            "FILE_HASH" => Some(Capability::FileHash),
-            _ => None,
+            "PROCESS_READ" => Ok(Capability::ProcessRead),
+            "NETWORK_READ" => Ok(Capability::NetworkRead),
+            "FILESYSTEM_READ" => Ok(Capability::FilesystemRead),
+            "LOG_READ" => Ok(Capability::LogRead),
+            "SYSTEM_INFO_READ" => Ok(Capability::SystemInfoRead),
+            "FILE_HASH" => Ok(Capability::FileHash),
+            _ => Err(()),
         }
     }
 }
