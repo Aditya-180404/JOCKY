@@ -1,22 +1,19 @@
-//! Authentication module
-
-use std::sync::Arc;
+use argon2::{password_hash::SaltString, Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use axum::{
-    extract::{State, Json, Extension},
-    http::{StatusCode, HeaderMap},
+    extract::{Extension, Json, State},
+    http::StatusCode,
     response::{IntoResponse, Response},
 };
-use sqlx::PgPool;
-use argon2::{Argon2, PasswordHash, PasswordVerifier, PasswordHasher, password_hash::SaltString};
-use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, Validation, Algorithm};
-use uuid::Uuid;
-use chrono::{DateTime, Utc, Duration};
+use chrono::{DateTime, Duration, Utc};
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use tracing::{error, info, warn};
+use uuid::Uuid;
 use validator::Validate;
-use tracing::{info, warn, error};
 
-use traceforge_shared_types::{User, Role, Session, ErrorResponse};
 use crate::{AppState, AuthUser};
+use traceforge_shared_types::{ErrorResponse, Role};
 
 #[derive(Clone)]
 pub struct AuthState {
@@ -104,9 +101,13 @@ pub async fn register(
 
     let mut tx = match state.db.begin().await {
         Ok(tx) => tx,
-        Err(e) => { 
+        Err(e) => {
             error!("Database transaction error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to start transaction");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to start transaction",
+            );
         }
     };
 
@@ -132,15 +133,24 @@ pub async fn register(
                 None::<String>
             )
             .execute(&mut *tx)
-            .await {
+            .await
+            {
                 error!("Failed to create organization: {}", e);
-                return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create organization");
+                return error_response(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Database error",
+                    "Failed to create organization",
+                );
             }
             org_id
         }
         Err(e) => {
             error!("Database error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to check organization");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to check organization",
+            );
         }
     };
 
@@ -154,7 +164,11 @@ pub async fn register(
     .await;
 
     if existing.is_ok_and(|u| u.is_some()) {
-        return error_response(StatusCode::CONFLICT, "User exists", "User with this email already exists in organization");
+        return error_response(
+            StatusCode::CONFLICT,
+            "User exists",
+            "User with this email already exists in organization",
+        );
     }
 
     // Hash password
@@ -164,7 +178,11 @@ pub async fn register(
         Ok(hash) => hash.to_string(),
         Err(e) => {
             error!("Password hashing error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Failed to hash password");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Internal error",
+                "Failed to hash password",
+            );
         }
     };
 
@@ -182,9 +200,14 @@ pub async fn register(
         payload.full_name
     )
     .execute(&mut *tx)
-    .await {
+    .await
+    {
         error!("Failed to create user: {}", e);
-        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create user");
+        return error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Database error",
+            "Failed to create user",
+        );
     }
 
     // Create default project
@@ -205,7 +228,11 @@ pub async fn register(
 
     if let Err(e) = tx.commit().await {
         error!("Transaction commit error: {}", e);
-        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to commit transaction");
+        return error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Database error",
+            "Failed to commit transaction",
+        );
     }
 
     // Generate tokens
@@ -213,9 +240,34 @@ pub async fn register(
         Ok(tokens) => tokens,
         Err(e) => {
             error!("Token generation error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Failed to generate tokens");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Internal error",
+                "Failed to generate tokens",
+            );
         }
     };
+
+    let access_token_hash = sha256_hash(&tokens.0);
+    let session_id = Uuid::new_v4();
+    let expires_at = Utc::now() + Duration::hours(1);
+    if let Err(e) = sqlx::query!(
+        "INSERT INTO sessions (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, $4)",
+        session_id,
+        user_id,
+        access_token_hash,
+        expires_at
+    )
+    .execute(&state.db)
+    .await
+    {
+        error!("Failed to create registration session: {}", e);
+        return error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Database error",
+            "Failed to create session",
+        );
+    }
 
     info!("User registered: {} (org: {})", payload.email, org_id);
 
@@ -259,16 +311,28 @@ pub async fn login(
         Ok(Some(u)) => u,
         Ok(None) => {
             warn!("Login attempt for non-existent user: {}", payload.email);
-            return error_response(StatusCode::UNAUTHORIZED, "Invalid credentials", "Invalid email or password");
+            return error_response(
+                StatusCode::UNAUTHORIZED,
+                "Invalid credentials",
+                "Invalid email or password",
+            );
         }
         Err(e) => {
             error!("Database error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to find user");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to find user",
+            );
         }
     };
 
     if !user.is_active {
-        return error_response(StatusCode::FORBIDDEN, "Account disabled", "This account has been disabled");
+        return error_response(
+            StatusCode::FORBIDDEN,
+            "Account disabled",
+            "This account has been disabled",
+        );
     }
 
     // Verify password
@@ -276,14 +340,25 @@ pub async fn login(
         Ok(hash) => hash,
         Err(e) => {
             error!("Password hash parse error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Invalid password hash");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Internal error",
+                "Invalid password hash",
+            );
         }
     };
 
     let argon2 = Argon2::default();
-    if argon2.verify_password(payload.password.as_bytes(), &parsed_hash).is_err() {
+    if argon2
+        .verify_password(payload.password.as_bytes(), &parsed_hash)
+        .is_err()
+    {
         warn!("Invalid password for user: {}", payload.email);
-        return error_response(StatusCode::UNAUTHORIZED, "Invalid credentials", "Invalid email or password");
+        return error_response(
+            StatusCode::UNAUTHORIZED,
+            "Invalid credentials",
+            "Invalid email or password",
+        );
     }
 
     // Generate tokens
@@ -292,7 +367,11 @@ pub async fn login(
         Ok(tokens) => tokens,
         Err(e) => {
             error!("Token generation error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Failed to generate tokens");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Internal error",
+                "Failed to generate tokens",
+            );
         }
     };
 
@@ -308,16 +387,25 @@ pub async fn login(
         expires_at
     )
     .execute(&state.db)
-    .await {
+    .await
+    {
         error!("Failed to create session: {}", e);
-        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create session");
+        return error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Database error",
+            "Failed to create session",
+        );
     }
 
     // Update last login
-    sqlx::query!("UPDATE users SET last_login_at = $1 WHERE id = $2", Utc::now(), user.id)
-        .execute(&state.db)
-        .await
-        .ok();
+    sqlx::query!(
+        "UPDATE users SET last_login_at = $1 WHERE id = $2",
+        Utc::now(),
+        user.id
+    )
+    .execute(&state.db)
+    .await
+    .ok();
 
     info!("User logged in: {}", payload.email);
 
@@ -343,19 +431,20 @@ pub async fn logout(
 ) -> impl IntoResponse {
     // Delete session
     let access_token_hash = sha256_hash(&auth_user.token);
-    sqlx::query!("DELETE FROM sessions WHERE token_hash = $1", access_token_hash)
-        .execute(&state.db)
-        .await
-        .ok();
+    sqlx::query!(
+        "DELETE FROM sessions WHERE token_hash = $1",
+        access_token_hash
+    )
+    .execute(&state.db)
+    .await
+    .ok();
 
     info!("User logged out: {}", auth_user.user_id);
 
     Json(serde_json::json!({ "message": "Logged out successfully" })).into_response()
 }
 
-pub async fn me(
-    Extension(auth_user): Extension<AuthUser>,
-) -> impl IntoResponse {
+pub async fn me(Extension(auth_user): Extension<AuthUser>) -> impl IntoResponse {
     let user = sqlx::query_as!(
         UserRow,
         r#"
@@ -376,24 +465,26 @@ pub async fn me(
     .await;
 
     match (user, org) {
-        (Ok(user), Ok(org)) => {
-            Json(MeResponse {
-                user: UserResponse {
-                    id: user.id,
-                    email: user.email,
-                    full_name: user.full_name,
-                    role: user.role,
-                    organization_id: user.organization_id,
-                },
-                organization: OrganizationResponse {
-                    id: org.id,
-                    name: org.name,
-                    slug: org.slug,
-                },
-            })
-            .into_response()
-        }
-        _ => error_response(StatusCode::INTERNAL_SERVER_ERROR, "Not found", "User or organization not found"),
+        (Ok(user), Ok(org)) => Json(MeResponse {
+            user: UserResponse {
+                id: user.id,
+                email: user.email,
+                full_name: user.full_name,
+                role: user.role,
+                organization_id: user.organization_id,
+            },
+            organization: OrganizationResponse {
+                id: org.id,
+                name: org.name,
+                slug: org.slug,
+            },
+        })
+        .into_response(),
+        _ => error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Not found",
+            "User or organization not found",
+        ),
     }
 }
 
@@ -401,16 +492,28 @@ pub async fn refresh_token(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<RefreshRequest>,
 ) -> impl IntoResponse {
-    let claims = match decode::<Claims>(&payload.refresh_token, &state.auth.decoding_key, &state.auth.validation) {
+    let claims = match decode::<Claims>(
+        &payload.refresh_token,
+        &state.auth.decoding_key,
+        &state.auth.validation,
+    ) {
         Ok(token) => token.claims,
         Err(e) => {
             warn!("Invalid refresh token: {}", e);
-            return error_response(StatusCode::UNAUTHORIZED, "Invalid token", "Invalid or expired refresh token");
+            return error_response(
+                StatusCode::UNAUTHORIZED,
+                "Invalid token",
+                "Invalid or expired refresh token",
+            );
         }
     };
 
     if claims.token_type != "refresh" {
-        return error_response(StatusCode::UNAUTHORIZED, "Invalid token", "Token is not a refresh token");
+        return error_response(
+            StatusCode::UNAUTHORIZED,
+            "Invalid token",
+            "Token is not a refresh token",
+        );
     }
 
     // Verify user still exists and is active
@@ -431,7 +534,11 @@ pub async fn refresh_token(
     };
 
     if !user.is_active {
-        return error_response(StatusCode::FORBIDDEN, "Account disabled", "This account has been disabled");
+        return error_response(
+            StatusCode::FORBIDDEN,
+            "Account disabled",
+            "This account has been disabled",
+        );
     }
 
     let role = user.role;
@@ -439,7 +546,11 @@ pub async fn refresh_token(
         Ok(tokens) => tokens,
         Err(e) => {
             error!("Token generation error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Internal error", "Failed to generate tokens");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Internal error",
+                "Failed to generate tokens",
+            );
         }
     };
 
@@ -471,7 +582,12 @@ pub async fn refresh_token(
     .into_response()
 }
 
-fn generate_tokens(user_id: Uuid, org_id: Uuid, role: Role, auth: &AuthState) -> anyhow::Result<(String, String)> {
+fn generate_tokens(
+    user_id: Uuid,
+    org_id: Uuid,
+    role: Role,
+    auth: &AuthState,
+) -> anyhow::Result<(String, String)> {
     let now = Utc::now();
     let access_exp = now + Duration::hours(1);
     let refresh_exp = now + Duration::days(30);
@@ -513,14 +629,19 @@ fn sha256_hash(input: &str) -> String {
 }
 
 fn error_response(status: StatusCode, error: &str, message: &str) -> Response {
-    (status, Json(ErrorResponse {
-        error: error.to_string(),
-        message: message.to_string(),
-        code: None,
-        request_id: None,
-    })).into_response()
+    (
+        status,
+        Json(ErrorResponse {
+            error: error.to_string(),
+            message: message.to_string(),
+            code: None,
+            request_id: None,
+        }),
+    )
+        .into_response()
 }
 
+#[allow(dead_code)]
 #[derive(sqlx::FromRow)]
 struct UserRow {
     id: Uuid,
@@ -535,6 +656,7 @@ struct UserRow {
     updated_at: DateTime<Utc>,
 }
 
+#[allow(dead_code)]
 #[derive(sqlx::FromRow)]
 struct OrganizationRow {
     id: Uuid,

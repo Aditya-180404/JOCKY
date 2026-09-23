@@ -1,0 +1,10 @@
+investigation "filesystem_investigation" {
+    collect system_info
+
+    collect files "/etc" {
+        recursive
+        hash.sha256
+    } limit 50
+
+    export evidence "filesystem_evidence.json"
+}

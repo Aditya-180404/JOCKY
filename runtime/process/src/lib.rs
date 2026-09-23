@@ -2,9 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::HashSet;
 use std::fs;
-use std::os::unix::fs::MetadataExt;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProcessInfo {
@@ -35,7 +33,9 @@ pub struct ProcessNetworkConnection {
     pub state: String,
 }
 
-pub fn enumerate_processes(fields: &[String]) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+pub fn enumerate_processes(
+    fields: &[String],
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     #[cfg(target_os = "linux")]
     {
         let procs = procfs::process::all_processes()?;
@@ -56,20 +56,24 @@ pub fn enumerate_processes(fields: &[String]) -> Result<Vec<serde_json::Value>, 
                         chrono::DateTime::from_timestamp(boot_time as i64 + start_time as i64, 0)
                     })
                 }),
-                user: proc.stat().ok().and_then(|s| {
-                    fs::read_to_string(format!("/proc/{}/status", proc.pid())).ok()
+                user: proc.stat().ok().and_then(|_s| {
+                    fs::read_to_string(format!("/proc/{}/status", proc.pid()))
+                        .ok()
                         .and_then(|content| {
-                            content.lines()
+                            content
+                                .lines()
                                 .find(|l| l.starts_with("Uid:"))
                                 .and_then(|l| l.split_whitespace().nth(1))
                                 .and_then(|uid| uid.parse::<u32>().ok())
                                 .and_then(|uid| get_username(uid))
                         })
                 }),
-                group: proc.stat().ok().and_then(|s| {
-                    fs::read_to_string(format!("/proc/{}/status", proc.pid())).ok()
+                group: proc.stat().ok().and_then(|_s| {
+                    fs::read_to_string(format!("/proc/{}/status", proc.pid()))
+                        .ok()
                         .and_then(|content| {
-                            content.lines()
+                            content
+                                .lines()
                                 .find(|l| l.starts_with("Gid:"))
                                 .and_then(|l| l.split_whitespace().nth(1))
                                 .and_then(|gid| gid.parse::<u32>().ok())
@@ -127,8 +131,150 @@ pub fn enumerate_processes(fields: &[String]) -> Result<Vec<serde_json::Value>, 
 
     #[cfg(target_os = "windows")]
     {
-        // Windows implementation would use WMI or Windows APIs
-        Ok(Vec::new())
+        let mut results = Vec::new();
+        let mut got_processes = false;
+
+        // Use Get-CimInstance Win32_Process for rich process data including
+        // parent PID, full command line, and memory usage
+        let output = std::process::Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                r#"Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,Name,ExecutablePath,CommandLine,WorkingSetSize,VirtualSize,CreationDate | ForEach-Object { [PSCustomObject]@{ ProcessId=$_.ProcessId; ParentProcessId=$_.ParentProcessId; Name=$_.Name; ExecutablePath=$_.ExecutablePath; CommandLine=$_.CommandLine; WorkingSetSize=$_.WorkingSetSize; VirtualSize=$_.VirtualSize; CreationDate=if($_.CreationDate){$_.CreationDate.ToUniversalTime().ToString('o')}else{$null} } } | ConvertTo-Json -Compress"#,
+            ])
+            .output();
+
+        if let Ok(output) = output {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if let Ok(val) = serde_json::from_str::<serde_json::Value>(&stdout) {
+                let items: Vec<serde_json::Value> = match val {
+                    serde_json::Value::Array(arr) => arr,
+                    serde_json::Value::Object(_) => vec![val],
+                    _ => vec![],
+                };
+
+                for item in items {
+                    let pid = item.get("ProcessId").and_then(|v| v.as_i64()).unwrap_or(0) as i32;
+                    let ppid = item.get("ParentProcessId").and_then(|v| v.as_i64()).map(|v| v as i32);
+                    let name = item.get("Name").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                    let exe_path = item.get("ExecutablePath").and_then(|v| v.as_str()).map(|s| s.to_string());
+                    let cmdline_str = item.get("CommandLine").and_then(|v| v.as_str()).unwrap_or("");
+                    let command_line = if cmdline_str.is_empty() {
+                        vec![name.clone()]
+                    } else {
+                        vec![cmdline_str.to_string()]
+                    };
+                    let memory_rss = item.get("WorkingSetSize").and_then(|v| v.as_u64());
+                    let memory_vms = item.get("VirtualSize").and_then(|v| v.as_u64());
+                    let start_time = item
+                        .get("CreationDate")
+                        .and_then(|v| v.as_str())
+                        .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
+                        .map(|dt| dt.with_timezone(&chrono::Utc));
+
+                    let mut sha256 = None;
+                    if fields.iter().any(|f| f == "hash.sha256" || f == "sha256") {
+                        if let Some(path) = &exe_path {
+                            if let Ok(hash) = calculate_file_sha256(path) {
+                                sha256 = Some(hash);
+                            }
+                        }
+                    }
+
+                    // Fast user determination
+                    let user = if pid == 0 || pid == 4 {
+                        Some("SYSTEM".to_string())
+                    } else {
+                        Some(whoami::username())
+                    };
+
+                    let info = ProcessInfo {
+                        pid,
+                        ppid,
+                        name: name.clone(),
+                        command_line,
+                        executable_path: exe_path,
+                        start_time,
+                        user,
+                        group: None,
+                        state: Some("running".to_string()),
+                        memory_rss_bytes: memory_rss,
+                        memory_vms_bytes: memory_vms,
+                        cpu_percent: None,
+                        open_files: Vec::new(),
+                        network_connections: Vec::new(),
+                        sha256,
+                    };
+
+                    let val = if fields.is_empty() {
+                        serde_json::to_value(&info)?
+                    } else {
+                        let mut map = serde_json::Map::new();
+                        let full = serde_json::to_value(&info)?;
+                        if let serde_json::Value::Object(obj) = full {
+                            for field in fields {
+                                if let Some(v) = obj.get(field) {
+                                    map.insert(field.clone(), v.clone());
+                                }
+                            }
+                        }
+                        serde_json::Value::Object(map)
+                    };
+
+                    results.push(val);
+                }
+                if !results.is_empty() {
+                    got_processes = true;
+                }
+            }
+        }
+
+        // Fallback to tasklist if WMI query failed
+        if !got_processes {
+            if let Ok(output) = std::process::Command::new("tasklist").args(["/FO", "CSV"]).output() {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                for line in stdout.lines().skip(1) {
+                    let parts: Vec<&str> = line.split(',').map(|s| s.trim_matches('"')).collect();
+                    if parts.len() < 2 { continue; }
+                    let name = parts[0].to_string();
+                    let pid = parts[1].parse::<i32>().unwrap_or(0);
+                    let info = ProcessInfo {
+                        pid,
+                        ppid: None,
+                        name: name.clone(),
+                        command_line: vec![name],
+                        executable_path: None,
+                        start_time: None,
+                        user: None,
+                        group: None,
+                        state: Some("running".to_string()),
+                        memory_rss_bytes: None,
+                        memory_vms_bytes: None,
+                        cpu_percent: None,
+                        open_files: Vec::new(),
+                        network_connections: Vec::new(),
+                        sha256: None,
+                    };
+                    let val = if fields.is_empty() {
+                        serde_json::to_value(&info)?
+                    } else {
+                        let mut map = serde_json::Map::new();
+                        let full = serde_json::to_value(&info)?;
+                        if let serde_json::Value::Object(obj) = full {
+                            for field in fields {
+                                if let Some(v) = obj.get(field) {
+                                    map.insert(field.clone(), v.clone());
+                                }
+                            }
+                        }
+                        serde_json::Value::Object(map)
+                    };
+                    results.push(val);
+                }
+            }
+        }
+
+        Ok(results)
     }
 
     #[cfg(not(any(target_os = "linux", target_os = "windows")))]
@@ -137,24 +283,34 @@ pub fn enumerate_processes(fields: &[String]) -> Result<Vec<serde_json::Value>, 
     }
 }
 
+#[cfg(target_os = "linux")]
 fn get_username(uid: u32) -> Option<String> {
     use std::ffi::CStr;
     unsafe {
         let passwd = libc::getpwuid(uid);
         if !passwd.is_null() {
-            Some(CStr::from_ptr((*passwd).pw_name).to_string_lossy().to_string())
+            Some(
+                CStr::from_ptr((*passwd).pw_name)
+                    .to_string_lossy()
+                    .to_string(),
+            )
         } else {
             None
         }
     }
 }
 
+#[cfg(target_os = "linux")]
 fn get_groupname(gid: u32) -> Option<String> {
     use std::ffi::CStr;
     unsafe {
         let group = libc::getgrgid(gid);
         if !group.is_null() {
-            Some(CStr::from_ptr((*group).gr_name).to_string_lossy().to_string())
+            Some(
+                CStr::from_ptr((*group).gr_name)
+                    .to_string_lossy()
+                    .to_string(),
+            )
         } else {
             None
         }

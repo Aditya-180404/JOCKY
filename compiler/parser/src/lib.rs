@@ -1,12 +1,12 @@
 //! TraceForge Parser - Parses tokens into AST
 
 use std::vec;
+use thiserror::Error;
 use traceforge_ast::{
-    BinaryOp, Capability, CollectOptions, CollectTarget, Diagnostic, Expr, ExportFormat,
-    HashAlgorithm, Investigation, Severity, Span, Stmt, Token, TokenKind, UnaryOp,
+    BinaryOp, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr,
+    HashAlgorithm, Investigation, Span, Stmt, Token, TokenKind, UnaryOp,
 };
 use traceforge_lexer::LexerError;
-use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ParseError {
@@ -20,7 +20,7 @@ pub enum ParseError {
     UnexpectedEof { span: Span, expected: String },
     #[error("Lexer error: {0}")]
     LexerError(#[from] LexerError),
-    #[error("Invalid number: {0} at {span}")]
+    #[error("Invalid number: {message} at {span}")]
     InvalidNumber { message: String, span: Span },
 }
 
@@ -81,7 +81,15 @@ impl Parser {
             metadata = self.parse_metadata_block()?;
         }
 
-        self.consume(TokenKind::LeftBrace, "expected '{' after investigation name")?;
+        self.consume(
+            TokenKind::LeftBrace,
+            "expected '{' after investigation name",
+        )?;
+
+        if self.check(TokenKind::Metadata) {
+            self.advance();
+            metadata = self.parse_metadata_block()?;
+        }
 
         let mut statements = Vec::new();
         while !self.check(TokenKind::RightBrace) && !self.check(TokenKind::Eof) {
@@ -90,7 +98,9 @@ impl Parser {
             }
         }
 
-        let end_span = self.consume(TokenKind::RightBrace, "expected '}' to close investigation")?.span;
+        let end_span = self
+            .consume(TokenKind::RightBrace, "expected '}' to close investigation")?
+            .span;
 
         Ok(Investigation {
             name,
@@ -106,12 +116,16 @@ impl Parser {
 
         while !self.check(TokenKind::RightBrace) && !self.check(TokenKind::Eof) {
             let key = self.consume_identifier("expected metadata key")?;
-            self.consume(TokenKind::Colon, "expected ':' after metadata key")?;
+            if self.check(TokenKind::Colon) || self.check(TokenKind::Equal) {
+                self.advance();
+            } else {
+                self.consume(TokenKind::Colon, "expected ':' or '=' after metadata key")?;
+            }
             let value = self.parse_expression()?;
             metadata.push((key, value));
 
-            if !self.check(TokenKind::RightBrace) {
-                self.consume(TokenKind::Comma, "expected ',' between metadata entries")?;
+            if self.check(TokenKind::Comma) {
+                self.advance();
             }
         }
 
@@ -228,14 +242,20 @@ impl Parser {
 
                 match key.as_str() {
                     "recursive" => {
-                        self.consume(TokenKind::Colon, "expected ':' after 'recursive'")?;
-                        options.recursive = self.consume_boolean("expected boolean value")?;
+                        if self.check(TokenKind::Colon) {
+                            self.advance();
+                            options.recursive = self.consume_boolean("expected boolean value")?;
+                        } else if self.check(TokenKind::True) || self.check(TokenKind::False) {
+                            options.recursive = self.consume_boolean("expected boolean value")?;
+                        } else {
+                            options.recursive = true;
+                        }
                     }
                     "hash" => {
                         // Check for hash.sha256 syntax (field access style)
                         if self.check(TokenKind::Dot) {
                             self.advance(); // consume '.'
-                            // After dot, could be identifier or keyword (sha256, sha1, md5)
+                                            // After dot, could be identifier or keyword (sha256, sha1, md5)
                             let token = self.current_token().clone();
                             let algo = match token.kind {
                                 TokenKind::Identifier(name) => {
@@ -256,7 +276,10 @@ impl Parser {
                                 }
                                 _ => {
                                     self.add_diagnostic(Diagnostic::error(
-                                        format!("Expected hash algorithm after '.', found {:?}", token.kind),
+                                        format!(
+                                            "Expected hash algorithm after '.', found {:?}",
+                                            token.kind
+                                        ),
                                         token.span,
                                     ));
                                     self.advance();
@@ -288,7 +311,7 @@ impl Parser {
                         options.fields.push(field_name.to_string());
                         if self.check(TokenKind::Colon) {
                             self.advance(); // consume ':'
-                            // Could parse field-specific options here
+                                            // Could parse field-specific options here
                         }
                     }
                 }
@@ -302,7 +325,10 @@ impl Parser {
                 }
             }
 
-            self.consume(TokenKind::RightBrace, "expected '}' to close collect options")?;
+            self.consume(
+                TokenKind::RightBrace,
+                "expected '}' to close collect options",
+            )?;
         }
 
         Ok(options)
@@ -406,7 +432,9 @@ impl Parser {
     }
 
     fn parse_metadata_statement(&mut self) -> Result<Stmt, Vec<Diagnostic>> {
-        let start_span = self.consume(TokenKind::Metadata, "expected 'metadata'")?.span;
+        let start_span = self
+            .consume(TokenKind::Metadata, "expected 'metadata'")?
+            .span;
         let metadata = self.parse_metadata_block()?;
         let end_span = self.previous_token_span();
         Ok(Stmt::Metadata(metadata, start_span.merge(&end_span)))
@@ -707,8 +735,7 @@ impl Parser {
         if self.current >= self.tokens.len() {
             false
         } else {
-            std::mem::discriminant(&self.tokens[self.current].kind)
-                == std::mem::discriminant(&kind)
+            std::mem::discriminant(&self.tokens[self.current].kind) == std::mem::discriminant(&kind)
         }
     }
 

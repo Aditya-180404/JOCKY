@@ -1,0 +1,9 @@
+Package: traceforge
+Version: 0.1.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: TraceForge Team <traceforge@example.invalid>
+Description: TraceForge forensic programming CLI
+ TraceForge compiles structured forensic investigation programs and verifies evidence integrity.
+Depends: libc6

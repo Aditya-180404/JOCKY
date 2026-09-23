@@ -1,0 +1,11 @@
+investigation "user_investigation" {
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        user
+    } where user == "root"
+
+    export evidence "user_evidence.json"
+}

@@ -1,18 +1,16 @@
-//! Audit logs module
-
-use std::sync::Arc;
 use axum::{
-    extract::{State, Query, Extension, Json},
+    extract::{Extension, Json, Query, State},
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use sqlx::PgPool;
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
-use tracing::error;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use uuid::Uuid;
 
-use traceforge_shared_types::{AuditLog, AuditResult, PaginatedResponse, Pagination, ErrorResponse};
+use traceforge_shared_types::{
+    AuditResult, ErrorResponse, PaginatedResponse, Pagination,
+};
 
 use crate::{AppState, AuthUser};
 
@@ -49,35 +47,35 @@ pub async fn list_audit_logs(
     let page = query.page.unwrap_or(1).max(1);
     let per_page = query.per_page.unwrap_or(20).min(100).max(1);
 
-    let mut conditions = vec!["organization_id = $1".to_string()];
-    let mut params: Vec<Box<dyn sqlx::Encode<'_, sqlx::Postgres> + Send + Sync>> = vec![Box::new(auth.organization_id)];
-    let mut param_idx = 2;
+    let mut _conditions = vec!["organization_id = $1".to_string()];
+    let mut _params: Vec<Box<dyn sqlx::Encode<'_, sqlx::Postgres> + Send + Sync>> =
+        vec![Box::new(auth.organization_id)];
+    let mut _param_idx = 2;
 
     if let Some(action) = &query.action {
-        conditions.push(format!("action = ${}", param_idx));
-        params.push(Box::new(action.clone()));
-        param_idx += 1;
+        _conditions.push(format!("action = ${}", _param_idx));
+        _params.push(Box::new(action.clone()));
+        _param_idx += 1;
     }
 
     if let Some(user_id) = &query.user_id {
-        conditions.push(format!("user_id = ${}", param_idx));
-        params.push(Box::new(*user_id));
-        param_idx += 1;
+        _conditions.push(format!("user_id = ${}", _param_idx));
+        _params.push(Box::new(*user_id));
+        _param_idx += 1;
     }
 
     if let Some(start_date) = &query.start_date {
-        conditions.push(format!("created_at >= ${}", param_idx));
-        params.push(Box::new(*start_date));
-        param_idx += 1;
+        _conditions.push(format!("created_at >= ${}", _param_idx));
+        _params.push(Box::new(*start_date));
+        _param_idx += 1;
     }
 
     if let Some(end_date) = &query.end_date {
-        conditions.push(format!("created_at <= ${}", param_idx));
-        params.push(Box::new(*end_date));
-        param_idx += 1;
+        _conditions.push(format!("created_at <= ${}", _param_idx));
+        _params.push(Box::new(*end_date));
     }
 
-    let where_clause = conditions.join(" AND ");
+    let _where_clause = _conditions.join(" AND ");
 
     // Note: This is a simplified version. In production, use sqlx::query_as with dynamic queries
     // For now, we'll use a simpler approach
@@ -105,19 +103,22 @@ pub async fn list_audit_logs(
 
     match (logs, total) {
         (Ok(logs), Ok(total)) => {
-            let responses: Vec<AuditLogResponse> = logs.into_iter().map(|l| AuditLogResponse {
-                id: l.id,
-                organization_id: l.organization_id,
-                user_id: l.user_id,
-                action: l.action,
-                resource_type: l.resource_type,
-                resource_id: l.resource_id,
-                result: l.result,
-                ip_address: l.ip_address.map(|ip| ip.ip().to_string()),
-                user_agent: l.user_agent,
-                metadata: l.metadata,
-                created_at: l.created_at,
-            }).collect();
+            let responses: Vec<AuditLogResponse> = logs
+                .into_iter()
+                .map(|l| AuditLogResponse {
+                    id: l.id,
+                    organization_id: l.organization_id,
+                    user_id: l.user_id,
+                    action: l.action,
+                    resource_type: l.resource_type,
+                    resource_id: l.resource_id,
+                    result: l.result,
+                    ip_address: l.ip_address.map(|ip| ip.ip().to_string()),
+                    user_agent: l.user_agent,
+                    metadata: l.metadata,
+                    created_at: l.created_at,
+                })
+                .collect();
 
             Json(PaginatedResponse {
                 data: responses,
@@ -129,17 +130,25 @@ pub async fn list_audit_logs(
             })
             .into_response()
         }
-        _ => error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to list audit logs"),
+        _ => error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Database error",
+            "Failed to list audit logs",
+        ),
     }
 }
 
 fn error_response(status: StatusCode, error: &str, message: &str) -> Response {
-    (status, Json(ErrorResponse {
-        error: error.to_string(),
-        message: message.to_string(),
-        code: None,
-        request_id: None,
-    })).into_response()
+    (
+        status,
+        Json(ErrorResponse {
+            error: error.to_string(),
+            message: message.to_string(),
+            code: None,
+            request_id: None,
+        }),
+    )
+        .into_response()
 }
 
 #[derive(sqlx::FromRow)]

@@ -1,8 +1,8 @@
 //! TraceForge Shared Types - Common types used across the platform
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 /// User roles
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
@@ -82,6 +82,7 @@ pub struct ToolVersion {
     pub id: Uuid,
     pub tool_id: Uuid,
     pub version: String,
+    pub source: String,
     pub source_hash: String,
     pub compiler_version: String,
     pub compiler_hash: String,
@@ -116,6 +117,17 @@ pub enum BuildStatus {
     Running,
     Success,
     Failed,
+}
+
+impl BuildStatus {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Pending => "pending",
+            Self::Running => "running",
+            Self::Success => "success",
+            Self::Failed => "failed",
+        }
+    }
 }
 
 /// Investigation
@@ -228,6 +240,7 @@ pub struct Session {
 pub struct Pagination {
     pub page: u32,
     pub per_page: u32,
+    #[serde(default)]
     pub total: u64,
 }
 

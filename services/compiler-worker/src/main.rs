@@ -1,21 +1,21 @@
 //! TraceForge Compiler Worker - Background job processor for compilation
 
+use aws_sdk_s3::{primitives::ByteStream, Client as S3Client};
+use redis::AsyncCommands;
+use sqlx::PgPool;
 use std::sync::Arc;
 use std::time::Duration;
+use tempfile::TempDir;
 use tokio::signal;
 use tokio::time::interval;
-use tracing::{info, error, warn, debug};
-use redis::AsyncCommands;
-use aws_sdk_s3::{Client as S3Client, primitives::ByteStream};
-use sqlx::PgPool;
-use tempfile::TempDir;
+use tracing::{error, info};
 
+use traceforge_backend::Backend;
+use traceforge_ir::{serialize_ir, BuildConfig, TargetArch, TargetPlatform};
 use traceforge_lexer::Lexer;
 use traceforge_parser::Parser;
 use traceforge_semantic::SemanticAnalyzer;
-use traceforge_ir::{BuildConfig, TargetArch, TargetPlatform, serialize_ir};
-use traceforge_backend::Backend;
-use traceforge_shared_types::{Build, BuildStatus};
+use traceforge_shared_types::BuildStatus;
 
 struct AppState {
     redis: redis::Client,
@@ -35,16 +35,23 @@ async fn main() -> anyhow::Result<()> {
     info!("Starting TraceForge Compiler Worker");
 
     // Load configuration
-    let redis_url = std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".to_string());
-    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://traceforge:traceforge_dev@localhost:5432/traceforge".to_string());
-    let minio_endpoint = std::env::var("MINIO_ENDPOINT").unwrap_or_else(|_| "http://localhost:9000".to_string());
-    let minio_access_key = std::env::var("MINIO_ACCESS_KEY").unwrap_or_else(|_| "traceforge".to_string());
-    let minio_secret_key = std::env::var("MINIO_SECRET_KEY").unwrap_or_else(|_| "traceforge_dev".to_string());
-    let minio_bucket = std::env::var("MINIO_BUCKET").unwrap_or_else(|_| "traceforge-artifacts".to_string());
+    let redis_url =
+        std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".to_string());
+    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
+        "postgres://traceforge:traceforge_dev@localhost:5432/traceforge".to_string()
+    });
+    let minio_endpoint =
+        std::env::var("MINIO_ENDPOINT").unwrap_or_else(|_| "http://localhost:9000".to_string());
+    let minio_access_key =
+        std::env::var("MINIO_ACCESS_KEY").unwrap_or_else(|_| "traceforge".to_string());
+    let minio_secret_key =
+        std::env::var("MINIO_SECRET_KEY").unwrap_or_else(|_| "traceforge_dev".to_string());
+    let minio_bucket =
+        std::env::var("MINIO_BUCKET").unwrap_or_else(|_| "traceforge-artifacts".to_string());
 
     // Connect to Redis
     let redis_client = redis::Client::open(redis_url)?;
-    let mut redis_conn = redis_client.get_async_connection().await?;
+    let _redis_conn = redis_client.get_async_connection().await?;
     info!("Connected to Redis");
 
     // Connect to PostgreSQL
@@ -52,7 +59,7 @@ async fn main() -> anyhow::Result<()> {
     info!("Connected to PostgreSQL");
 
     // Configure S3 client for MinIO
-    let s3_config = aws_config::from_env()
+    let s3_config = aws_config::defaults(aws_config::BehaviorVersion::latest())
         .endpoint_url(&minio_endpoint)
         .credentials_provider(aws_sdk_s3::config::Credentials::new(
             minio_access_key,
@@ -64,7 +71,23 @@ async fn main() -> anyhow::Result<()> {
         .region(aws_sdk_s3::config::Region::new("us-east-1"))
         .load()
         .await;
-    let s3_client = S3Client::new(&s3_config);
+    let s3_client_config = aws_sdk_s3::config::Builder::from(&s3_config)
+        .force_path_style(true)
+        .build();
+    let s3_client = S3Client::from_conf(s3_client_config);
+    let buckets = s3_client.list_buckets().send().await?;
+    let bucket_exists = buckets
+        .buckets()
+        .iter()
+        .any(|bucket| bucket.name() == Some(minio_bucket.as_str()));
+    if !bucket_exists {
+        s3_client
+            .create_bucket()
+            .bucket(&minio_bucket)
+            .send()
+            .await?;
+        info!("Created object storage bucket: {}", minio_bucket);
+    }
     info!("Configured S3 client for MinIO");
 
     // Create temp directory for builds
@@ -97,7 +120,7 @@ impl Worker {
 
     async fn run(&self) -> anyhow::Result<()> {
         let mut interval = interval(Duration::from_secs(5));
-        let mut shutdown = signal::ctrl_c();
+        let shutdown = signal::ctrl_c();
         tokio::pin!(shutdown);
 
         loop {
@@ -136,10 +159,14 @@ impl Worker {
 
     async fn process_job(&self, job_json: &str) -> anyhow::Result<()> {
         let job: BuildJob = serde_json::from_str(job_json)?;
-        info!("Processing build for tool_version_id: {}", job.tool_version_id);
+        info!(
+            "Processing build for tool_version_id: {}",
+            job.tool_version_id
+        );
 
         // Update build status to running
-        self.update_build_status(job.build_id, BuildStatus::Running, None).await?;
+        self.update_build_status(job.build_id, BuildStatus::Running, None)
+            .await?;
 
         // Create build directory
         let build_dir = self.state.work_dir.path().join(job.build_id.to_string());
@@ -155,22 +182,46 @@ impl Worker {
         match result {
             Ok(metadata) => {
                 // Upload artifact to S3
-                let artifact_path = build_dir.join(&job.tool_name);
+                let artifact_name = format!(
+                    "{}-{}-{}{}",
+                    metadata.investigation_name,
+                    target_platform_name(&metadata.target_platform),
+                    target_arch_name(&metadata.target_arch),
+                    if matches!(metadata.target_platform, TargetPlatform::Windows) {
+                        ".exe"
+                    } else {
+                        ""
+                    }
+                );
+                let artifact_path = build_dir.join(artifact_name);
+                if !artifact_path.is_file() {
+                    anyhow::bail!(
+                        "Compiler reported success but artifact is missing: {}",
+                        artifact_path.display()
+                    );
+                }
                 let artifact_size = std::fs::metadata(&artifact_path)?.len();
                 let s3_key = format!("artifacts/{}/{}", job.tool_version_id, job.tool_name);
                 self.upload_artifact(&artifact_path, &s3_key).await?;
 
                 // Update build status to success
-                self.update_build_status(job.build_id, BuildStatus::Success, Some(metadata.artifact_hash.clone())).await?;
+                self.update_build_status(
+                    job.build_id,
+                    BuildStatus::Success,
+                    Some(metadata.artifact_hash.clone()),
+                )
+                .await?;
 
                 // Update tool version with artifact info
-                self.update_tool_version(&job, &metadata, artifact_size, &s3_key).await?;
+                self.update_tool_version(&job, &metadata, artifact_size, &s3_key)
+                    .await?;
 
                 info!("Build completed successfully: {}", job.tool_version_id);
             }
             Err(e) => {
                 error!("Build failed: {}", e);
-                self.update_build_status(job.build_id, BuildStatus::Failed, None).await?;
+                self.update_build_status(job.build_id, BuildStatus::Failed, None)
+                    .await?;
                 self.update_build_log(job.build_id, &e.to_string()).await?;
             }
         }
@@ -178,7 +229,11 @@ impl Worker {
         Ok(())
     }
 
-    async fn compile_investigation(&self, job: &BuildJob, build_dir: &std::path::Path) -> anyhow::Result<traceforge_ir::ArtifactMetadata> {
+    async fn compile_investigation(
+        &self,
+        job: &BuildJob,
+        build_dir: &std::path::Path,
+    ) -> anyhow::Result<traceforge_ir::ArtifactMetadata> {
         // Parse and analyze
         let mut lexer = Lexer::new(&job.source);
         let tokens = lexer.tokenize()?;
@@ -210,13 +265,13 @@ impl Worker {
         let target_platform = match job.target_platform.as_str() {
             "linux" => TargetPlatform::Linux,
             "windows" => TargetPlatform::Windows,
-            _ => TargetPlatform::Linux,
+            value => anyhow::bail!("Unsupported target platform: {}", value),
         };
 
         let target_arch = match job.target_arch.as_str() {
             "x64" | "x86_64" => TargetArch::X64,
             "arm64" | "aarch64" => TargetArch::Arm64,
-            _ => TargetArch::X64,
+            value => anyhow::bail!("Unsupported target architecture: {}", value),
         };
 
         let config = BuildConfig {
@@ -236,17 +291,37 @@ impl Worker {
         metadata.compiler_hash = calculate_compiler_hash()?;
 
         // Calculate artifact hash
-        let artifact_path = build_dir.join(&job.tool_name);
-        if artifact_path.exists() {
-            metadata.artifact_hash = calculate_file_sha256(&artifact_path)?;
+        let artifact_name = format!(
+            "{}-{}-{}{}",
+            metadata.investigation_name,
+            target_platform_name(&metadata.target_platform),
+            target_arch_name(&metadata.target_arch),
+            if matches!(metadata.target_platform, TargetPlatform::Windows) {
+                ".exe"
+            } else {
+                ""
+            }
+        );
+        let artifact_path = build_dir.join(artifact_name);
+        if !artifact_path.is_file() {
+            anyhow::bail!(
+                "Compiler did not produce an artifact: {}",
+                artifact_path.display()
+            );
         }
+        metadata.artifact_hash = calculate_file_sha256(&artifact_path)?;
 
         Ok(metadata)
     }
 
-    async fn upload_artifact(&self, local_path: &std::path::Path, s3_key: &str) -> anyhow::Result<()> {
+    async fn upload_artifact(
+        &self,
+        local_path: &std::path::Path,
+        s3_key: &str,
+    ) -> anyhow::Result<()> {
         let body = ByteStream::from_path(local_path).await?;
-        self.state.s3
+        self.state
+            .s3
             .put_object()
             .bucket(&self.state.bucket)
             .key(s3_key)
@@ -256,7 +331,12 @@ impl Worker {
         Ok(())
     }
 
-    async fn update_build_status(&self, build_id: uuid::Uuid, status: BuildStatus, artifact_hash: Option<String>) -> anyhow::Result<()> {
+    async fn update_build_status(
+        &self,
+        build_id: uuid::Uuid,
+        status: BuildStatus,
+        _artifact_hash: Option<String>,
+    ) -> anyhow::Result<()> {
         let now = chrono::Utc::now();
         let completed_at = if matches!(status, BuildStatus::Success | BuildStatus::Failed) {
             Some(now)
@@ -270,7 +350,7 @@ impl Worker {
             WHERE id = $3
             "#,
         )
-        .bind(status as i32)
+        .bind(status.as_str())
         .bind(completed_at)
         .bind(build_id)
         .execute(&self.state.db)
@@ -281,29 +361,48 @@ impl Worker {
 
     async fn update_build_log(&self, build_id: uuid::Uuid, log: &str) -> anyhow::Result<()> {
         sqlx::query("UPDATE builds SET build_log = $1 WHERE id = $2")
-        .bind(log)
-        .bind(build_id)
-        .execute(&self.state.db)
-        .await?;
+            .bind(log)
+            .bind(build_id)
+            .execute(&self.state.db)
+            .await?;
         Ok(())
     }
 
-    async fn update_tool_version(&self, job: &BuildJob, metadata: &traceforge_ir::ArtifactMetadata, artifact_size: u64, s3_key: &str) -> anyhow::Result<()> {
+    async fn update_tool_version(
+        &self,
+        job: &BuildJob,
+        metadata: &traceforge_ir::ArtifactMetadata,
+        artifact_size: u64,
+        s3_key: &str,
+    ) -> anyhow::Result<()> {
         sqlx::query(
             r#"
             UPDATE tool_versions
-            SET artifact_path = $1, artifact_hash = $2, artifact_size = $3, is_published = true, published_at = $4
-            WHERE id = $5
+            SET artifact_path = $1, artifact_hash = $2, artifact_size = $3
+            WHERE id = $4
             "#,
         )
         .bind(s3_key)
         .bind(&metadata.artifact_hash)
         .bind(artifact_size as i64)
-        .bind(chrono::Utc::now())
         .bind(job.tool_version_id)
         .execute(&self.state.db)
         .await?;
         Ok(())
+    }
+}
+
+fn target_platform_name(platform: &TargetPlatform) -> &'static str {
+    match platform {
+        TargetPlatform::Linux => "linux",
+        TargetPlatform::Windows => "windows",
+    }
+}
+
+fn target_arch_name(arch: &TargetArch) -> &'static str {
+    match arch {
+        TargetArch::X64 => "x64",
+        TargetArch::Arm64 => "arm64",
     }
 }
 

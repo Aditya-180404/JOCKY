@@ -12,3 +12,7 @@ traceforge-ir = { path = "../ir" }
 thiserror = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+
+[dev-dependencies]
+traceforge-lexer = { path = "../lexer" }
+traceforge-parser = { path = "../parser" }

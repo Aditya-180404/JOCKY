@@ -1,0 +1,17 @@
+{
+  "investigation_name": "process_triage",
+  "source_hash": "77dca1d7146536d7ded62aa8c88cb6af921c67284dcf11888af11e68e5a49084",
+  "compiler_version": "0.1.0",
+  "compiler_hash": "1e539f20b535e97ff4b44a983fb120ade3f6769bc7114212b50e92030b6321e2",
+  "target_platform": "Windows",
+  "target_arch": "X64",
+  "build_timestamp": "2026-09-23T00:58:04.763058500+00:00",
+  "artifact_hash": "e84fb6df0c2b0782fcb036f87487e4af6d6f3e7f828fa80e57bb101454e3933f",
+  "required_capabilities": [
+    "PROCESS_READ",
+    "NETWORK_READ",
+    "SYSTEM_INFO_READ",
+    "FILE_HASH"
+  ],
+  "ir_version": "0.1"
+}

@@ -1,19 +1,18 @@
-//! Investigations module
-
-use std::sync::Arc;
 use axum::{
-    extract::{State, Path, Query, Json, Extension},
+    extract::{Extension, Json, Path, Query, State},
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use sqlx::PgPool;
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
-use validator::Validate;
-use tracing::{info, error};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use tracing::{error, info};
+use uuid::Uuid;
+use validator::Validate;
 
-use traceforge_shared_types::{Investigation, InvestigationStatus, PaginatedResponse, Pagination, ErrorResponse};
+use traceforge_shared_types::{
+    ErrorResponse, InvestigationStatus, PaginatedResponse, Pagination,
+};
 
 use crate::{AppState, AuthUser};
 
@@ -69,18 +68,21 @@ pub async fn list_investigations(
 
     match (investigations, total) {
         (Ok(investigations), Ok(total)) => {
-            let responses: Vec<InvestigationResponse> = investigations.into_iter().map(|i| InvestigationResponse {
-                id: i.id,
-                name: i.name,
-                description: i.description,
-                tool_version_id: i.tool_version_id,
-                status: i.status,
-                created_by: i.created_by,
-                started_at: i.started_at,
-                completed_at: i.completed_at,
-                created_at: i.created_at,
-                updated_at: i.updated_at,
-            }).collect();
+            let responses: Vec<InvestigationResponse> = investigations
+                .into_iter()
+                .map(|i| InvestigationResponse {
+                    id: i.id,
+                    name: i.name,
+                    description: i.description,
+                    tool_version_id: i.tool_version_id,
+                    status: i.status,
+                    created_by: i.created_by,
+                    started_at: i.started_at,
+                    completed_at: i.completed_at,
+                    created_at: i.created_at,
+                    updated_at: i.updated_at,
+                })
+                .collect();
 
             Json(PaginatedResponse {
                 data: responses,
@@ -92,7 +94,11 @@ pub async fn list_investigations(
             })
             .into_response()
         }
-        _ => error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to list investigations"),
+        _ => error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Database error",
+            "Failed to list investigations",
+        ),
     }
 }
 
@@ -116,7 +122,11 @@ pub async fn create_investigation(
         .await;
 
         if project.is_err() || project.unwrap().is_none() {
-            return error_response(StatusCode::BAD_REQUEST, "Invalid project", "Project not found");
+            return error_response(
+                StatusCode::BAD_REQUEST,
+                "Invalid project",
+                "Project not found",
+            );
         }
     }
 
@@ -131,7 +141,11 @@ pub async fn create_investigation(
         .await;
 
         if version.is_err() || version.unwrap().is_none() {
-            return error_response(StatusCode::BAD_REQUEST, "Invalid tool version", "Tool version not found");
+            return error_response(
+                StatusCode::BAD_REQUEST,
+                "Invalid tool version",
+                "Tool version not found",
+            );
         }
     }
 
@@ -158,7 +172,10 @@ pub async fn create_investigation(
 
     match result {
         Ok(_) => {
-            info!("Investigation created: {} by user {}", investigation_id, auth.user_id);
+            info!(
+                "Investigation created: {} by user {}",
+                investigation_id, auth.user_id
+            );
             Json(InvestigationResponse {
                 id: investigation_id,
                 name: payload.name,
@@ -175,7 +192,11 @@ pub async fn create_investigation(
         }
         Err(e) => {
             error!("Failed to create investigation: {}", e);
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create investigation")
+            error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to create investigation",
+            )
         }
     }
 }
@@ -232,10 +253,18 @@ pub async fn get_investigation(
             }))
             .into_response()
         }
-        Ok(None) => error_response(StatusCode::NOT_FOUND, "Not found", "Investigation not found"),
+        Ok(None) => error_response(
+            StatusCode::NOT_FOUND,
+            "Not found",
+            "Investigation not found",
+        ),
         Err(e) => {
             error!("Database error: {}", e);
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to get investigation")
+            error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to get investigation",
+            )
         }
     }
 }
@@ -259,15 +288,29 @@ pub async fn run_investigation(
 
     let investigation = match investigation {
         Ok(Some(i)) => i,
-        Ok(None) => return error_response(StatusCode::NOT_FOUND, "Not found", "Investigation not found"),
+        Ok(None) => {
+            return error_response(
+                StatusCode::NOT_FOUND,
+                "Not found",
+                "Investigation not found",
+            )
+        }
         Err(e) => {
             error!("Database error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to get investigation");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to get investigation",
+            );
         }
     };
 
     if investigation.tool_version_id.is_none() {
-        return error_response(StatusCode::BAD_REQUEST, "No tool", "Investigation has no associated tool version");
+        return error_response(
+            StatusCode::BAD_REQUEST,
+            "No tool",
+            "Investigation has no associated tool version",
+        );
     }
 
     // Update status to running
@@ -303,6 +346,7 @@ struct EvidenceSummary {
     size_bytes: i64,
 }
 
+#[allow(dead_code)]
 #[derive(sqlx::FromRow)]
 struct InvestigationRow {
     id: Uuid,
@@ -319,6 +363,7 @@ struct InvestigationRow {
     updated_at: DateTime<Utc>,
 }
 
+#[allow(dead_code)]
 #[derive(sqlx::FromRow)]
 struct EvidenceRow {
     id: Uuid,
@@ -335,10 +380,14 @@ struct EvidenceRow {
 }
 
 fn error_response(status: StatusCode, error: &str, message: &str) -> Response {
-    (status, Json(ErrorResponse {
-        error: error.to_string(),
-        message: message.to_string(),
-        code: None,
-        request_id: None,
-    })).into_response()
+    (
+        status,
+        Json(ErrorResponse {
+            error: error.to_string(),
+            message: message.to_string(),
+            code: None,
+            request_id: None,
+        }),
+    )
+        .into_response()
 }

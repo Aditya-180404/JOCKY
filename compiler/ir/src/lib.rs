@@ -1,7 +1,7 @@
 //! TraceForge IR - Intermediate Representation
 
-use std::collections::HashSet;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use traceforge_ast::{Capability, Span};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,8 +1,6 @@
 //! TraceForge Runtime - System information collection
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemInfo {
     pub hostname: String,
@@ -26,7 +24,8 @@ impl SystemInfo {
 
             let hostname = fs::read_to_string("/etc/hostname")?.trim().to_string();
             let os_release = fs::read_to_string("/etc/os-release")?;
-            let os = os_release.lines()
+            let os = os_release
+                .lines()
                 .find(|l| l.starts_with("PRETTY_NAME="))
                 .map(|l| l.trim_start_matches("PRETTY_NAME=").trim_matches('"'))
                 .unwrap_or("Unknown")
@@ -40,10 +39,13 @@ impl SystemInfo {
 
             let arch = std::env::consts::ARCH.to_string();
 
-            let cpu_count = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
+            let cpu_count = std::thread::available_parallelism()
+                .map(|n| n.get())
+                .unwrap_or(1);
 
             let meminfo = fs::read_to_string("/proc/meminfo")?;
-            let total_memory_kb = meminfo.lines()
+            let total_memory_kb = meminfo
+                .lines()
                 .find(|l| l.starts_with("MemTotal:"))
                 .and_then(|l| l.split_whitespace().nth(1))
                 .and_then(|s| s.parse::<u64>().ok())
@@ -58,7 +60,8 @@ impl SystemInfo {
                 .map(|ts| chrono::DateTime::from_timestamp(ts, 0).unwrap());
 
             let uptime_str = fs::read_to_string("/proc/uptime")?;
-            let uptime_seconds = uptime_str.split_whitespace()
+            let uptime_seconds = uptime_str
+                .split_whitespace()
                 .next()
                 .and_then(|s| s.parse::<f64>().ok())
                 .unwrap_or(0.0) as u64;
@@ -80,17 +83,51 @@ impl SystemInfo {
 
         #[cfg(target_os = "windows")]
         {
-            // Windows implementation would use WMI or Windows APIs
+            let hostname = std::process::Command::new("cmd")
+                .args(["/C", "hostname"])
+                .output()
+                .ok()
+                .and_then(|o| String::from_utf8(o.stdout).ok())
+                .map(|s| s.trim().to_string())
+                .unwrap_or_else(|| "windows-host".to_string());
+
+            let os_version = std::process::Command::new("cmd")
+                .args(["/C", "ver"])
+                .output()
+                .ok()
+                .and_then(|o| String::from_utf8(o.stdout).ok())
+                .map(|s| s.trim().to_string())
+                .unwrap_or_else(|| "Windows".to_string());
+
+            let architecture = std::env::consts::ARCH.to_string();
+            let mem_output = std::process::Command::new("powershell")
+                .args(["-NoProfile", "-Command", "(Get-CimInstance Win32_OperatingSystem).TotalVisibleMemorySize"])
+                .output()
+                .ok()
+                .and_then(|o| String::from_utf8(o.stdout).ok())
+                .and_then(|s| s.trim().parse::<u64>().ok());
+            let total_memory_bytes = mem_output.map(|kb| kb * 1024).unwrap_or(0);
+
+            let uptime_seconds = std::process::Command::new("powershell")
+                .args(["-NoProfile", "-Command", "[int]([DateTime]::UtcNow - (Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToUniversalTime()).TotalSeconds"])
+                .output()
+                .ok()
+                .and_then(|o| String::from_utf8(o.stdout).ok())
+                .and_then(|s| s.trim().parse::<u64>().ok())
+                .unwrap_or(0);
+
             Ok(SystemInfo {
-                hostname: "windows-host".to_string(),
+                hostname,
                 os: "Windows".to_string(),
-                os_version: "10.0".to_string(),
+                os_version,
                 kernel_version: "NT".to_string(),
-                architecture: "x86_64".to_string(),
-                cpu_count: num_cpus::get(),
-                total_memory_bytes: 0,
+                architecture,
+                cpu_count: std::thread::available_parallelism()
+                    .map(|n| n.get())
+                    .unwrap_or(1),
+                total_memory_bytes,
                 boot_time: None,
-                uptime_seconds: 0,
+                uptime_seconds,
                 timezone: "UTC".to_string(),
                 locale: "en-US".to_string(),
             })
@@ -104,7 +141,9 @@ impl SystemInfo {
                 os_version: "Unknown".to_string(),
                 kernel_version: "Unknown".to_string(),
                 architecture: std::env::consts::ARCH.to_string(),
-                cpu_count: num_cpus::get(),
+                cpu_count: std::thread::available_parallelism()
+                    .map(|n| n.get())
+                    .unwrap_or(1),
                 total_memory_bytes: 0,
                 boot_time: None,
                 uptime_seconds: 0,

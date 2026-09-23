@@ -1,0 +1,2935 @@
+[
+  {
+    "architecture": "x86_64",
+    "boot_time": null,
+    "cpu_count": 16,
+    "hostname": "DESKTOP-9C230F9",
+    "kernel_version": "NT",
+    "locale": "en-US",
+    "os": "Windows",
+    "os_version": "Microsoft Windows [Version 10.0.26200.9457]",
+    "timezone": "UTC",
+    "total_memory_bytes": 16229388288,
+    "uptime_seconds": 3692
+  },
+  {
+    "command_line": [
+      "AdobeCollabSync"
+    ],
+    "name": "AdobeCollabSync",
+    "pid": 17288,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "AdobeCollabSync"
+    ],
+    "name": "AdobeCollabSync",
+    "pid": 17340,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "AdobeIPCBroker"
+    ],
+    "name": "AdobeIPCBroker",
+    "pid": 17104,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "AggregatorHost"
+    ],
+    "name": "AggregatorHost",
+    "pid": 9304,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "amdfendrsr"
+    ],
+    "name": "amdfendrsr",
+    "pid": 3484,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "amdow"
+    ],
+    "name": "amdow",
+    "pid": 24148,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "AmdPpkgSvc"
+    ],
+    "name": "AmdPpkgSvc",
+    "pid": 5536,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "AMDRSServ"
+    ],
+    "name": "AMDRSServ",
+    "pid": 14812,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "AMDRSSrcExt"
+    ],
+    "name": "AMDRSSrcExt",
+    "pid": 24548,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Antigravity IDE"
+    ],
+    "name": "Antigravity IDE",
+    "pid": 3608,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Antigravity IDE"
+    ],
+    "name": "Antigravity IDE",
+    "pid": 13012,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Antigravity IDE"
+    ],
+    "name": "Antigravity IDE",
+    "pid": 15100,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Antigravity IDE"
+    ],
+    "name": "Antigravity IDE",
+    "pid": 24900,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Antigravity IDE"
+    ],
+    "name": "Antigravity IDE",
+    "pid": 27928,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Antigravity IDE"
+    ],
+    "name": "Antigravity IDE",
+    "pid": 28968,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Antigravity IDE"
+    ],
+    "name": "Antigravity IDE",
+    "pid": 29808,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Antigravity IDE"
+    ],
+    "name": "Antigravity IDE",
+    "pid": 29856,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Antigravity IDE"
+    ],
+    "name": "Antigravity IDE",
+    "pid": 32336,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Antigravity IDE"
+    ],
+    "name": "Antigravity IDE",
+    "pid": 32428,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Antigravity IDE"
+    ],
+    "name": "Antigravity IDE",
+    "pid": 33388,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "ApplicationFrameHost"
+    ],
+    "name": "ApplicationFrameHost",
+    "pid": 9640,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "armsvc"
+    ],
+    "name": "armsvc",
+    "pid": 5680,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "atieclxx"
+    ],
+    "name": "atieclxx",
+    "pid": 3804,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "atiesrxx"
+    ],
+    "name": "atiesrxx",
+    "pid": 3504,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "audiodg"
+    ],
+    "name": "audiodg",
+    "pid": 5000,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "BraveCrashHandler"
+    ],
+    "name": "BraveCrashHandler",
+    "pid": 15516,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "BraveCrashHandler64"
+    ],
+    "name": "BraveCrashHandler64",
+    "pid": 15532,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "cargo"
+    ],
+    "name": "cargo",
+    "pid": 4752,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "cargo"
+    ],
+    "name": "cargo",
+    "pid": 15152,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "cargo"
+    ],
+    "name": "cargo",
+    "pid": 22036,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "cargo"
+    ],
+    "name": "cargo",
+    "pid": 34384,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "CCXProcess"
+    ],
+    "name": "CCXProcess",
+    "pid": 17120,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "ChatGPT Classic"
+    ],
+    "name": "ChatGPT Classic",
+    "pid": 2560,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "ChatGPT Classic"
+    ],
+    "name": "ChatGPT Classic",
+    "pid": 17544,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "ChatGPT Classic"
+    ],
+    "name": "ChatGPT Classic",
+    "pid": 17608,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "ChatGPT Classic"
+    ],
+    "name": "ChatGPT Classic",
+    "pid": 18116,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "ChatGPT Classic"
+    ],
+    "name": "ChatGPT Classic",
+    "pid": 18800,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 2704,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 4428,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 12912,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 13788,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 15196,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 17792,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 18084,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 18160,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 18180,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 18348,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 18364,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 18472,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 26016,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 26628,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 28188,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 28784,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 30072,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 32364,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 33800,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "chrome"
+    ],
+    "name": "chrome",
+    "pid": 34836,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "cmd"
+    ],
+    "name": "cmd",
+    "pid": 9212,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "cmd"
+    ],
+    "name": "cmd",
+    "pid": 25340,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "cmd"
+    ],
+    "name": "cmd",
+    "pid": 27620,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "cmd"
+    ],
+    "name": "cmd",
+    "pid": 34144,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "cncmd"
+    ],
+    "name": "cncmd",
+    "pid": 25496,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "CNQMMAIN"
+    ],
+    "name": "CNQMMAIN",
+    "pid": 25424,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "CNQMUPDT"
+    ],
+    "name": "CNQMUPDT",
+    "pid": 24780,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 1560,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 7044,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 11588,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 11904,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 13056,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 18736,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 18740,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 19312,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 20976,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 21948,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 22392,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 23472,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 25784,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 25880,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 26180,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 26268,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 26692,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 27052,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 28100,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Code"
+    ],
+    "name": "Code",
+    "pid": 28632,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "codex"
+    ],
+    "name": "codex",
+    "pid": 24504,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "codex-windows-sandbox-service"
+    ],
+    "name": "codex-windows-sandbox-service",
+    "pid": 8488,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "com.docker.backend"
+    ],
+    "name": "com.docker.backend",
+    "pid": 1884,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "com.docker.backend"
+    ],
+    "name": "com.docker.backend",
+    "pid": 9688,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "com.docker.build"
+    ],
+    "name": "com.docker.build",
+    "pid": 15236,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 8524,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 13596,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 15704,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 17140,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 18812,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 18964,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 23204,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 25468,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 26324,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 26640,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 26992,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 29672,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 29912,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 32712,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 32724,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "conhost"
+    ],
+    "name": "conhost",
+    "pid": 33028,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "CorsairDeviceControlService"
+    ],
+    "name": "CorsairDeviceControlService",
+    "pid": 9364,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "crashpad_handler"
+    ],
+    "name": "crashpad_handler",
+    "pid": 17108,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "CrossDeviceResume"
+    ],
+    "name": "CrossDeviceResume",
+    "pid": 9764,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "csrss"
+    ],
+    "name": "csrss",
+    "pid": 1552,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "csrss"
+    ],
+    "name": "csrss",
+    "pid": 1736,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "ctfmon"
+    ],
+    "name": "ctfmon",
+    "pid": 13624,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "DefenderSessionHelper"
+    ],
+    "name": "DefenderSessionHelper",
+    "pid": 7660,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "dllhost"
+    ],
+    "name": "dllhost",
+    "pid": 32620,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "dllhost"
+    ],
+    "name": "dllhost",
+    "pid": 34524,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "docker"
+    ],
+    "name": "docker",
+    "pid": 6140,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "docker"
+    ],
+    "name": "docker",
+    "pid": 19124,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "docker"
+    ],
+    "name": "docker",
+    "pid": 33936,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Docker Desktop"
+    ],
+    "name": "Docker Desktop",
+    "pid": 1972,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Docker Desktop"
+    ],
+    "name": "Docker Desktop",
+    "pid": 2140,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Docker Desktop"
+    ],
+    "name": "Docker Desktop",
+    "pid": 17880,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Docker Desktop"
+    ],
+    "name": "Docker Desktop",
+    "pid": 24776,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Docker Desktop"
+    ],
+    "name": "Docker Desktop",
+    "pid": 27440,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "docker-agent"
+    ],
+    "name": "docker-agent",
+    "pid": 31732,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "dwm"
+    ],
+    "name": "dwm",
+    "pid": 2104,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "elevation_service"
+    ],
+    "name": "elevation_service",
+    "pid": 19168,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "explorer"
+    ],
+    "name": "explorer",
+    "pid": 9396,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "fontdrvhost"
+    ],
+    "name": "fontdrvhost",
+    "pid": 1320,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "fontdrvhost"
+    ],
+    "name": "fontdrvhost",
+    "pid": 1464,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "GBT_DL_LIB"
+    ],
+    "name": "GBT_DL_LIB",
+    "pid": 7508,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "GCC"
+    ],
+    "name": "GCC",
+    "pid": 9196,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "GigabyteUpdateService"
+    ],
+    "name": "GigabyteUpdateService",
+    "pid": 5600,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Idle"
+    ],
+    "name": "Idle",
+    "pid": 0,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "ijplmsvc"
+    ],
+    "name": "ijplmsvc",
+    "pid": 5608,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "language_server_windows_x64"
+    ],
+    "name": "language_server_windows_x64",
+    "pid": 34544,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "language_server_windows_x64"
+    ],
+    "name": "language_server_windows_x64",
+    "pid": 34636,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Lively"
+    ],
+    "name": "Lively",
+    "pid": 16956,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Lively.Watchdog"
+    ],
+    "name": "Lively.Watchdog",
+    "pid": 20528,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "LockApp"
+    ],
+    "name": "LockApp",
+    "pid": 13964,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "LsaIso"
+    ],
+    "name": "LsaIso",
+    "pid": 1892,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "lsass"
+    ],
+    "name": "lsass",
+    "pid": 1904,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "M365Copilot"
+    ],
+    "name": "M365Copilot",
+    "pid": 11940,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Memory Compression"
+    ],
+    "name": "Memory Compression",
+    "pid": 4028,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "MpDefenderCoreService"
+    ],
+    "name": "MpDefenderCoreService",
+    "pid": 5840,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "mpv"
+    ],
+    "name": "mpv",
+    "pid": 20564,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedge"
+    ],
+    "name": "msedge",
+    "pid": 28860,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedge"
+    ],
+    "name": "msedge",
+    "pid": 30152,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedge"
+    ],
+    "name": "msedge",
+    "pid": 32084,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedge"
+    ],
+    "name": "msedge",
+    "pid": 32460,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedge"
+    ],
+    "name": "msedge",
+    "pid": 32900,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 7260,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 10172,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 11484,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 12428,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 12512,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 13248,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 13272,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 16716,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 17296,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 17768,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 17840,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 19564,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 19572,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 19636,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 19896,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 20688,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 20900,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 20964,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 21124,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 21252,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 21260,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 21320,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 22376,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 22532,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 22540,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 22596,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 23244,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 24744,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 25280,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msedgewebview2"
+    ],
+    "name": "msedgewebview2",
+    "pid": 25296,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "MsMpEng"
+    ],
+    "name": "MsMpEng",
+    "pid": 5796,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "msrdc"
+    ],
+    "name": "msrdc",
+    "pid": 12872,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "NgcIso"
+    ],
+    "name": "NgcIso",
+    "pid": 10804,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "NisSrv"
+    ],
+    "name": "NisSrv",
+    "pid": 10404,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "node"
+    ],
+    "name": "node",
+    "pid": 17132,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "node"
+    ],
+    "name": "node",
+    "pid": 27932,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "node"
+    ],
+    "name": "node",
+    "pid": 31772,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "node"
+    ],
+    "name": "node",
+    "pid": 32124,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "node"
+    ],
+    "name": "node",
+    "pid": 33240,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "NVDisplay.Container"
+    ],
+    "name": "NVDisplay.Container",
+    "pid": 3264,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "NVDisplay.Container"
+    ],
+    "name": "NVDisplay.Container",
+    "pid": 5324,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "OfficeClickToRun"
+    ],
+    "name": "OfficeClickToRun",
+    "pid": 5692,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "ollama"
+    ],
+    "name": "ollama",
+    "pid": 24908,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "ollama app"
+    ],
+    "name": "ollama app",
+    "pid": 25464,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "omtsreco"
+    ],
+    "name": "omtsreco",
+    "pid": 6648,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "OneDrive"
+    ],
+    "name": "OneDrive",
+    "pid": 11744,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "OneDrive.Sync.Service"
+    ],
+    "name": "OneDrive.Sync.Service",
+    "pid": 34264,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "OpenConsole"
+    ],
+    "name": "OpenConsole",
+    "pid": 1364,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "oracle"
+    ],
+    "name": "oracle",
+    "pid": 6864,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "oravssw"
+    ],
+    "name": "oravssw",
+    "pid": 6668,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "powershell"
+    ],
+    "name": "powershell",
+    "pid": 25704,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "powershell"
+    ],
+    "name": "powershell",
+    "pid": 25860,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "powershell"
+    ],
+    "name": "powershell",
+    "pid": 27532,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "powershell"
+    ],
+    "name": "powershell",
+    "pid": 34772,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "powershell"
+    ],
+    "name": "powershell",
+    "pid": 35548,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "powershell"
+    ],
+    "name": "powershell",
+    "pid": 35648,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "process_triage-windows-x64"
+    ],
+    "name": "process_triage-windows-x64",
+    "pid": 34884,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RadeonSoftware"
+    ],
+    "name": "RadeonSoftware",
+    "pid": 25020,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Registry"
+    ],
+    "name": "Registry",
+    "pid": 280,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RtkAudUService64"
+    ],
+    "name": "RtkAudUService64",
+    "pid": 5756,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RtkAudUService64"
+    ],
+    "name": "RtkAudUService64",
+    "pid": 10100,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RtkBtManServ"
+    ],
+    "name": "RtkBtManServ",
+    "pid": 5720,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RuntimeBroker"
+    ],
+    "name": "RuntimeBroker",
+    "pid": 6972,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RuntimeBroker"
+    ],
+    "name": "RuntimeBroker",
+    "pid": 8852,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RuntimeBroker"
+    ],
+    "name": "RuntimeBroker",
+    "pid": 11492,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RuntimeBroker"
+    ],
+    "name": "RuntimeBroker",
+    "pid": 13940,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RuntimeBroker"
+    ],
+    "name": "RuntimeBroker",
+    "pid": 14308,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RuntimeBroker"
+    ],
+    "name": "RuntimeBroker",
+    "pid": 19588,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RuntimeBroker"
+    ],
+    "name": "RuntimeBroker",
+    "pid": 20912,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RuntimeBroker"
+    ],
+    "name": "RuntimeBroker",
+    "pid": 22380,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RuntimeBroker"
+    ],
+    "name": "RuntimeBroker",
+    "pid": 28084,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "RuntimeBroker"
+    ],
+    "name": "RuntimeBroker",
+    "pid": 32156,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "SearchHost"
+    ],
+    "name": "SearchHost",
+    "pid": 4356,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "SearchIndexer"
+    ],
+    "name": "SearchIndexer",
+    "pid": 6944,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Secure System"
+    ],
+    "name": "Secure System",
+    "pid": 236,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "SecurityHealthService"
+    ],
+    "name": "SecurityHealthService",
+    "pid": 15040,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "SecurityHealthSystray"
+    ],
+    "name": "SecurityHealthSystray",
+    "pid": 4084,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "services"
+    ],
+    "name": "services",
+    "pid": 1808,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "SETEVENT"
+    ],
+    "name": "SETEVENT",
+    "pid": 5560,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "ShellExperienceHost"
+    ],
+    "name": "ShellExperienceHost",
+    "pid": 15056,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "ShellHost"
+    ],
+    "name": "ShellHost",
+    "pid": 28712,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "sihost"
+    ],
+    "name": "sihost",
+    "pid": 8672,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "smartscreen"
+    ],
+    "name": "smartscreen",
+    "pid": 34560,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "smss"
+    ],
+    "name": "smss",
+    "pid": 888,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "splwow64"
+    ],
+    "name": "splwow64",
+    "pid": 25176,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "spoolsv"
+    ],
+    "name": "spoolsv",
+    "pid": 4844,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "StartMenuExperienceHost"
+    ],
+    "name": "StartMenuExperienceHost",
+    "pid": 10756,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 1556,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 1916,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2008,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2040,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2204,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2320,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2328,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2336,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2344,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2464,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2492,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2500,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2508,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2644,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2652,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2756,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2800,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2840,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 2912,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3160,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3184,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3408,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3512,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3580,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3620,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3624,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3656,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3788,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3848,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3860,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3868,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3924,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 3988,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4076,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4156,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4236,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4300,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4400,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4408,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4452,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4488,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4612,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4632,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4800,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4832,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 4920,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 5276,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 5308,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 5384,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 5544,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 5568,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 5576,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 5584,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 5592,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 5620,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 5628,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 5640,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 6688,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 7776,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 7904,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 8144,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 8256,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 8376,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 8596,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 8772,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 8792,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 8892,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 8952,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 9672,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 9756,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 10156,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 10484,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 10592,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 10732,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 11500,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 14776,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 19112,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 21880,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 23488,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 26912,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 27716,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 28132,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 28240,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 28320,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 28628,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 28680,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 28828,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 33472,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 33680,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 34096,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "svchost"
+    ],
+    "name": "svchost",
+    "pid": 34412,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "System"
+    ],
+    "name": "System",
+    "pid": 4,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "SystemSettings"
+    ],
+    "name": "SystemSettings",
+    "pid": 15876,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "TabNine"
+    ],
+    "name": "TabNine",
+    "pid": 26984,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "TabNine"
+    ],
+    "name": "TabNine",
+    "pid": 27284,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "taskhostw"
+    ],
+    "name": "taskhostw",
+    "pid": 9048,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "tnslsnr"
+    ],
+    "name": "tnslsnr",
+    "pid": 6656,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "traceforge"
+    ],
+    "name": "traceforge",
+    "pid": 34284,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "traceforge-api"
+    ],
+    "name": "traceforge-api",
+    "pid": 12692,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "UserOOBEBroker"
+    ],
+    "name": "UserOOBEBroker",
+    "pid": 8428,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "vctip"
+    ],
+    "name": "vctip",
+    "pid": 34832,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "vmcompute"
+    ],
+    "name": "vmcompute",
+    "pid": 27304,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "vmmemWSL"
+    ],
+    "name": "vmmemWSL",
+    "pid": 25456,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "vmnat"
+    ],
+    "name": "vmnat",
+    "pid": 5736,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "vmnetdhcp"
+    ],
+    "name": "vmnetdhcp",
+    "pid": 5648,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "vmware-authd"
+    ],
+    "name": "vmware-authd",
+    "pid": 6348,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "vmware-tray"
+    ],
+    "name": "vmware-tray",
+    "pid": 2968,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "vmware-usbarbitrator64"
+    ],
+    "name": "vmware-usbarbitrator64",
+    "pid": 6340,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "vmwp"
+    ],
+    "name": "vmwp",
+    "pid": 29048,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "WD-TabNine"
+    ],
+    "name": "WD-TabNine",
+    "pid": 26808,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "WhatsApp.Root"
+    ],
+    "name": "WhatsApp.Root",
+    "pid": 7836,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "WhatsApp.Root"
+    ],
+    "name": "WhatsApp.Root",
+    "pid": 22020,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "Widgets"
+    ],
+    "name": "Widgets",
+    "pid": 11344,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "WidgetService"
+    ],
+    "name": "WidgetService",
+    "pid": 11608,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "wininit"
+    ],
+    "name": "wininit",
+    "pid": 1728,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "winlogon"
+    ],
+    "name": "winlogon",
+    "pid": 1836,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "WmiPrvSE"
+    ],
+    "name": "WmiPrvSE",
+    "pid": 16812,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "WmiPrvSE"
+    ],
+    "name": "WmiPrvSE",
+    "pid": 29228,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "wsl"
+    ],
+    "name": "wsl",
+    "pid": 2796,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "wsl"
+    ],
+    "name": "wsl",
+    "pid": 12436,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "wsl"
+    ],
+    "name": "wsl",
+    "pid": 16032,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "wsl"
+    ],
+    "name": "wsl",
+    "pid": 29072,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "wslhost"
+    ],
+    "name": "wslhost",
+    "pid": 7848,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "wslhost"
+    ],
+    "name": "wslhost",
+    "pid": 30368,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "wslhost"
+    ],
+    "name": "wslhost",
+    "pid": 31704,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "wslhost"
+    ],
+    "name": "wslhost",
+    "pid": 33952,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "wslrelay"
+    ],
+    "name": "wslrelay",
+    "pid": 32524,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "wslservice"
+    ],
+    "name": "wslservice",
+    "pid": 5656,
+    "start_time": null
+  },
+  {
+    "command_line": [
+      "WUDFHost"
+    ],
+    "name": "WUDFHost",
+    "pid": 3532,
+    "start_time": null
+  }
+]

@@ -1,222 +1,336 @@
 import { Link } from 'react-router-dom';
-import { Activity, Terminal, Database, Shield, CheckCircle, Code, FileText, Search } from 'lucide-react';
+import { SiteHeader } from '../components/SiteHeader';
+import { SiteFooter } from '../components/SiteFooter';
+import {
+  Play,
+  Download,
+  BookOpen,
+  Code2,
+  ShieldCheck,
+  Cpu,
+  Layers,
+  Lock,
+  ArrowRight,
+} from 'lucide-react';
 
 export function Landing() {
-  const features = [
-    {
-      icon: Terminal,
-      title: 'Domain-Specific Language',
-      description: 'Write forensic investigations in a purpose-built DSL designed for evidence collection, not general programming.',
-    },
-    {
-      icon: Code,
-      title: 'Web-Based IDE',
-      description: 'Full-featured editor with syntax highlighting, validation, and real-time diagnostics - all in your browser.',
-    },
-    {
-      icon: Database,
-      title: 'Tool Repository',
-      description: 'Version, publish, and share forensic tools with your team. Complete with capability tracking and SBOMs.',
-    },
-    {
-      icon: FileText,
-      title: 'Investigation Management',
-      description: 'Create and track investigations, associate tools, and manage evidence collection workflows.',
-    },
-    {
-      icon: Search,
-      title: 'Evidence Integrity',
-      description: 'Automatic SHA-256 hashing, Merkle tree batching, and optional blockchain anchoring for tamper-proof evidence.',
-    },
-    {
-      icon: Shield,
-      title: 'Security First',
-      description: 'RBAC, audit logging, multi-tenancy, and sandboxed compilation. Built for defensive forensics.',
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-forensic-950">
+    <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col">
+      <SiteHeader />
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 lg:py-32">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-from)_0%,_transparent_70%)] from-accent-blue/10 via-transparent to-transparent" />
-        <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent-blue/10 border border-accent-blue/20 text-accent-blue text-sm font-medium mb-6 animate-fade-in">
-              <Activity className="h-4 w-4" />
-              <span>TraceForge v0.1.0 - Digital Forensics Platform</span>
-            </div>
-            <h1 className="text-4xl lg:text-6xl font-bold text-forensic-100 mb-6 animate-slide-up">
-              Build Forensic Tools <br />
-              <span className="text-accent-blue">That Stand Up in Court</span>
-            </h1>
-            <p className="text-lg lg:text-xl text-forensic-400 mb-8 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '100ms' }}>
-              TraceForge is a cloud-based platform for developing, compiling, and distributing digital forensic investigation tools.
-              Write once in our domain-specific language, compile to native binaries, and deploy with cryptographic integrity guarantees.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up" style={{ animationDelay: '200ms' }}>
-              <Link to="/register" className="btn-primary btn-lg gap-2">
-                <Activity className="h-5 w-5" />
-                Start Free
-              </Link>
-              <Link to="/editor" className="btn-secondary btn-lg gap-2">
-                <Terminal className="h-5 w-5" />
-                Try the IDE
-              </Link>
-            </div>
+      <section className="border-b border-slate-800 bg-[#0e1422] py-16">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded border border-blue-500/30 bg-blue-500/10 text-blue-300 text-xs font-mono mb-6">
+            <ShieldCheck className="h-3.5 w-3.5 text-blue-400" />
+            <span>Digital Forensic Programming Language & Toolchain</span>
+          </div>
+
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-mono leading-tight">
+            TRACEFORGE
+          </h1>
+
+          <p className="mt-3 text-xl sm:text-2xl font-semibold text-slate-200">
+            Forensic Programming. Built for Investigation.
+          </p>
+
+          <p className="mt-4 text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            TRACEFORGE is a domain-specific forensic programming language and platform for building,
+            executing, and managing computer and network investigations.
+          </p>
+
+          {/* Primary Action Buttons */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              to="/ide"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors"
+            >
+              <Play className="h-4 w-4 fill-current" />
+              Open Web IDE
+            </Link>
+
+            <Link
+              to="/download"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-sm transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              Download Compiler
+            </Link>
+
+            <Link
+              to="/docs"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded text-slate-300 hover:text-white hover:bg-slate-800/60 font-medium text-sm transition-colors"
+            >
+              <BookOpen className="h-4 w-4" />
+              Read Documentation
+            </Link>
+
+            <Link
+              to="/examples"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded text-slate-300 hover:text-white hover:bg-slate-800/60 font-medium text-sm transition-colors"
+            >
+              <Code2 className="h-4 w-4" />
+              View Examples
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 lg:py-28 border-y border-forensic-900">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-forensic-100 mb-4">Built for Digital Forensics</h2>
-            <p className="text-forensic-400 text-lg max-w-2xl mx-auto">
-              Every feature designed around the needs of forensic investigators and incident responders.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <article
-                key={feature.title}
-                className="card-hover p-6 animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="h-12 w-12 rounded-lg bg-accent-blue/10 flex items-center justify-center mb-4">
-                  <feature.icon className="h-7 w-7 text-accent-blue" />
-                </div>
-                <h3 className="text-xl font-semibold text-forensic-100 mb-2">{feature.title}</h3>
-                <p className="text-forensic-400">{feature.description}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Language Example */}
-      <section className="py-20 lg:py-28">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-forensic-100 mb-4">TraceForge Language</h2>
-              <p className="text-forensic-400 mb-6">
-                Our domain-specific language is purpose-built for forensic collection.
-                No general-purpose complexity - just the operations you need.
-              </p>
-              <ul className="space-y-3">
-                {[
-                  'Collect system info, processes, network connections, files, and logs',
-                  'Filter and limit results with expressive syntax',
-                  'Export evidence in JSON, CSV, or XML formats',
-                  'Automatic capability tracking for compliance',
-                  'Reproducible, deterministic compilation',
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-forensic-300">
-                    <CheckCircle className="h-5 w-5 text-accent-green flex-shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="card p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500" />
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
-                </div>
-                <span className="text-sm text-forensic-500 font-mono">process_triage.tfg</span>
+      {/* Code Preview & Dual Model Section */}
+      <section className="py-12 border-b border-slate-800 bg-[#090d15]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            {/* Left: Code Box */}
+            <div className="rounded border border-slate-800 bg-[#0c111c] overflow-hidden">
+              <div className="h-9 bg-[#111827] border-b border-slate-800 px-4 flex items-center justify-between">
+                <span className="font-mono text-xs text-slate-300">process_triage.tfg</span>
+                <span className="font-mono text-[11px] text-emerald-400">Validated</span>
               </div>
-              <pre className="code-block text-forensic-300 overflow-x-auto"><code>{`investigation "process_triage" {
+              <pre className="p-4 font-mono text-xs leading-relaxed text-slate-300 overflow-x-auto">
+{`investigation "process_triage" {
+    metadata {
+      case_id = "INC-2026-09"
+      priority = "High"
+    }
+
     collect system_info
+
     collect processes {
         pid
         name
         parent
         command_line
-        start_time
+        user
         hash.sha256
-    }
-    collect network_connections
+    } where cpu_percent > 20 limit 50
+
     export evidence "process_triage.json"
-}`}</code></pre>
+}`}
+              </pre>
+            </div>
+
+            {/* Right: Local vs Cloud Model */}
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-white mb-2">Two Complementary Execution Models</h2>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  TraceForge is architected to operate both as an offline, zero-dependency local forensic compiler
+                  and as an integrated web investigation workspace.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-3.5 rounded border border-slate-800 bg-[#111827]">
+                  <div className="flex items-center gap-2 font-mono text-xs font-semibold text-blue-400 mb-1">
+                    <span>1. LOCAL STANDALONE COMPILER</span>
+                  </div>
+                  <p className="text-xs text-slate-300 font-mono">
+                    Write .tfg → traceforge compile → Standalone .exe → Execute on target host → SHA-256 sidecar
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Zero external runtime dependencies. Runs offline on air-gapped systems.
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded border border-slate-800 bg-[#111827]">
+                  <div className="flex items-center gap-2 font-mono text-xs font-semibold text-emerald-400 mb-1">
+                    <span>2. WEB WORKSPACE & INVESTIGATION PLATFORM</span>
+                  </div>
+                  <p className="text-xs text-slate-300 font-mono">
+                    Web IDE → AST/IR Diagnostics → Sandbox Execution → Verifiable Evidence Envelope
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Browser-based authoring with syntax highlighting, compiler diagnostics, and integrity verification.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Compilation Pipeline */}
-      <section className="py-20 lg:py-28 border-y border-forensic-900 bg-forensic-900/30">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-forensic-100 mb-4">Complete Compilation Pipeline</h2>
-            <p className="text-forensic-400 text-lg max-w-2xl mx-auto">
-              From source to signed artifact with full reproducibility metadata.
+      {/* Product Pillars */}
+      <section className="py-14 border-b border-slate-800 bg-[#0b0f17]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-10 text-center">
+            <h2 className="text-2xl font-bold text-white font-mono">Core Forensic Subsystems</h2>
+            <p className="text-sm text-slate-400 mt-1">
+              Purpose-built capabilities engineered specifically for digital incident response.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="card p-6 text-center">
-              <div className="h-16 w-16 rounded-xl bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
-                <Code className="h-8 w-8 text-accent-blue" />
-              </div>
-              <h3 className="text-xl font-semibold text-forensic-100 mb-2">1. Write &amp; Validate</h3>
-              <p className="text-forensic-400">Write investigations in the web IDE with real-time syntax checking and semantic validation.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* 1. Language */}
+            <div className="p-5 rounded border border-slate-800 bg-[#111827]">
+              <Code2 className="h-5 w-5 text-blue-400 mb-3" />
+              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Forensic Language (.tfg)</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Declarative syntax designed for digital evidence collection. Define metadata, target forensic
+                artifacts, apply field projections, and specify strict export paths without procedural boilerplate.
+              </p>
             </div>
-            <div className="card p-6 text-center">
-              <div className="h-16 w-16 rounded-xl bg-green-500/10 flex items-center justify-center mx-auto mb-4">
-                <Terminal className="h-8 w-8 text-accent-green" />
-              </div>
-              <h3 className="text-xl font-semibold text-forensic-100 mb-2">2. Compile</h3>
-              <p className="text-forensic-400">Compile to native Linux ELF or Windows PE binaries with LLVM backend optimization.</p>
+
+            {/* 2. Toolchain */}
+            <div className="p-5 rounded border border-slate-800 bg-[#111827]">
+              <Cpu className="h-5 w-5 text-blue-400 mb-3" />
+              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Cross-Platform Toolchain</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  The compiler models Windows x64 and Linux x86_64 targets. Linux collection is implemented; Windows
+                  runtime collectors and native artifact delivery remain in development.
+              </p>
             </div>
-            <div className="card p-6 text-center">
-              <div className="h-16 w-16 rounded-xl bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-accent-purple" />
-              </div>
-              <h3 className="text-xl font-semibold text-forensic-100 mb-2">3. Verify &amp; Publish</h3>
-              <p className="text-forensic-400">SHA-256 hashing, capability manifests, SBOM generation, and signed repository publishing.</p>
+
+            {/* 3. Web IDE */}
+            <div className="p-5 rounded border border-slate-800 bg-[#111827]">
+              <Play className="h-5 w-5 text-blue-400 mb-3" />
+              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Web IDE</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Integrated browser developer environment with Monaco editor, syntax highlighting, live compiler
+                diagnostics, and real sandboxed execution.
+              </p>
+            </div>
+
+            {/* 4. Evidence Integrity */}
+            <div className="p-5 rounded border border-slate-800 bg-[#111827]">
+              <ShieldCheck className="h-5 w-5 text-emerald-400 mb-3" />
+              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Evidence Integrity</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Deterministic SHA-256 sidecars (.meta.json), cryptographic hashes, and Merkle tree verification.
+                Any byte alteration of exported evidence is detected immediately.
+              </p>
+            </div>
+
+            {/* 5. Investigation Platform */}
+            <div className="p-5 rounded border border-slate-800 bg-[#111827]">
+              <Layers className="h-5 w-5 text-blue-400 mb-3" />
+              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Investigation Platform</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Organize tools, investigation runs, host targets, evidence files, findings, and forensic reports
+                with complete audit logging.
+              </p>
+            </div>
+
+            {/* 6. Local-First Design */}
+            <div className="p-5 rounded border border-slate-800 bg-[#111827]">
+              <Lock className="h-5 w-5 text-blue-400 mb-3" />
+              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Local-First Safety</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Read-only safety guarantees: no kernel hooking, no process injection, no persistence creation,
+                no credential access. Fully functional in offline, classified environments.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 lg:py-28">
-        <div className="max-w-3xl mx-auto px-6 lg:px-8 text-center">
-          <div className="card p-8 lg:p-12 border-accent-blue/30 bg-accent-blue/5">
-            <h2 className="text-3xl lg:text-4xl font-bold text-forensic-100 mb-4">Ready to Build Better Forensic Tools?</h2>
-            <p className="text-forensic-400 mb-8 max-w-xl mx-auto">
-              Join investigators and developers using TraceForge to create reproducible, auditable forensic investigation tools.
+      {/* Platform Roadmap / Future Scope */}
+      <section className="py-14 border-b border-slate-800 bg-[#090d15]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-white font-mono">Architecture Status & Roadmap</h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Transparent disclosure of current production components versus roadmap expansion.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/register" className="btn-primary btn-lg gap-2">
-                <Activity className="h-5 w-5" />
-                Create Free Account
-              </Link>
-              <Link to="/editor" className="btn-secondary btn-lg gap-2 border-accent-blue text-accent-blue hover:bg-accent-blue/10">
-                <Terminal className="h-5 w-5" />
-                Explore the IDE
-              </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            {/* Available */}
+            <div className="p-4 rounded border border-slate-800 bg-[#0e1422]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-white">Current Core Subsystems</span>
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  AVAILABLE
+                </span>
+              </div>
+              <ul className="space-y-1.5 text-slate-400">
+                <li>✓ TraceForge DSL Parser, AST, Semantic Analyzer & IR</li>
+                <li>✓ Linux standalone executable code generation and runtime collectors</li>
+                <li>• Windows target and native collectors are currently stubs</li>
+                <li>✓ CLI Toolchain (`check`, `compile`, `run`, `verify`, `fmt`, `hash`)</li>
+                <li>✓ SHA-256 Sidecar Generation & Tamper Detection</li>
+                <li>✓ Web IDE with Monaco Editor & Real Compiler Integration</li>
+              </ul>
+            </div>
+
+            {/* In Development */}
+            <div className="p-4 rounded border border-slate-800 bg-[#0e1422]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-white">Platform Expansion</span>
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                  IN DEVELOPMENT
+                </span>
+              </div>
+              <ul className="space-y-1.5 text-slate-400">
+                <li>• Forensic Tool Repository Publishing & Versioning</li>
+                <li>• Multi-Tenancy Organization Workspaces & RBAC</li>
+                <li>• Asynchronous Worker Queue for Distributed Compilation</li>
+                <li>• S3/MinIO Object Storage for Long-Term Evidence Retention</li>
+                <li>• Automated CI/CD Cross-Compilation Pipeline</li>
+              </ul>
+            </div>
+
+            {/* Planned */}
+            <div className="p-4 rounded border border-slate-800 bg-[#0e1422]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-white">Enterprise & Multi-Host</span>
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  PLANNED
+                </span>
+              </div>
+              <ul className="space-y-1.5 text-slate-400">
+                <li>• Centralized Multi-Host Fleet Dispatch & Heartbeats</li>
+                <li>• Signed Cryptographic Tool Packages & Verifiable Attestations</li>
+                <li>• Enterprise Gateway Architecture with Mutual TLS</li>
+                <li>• Automated Forensic Timeline Reconstruction</li>
+              </ul>
+            </div>
+
+            {/* Research */}
+            <div className="p-4 rounded border border-slate-800 bg-[#0e1422]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-white">Research & Advanced Integrity</span>
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                  RESEARCH
+                </span>
+              </div>
+              <ul className="space-y-1.5 text-slate-400">
+                <li>• Immutable Public Blockchain Anchoring (Ethereum/Polygon)</li>
+                <li>• Zero-Knowledge Proofs for Redacted Evidence Verification</li>
+                <li>• LLVM/Inkwell Direct JIT Forensic Compilation</li>
+                <li>• Advanced Memory Forensics & Anomaly Heuristics</li>
+              </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 border-t border-forensic-900">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
-          <p className="text-forensic-500 text-sm">
-            TraceForge - Defensive Digital Forensics Platform
-            <br />
-            Built with Rust, React, and LLVM
+      {/* CTA Footer Section */}
+      <section className="py-12 bg-[#0c101a] text-center">
+        <div className="max-w-3xl mx-auto px-4">
+          <h2 className="text-xl font-bold text-white font-mono mb-2">
+            Start Authoring Forensic Investigations
+          </h2>
+          <p className="text-xs text-slate-400 mb-6">
+            Test canonical scripts directly in the Web IDE or download the standalone compiler for offline triage.
           </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              to="/ide"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition-colors"
+            >
+              Open Web IDE <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            <Link
+              to="/download"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs transition-colors"
+            >
+              Download Compiler v0.1.0
+            </Link>
+          </div>
         </div>
-      </footer>
+      </section>
+
+      <SiteFooter />
     </div>
   );
 }

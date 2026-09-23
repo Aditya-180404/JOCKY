@@ -16,8 +16,16 @@ traceforge-lexer = { path = "../../compiler/lexer" }
 traceforge-parser = { path = "../../compiler/parser" }
 traceforge-ast = { path = "../../compiler/ast" }
 traceforge-semantic = { path = "../../compiler/semantic" }
+traceforge-backend = { path = "../../compiler/backend" }
 traceforge-ir = { path = "../../compiler/ir" }
 traceforge-runtime = { path = "../../runtime" }
+traceforge-runtime-evidence = { path = "../../runtime/evidence" }
+traceforge-runtime-system = { path = "../../runtime/system" }
+traceforge-runtime-process = { path = "../../runtime/process" }
+traceforge-runtime-network = { path = "../../runtime/network" }
+traceforge-runtime-filesystem = { path = "../../runtime/filesystem" }
+traceforge-runtime-logs = { path = "../../runtime/logs" }
+traceforge-runtime-security = { path = "../../runtime/security" }
 anyhow = { workspace = true }
 axum = { workspace = true, features = ["multipart"] }
 tokio = { workspace = true }

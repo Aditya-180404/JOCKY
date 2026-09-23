@@ -1,23 +1,23 @@
-//! Tools module
-
-use std::sync::Arc;
 use axum::{
-    extract::{State, Path, Query, Json, Extension, Multipart},
+    extract::{Extension, Json, Path, Query, State},
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use sqlx::PgPool;
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
-use validator::Validate;
-use tracing::{info, error};
-use serde::{Deserialize, Serialize};
 use redis::AsyncCommands;
+use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
+use std::sync::Arc;
+use tracing::{error, info};
+use uuid::Uuid;
+use validator::Validate;
 
-use traceforge_shared_types::{Tool, ToolVersion, Build, BuildStatus, PaginatedResponse, Pagination, ErrorResponse};
+use traceforge_shared_types::{
+    BuildStatus, ErrorResponse, PaginatedResponse, Pagination,
+};
 
-use crate::{AppState, AuthUser};
 use crate::middleware::sha256_hash;
+use crate::{AppState, AuthUser};
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreateToolRequest {
@@ -117,20 +117,23 @@ pub async fn list_tools(
                     author_id: tool.author_id,
                     created_at: tool.created_at,
                     updated_at: tool.updated_at,
-                    versions: versions.into_iter().map(|v| ToolVersionResponse {
-                        id: v.id,
-                        version: v.version,
-                        source_hash: v.source_hash,
-                        compiler_version: v.compiler_version,
-                        target_platform: v.target_platform,
-                        target_arch: v.target_arch,
-                        capabilities: v.capabilities,
-                        artifact_hash: v.artifact_hash,
-                        artifact_size: v.artifact_size,
-                        is_published: v.is_published,
-                        published_at: v.published_at,
-                        created_at: v.created_at,
-                    }).collect(),
+                    versions: versions
+                        .into_iter()
+                        .map(|v| ToolVersionResponse {
+                            id: v.id,
+                            version: v.version,
+                            source_hash: v.source_hash,
+                            compiler_version: v.compiler_version,
+                            target_platform: v.target_platform,
+                            target_arch: v.target_arch,
+                            capabilities: v.capabilities,
+                            artifact_hash: v.artifact_hash,
+                            artifact_size: v.artifact_size,
+                            is_published: v.is_published,
+                            published_at: v.published_at,
+                            created_at: v.created_at,
+                        })
+                        .collect(),
                 });
             }
 
@@ -144,7 +147,11 @@ pub async fn list_tools(
             })
             .into_response()
         }
-        _ => error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to list tools"),
+        _ => error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Database error",
+            "Failed to list tools",
+        ),
     }
 }
 
@@ -193,7 +200,11 @@ pub async fn create_tool(
         }
         Err(e) => {
             error!("Failed to create tool: {}", e);
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create tool")
+            error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to create tool",
+            )
         }
     }
 }
@@ -230,27 +241,34 @@ pub async fn get_tool(
                 author_id: tool.author_id,
                 created_at: tool.created_at,
                 updated_at: tool.updated_at,
-                versions: versions.into_iter().map(|v| ToolVersionResponse {
-                    id: v.id,
-                    version: v.version,
-                    source_hash: v.source_hash,
-                    compiler_version: v.compiler_version,
-                    target_platform: v.target_platform,
-                    target_arch: v.target_arch,
-                    capabilities: v.capabilities,
-                    artifact_hash: v.artifact_hash,
-                    artifact_size: v.artifact_size,
-                    is_published: v.is_published,
-                    published_at: v.published_at,
-                    created_at: v.created_at,
-                }).collect(),
+                versions: versions
+                    .into_iter()
+                    .map(|v| ToolVersionResponse {
+                        id: v.id,
+                        version: v.version,
+                        source_hash: v.source_hash,
+                        compiler_version: v.compiler_version,
+                        target_platform: v.target_platform,
+                        target_arch: v.target_arch,
+                        capabilities: v.capabilities,
+                        artifact_hash: v.artifact_hash,
+                        artifact_size: v.artifact_size,
+                        is_published: v.is_published,
+                        published_at: v.published_at,
+                        created_at: v.created_at,
+                    })
+                    .collect(),
             })
             .into_response()
         }
         Ok(None) => error_response(StatusCode::NOT_FOUND, "Not found", "Tool not found"),
         Err(e) => {
             error!("Database error: {}", e);
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to get tool")
+            error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to get tool",
+            )
         }
     }
 }
@@ -291,14 +309,24 @@ pub async fn create_tool_version(
     if !diags.is_empty() {
         let mut msg = String::new();
         for d in diags {
-            msg.push_str(&format!("{} at {}; ", d.message, d.span.map(|s| s.to_string()).unwrap_or_default()));
+            msg.push_str(&format!(
+                "{} at {}; ",
+                d.message,
+                d.span.map(|s| s.to_string()).unwrap_or_default()
+            ));
         }
         return error_response(StatusCode::BAD_REQUEST, "Parse error", &msg);
     }
 
     let ast = match ast {
         Some(a) => a,
-        None => return error_response(StatusCode::BAD_REQUEST, "Parse error", "Failed to parse source"),
+        None => {
+            return error_response(
+                StatusCode::BAD_REQUEST,
+                "Parse error",
+                "Failed to parse source",
+            )
+        }
     };
 
     let mut analyzer = traceforge_semantic::SemanticAnalyzer::new();
@@ -314,7 +342,13 @@ pub async fn create_tool_version(
 
     let ir = match ir {
         Some(i) => i,
-        None => return error_response(StatusCode::BAD_REQUEST, "Semantic error", "Failed to analyze source"),
+        None => {
+            return error_response(
+                StatusCode::BAD_REQUEST,
+                "Semantic error",
+                "Failed to analyze source",
+            )
+        }
     };
 
     let source_hash = sha256_hash(&payload.source);
@@ -326,12 +360,13 @@ pub async fn create_tool_version(
 
     let result = sqlx::query!(
         r#"
-        INSERT INTO tool_versions (id, tool_id, version, source_hash, compiler_version, compiler_hash, target_platform, target_arch, capabilities, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        INSERT INTO tool_versions (id, tool_id, version, source, source_hash, compiler_version, compiler_hash, target_platform, target_arch, capabilities, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         "#,
         version_id,
         id,
         payload.version,
+        payload.source,
         source_hash,
         compiler_version,
         compiler_hash,
@@ -360,10 +395,18 @@ pub async fn create_tool_version(
         }
         Err(e) => {
             if e.to_string().contains("unique constraint") {
-                error_response(StatusCode::CONFLICT, "Version exists", "This version already exists")
+                error_response(
+                    StatusCode::CONFLICT,
+                    "Version exists",
+                    "This version already exists",
+                )
             } else {
                 error!("Failed to create tool version: {}", e);
-                error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to create tool version")
+                error_response(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Database error",
+                    "Failed to create tool version",
+                )
             }
         }
     }
@@ -379,20 +422,33 @@ pub async fn build_tool(
     let version = sqlx::query_as!(
         ToolVersionRow,
         r#"
-        SELECT * FROM tool_versions WHERE tool_id = $1 AND is_published = false
+        SELECT tv.* FROM tool_versions tv
+        JOIN tools t ON t.id = tv.tool_id
+        WHERE tv.tool_id = $1 AND t.organization_id = $2 AND tv.is_published = false
         ORDER BY created_at DESC LIMIT 1
         "#,
-        id
+        id,
+        auth.organization_id
     )
     .fetch_optional(&state.db)
     .await;
 
     let version = match version {
         Ok(Some(v)) => v,
-        Ok(None) => return error_response(StatusCode::NOT_FOUND, "No version to build", "No unpublished version found"),
+        Ok(None) => {
+            return error_response(
+                StatusCode::NOT_FOUND,
+                "No version to build",
+                "No unpublished version found",
+            )
+        }
         Err(e) => {
             error!("Database error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to get tool version");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to get tool version",
+            );
         }
     };
 
@@ -404,7 +460,7 @@ pub async fn build_tool(
         "INSERT INTO builds (id, tool_version_id, status, started_at, created_at) VALUES ($1, $2, $3, $4, $5)",
         build_id,
         version.id,
-        BuildStatus::Pending as i32,
+        BuildStatus::Pending.as_str(),
         now,
         now
     )
@@ -418,8 +474,13 @@ pub async fn build_tool(
     let job = BuildJob {
         build_id,
         tool_version_id: version.id,
-        tool_name: format!("{}-{}-{}", version.id, version.target_platform, version.target_arch),
-        source: get_tool_source(&state.db, version.id).await.unwrap_or_default(),
+        tool_name: format!(
+            "{}-{}-{}",
+            version.id, version.target_platform, version.target_arch
+        ),
+        source: get_tool_source(&state.db, version.id)
+            .await
+            .unwrap_or_default(),
         target_platform: payload.target_platform.unwrap_or(version.target_platform),
         target_arch: payload.target_arch.unwrap_or(version.target_arch),
     };
@@ -428,19 +489,30 @@ pub async fn build_tool(
         Ok(redis) => redis,
         Err(e) => {
             error!("Redis connection error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Queue error", "Failed to connect to queue");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Queue error",
+                "Failed to connect to queue",
+            );
         }
     };
 
-    if let Err(e) = redis.rpush::<_, _, ()>("build_queue", serde_json::to_string(&job).unwrap()).await {
+    if let Err(e) = redis
+        .rpush::<_, _, ()>("build_queue", serde_json::to_string(&job).unwrap())
+        .await
+    {
         error!("Failed to queue build: {}", e);
-        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Queue error", "Failed to queue build");
+        return error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Queue error",
+            "Failed to queue build",
+        );
     }
 
     // Update build status to running
     if let Err(e) = sqlx::query!(
         "UPDATE builds SET status = $1 WHERE id = $2",
-        BuildStatus::Running as i32,
+        BuildStatus::Running.as_str(),
         build_id
     )
     .execute(&state.db)
@@ -470,21 +542,33 @@ pub async fn publish_tool(
         r#"
         SELECT tv.* FROM tool_versions tv
         JOIN builds b ON tv.id = b.tool_version_id
-        WHERE tv.tool_id = $1 AND tv.is_published = false AND b.status = $2
+        JOIN tools t ON t.id = tv.tool_id
+        WHERE tv.tool_id = $1 AND t.organization_id = $2 AND tv.is_published = false AND b.status = $3
         ORDER BY tv.created_at DESC LIMIT 1
         "#,
         id,
-        BuildStatus::Success as i32
+        auth.organization_id,
+        BuildStatus::Success.as_str()
     )
     .fetch_optional(&state.db)
     .await;
 
     let version = match version {
         Ok(Some(v)) => v,
-        Ok(None) => return error_response(StatusCode::BAD_REQUEST, "Nothing to publish", "No successful build found"),
+        Ok(None) => {
+            return error_response(
+                StatusCode::BAD_REQUEST,
+                "Nothing to publish",
+                "No successful build found",
+            )
+        }
         Err(e) => {
             error!("Database error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to get tool version");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to get tool version",
+            );
         }
     };
 
@@ -495,9 +579,14 @@ pub async fn publish_tool(
         version.id
     )
     .execute(&state.db)
-    .await {
+    .await
+    {
         error!("Failed to publish tool: {}", e);
-        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to publish tool");
+        return error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Database error",
+            "Failed to publish tool",
+        );
     }
 
     info!("Tool published: {} version {}", id, version.version);
@@ -517,55 +606,78 @@ pub async fn download_tool(
 ) -> impl IntoResponse {
     let version = sqlx::query_as!(
         ToolVersionRow,
-        "SELECT * FROM tool_versions WHERE id = $1 AND is_published = true",
+        "SELECT tv.* FROM tool_versions tv JOIN tools t ON t.id = tv.tool_id WHERE tv.id = $1 AND t.organization_id = $2 AND tv.is_published = true",
         id
+        , auth.organization_id
     )
     .fetch_optional(&state.db)
     .await;
 
     let version = match version {
         Ok(Some(v)) => v,
-        Ok(None) => return error_response(StatusCode::NOT_FOUND, "Not found", "Published tool version not found"),
+        Ok(None) => {
+            return error_response(
+                StatusCode::NOT_FOUND,
+                "Not found",
+                "Published tool version not found",
+            )
+        }
         Err(e) => {
             error!("Database error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to get tool version");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to get tool version",
+            );
         }
     };
 
     let artifact_path = match version.artifact_path {
         Some(p) => p,
-        None => return error_response(StatusCode::NOT_FOUND, "Not found", "Artifact not available"),
+        None => {
+            return error_response(StatusCode::NOT_FOUND, "Not found", "Artifact not available")
+        }
     };
 
     // Generate presigned URL for download
-    let presigned = state.s3
+    let presigned = state
+        .s3
         .get_object()
         .bucket(&state.bucket)
         .key(&artifact_path)
-        .presigned(aws_sdk_s3::presigning::PresigningConfig::expires_in(std::time::Duration::from_secs(3600)).unwrap())
+        .presigned(
+            aws_sdk_s3::presigning::PresigningConfig::expires_in(std::time::Duration::from_secs(
+                3600,
+            ))
+            .unwrap(),
+        )
         .await;
 
     match presigned {
-        Ok(url) => {
-            Json(serde_json::json!({
-                "download_url": url.uri().to_string(),
-                "expires_in": 3600,
-                "artifact_hash": version.artifact_hash,
-                "artifact_size": version.artifact_size
-            }))
-            .into_response()
-        }
+        Ok(url) => Json(serde_json::json!({
+            "download_url": url.uri().to_string(),
+            "expires_in": 3600,
+            "artifact_hash": version.artifact_hash,
+            "artifact_size": version.artifact_size
+        }))
+        .into_response(),
         Err(e) => {
             error!("Failed to generate presigned URL: {}", e);
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "Download error", "Failed to generate download URL")
+            error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Download error",
+                "Failed to generate download URL",
+            )
         }
     }
 }
 
 async fn get_tool_source(db: &PgPool, version_id: Uuid) -> anyhow::Result<String> {
-    // In a real implementation, this would fetch the source from storage
-    // For now, we'll store it in the database or object storage
-    Ok(String::new())
+    let row = sqlx::query_scalar::<_, String>("SELECT source FROM tool_versions WHERE id = $1")
+        .bind(version_id)
+        .fetch_one(db)
+        .await?;
+    Ok(row)
 }
 
 fn calculate_compiler_hash() -> anyhow::Result<String> {
@@ -578,14 +690,19 @@ fn calculate_compiler_hash() -> anyhow::Result<String> {
 }
 
 fn error_response(status: StatusCode, error: &str, message: &str) -> Response {
-    (status, Json(ErrorResponse {
-        error: error.to_string(),
-        message: message.to_string(),
-        code: None,
-        request_id: None,
-    })).into_response()
+    (
+        status,
+        Json(ErrorResponse {
+            error: error.to_string(),
+            message: message.to_string(),
+            code: None,
+            request_id: None,
+        }),
+    )
+        .into_response()
 }
 
+#[allow(dead_code)]
 #[derive(sqlx::FromRow)]
 struct ToolRow {
     id: Uuid,
@@ -598,11 +715,13 @@ struct ToolRow {
     updated_at: DateTime<Utc>,
 }
 
+#[allow(dead_code)]
 #[derive(sqlx::FromRow)]
 struct ToolVersionRow {
     id: Uuid,
     tool_id: Uuid,
     version: String,
+    source: String,
     source_hash: String,
     compiler_version: String,
     compiler_hash: String,
@@ -618,6 +737,7 @@ struct ToolVersionRow {
     created_at: DateTime<Utc>,
 }
 
+#[allow(dead_code)]
 #[derive(serde::Deserialize, serde::Serialize)]
 struct BuildJob {
     build_id: Uuid,

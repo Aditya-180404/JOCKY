@@ -22,7 +22,7 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 - [x] Database migrations (initial schema)
 - [x] API server structure (Axum)
 - [x] Web frontend structure (React + Vite + Tailwind + Monaco)
-- [ ] CI/CD pipeline (GitHub Actions) - **NOT STARTED**
+- [x] CI/CD pipeline (GitHub Actions)
 
 ---
 
@@ -101,9 +101,9 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 - [x] Source hash calculation
 - [x] Compiler hash calculation
 - [x] Metadata output
-- [ ] `traceforge run` - run directly without explicit build - **NOT IMPLEMENTED**
-- [ ] `traceforge fmt` - format .tfg files - **NOT IMPLEMENTED**
-- [ ] `traceforge target list` - list supported targets - **NOT IMPLEMENTED**
+- [x] `traceforge run` - run directly without explicit build
+- [x] `traceforge fmt` - validate and normalize .tfg files
+- [x] `traceforge target list` - list supported targets
 - [ ] `traceforge login` / `search` / `install` / `list` / `info` / `update` / `verify` / `publish` - **NOT IMPLEMENTED** (repository commands)
 
 ---
@@ -148,7 +148,7 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 ### Evidence (`runtime/evidence`)
 - [x] EvidenceCollector struct
 - [x] Collection methods for all types
-- [x] Filter/where/limit application (stubs)
+- [x] Filter/where/limit application with field comparisons and boolean expressions
 - [x] JSON export with formatting
 - [x] SHA-256 evidence hashing
 - [x] Metadata sidecar generation
@@ -159,12 +159,12 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 
 ---
 
-## Phase 5: Windows Runtime ⚠️ STUBS ONLY
-- [ ] Windows system info (WMI)
-- [ ] Windows process enumeration (WMI/PDH)
-- [ ] Windows network connections (GetExtendedTcpTable)
-- [ ] Windows filesystem (same as Linux mostly works)
-- [ ] Windows Event Logs (wevtapi)
+## Phase 5: Windows Runtime ⚠️ PARTIAL
+- [x] Windows system info (PowerShell/CIM)
+- [x] Windows process enumeration (PowerShell/CIM with tasklist fallback)
+- [x] Windows network connections (TCP and UDP PowerShell collectors)
+- [x] Windows filesystem (walkdir and hashing)
+- [x] Windows Event Logs (PowerShell/Get-WinEvent system log)
 - [ ] Windows services/drivers
 - [ ] Windows registry forensics
 
@@ -227,7 +227,7 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 
 ---
 
-## Phase 9: Repository ✅ API COMPLETED / CLI NOT DONE
+## Phase 9: Repository ⚠️ API COMPLETED / CLI PARTIAL
 ### Server-side (API)
 - [x] Tool repository endpoints (GET/POST tools, versions, publish)
 - [x] Search/browse capabilities
@@ -235,14 +235,14 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 - [x] Signature/hash tracking
 
 ### Client-side (CLI)
-- [ ] `traceforge login` - authenticate with cloud
-- [ ] `traceforge search` - search repository
-- [ ] `traceforge install` - download tool
-- [ ] `traceforge list` - list installed tools
-- [ ] `traceforge info` - show tool details
-- [ ] `traceforge update` - update tools
+- [x] `traceforge login` - authenticate with cloud
+- [x] `traceforge search` - search repository (real API only)
+- [x] `traceforge install` - download tool artifact by UUID
+- [x] `traceforge list` - list repository tools (real API only)
+- [x] `traceforge info` - show tool details by UUID
+- [ ] `traceforge update` - API does not expose update semantics
 - [ ] `traceforge verify` - verify tool signature
-- [ ] `traceforge publish` - publish tool
+- [x] `traceforge publish` - create tool and version through API
 
 ---
 
@@ -262,13 +262,14 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 - [x] Admin
 
 ### Components Needed
-- [ ] Monaco editor integration with TraceForge syntax highlighting
-- [ ] File explorer
+- [x] Monaco editor integration with TraceForge syntax highlighting
+- [x] File explorer
 - [ ] Autocomplete/intellisense for .tfg
-- [ ] Diagnostics panel
-- [ ] Compiler output terminal
-- [ ] Target selector (Linux x64 / Windows x64)
-- [ ] Capability display
+- [x] Diagnostics panel
+- [x] Compiler output terminal
+- [x] Target selector with honest sandbox/local target states
+- [x] Backend-authoritative target capability endpoint
+- [x] Compiler-reported capability display
 - [ ] Artifact information panel
 - [ ] Source/artifact hash display
 - [ ] Publish button
@@ -376,13 +377,13 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 - [x] Write `process.tfg` with collect system_info, collect processes, export evidence
 - [x] Lexer/parser/semantic/IR can parse it
 - [x] Backend generates Rust code
-- [ ] CLI `traceforge check process.tfg` works (needs Rust toolchain)
-- [ ] CLI `traceforge build process.tfg -o process` works (needs Rust toolchain)
+- [x] CLI `traceforge check process.tfg` command is available (execution needs Rust toolchain)
+- [ ] CLI `traceforge build process.tfg -o process` works on Linux (requires Linux host/toolchain)
 - [ ] Execute `./process` generates `processes.json` (needs compiled binary)
 - [ ] Calculate SHA-256
 - [ ] Upload to cloud (API ready, CLI command missing)
 - [ ] Display in dashboard (UI partial)
-- [ ] Verify evidence integrity (runtime ready)
+- [ ] Verify evidence integrity end-to-end (runtime helper exists; integration test pending)
 - [ ] Publish to repository (API ready, CLI command missing)
 - [ ] Download from repository (API ready, CLI command missing)
 

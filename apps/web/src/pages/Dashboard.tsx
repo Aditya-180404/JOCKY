@@ -18,7 +18,7 @@ interface Stats {
   tools: number;
   investigations: number;
   evidence: number;
-  builds: number;
+  builds: number | null;
 }
 
 export function Dashboard() {
@@ -43,7 +43,7 @@ export function Dashboard() {
         tools: toolsRes.data.pagination.total,
         investigations: investigationsRes.data.pagination.total,
         evidence: evidenceRes.data.pagination.total,
-        builds: 0, // Would need separate endpoint
+        builds: null,
       });
       setRecentTools(toolsRes.data.data);
       setRecentInvestigations(investigationsRes.data.data);
@@ -92,7 +92,7 @@ export function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-forensic-400 text-sm font-medium">{stat.name}</p>
-                <p className="text-3xl font-bold text-forensic-100 mt-1">{stat.value}</p>
+                <p className="text-3xl font-bold text-forensic-100 mt-1">{stat.value ?? '—'}</p>
               </div>
               <div className={clsx('h-12 w-12 rounded-xl flex items-center justify-center', stat.color, 'bg-opacity-10 group-hover:bg-opacity-20 transition-all')}>
                 <stat.icon className="h-7 w-7" />
@@ -100,7 +100,7 @@ export function Dashboard() {
             </div>
             <div className="mt-4 flex items-center gap-1 text-forensic-500 text-xs group-hover:text-accent-blue transition-colors">
               <ChevronRight className="h-4 w-4" />
-              <span>View all</span>
+              <span>{stat.value === null ? 'Not available from API' : 'View all'}</span>
             </div>
           </Link>
         ))}

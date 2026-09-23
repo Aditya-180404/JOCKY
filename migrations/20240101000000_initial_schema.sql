@@ -65,6 +65,7 @@ CREATE TABLE tool_versions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tool_id UUID NOT NULL REFERENCES tools(id) ON DELETE CASCADE,
     version VARCHAR(50) NOT NULL,
+    source TEXT NOT NULL DEFAULT '',
     source_hash VARCHAR(64) NOT NULL,
     compiler_version VARCHAR(50) NOT NULL,
     compiler_hash VARCHAR(64) NOT NULL,

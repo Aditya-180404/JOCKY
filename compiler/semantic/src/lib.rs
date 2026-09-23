@@ -1,15 +1,15 @@
 //! TraceForge Semantic Analysis - Type checking and validation
 
 use std::collections::HashSet;
+use thiserror::Error;
 use traceforge_ast::{
-    Capability, CollectOptions, CollectTarget, Diagnostic, Expr, ExportFormat, HashAlgorithm,
-    Investigation, Severity, Span, Stmt,
+    Capability, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr, HashAlgorithm,
+    Investigation, Span, Stmt,
 };
 use traceforge_ir::{
     IrCollectOperation, IrExportOperation, IrFilterOperation, IrInvestigation, IrLimitOperation,
     IrMetadataOperation, IrOperation, IrWhereOperation,
 };
-use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum SemanticError {
@@ -30,7 +30,10 @@ impl SemanticAnalyzer {
         }
     }
 
-    pub fn analyze(&mut self, investigation: &Investigation) -> Result<IrInvestigation, Vec<Diagnostic>> {
+    pub fn analyze(
+        &mut self,
+        investigation: &Investigation,
+    ) -> Result<IrInvestigation, Vec<Diagnostic>> {
         self.diagnostics.clear();
         self.required_capabilities.clear();
 
@@ -48,7 +51,10 @@ impl SemanticAnalyzer {
         Ok(ir)
     }
 
-    pub fn analyze_with_diagnostics(&mut self, investigation: &Investigation) -> (Option<IrInvestigation>, Vec<Diagnostic>) {
+    pub fn analyze_with_diagnostics(
+        &mut self,
+        investigation: &Investigation,
+    ) -> (Option<IrInvestigation>, Vec<Diagnostic>) {
         let result = self.analyze(investigation);
         let diags = std::mem::take(&mut self.diagnostics);
 
@@ -65,7 +71,10 @@ impl SemanticAnalyzer {
         &self.required_capabilities
     }
 
-    fn validate_investigation(&mut self, investigation: &Investigation) -> Result<(), Vec<Diagnostic>> {
+    fn validate_investigation(
+        &mut self,
+        investigation: &Investigation,
+    ) -> Result<(), Vec<Diagnostic>> {
         // Check for duplicate statement types that shouldn't be duplicated
         let mut has_export = false;
         let mut has_metadata = false;
@@ -89,25 +98,41 @@ impl SemanticAnalyzer {
         }
 
         // Must have at least one collect statement
-        let has_collect = investigation.statements.iter().any(|s| matches!(s, Stmt::Collect { .. }));
+        let has_collect = investigation
+            .statements
+            .iter()
+            .any(|s| matches!(s, Stmt::Collect { .. }));
         if !has_collect {
-            self.add_error("Investigation must have at least one 'collect' statement", investigation.span);
+            self.add_error(
+                "Investigation must have at least one 'collect' statement",
+                investigation.span,
+            );
         }
 
         // Must have export statement
         if !has_export {
-            self.add_error("Investigation must have an 'export evidence' statement", investigation.span);
+            self.add_error(
+                "Investigation must have an 'export evidence' statement",
+                investigation.span,
+            );
         }
 
         Ok(())
     }
 
-    fn convert_to_ir(&mut self, investigation: &Investigation) -> Result<IrInvestigation, Vec<Diagnostic>> {
+    fn convert_to_ir(
+        &mut self,
+        investigation: &Investigation,
+    ) -> Result<IrInvestigation, Vec<Diagnostic>> {
         let mut operations = Vec::new();
 
         for stmt in &investigation.statements {
             match stmt {
-                Stmt::Collect { target, options, span } => {
+                Stmt::Collect {
+                    target,
+                    options,
+                    span,
+                } => {
                     let ops = self.convert_collect(target, options, *span)?;
                     operations.extend(ops);
                 }
@@ -164,10 +189,16 @@ impl SemanticAnalyzer {
         })
     }
 
-    fn convert_collect(&mut self, target: &CollectTarget, options: &CollectOptions, span: Span) -> Result<Vec<IrOperation>, Vec<Diagnostic>> {
+    fn convert_collect(
+        &mut self,
+        target: &CollectTarget,
+        options: &CollectOptions,
+        span: Span,
+    ) -> Result<Vec<IrOperation>, Vec<Diagnostic>> {
         match target {
             CollectTarget::SystemInfo => {
-                self.required_capabilities.insert(Capability::SystemInfoRead);
+                self.required_capabilities
+                    .insert(Capability::SystemInfoRead);
                 Ok(vec![IrOperation::Collect(IrCollectOperation {
                     operation: "system.info".to_string(),
                     fields: vec![],
@@ -197,7 +228,8 @@ impl SemanticAnalyzer {
                 })])
             }
             CollectTarget::Files { path } => {
-                self.required_capabilities.insert(Capability::FilesystemRead);
+                self.required_capabilities
+                    .insert(Capability::FilesystemRead);
                 if options.hash_algorithm.is_some() {
                     self.required_capabilities.insert(Capability::FileHash);
                 }
@@ -213,7 +245,10 @@ impl SemanticAnalyzer {
             CollectTarget::Logs { source } => {
                 self.required_capabilities.insert(Capability::LogRead);
                 let mut opts = self.convert_collect_options(options)?;
-                opts.insert("source".to_string(), serde_json::Value::String(source.clone()));
+                opts.insert(
+                    "source".to_string(),
+                    serde_json::Value::String(source.clone()),
+                );
                 Ok(vec![IrOperation::Collect(IrCollectOperation {
                     operation: "logs.collect".to_string(),
                     fields: vec![],
@@ -223,7 +258,10 @@ impl SemanticAnalyzer {
             }
             CollectTarget::Evidence { format } => {
                 let mut opts = self.convert_collect_options(options)?;
-                opts.insert("format".to_string(), serde_json::Value::String(format.clone()));
+                opts.insert(
+                    "format".to_string(),
+                    serde_json::Value::String(format.clone()),
+                );
                 Ok(vec![IrOperation::Collect(IrCollectOperation {
                     operation: "evidence.export".to_string(),
                     fields: vec![],
@@ -234,14 +272,21 @@ impl SemanticAnalyzer {
         }
     }
 
-    fn convert_collect_options(&self, options: &CollectOptions) -> Result<serde_json::Map<String, serde_json::Value>, Vec<Diagnostic>> {
+    fn convert_collect_options(
+        &self,
+        options: &CollectOptions,
+    ) -> Result<serde_json::Map<String, serde_json::Value>, Vec<Diagnostic>> {
         let mut map = serde_json::Map::new();
 
         if !options.fields.is_empty() {
             map.insert(
                 "fields".to_string(),
                 serde_json::Value::Array(
-                    options.fields.iter().map(|f| serde_json::Value::String(f.clone())).collect()
+                    options
+                        .fields
+                        .iter()
+                        .map(|f| serde_json::Value::String(f.clone()))
+                        .collect(),
                 ),
             );
         }
@@ -253,11 +298,14 @@ impl SemanticAnalyzer {
         if let Some(hash) = options.hash_algorithm {
             map.insert(
                 "hash".to_string(),
-                serde_json::Value::String(match hash {
-                    HashAlgorithm::Sha256 => "sha256",
-                    HashAlgorithm::Sha1 => "sha1",
-                    HashAlgorithm::Md5 => "md5",
-                }.to_string()),
+                serde_json::Value::String(
+                    match hash {
+                        HashAlgorithm::Sha256 => "sha256",
+                        HashAlgorithm::Sha1 => "sha1",
+                        HashAlgorithm::Md5 => "md5",
+                    }
+                    .to_string(),
+                ),
             );
         }
 
@@ -290,10 +338,12 @@ impl SemanticAnalyzer {
             Expr::StringLiteral(s, _) => Ok(serde_json::Value::String(s.clone())),
             Expr::IntegerLiteral(n, _) => Ok(serde_json::Value::Number((*n).into())),
             Expr::FloatLiteral(f, _) => Ok(serde_json::Value::Number(
-                serde_json::Number::from_f64(*f).unwrap_or(serde_json::Number::from(0))
+                serde_json::Number::from_f64(*f).unwrap_or(serde_json::Number::from(0)),
             )),
             Expr::BooleanLiteral(b, _) => Ok(serde_json::Value::Bool(*b)),
-            Expr::BinaryOp { left, op, right, .. } => {
+            Expr::BinaryOp {
+                left, op, right, ..
+            } => {
                 let l = self.expr_to_json(left)?;
                 let r = self.expr_to_json(right)?;
                 Ok(serde_json::json!({
@@ -318,7 +368,9 @@ impl SemanticAnalyzer {
                     }
                 }))
             }
-            Expr::Call { callee, arguments, .. } => {
+            Expr::Call {
+                callee, arguments, ..
+            } => {
                 let mut args = Vec::new();
                 for arg in arguments {
                     args.push(self.expr_to_json(arg)?);
@@ -361,6 +413,7 @@ impl Default for SemanticAnalyzer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use traceforge_ast::Severity;
     use traceforge_lexer::Lexer;
     use traceforge_parser::Parser;
 
@@ -396,7 +449,9 @@ mod tests {
         assert!(ir.is_some());
         let ir = ir.unwrap();
         assert_eq!(ir.name, "test");
-        assert!(ir.required_capabilities.contains(&Capability::SystemInfoRead));
+        assert!(ir
+            .required_capabilities
+            .contains(&Capability::SystemInfoRead));
         assert!(ir.required_capabilities.contains(&Capability::ProcessRead));
         assert!(ir.required_capabilities.contains(&Capability::FileHash));
     }
@@ -410,7 +465,9 @@ mod tests {
         "#;
         let (ir, diags) = analyze_source(source);
         assert!(ir.is_none());
-        assert!(diags.iter().any(|d| d.severity == Severity::Error && d.message.contains("collect")));
+        assert!(diags
+            .iter()
+            .any(|d| d.severity == Severity::Error && d.message.contains("collect")));
     }
 
     #[test]
@@ -422,7 +479,9 @@ mod tests {
         "#;
         let (ir, diags) = analyze_source(source);
         assert!(ir.is_none());
-        assert!(diags.iter().any(|d| d.severity == Severity::Error && d.message.contains("export")));
+        assert!(diags
+            .iter()
+            .any(|d| d.severity == Severity::Error && d.message.contains("export")));
     }
 
     #[test]
@@ -453,7 +512,9 @@ mod tests {
         let (ir, diags) = analyze_source(source);
         assert!(diags.is_empty());
         let ir = ir.unwrap();
-        assert!(ir.required_capabilities.contains(&Capability::FilesystemRead));
+        assert!(ir
+            .required_capabilities
+            .contains(&Capability::FilesystemRead));
         assert!(ir.required_capabilities.contains(&Capability::FileHash));
     }
 }

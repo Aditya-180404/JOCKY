@@ -1,7 +1,7 @@
 //! TraceForge AST - Abstract Syntax Tree definitions
 
-use std::fmt;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 /// Source code span/location information
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -35,7 +35,11 @@ impl Span {
 impl fmt::Display for Span {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.start_line == self.end_line {
-            write!(f, "{}:{}-{}", self.start_line, self.start_column, self.end_column)
+            write!(
+                f,
+                "{}:{}-{}",
+                self.start_line, self.start_column, self.end_column
+            )
         } else {
             write!(
                 f,

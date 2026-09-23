@@ -1,23 +1,22 @@
-//! Evidence module
-
-use std::sync::Arc;
+use aws_sdk_s3::primitives::ByteStream;
 use axum::{
-    extract::{State, Path, Json, Extension, Multipart},
+    extract::{Extension, Json, Multipart, Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use sqlx::PgPool;
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
-use tracing::{info, error};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use aws_sdk_s3::primitives::ByteStream;
+use sqlx::PgPool;
+use std::sync::Arc;
+use tracing::{error, info};
+use uuid::Uuid;
 
-use traceforge_shared_types::{Evidence, PaginatedResponse, Pagination, ErrorResponse};
+use traceforge_shared_types::ErrorResponse;
 
 use crate::{AppState, AuthUser};
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct UploadEvidenceRequest {
     pub investigation_id: Uuid,
@@ -54,7 +53,7 @@ pub async fn upload_evidence(
     let mut collection_time: Option<DateTime<Utc>> = None;
     let mut metadata: Option<serde_json::Value> = None;
     let mut file_data: Option<Vec<u8>> = None;
-    let mut filename: Option<String> = None;
+    let mut _filename: Option<String> = None;
 
     while let Some(field) = multipart.next_field().await.unwrap_or(None) {
         let name = field.name().unwrap_or("").to_string();
@@ -72,14 +71,16 @@ pub async fn upload_evidence(
             }
             "collection_time" => {
                 let text = field.text().await.unwrap_or_default();
-                collection_time = DateTime::parse_from_rfc3339(&text).ok().map(|dt| dt.with_timezone(&Utc));
+                collection_time = DateTime::parse_from_rfc3339(&text)
+                    .ok()
+                    .map(|dt| dt.with_timezone(&Utc));
             }
             "metadata" => {
                 let text = field.text().await.unwrap_or_default();
                 metadata = serde_json::from_str(&text).ok();
             }
             "file" => {
-                filename = field.file_name().map(|s| s.to_string());
+                _filename = field.file_name().map(|s| s.to_string());
                 file_data = Some(field.bytes().await.unwrap_or_default().to_vec());
             }
             _ => {}
@@ -88,12 +89,24 @@ pub async fn upload_evidence(
 
     let investigation_id = match investigation_id {
         Some(id) => id,
-        None => return error_response(StatusCode::BAD_REQUEST, "Missing field", "investigation_id is required"),
+        None => {
+            return error_response(
+                StatusCode::BAD_REQUEST,
+                "Missing field",
+                "investigation_id is required",
+            )
+        }
     };
 
     let file_data = match file_data {
         Some(data) => data,
-        None => return error_response(StatusCode::BAD_REQUEST, "Missing file", "Evidence file is required"),
+        None => {
+            return error_response(
+                StatusCode::BAD_REQUEST,
+                "Missing file",
+                "Evidence file is required",
+            )
+        }
     };
 
     // Verify investigation exists and belongs to organization
@@ -106,7 +119,11 @@ pub async fn upload_evidence(
     .await;
 
     if investigation.is_err() || investigation.unwrap().is_none() {
-        return error_response(StatusCode::NOT_FOUND, "Not found", "Investigation not found");
+        return error_response(
+            StatusCode::NOT_FOUND,
+            "Not found",
+            "Investigation not found",
+        );
     }
 
     // Calculate SHA-256
@@ -116,11 +133,15 @@ pub async fn upload_evidence(
     let size_bytes = file_data.len() as i64;
 
     // Generate storage path
-    let storage_path = format!("evidence/{}/{}/{}", auth.organization_id, investigation_id, sha256_hash);
+    let storage_path = format!(
+        "evidence/{}/{}/{}",
+        auth.organization_id, investigation_id, sha256_hash
+    );
 
     // Upload to S3
     let body = ByteStream::from(file_data);
-    let upload_result = state.s3
+    let upload_result = state
+        .s3
         .put_object()
         .bucket(&state.bucket)
         .key(&storage_path)
@@ -130,7 +151,11 @@ pub async fn upload_evidence(
 
     if upload_result.is_err() {
         error!("Failed to upload evidence to S3");
-        return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Upload failed", "Failed to store evidence");
+        return error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Upload failed",
+            "Failed to store evidence",
+        );
     }
 
     // Store evidence record
@@ -158,7 +183,10 @@ pub async fn upload_evidence(
 
     match result {
         Ok(_) => {
-            info!("Evidence uploaded: {} for investigation {}", evidence_id, investigation_id);
+            info!(
+                "Evidence uploaded: {} for investigation {}",
+                evidence_id, investigation_id
+            );
             Json(EvidenceResponse {
                 id: evidence_id,
                 investigation_id,
@@ -176,7 +204,11 @@ pub async fn upload_evidence(
         }
         Err(e) => {
             error!("Failed to store evidence record: {}", e);
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to store evidence record")
+            error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to store evidence record",
+            )
         }
     }
 }
@@ -202,11 +234,17 @@ pub async fn get_evidence(
     match evidence {
         Ok(Some(e)) => {
             // Generate presigned URL for download
-            let presigned = state.s3
+            let presigned = state
+                .s3
                 .get_object()
                 .bucket(&state.bucket)
                 .key(&e.storage_path)
-                .presigned(aws_sdk_s3::presigning::PresigningConfig::expires_in(std::time::Duration::from_secs(3600)).unwrap())
+                .presigned(
+                    aws_sdk_s3::presigning::PresigningConfig::expires_in(
+                        std::time::Duration::from_secs(3600),
+                    )
+                    .unwrap(),
+                )
                 .await;
 
             let download_url = presigned.ok().map(|u| u.uri().to_string());
@@ -232,7 +270,11 @@ pub async fn get_evidence(
         Ok(None) => error_response(StatusCode::NOT_FOUND, "Not found", "Evidence not found"),
         Err(e) => {
             error!("Database error: {}", e);
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to get evidence")
+            error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to get evidence",
+            )
         }
     }
 }
@@ -257,15 +299,22 @@ pub async fn verify_evidence(
 
     let evidence = match evidence {
         Ok(Some(e)) => e,
-        Ok(None) => return error_response(StatusCode::NOT_FOUND, "Not found", "Evidence not found"),
+        Ok(None) => {
+            return error_response(StatusCode::NOT_FOUND, "Not found", "Evidence not found")
+        }
         Err(e) => {
             error!("Database error: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Database error", "Failed to get evidence");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Database error",
+                "Failed to get evidence",
+            );
         }
     };
 
     // Download evidence from S3 and verify hash
-    let obj = state.s3
+    let obj = state
+        .s3
         .get_object()
         .bucket(&state.bucket)
         .key(&evidence.storage_path)
@@ -277,12 +326,20 @@ pub async fn verify_evidence(
             Ok(body) => body.into_bytes(),
             Err(e) => {
                 error!("Failed to read evidence from S3: {}", e);
-                return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Verification failed", "Failed to read evidence");
+                return error_response(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Verification failed",
+                    "Failed to read evidence",
+                );
             }
         },
         Err(e) => {
             error!("Failed to get evidence from S3: {}", e);
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, "Verification failed", "Failed to get evidence");
+            return error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Verification failed",
+                "Failed to get evidence",
+            );
         }
     };
 
@@ -294,7 +351,16 @@ pub async fn verify_evidence(
     let is_valid = calculated_hash == evidence.sha256_hash;
 
     // Log verification
-    log_audit(&state.db, auth.user_id, auth.organization_id, "VERIFY_EVIDENCE", "evidence", Some(id), is_valid).await;
+    log_audit(
+        &state.db,
+        auth.user_id,
+        auth.organization_id,
+        "VERIFY_EVIDENCE",
+        "evidence",
+        Some(id),
+        is_valid,
+    )
+    .await;
 
     Json(serde_json::json!({
         "valid": is_valid,
@@ -334,12 +400,16 @@ async fn log_audit(
 }
 
 fn error_response(status: StatusCode, error: &str, message: &str) -> Response {
-    (status, Json(ErrorResponse {
-        error: error.to_string(),
-        message: message.to_string(),
-        code: None,
-        request_id: None,
-    })).into_response()
+    (
+        status,
+        Json(ErrorResponse {
+            error: error.to_string(),
+            message: message.to_string(),
+            code: None,
+            request_id: None,
+        }),
+    )
+        .into_response()
 }
 
 #[derive(sqlx::FromRow)]

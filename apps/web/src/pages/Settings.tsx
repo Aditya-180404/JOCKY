@@ -7,7 +7,6 @@ import {
   Building,
   Shield,
   Save,
-  Loader2,
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
@@ -19,7 +18,6 @@ export function Settings() {
   const [profile, setProfile] = useState({ fullName: '', email: '' });
   const [password, setPassword] = useState({ current: '', new: '', confirm: '' });
   const [organization, setOrganization] = useState({ name: '', slug: '' });
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
@@ -34,16 +32,7 @@ export function Settings() {
   };
 
   const handleProfileSave = async () => {
-    setLoading(true);
-    try {
-      // In a real implementation, this would call an API endpoint
-      await new Promise(resolve => setTimeout(resolve, 500));
-      showMessage('success', 'Profile updated successfully');
-    } catch {
-      showMessage('error', 'Failed to update profile');
-    } finally {
-      setLoading(false);
-    }
+    showMessage('error', 'Profile update is not available in the current API.');
   };
 
   const handlePasswordChange = async () => {
@@ -55,30 +44,11 @@ export function Settings() {
       showMessage('error', 'Password must be at least 8 characters');
       return;
     }
-    setLoading(true);
-    try {
-      // In a real implementation, this would call an API endpoint
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setPassword({ current: '', new: '', confirm: '' });
-      showMessage('success', 'Password changed successfully');
-    } catch {
-      showMessage('error', 'Failed to change password');
-    } finally {
-      setLoading(false);
-    }
+    showMessage('error', 'Password changes are not available in the current API.');
   };
 
   const handleOrgSave = async () => {
-    setLoading(true);
-    try {
-      // In a real implementation, this would call an API endpoint
-      await new Promise(resolve => setTimeout(resolve, 500));
-      showMessage('success', 'Organization updated successfully');
-    } catch {
-      showMessage('error', 'Failed to update organization');
-    } finally {
-      setLoading(false);
-    }
+    showMessage('error', 'Organization updates are not available in the current API.');
   };
 
   const tabs = [
@@ -177,9 +147,9 @@ export function Settings() {
                 </div>
                 <p className="mt-1 text-xs text-forensic-500">Role is assigned by organization administrators</p>
               </div>
-              <button onClick={handleProfileSave} disabled={loading} className="btn-primary gap-2">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                {loading ? 'Saving...' : 'Save Changes'}
+              <button onClick={handleProfileSave} className="btn-primary gap-2">
+                <Save className="h-4 w-4" />
+                Save Changes
               </button>
             </div>
           </div>
@@ -234,9 +204,9 @@ export function Settings() {
                   />
                 </div>
               </div>
-              <button onClick={handlePasswordChange} disabled={loading} className="btn-primary gap-2">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                {loading ? 'Changing...' : 'Change Password'}
+              <button onClick={handlePasswordChange} className="btn-primary gap-2">
+                <Save className="h-4 w-4" />
+                Change Password
               </button>
             </div>
           </div>
@@ -280,9 +250,9 @@ export function Settings() {
                 </div>
                 <p className="mt-1 text-xs text-forensic-500">Lowercase, numbers, and hyphens only</p>
               </div>
-              <button onClick={handleOrgSave} disabled={loading || user?.role !== 'ADMIN'} className="btn-primary gap-2">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                {loading ? 'Saving...' : 'Save Changes'}
+              <button onClick={handleOrgSave} disabled={user?.role !== 'ADMIN'} className="btn-primary gap-2">
+                <Save className="h-4 w-4" />
+                Save Changes
               </button>
               {user?.role !== 'ADMIN' && (
                 <p className="text-xs text-forensic-500">Only administrators can modify organization settings</p>

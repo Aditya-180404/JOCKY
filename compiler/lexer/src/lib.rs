@@ -1,6 +1,5 @@
 //! TraceForge Lexer - Tokenizes TraceForge source code
 
-use std::fmt;
 use thiserror::Error;
 use traceforge_ast::{Span, Token, TokenKind};
 
@@ -192,12 +191,16 @@ impl Lexer {
             let float_val: f64 = value.parse().map_err(|_| LexerError::InvalidNumber {
                 span: Span::new(self.start_line, self.start_column, self.line, self.column),
             })?;
-            Ok(Some(self.make_token_with_value(TokenKind::Float(float_val))))
+            Ok(Some(
+                self.make_token_with_value(TokenKind::Float(float_val)),
+            ))
         } else {
             let int_val: i64 = value.parse().map_err(|_| LexerError::InvalidNumber {
                 span: Span::new(self.start_line, self.start_column, self.line, self.column),
             })?;
-            Ok(Some(self.make_token_with_value(TokenKind::Integer(int_val))))
+            Ok(Some(
+                self.make_token_with_value(TokenKind::Integer(int_val)),
+            ))
         }
     }
 

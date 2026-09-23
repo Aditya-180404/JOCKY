@@ -347,7 +347,7 @@ export function Editor() {
               </div>
             )}
 
-            <div className="code-block font-mono text-sm text-forensic-300 whitespace-pre-wrap font-mono">
+            <div className="code-block font-mono text-sm text-forensic-300 whitespace-pre-wrap">
               {output || <span className="text-forensic-600">Ready. Write your investigation and click Compile.</span>}
             </div>
           </div>

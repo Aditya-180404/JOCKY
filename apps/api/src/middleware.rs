@@ -1,20 +1,21 @@
 //! Middleware module
 
-use std::sync::Arc;
 use axum::{
-    extract::{State, Request},
+    extract::{Request, State},
     http::StatusCode,
     middleware::Next,
     response::{IntoResponse, Response},
 };
 use jsonwebtoken::decode;
-use uuid::Uuid;
+use std::sync::Arc;
 use tracing::warn;
+use uuid::Uuid;
 
 use traceforge_shared_types::Role;
 
 use crate::auth::Claims;
 
+#[allow(dead_code)]
 #[derive(Clone)]
 pub struct AuthUser {
     pub user_id: Uuid,
@@ -34,7 +35,11 @@ pub async fn auth_middleware(
     let token = match auth_header.and_then(|h| h.to_str().ok()) {
         Some(h) if h.starts_with("Bearer ") => h[7..].to_string(),
         _ => {
-            return (StatusCode::UNAUTHORIZED, "Missing or invalid authorization header").into_response();
+            return (
+                StatusCode::UNAUTHORIZED,
+                "Missing or invalid authorization header",
+            )
+                .into_response();
         }
     };
 

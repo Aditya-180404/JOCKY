@@ -1,0 +1,15 @@
+{
+  "investigation_name": "basic_system_triage",
+  "source_hash": "30c908c77c66eeac65c1da0707e0ef762cc2d00cfb8c4839b689f2782ecb9e71",
+  "compiler_version": "0.1.0",
+  "compiler_hash": "2eb8c8a36d996a27f3a87d3381057392399ac31d97fa3806050511098720dd79",
+  "target_platform": "Windows",
+  "target_arch": "X64",
+  "build_timestamp": "2026-09-23T08:36:06.061079200+00:00",
+  "artifact_hash": "ccfd2b33dc45e724a873cd5e4078bef2bfdd85ec0b4f3ec87c7f084f0414bd53",
+  "required_capabilities": [
+    "SYSTEM_INFO_READ",
+    "PROCESS_READ"
+  ],
+  "ir_version": "0.1"
+}

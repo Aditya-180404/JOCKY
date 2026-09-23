@@ -1,0 +1,10 @@
+[package]
+name = "network_investigation"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[dependencies]
+traceforge-runtime = { path = "G:/TRACEFORGE/runtime" }
+

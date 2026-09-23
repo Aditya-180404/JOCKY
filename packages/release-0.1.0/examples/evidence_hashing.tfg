@@ -1,0 +1,9 @@
+investigation "evidence_hashing" {
+    collect processes {
+        pid
+        name
+        hash.sha256
+    }
+
+    export evidence "hashed_evidence.json"
+}

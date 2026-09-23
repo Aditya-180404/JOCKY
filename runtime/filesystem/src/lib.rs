@@ -1,11 +1,15 @@
 //! TraceForge Runtime - Filesystem enumeration and hashing
 
 use serde::{Deserialize, Serialize};
+use md5::Md5;
+use sha1::Sha1;
 use sha2::{Digest, Sha256};
-use walkdir::WalkDir;
 use std::fs;
-use std::os::unix::fs::MetadataExt;
 use std::path::Path;
+use walkdir::WalkDir;
+
+#[cfg(unix)]
+use std::os::unix::fs::MetadataExt;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FileInfo {
@@ -51,7 +55,9 @@ pub fn enumerate_files(
         let is_symlink = file_type.is_symlink();
 
         let symlink_target = if is_symlink {
-            fs::read_link(entry.path()).ok().map(|p| p.to_string_lossy().to_string())
+            fs::read_link(entry.path())
+                .ok()
+                .map(|p| p.to_string_lossy().to_string())
         } else {
             None
         };
@@ -63,12 +69,19 @@ pub fn enumerate_files(
             is_directory: is_dir,
             is_symlink,
             symlink_target,
-            permissions: format!("{:o}", metadata.mode() & 0o777),
-            owner_uid: metadata.uid(),
-            owner_gid: metadata.gid(),
-            modified_time: chrono::DateTime::from(std::time::SystemTime::from(metadata.modified()?)),
-            accessed_time: chrono::DateTime::from(std::time::SystemTime::from(metadata.accessed()?)),
-            created_time: metadata.created().ok().map(|t| chrono::DateTime::from(std::time::SystemTime::from(t))),
+            permissions: file_permissions(&metadata),
+            owner_uid: file_owner_uid(&metadata),
+            owner_gid: file_owner_gid(&metadata),
+            modified_time: chrono::DateTime::from(std::time::SystemTime::from(
+                metadata.modified()?,
+            )),
+            accessed_time: chrono::DateTime::from(std::time::SystemTime::from(
+                metadata.accessed()?,
+            )),
+            created_time: metadata
+                .created()
+                .ok()
+                .map(|t| chrono::DateTime::from(std::time::SystemTime::from(t))),
             sha256: None,
             sha1: None,
             md5: None,
@@ -78,15 +91,19 @@ pub fn enumerate_files(
         if !is_dir && hash_algorithm != "none" {
             match hash_algorithm {
                 "sha256" => {
-                    if let Ok(hash) = calculate_file_hash(entry.path()) {
+                    if let Ok(hash) = calculate_file_hash(entry.path(), "sha256") {
                         info.sha256 = Some(hash);
                     }
                 }
                 "sha1" => {
-                    // Would need sha1 crate
+                    if let Ok(hash) = calculate_file_hash(entry.path(), "sha1") {
+                        info.sha1 = Some(hash);
+                    }
                 }
                 "md5" => {
-                    // Would need md5 crate
+                    if let Ok(hash) = calculate_file_hash(entry.path(), "md5") {
+                        info.md5 = Some(hash);
+                    }
                 }
                 _ => {}
             }
@@ -98,10 +115,15 @@ pub fn enumerate_files(
     Ok(results)
 }
 
-fn calculate_file_hash(path: &Path) -> Result<String, Box<dyn std::error::Error>> {
+fn calculate_file_hash(path: &Path, algorithm: &str) -> Result<String, Box<dyn std::error::Error>> {
     use std::io::Read;
     let mut file = fs::File::open(path)?;
-    let mut hasher = Sha256::new();
+    let mut hasher = match algorithm {
+        "sha256" => HashState::Sha256(Sha256::new()),
+        "sha1" => HashState::Sha1(Sha1::new()),
+        "md5" => HashState::Md5(Md5::new()),
+        _ => return Err(format!("Unsupported hash algorithm: {algorithm}").into()),
+    };
     let mut buffer = [0u8; 8192];
     loop {
         let count = file.read(&mut buffer)?;
@@ -110,14 +132,98 @@ fn calculate_file_hash(path: &Path) -> Result<String, Box<dyn std::error::Error>
         }
         hasher.update(&buffer[..count]);
     }
-    let result = hasher.finalize();
-    Ok(format!("{:x}", result))
+    Ok(hasher.finalize())
+}
+
+enum HashState {
+    Sha256(Sha256),
+    Sha1(Sha1),
+    Md5(Md5),
+}
+
+impl HashState {
+    fn update(&mut self, bytes: &[u8]) {
+        match self {
+            Self::Sha256(hasher) => hasher.update(bytes),
+            Self::Sha1(hasher) => hasher.update(bytes),
+            Self::Md5(hasher) => hasher.update(bytes),
+        }
+    }
+
+    fn finalize(self) -> String {
+        match self {
+            Self::Sha256(hasher) => format!("{:x}", hasher.finalize()),
+            Self::Sha1(hasher) => format!("{:x}", hasher.finalize()),
+            Self::Md5(hasher) => format!("{:x}", hasher.finalize()),
+        }
+    }
 }
 
 pub fn calculate_hash(path: &str, algorithm: &str) -> Result<String, Box<dyn std::error::Error>> {
     let path = Path::new(path);
     match algorithm {
-        "sha256" => calculate_file_hash(path),
+        "sha256" | "sha1" | "md5" => calculate_file_hash(path, algorithm),
         _ => Err("Unsupported hash algorithm".into()),
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::calculate_hash;
+    use std::fs;
+
+    #[test]
+    fn calculates_supported_hash_algorithms() {
+        let path = std::env::temp_dir().join(format!("traceforge-hash-{}.txt", std::process::id()));
+        fs::write(&path, b"abc").unwrap();
+
+        assert_eq!(
+            calculate_hash(path.to_str().unwrap(), "sha256").unwrap(),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        assert_eq!(
+            calculate_hash(path.to_str().unwrap(), "sha1").unwrap(),
+            "a9993e364706816aba3e25717850c26c9cd0d89d"
+        );
+        assert_eq!(
+            calculate_hash(path.to_str().unwrap(), "md5").unwrap(),
+            "900150983cd24fb0d6963f7d28e17f72"
+        );
+
+        fs::remove_file(path).unwrap();
+    }
+}
+
+#[cfg(unix)]
+fn file_permissions(metadata: &fs::Metadata) -> String {
+    format!("{:o}", metadata.mode() & 0o777)
+}
+
+#[cfg(not(unix))]
+fn file_permissions(metadata: &fs::Metadata) -> String {
+    if metadata.permissions().readonly() {
+        "readonly".to_string()
+    } else {
+        "writable".to_string()
+    }
+}
+
+#[cfg(unix)]
+fn file_owner_uid(metadata: &fs::Metadata) -> u32 {
+    metadata.uid()
+}
+
+#[cfg(not(unix))]
+fn file_owner_uid(_: &fs::Metadata) -> u32 {
+    0
+}
+
+#[cfg(unix)]
+fn file_owner_gid(metadata: &fs::Metadata) -> u32 {
+    metadata.gid()
+}
+
+#[cfg(not(unix))]
+fn file_owner_gid(_: &fs::Metadata) -> u32 {
+    0
 }

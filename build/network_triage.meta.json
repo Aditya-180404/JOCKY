@@ -1,0 +1,15 @@
+{
+  "investigation_name": "network_triage",
+  "source_hash": "c234c9b2cd08aa3ac2758cfefb8254a3f2ee8eb95f6d74d7f4d264dd6de2e05a",
+  "compiler_version": "0.1.0",
+  "compiler_hash": "df82cd2e7973d000249e61022a544309be16e8f24f9917206f14a507244f6d2d",
+  "target_platform": "Windows",
+  "target_arch": "X64",
+  "build_timestamp": "2026-09-23T00:13:08.935810900+00:00",
+  "artifact_hash": "ea5f7c612159e7c3829bc9faff7249d23080bcf237011db187ed3d58636355b1",
+  "required_capabilities": [
+    "SYSTEM_INFO_READ",
+    "NETWORK_READ"
+  ],
+  "ir_version": "0.1"
+}

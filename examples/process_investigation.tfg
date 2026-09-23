@@ -1,0 +1,12 @@
+investigation "process_investigation" {
+    collect processes {
+        pid
+        name
+        parent
+        command_line
+        user
+        hash.sha256
+    }
+
+    export evidence "process_evidence.json"
+}

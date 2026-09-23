@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust checks
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgres://traceforge:traceforge_dev@localhost:5432/traceforge
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: traceforge
+          POSTGRES_USER: traceforge
+          POSTGRES_PASSWORD: traceforge_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U traceforge -d traceforge"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Apply database schema
+        run: psql "$DATABASE_URL" -f migrations/20240101000000_initial_schema.sql
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+      - run: cargo test --workspace --all-features
+      - run: cargo build --workspace --release
+
+  web:
+    name: Web checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build

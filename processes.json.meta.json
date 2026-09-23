@@ -1,0 +1,12 @@
+{
+  "investigation_name": "process_triage",
+  "tool_name": "traceforge-tool",
+  "tool_version": "0.1.0",
+  "host_identifier": "DESKTOP-9C230F9",
+  "collection_time": "2026-09-22T23:13:18.951321600Z",
+  "evidence_hash": "5244f44aae2f7445e8d0f868276323132a50e3ecf9169fa60578962851f6405b",
+  "evidence_size": 44933,
+  "merkle_root": null,
+  "merkle_proof": null,
+  "blockchain_anchor": null
+}

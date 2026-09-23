@@ -1,0 +1,2165 @@
+[
+  {
+    "architecture": "x86_64",
+    "boot_time": null,
+    "cpu_count": 16,
+    "hostname": "DESKTOP-9C230F9",
+    "kernel_version": "NT",
+    "locale": "en-US",
+    "os": "Windows",
+    "os_version": "Microsoft Windows [Version 10.0.26200.9457]",
+    "timezone": "UTC",
+    "total_memory_bytes": 16229388288,
+    "uptime_seconds": 10013
+  },
+  {
+    "local_address": "::",
+    "local_port": 65442,
+    "pid": 13012,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 65124,
+    "pid": 2560,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 65000,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 64608,
+    "pid": 32084,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 64364,
+    "pid": 5620,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 63512,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 63467,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 62676,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 62584,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 62264,
+    "pid": 5692,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 61318,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 60924,
+    "pid": 35276,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 60874,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 60108,
+    "pid": 21260,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 59271,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 58523,
+    "pid": 11744,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 57974,
+    "pid": 33268,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 57969,
+    "pid": 22020,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 57965,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 57959,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 57957,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 57954,
+    "pid": 22540,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 56632,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 55968,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 52301,
+    "pid": 27284,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 52299,
+    "pid": 26984,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 52016,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 52015,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 50906,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 50234,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 50231,
+    "pid": 24504,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 49568,
+    "pid": 6864,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 49548,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 49469,
+    "pid": 27284,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 65442,
+    "pid": 13012,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::1434:40cf",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 65124,
+    "pid": 2560,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2606:4700:8d92:7cbc:c264:501:5ff2:75c4",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 65000,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4847:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 64364,
+    "pid": 5620,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2603:1040:a06:6::1",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 63512,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2600:140f:201:11::17df:f512",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 63467,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::2bae:fab1",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 62676,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4844:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 62584,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2404:6800:4000:1025::bc",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 62268,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4844:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 62265,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::3384:c16c",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 62264,
+    "pid": 5692,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2603:1061:14:80::1",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 61318,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::2bae:fab1",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 60874,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::2bae:fab1",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 60108,
+    "pid": 21260,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2a03:2880:f26b:1d2:face:b00c:0:167",
+    "remote_port": 5222,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 59271,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:482b:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 58523,
+    "pid": 11744,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2603:1040:a06:6::1",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 57974,
+    "pid": 33268,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2405:200:1606:1731::312c:b09b",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 57969,
+    "pid": 22020,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2a03:2880:f347:120:face:b00c:0:167",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 57965,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4844:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 57964,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4844:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 57963,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4844:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 57962,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4844:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 57959,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2404:6800:4002:82a::2001",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 57958,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4843:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 57957,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4843:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 57956,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4844:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 57955,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4844:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 57954,
+    "pid": 22540,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2a03:2880:f346:120:face:b00c:0:167",
+    "remote_port": 5222,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 56632,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4846:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 55968,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::2bae:fab1",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 54334,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4846:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 52301,
+    "pid": 27284,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::22aa:413b",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 52299,
+    "pid": 26984,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::22aa:413b",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 52016,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::2bae:fab1",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 52015,
+    "pid": 18364,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::2bae:fab1",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 50906,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::2236:546e",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 50234,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4844:400::",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 50231,
+    "pid": 24504,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2606:4700:8d92:7cbc:c20c:505:5ff2:75c4",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 49679,
+    "pid": 6864,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 49672,
+    "pid": 1808,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::1",
+    "local_port": 49669,
+    "pid": 6656,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 49668,
+    "pid": 4844,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 49667,
+    "pid": 3512,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 49666,
+    "pid": 2464,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 49665,
+    "pid": 1728,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 49664,
+    "pid": 1904,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "fe80::9662:e556:2733:5218%6",
+    "local_port": 49568,
+    "pid": 6864,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "fe80::9662:e556:2733:5218%6",
+    "remote_port": 1521,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 49548,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::2236:546e",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "2409:40e0:103c:f722:a127:c470:72b6:ef89",
+    "local_port": 49469,
+    "pid": 27284,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64:ff9b::227b:21ba",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::1",
+    "local_port": 42050,
+    "pid": 34264,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::1",
+    "local_port": 9001,
+    "pid": 32524,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 9001,
+    "pid": 9688,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::1",
+    "local_port": 9000,
+    "pid": 32524,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 9000,
+    "pid": 9688,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 7680,
+    "pid": 4488,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::1",
+    "local_port": 6379,
+    "pid": 32524,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 6379,
+    "pid": 9688,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::1",
+    "local_port": 5433,
+    "pid": 32524,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 5433,
+    "pid": 9688,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "fe80::bd53:81b7:ede7:c26c%17",
+    "local_port": 2030,
+    "pid": 6648,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "fe80::a07e:e98:ce96:e707%8",
+    "local_port": 2030,
+    "pid": 6648,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "fe80::9662:e556:2733:5218%6",
+    "local_port": 2030,
+    "pid": 6648,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "fe80::9662:e556:2733:5218%6",
+    "local_port": 1521,
+    "pid": 6656,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "fe80::9662:e556:2733:5218%6",
+    "remote_port": 49568,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 1521,
+    "pid": 6656,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 445,
+    "pid": 4,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "::",
+    "local_port": 135,
+    "pid": 1556,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 64265,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 64102,
+    "pid": 37816,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 62269,
+    "pid": 15100,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 59666,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 59660,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 59658,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 59657,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 59656,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 59440,
+    "pid": 15100,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 59439,
+    "pid": 15100,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 59422,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 59421,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 59420,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 59419,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 58692,
+    "pid": 13012,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 57973,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 53214,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 53077,
+    "pid": 32428,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 51061,
+    "pid": 32084,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 50168,
+    "pid": 13012,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 49468,
+    "pid": 22392,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "10.175.57.81",
+    "local_port": 65431,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "10.175.57.163",
+    "remote_port": 53,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 64635,
+    "pid": 27284,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 64265,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59645,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "10.175.57.81",
+    "local_port": 64102,
+    "pid": 37816,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "34.170.65.59",
+    "remote_port": 443,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 62683,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59439,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 62683,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 62675,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 62675,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59440,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 62674,
+    "pid": 15100,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59420,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 62674,
+    "pid": 15100,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59421,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 62674,
+    "pid": 15100,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59419,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 62674,
+    "pid": 15100,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59422,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 62674,
+    "pid": 15100,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 62269,
+    "pid": 15100,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59648,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 62267,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 11434,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 62266,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 11434,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "10.175.57.81",
+    "local_port": 62263,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "10.175.57.163",
+    "remote_port": 53,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 60429,
+    "pid": 7044,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59666,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59645,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59660,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59645,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59658,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59645,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59657,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59645,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59656,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59645,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59649,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59648,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 50168,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59648,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 53077,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59648,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 58692,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59648,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59648,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 62269,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59646,
+    "pid": 32428,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 32428,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 32428,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59666,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 57967,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 32428,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 53214,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 50235,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 32428,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59656,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 32428,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 64265,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 32428,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59657,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 32428,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 57973,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 32428,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59658,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 62272,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 62270,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 32428,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59660,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 57968,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 50236,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 50230,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59645,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 50229,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "10.175.57.81",
+    "local_port": 59597,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "10.175.57.163",
+    "remote_port": 53,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59440,
+    "pid": 15100,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 62675,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59439,
+    "pid": 15100,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 62683,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59422,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 62674,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59421,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 62674,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59420,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 62674,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 59419,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 62674,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 58692,
+    "pid": 13012,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59648,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 58630,
+    "pid": 23472,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 57973,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59645,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 57972,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 11434,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 57970,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 11434,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 57961,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 11434,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 57960,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 11434,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 57712,
+    "pid": 25464,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 57364,
+    "pid": 2448,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 53214,
+    "pid": 34636,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59645,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 53077,
+    "pid": 32428,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59648,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 52325,
+    "pid": 7044,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 50233,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 11434,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 50232,
+    "pid": 0,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 11434,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 50168,
+    "pid": 13012,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 59648,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 49683,
+    "pid": 6864,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 49682,
+    "pid": 6864,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 49681,
+    "pid": 6864,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 49672,
+    "pid": 1808,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 49668,
+    "pid": 4844,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 49667,
+    "pid": 3512,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 49666,
+    "pid": 2464,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 49665,
+    "pid": 1728,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 49664,
+    "pid": 1904,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 42227,
+    "pid": 7044,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 11434,
+    "pid": 24908,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 8080,
+    "pid": 18920,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 5500,
+    "pid": 6656,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 5040,
+    "pid": 2008,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "172.20.16.1",
+    "local_port": 2030,
+    "pid": 6648,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "169.254.135.45",
+    "local_port": 2030,
+    "pid": 6648,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "169.254.62.194",
+    "local_port": 2030,
+    "pid": 6648,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 1123,
+    "pid": 27284,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 912,
+    "pid": 6348,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 902,
+    "pid": 6348,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "192.168.217.1",
+    "local_port": 139,
+    "pid": 4,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "192.168.152.1",
+    "local_port": 139,
+    "pid": 4,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "172.20.16.1",
+    "local_port": 139,
+    "pid": 4,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "10.175.57.81",
+    "local_port": 139,
+    "pid": 4,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  },
+  {
+    "local_address": "0.0.0.0",
+    "local_port": 135,
+    "pid": 1556,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "UNKNOWN"
+  }
+]
