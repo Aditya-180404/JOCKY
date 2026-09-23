@@ -248,17 +248,8 @@ fn main() -> anyhow::Result<()> {
             emit_all,
             verbose,
         } => compile(
-            &file,
-            &target,
-            &arch,
-            &output,
-            &opt,
-            &backend,
-            emit_hir,
-            emit_mir,
-            emit_llvm,
-            emit_all,
-            verbose,
+            &file, &target, &arch, &output, &opt, &backend, emit_hir, emit_mir, emit_llvm,
+            emit_all, verbose,
         ),
         Commands::Build {
             file,
@@ -272,17 +263,8 @@ fn main() -> anyhow::Result<()> {
             emit_all,
             verbose,
         } => compile(
-            &file,
-            &target,
-            &arch,
-            &output,
-            "speed",
-            &backend,
-            emit_hir,
-            emit_mir,
-            emit_llvm,
-            emit_all,
-            verbose,
+            &file, &target, &arch, &output, "speed", &backend, emit_hir, emit_mir, emit_llvm,
+            emit_all, verbose,
         ),
         Commands::Inspect { file, format } => inspect(&file, &format),
         Commands::Hash { file } => hash_file(&file),
@@ -326,7 +308,9 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn run(file: &Path, target: &str, arch: &str, output: &Path) -> anyhow::Result<()> {
-    compile(file, target, arch, output, "speed", "llvm", false, false, false, false, false)?;
+    compile(
+        file, target, arch, output, "speed", "llvm", false, false, false, false, false,
+    )?;
 
     let target_platform = match target.to_lowercase().as_str() {
         "linux" => TargetPlatform::Linux,
@@ -511,9 +495,16 @@ fn compile(
 
     if emit_all {
         std::fs::create_dir_all(output)?;
-        let tok_path = output.join(format!("{}.tokens", file.file_stem().and_then(|s| s.to_str()).unwrap_or("output")));
+        let tok_path = output.join(format!(
+            "{}.tokens",
+            file.file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("output")
+        ));
         let mut tok_str = String::new();
-        for t in &tokens { tok_str.push_str(&format!("{:?}\n", t)); }
+        for t in &tokens {
+            tok_str.push_str(&format!("{:?}\n", t));
+        }
         std::fs::write(&tok_path, tok_str)?;
         println!("  Tokens → {}", tok_path.display());
     }
@@ -532,7 +523,12 @@ fn compile(
     let ast = ast.unwrap();
 
     if emit_all {
-        let ast_path = output.join(format!("{}.ast.json", file.file_stem().and_then(|s| s.to_str()).unwrap_or("output")));
+        let ast_path = output.join(format!(
+            "{}.ast.json",
+            file.file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("output")
+        ));
         std::fs::write(&ast_path, serde_json::to_string_pretty(&ast)?)?;
         println!("  AST   → {}", ast_path.display());
     }
@@ -587,7 +583,10 @@ fn compile(
     let backend_kind: BackendKind = backend_name.parse().unwrap_or(BackendKind::Llvm);
     if verbose {
         println!("  Backend:          {:?}", backend_kind);
-        println!("  Target:           {:?}-{:?}", target_platform, target_arch);
+        println!(
+            "  Target:           {:?}-{:?}",
+            target_platform, target_arch
+        );
         println!("  Optimization:     {:?}", optimization_level);
     }
 
@@ -861,7 +860,6 @@ fn calculate_file_hash(file: &Path) -> anyhow::Result<String> {
     std::io::copy(&mut input, &mut hasher)?;
     Ok(format!("{:x}", hasher.finalize()))
 }
-
 
 fn evidence_verify(evidence: &Path, meta: &Path) -> anyhow::Result<()> {
     println!("Verifying evidence: {}", evidence.display());

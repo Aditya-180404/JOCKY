@@ -173,11 +173,7 @@ impl HirLowering {
                     let op = Self::lower_collect(target, options, *span)?;
                     operations.push(op);
                 }
-                Stmt::Export {
-                    format,
-                    path,
-                    span,
-                } => {
+                Stmt::Export { format, path, span } => {
                     operations.push(HirOperation::Export {
                         format: match format {
                             ExportFormat::Json => "json".to_string(),
@@ -359,11 +355,7 @@ impl HirLowering {
     fn lower_expr(expr: &Expr) -> Result<HirExpr, Vec<Diagnostic>> {
         match expr {
             Expr::Identifier(name, _) => Ok(HirExpr::Variable { name: name.clone() }),
-            Expr::Pipeline {
-                source,
-                stages,
-                ..
-            } => {
+            Expr::Pipeline { source, stages, .. } => {
                 let source_hir = Self::lower_expr(source)?;
                 let mut hir_stages = Vec::new();
                 for stage in stages {
@@ -447,10 +439,7 @@ impl HirLowering {
             Expr::FloatLiteral(f, _) => serde_json::json!(f),
             Expr::BooleanLiteral(b, _) => serde_json::Value::Bool(*b),
             Expr::BinaryOp {
-                left,
-                op,
-                right,
-                ..
+                left, op, right, ..
             } => {
                 let op_str = match op {
                     BinaryOp::Equal => "==",
@@ -623,14 +612,13 @@ impl From<&traceforge_ir::IrInvestigation> for HirInvestigation {
                             traceforge_ir::IrPipelineStage::Timeline { span } => {
                                 HirPipelineStage::Timeline { span: *span }
                             }
-                            traceforge_ir::IrPipelineStage::Export {
-                                path,
-                                span,
-                            } => HirPipelineStage::Export {
-                                format: "json".to_string(),
-                                path: path.clone(),
-                                span: *span,
-                            },
+                            traceforge_ir::IrPipelineStage::Export { path, span } => {
+                                HirPipelineStage::Export {
+                                    format: "json".to_string(),
+                                    path: path.clone(),
+                                    span: *span,
+                                }
+                            }
                         })
                         .collect();
                     operations.push(HirOperation::EvidencePipeline {

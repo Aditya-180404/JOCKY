@@ -13,7 +13,11 @@ pub struct RuntimeContext {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn traceforge_rt_evidence_init(investigation_name: *const c_char) -> *mut c_void {
+/// # Safety
+/// Caller must ensure `investigation_name` is either a valid UTF-8 C string pointer or null.
+pub unsafe extern "C" fn traceforge_rt_evidence_init(
+    investigation_name: *const c_char,
+) -> *mut c_void {
     let name_str = if investigation_name.is_null() {
         "investigation".to_string()
     } else {
@@ -28,6 +32,9 @@ pub unsafe extern "C" fn traceforge_rt_evidence_init(investigation_name: *const 
 }
 
 #[no_mangle]
+/// # Safety
+/// Caller must provide a valid pointer returned by `traceforge_rt_evidence_init` and must not
+/// dereference it after calling `traceforge_rt_evidence_free`.
 pub unsafe extern "C" fn traceforge_rt_collect_system(ctx_ptr: *mut c_void) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
@@ -43,6 +50,9 @@ pub unsafe extern "C" fn traceforge_rt_collect_system(ctx_ptr: *mut c_void) -> c
 }
 
 #[no_mangle]
+/// # Safety
+/// Caller must ensure `ctx_ptr` is a valid runtime context pointer and that `fields_json` is a
+/// valid UTF-8 C string pointer or null.
 pub unsafe extern "C" fn traceforge_rt_collect_processes(
     ctx_ptr: *mut c_void,
     fields_json: *const c_char,
@@ -70,6 +80,8 @@ pub unsafe extern "C" fn traceforge_rt_collect_processes(
 }
 
 #[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer returned by `traceforge_rt_evidence_init`.
 pub unsafe extern "C" fn traceforge_rt_collect_network(ctx_ptr: *mut c_void) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
@@ -85,6 +97,9 @@ pub unsafe extern "C" fn traceforge_rt_collect_network(ctx_ptr: *mut c_void) -> 
 }
 
 #[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer and ensure `path_ptr` and `hash_algo_ptr`
+/// are valid UTF-8 C strings or null.
 pub unsafe extern "C" fn traceforge_rt_collect_files(
     ctx_ptr: *mut c_void,
     path_ptr: *const c_char,
@@ -116,6 +131,9 @@ pub unsafe extern "C" fn traceforge_rt_collect_files(
 }
 
 #[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer and a valid UTF-8 C string pointer for
+/// `source_ptr`, or null.
 pub unsafe extern "C" fn traceforge_rt_collect_logs(
     ctx_ptr: *mut c_void,
     source_ptr: *const c_char,
@@ -140,6 +158,8 @@ pub unsafe extern "C" fn traceforge_rt_collect_logs(
 }
 
 #[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer returned by `traceforge_rt_evidence_init`.
 pub unsafe extern "C" fn traceforge_rt_collect_drivers(ctx_ptr: *mut c_void) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
@@ -160,6 +180,8 @@ pub unsafe extern "C" fn traceforge_rt_collect_drivers(ctx_ptr: *mut c_void) -> 
 }
 
 #[no_mangle]
+/// # Safety
+/// Caller must ensure `ctx_ptr` is valid and `filter_json` is a valid UTF-8 C string pointer.
 pub unsafe extern "C" fn traceforge_rt_evidence_filter(
     ctx_ptr: *mut c_void,
     filter_json: *const c_char,
@@ -178,6 +200,8 @@ pub unsafe extern "C" fn traceforge_rt_evidence_filter(
 }
 
 #[no_mangle]
+/// # Safety
+/// Caller must ensure `ctx_ptr` is valid and `where_json` is a valid UTF-8 C string pointer.
 pub unsafe extern "C" fn traceforge_rt_evidence_where(
     ctx_ptr: *mut c_void,
     where_json: *const c_char,
@@ -196,10 +220,9 @@ pub unsafe extern "C" fn traceforge_rt_evidence_where(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn traceforge_rt_evidence_limit(
-    ctx_ptr: *mut c_void,
-    limit: usize,
-) -> c_int {
+/// # Safety
+/// Caller must provide a valid runtime context pointer returned by `traceforge_rt_evidence_init`.
+pub unsafe extern "C" fn traceforge_rt_evidence_limit(ctx_ptr: *mut c_void, limit: usize) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
     }
@@ -209,6 +232,9 @@ pub unsafe extern "C" fn traceforge_rt_evidence_limit(
 }
 
 #[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer and valid UTF-8 C string pointers for the
+/// format and output path, or null.
 pub unsafe extern "C" fn traceforge_rt_evidence_export(
     ctx_ptr: *mut c_void,
     format_ptr: *const c_char,
@@ -240,6 +266,9 @@ pub unsafe extern "C" fn traceforge_rt_evidence_export(
 }
 
 #[no_mangle]
+/// # Safety
+/// Caller must ensure `ctx_ptr` is either null or a pointer previously returned by
+/// `traceforge_rt_evidence_init` and not already freed.
 pub unsafe extern "C" fn traceforge_rt_evidence_free(ctx_ptr: *mut c_void) {
     if !ctx_ptr.is_null() {
         drop(Box::from_raw(ctx_ptr as *mut RuntimeContext));

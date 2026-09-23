@@ -78,14 +78,32 @@ pub struct MirBasicBlock {
 #[serde(tag = "kind")]
 pub enum MirInstruction {
     // Constant literals
-    ConstInt { dest: LocalId, value: i64 },
-    ConstString { dest: LocalId, value: String },
-    ConstBool { dest: LocalId, value: bool },
+    ConstInt {
+        dest: LocalId,
+        value: i64,
+    },
+    ConstString {
+        dest: LocalId,
+        value: String,
+    },
+    ConstBool {
+        dest: LocalId,
+        value: bool,
+    },
 
     // Memory operations
-    Alloc { dest: LocalId, ty: MirType },
-    Load { dest: LocalId, src: LocalId },
-    Store { dest: LocalId, src: LocalId },
+    Alloc {
+        dest: LocalId,
+        ty: MirType,
+    },
+    Load {
+        dest: LocalId,
+        src: LocalId,
+    },
+    Store {
+        dest: LocalId,
+        src: LocalId,
+    },
 
     // Evidence & runtime context lifecycle
     EvidenceInit {
@@ -319,17 +337,16 @@ impl MirLowering {
 
         match op {
             HirOperation::CollectSystemInfo { .. } => {
-                self.instructions.push(MirInstruction::CollectSystemInfo {
-                    dest: res_id,
-                    ctx,
-                });
+                self.instructions
+                    .push(MirInstruction::CollectSystemInfo { dest: res_id, ctx });
             }
             HirOperation::CollectProcesses {
                 fields,
                 hash_algorithm,
                 ..
             } => {
-                let fields_json = serde_json::to_string(fields).unwrap_or_else(|_| "[]".to_string());
+                let fields_json =
+                    serde_json::to_string(fields).unwrap_or_else(|_| "[]".to_string());
                 self.instructions.push(MirInstruction::CollectProcesses {
                     dest: res_id,
                     ctx,
@@ -338,10 +355,8 @@ impl MirLowering {
                 });
             }
             HirOperation::CollectNetworkConnections { .. } => {
-                self.instructions.push(MirInstruction::CollectNetwork {
-                    dest: res_id,
-                    ctx,
-                });
+                self.instructions
+                    .push(MirInstruction::CollectNetwork { dest: res_id, ctx });
             }
             HirOperation::CollectFiles {
                 path,
@@ -365,10 +380,8 @@ impl MirLowering {
                 });
             }
             HirOperation::CollectDrivers { .. } => {
-                self.instructions.push(MirInstruction::CollectDrivers {
-                    dest: res_id,
-                    ctx,
-                });
+                self.instructions
+                    .push(MirInstruction::CollectDrivers { dest: res_id, ctx });
             }
             HirOperation::Filter { condition, .. } => {
                 self.instructions.push(MirInstruction::EvidenceAddFilter {
@@ -383,16 +396,10 @@ impl MirLowering {
                 });
             }
             HirOperation::Limit { count, .. } => {
-                self.instructions.push(MirInstruction::EvidenceSetLimit {
-                    ctx,
-                    limit: *count,
-                });
+                self.instructions
+                    .push(MirInstruction::EvidenceSetLimit { ctx, limit: *count });
             }
-            HirOperation::Assign {
-                variable,
-                expr,
-                ..
-            } => {
+            HirOperation::Assign { variable, expr, .. } => {
                 self.lower_assign(variable, expr, ctx)?;
             }
             HirOperation::EvidencePipeline { stages, .. } => {
@@ -401,20 +408,20 @@ impl MirLowering {
                         HirPipelineStage::Where { condition, .. } => {
                             self.instructions.push(MirInstruction::EvidenceAddWhere {
                                 ctx,
-                                condition_json: serde_json::to_string(condition).unwrap_or_default(),
+                                condition_json: serde_json::to_string(condition)
+                                    .unwrap_or_default(),
                             });
                         }
                         HirPipelineStage::Filter { condition, .. } => {
                             self.instructions.push(MirInstruction::EvidenceAddFilter {
                                 ctx,
-                                condition_json: serde_json::to_string(condition).unwrap_or_default(),
+                                condition_json: serde_json::to_string(condition)
+                                    .unwrap_or_default(),
                             });
                         }
                         HirPipelineStage::Limit { count, .. } => {
-                            self.instructions.push(MirInstruction::EvidenceSetLimit {
-                                ctx,
-                                limit: *count,
-                            });
+                            self.instructions
+                                .push(MirInstruction::EvidenceSetLimit { ctx, limit: *count });
                         }
                         HirPipelineStage::Hash { algorithm, .. } => {
                             let hash_id = self.new_local("hash", MirType::String);
@@ -426,10 +433,11 @@ impl MirLowering {
                         }
                         HirPipelineStage::Timeline { .. } => {
                             let timeline_id = self.new_local("timeline", MirType::RecordSet);
-                            self.instructions.push(MirInstruction::EvidenceGenerateTimeline {
-                                dest: timeline_id,
-                                ctx,
-                            });
+                            self.instructions
+                                .push(MirInstruction::EvidenceGenerateTimeline {
+                                    dest: timeline_id,
+                                    ctx,
+                                });
                         }
                         HirPipelineStage::Export { format, path, .. } => {
                             self.instructions.push(MirInstruction::EvidenceExport {
@@ -468,7 +476,10 @@ impl MirLowering {
                 let res_id = self.new_local("assign_collect", MirType::RecordSet);
                 match target.as_str() {
                     "processes" => {
-                        let hash_algo = options.get("hash").and_then(|h| h.as_str()).map(|s| s.to_string());
+                        let hash_algo = options
+                            .get("hash")
+                            .and_then(|h| h.as_str())
+                            .map(|s| s.to_string());
                         self.instructions.push(MirInstruction::CollectProcesses {
                             dest: res_id,
                             ctx,
@@ -477,16 +488,12 @@ impl MirLowering {
                         });
                     }
                     "network" | "network_connections" => {
-                        self.instructions.push(MirInstruction::CollectNetwork {
-                            dest: res_id,
-                            ctx,
-                        });
+                        self.instructions
+                            .push(MirInstruction::CollectNetwork { dest: res_id, ctx });
                     }
                     "system" | "system_info" => {
-                        self.instructions.push(MirInstruction::CollectSystemInfo {
-                            dest: res_id,
-                            ctx,
-                        });
+                        self.instructions
+                            .push(MirInstruction::CollectSystemInfo { dest: res_id, ctx });
                     }
                     _ => {}
                 }
@@ -498,20 +505,20 @@ impl MirLowering {
                         HirPipelineStage::Where { condition, .. } => {
                             self.instructions.push(MirInstruction::EvidenceAddWhere {
                                 ctx,
-                                condition_json: serde_json::to_string(condition).unwrap_or_default(),
+                                condition_json: serde_json::to_string(condition)
+                                    .unwrap_or_default(),
                             });
                         }
                         HirPipelineStage::Filter { condition, .. } => {
                             self.instructions.push(MirInstruction::EvidenceAddFilter {
                                 ctx,
-                                condition_json: serde_json::to_string(condition).unwrap_or_default(),
+                                condition_json: serde_json::to_string(condition)
+                                    .unwrap_or_default(),
                             });
                         }
                         HirPipelineStage::Limit { count, .. } => {
-                            self.instructions.push(MirInstruction::EvidenceSetLimit {
-                                ctx,
-                                limit: *count,
-                            });
+                            self.instructions
+                                .push(MirInstruction::EvidenceSetLimit { ctx, limit: *count });
                         }
                         HirPipelineStage::Hash { algorithm, .. } => {
                             let hash_id = self.new_local("hash", MirType::String);
@@ -523,10 +530,11 @@ impl MirLowering {
                         }
                         HirPipelineStage::Timeline { .. } => {
                             let timeline_id = self.new_local("timeline", MirType::RecordSet);
-                            self.instructions.push(MirInstruction::EvidenceGenerateTimeline {
-                                dest: timeline_id,
-                                ctx,
-                            });
+                            self.instructions
+                                .push(MirInstruction::EvidenceGenerateTimeline {
+                                    dest: timeline_id,
+                                    ctx,
+                                });
                         }
                         HirPipelineStage::Export { format, path, .. } => {
                             self.instructions.push(MirInstruction::EvidenceExport {
@@ -578,11 +586,15 @@ impl MirValidator {
                         MirInstruction::EvidenceAddFilter { ctx, .. }
                         | MirInstruction::EvidenceAddWhere { ctx, .. }
                         | MirInstruction::EvidenceSetLimit { ctx, .. }
-                        | MirInstruction::EvidenceExport { ctx, .. } => {
-                            if !valid_local_ids.contains(ctx) {
-                                return Err(format!("Undefined context local {}", ctx));
-                            }
+                        | MirInstruction::EvidenceExport { ctx, .. }
+                            if !valid_local_ids.contains(ctx) =>
+                        {
+                            return Err(format!("Undefined context local {}", ctx));
                         }
+                        MirInstruction::EvidenceAddFilter { .. }
+                        | MirInstruction::EvidenceAddWhere { .. }
+                        | MirInstruction::EvidenceSetLimit { .. }
+                        | MirInstruction::EvidenceExport { .. } => {}
                         _ => {}
                     }
                 }
@@ -603,8 +615,14 @@ impl MirOptimizer {
                 // Pass 1: Deduplicate consecutive redundant instructions if any
                 block.instructions.dedup_by(|a, b| match (a, b) {
                     (
-                        MirInstruction::ConstInt { dest: d1, value: v1 },
-                        MirInstruction::ConstInt { dest: d2, value: v2 },
+                        MirInstruction::ConstInt {
+                            dest: d1,
+                            value: v1,
+                        },
+                        MirInstruction::ConstInt {
+                            dest: d2,
+                            value: v2,
+                        },
                     ) => d1 == d2 && v1 == v2,
                     _ => false,
                 });

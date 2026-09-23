@@ -36,7 +36,7 @@ impl LlvmBackend {
         // 1. Generate programmatic LLVM IR
         let llvm_ir = self
             .generate_llvm_ir(mir)
-            .map_err(|e| crate::BackendError::CodeGenError(e))?;
+            .map_err(crate::BackendError::CodeGenError)?;
 
         // 2. Write .ll file
         let ll_path = output_dir.join(format!("{}.ll", mir.name));
@@ -181,7 +181,10 @@ impl LlvmBackend {
         cmd.current_dir(workspace_root);
 
         let status = cmd.status().map_err(|e| {
-            crate::BackendError::CompilationError(format!("Failed to build runtime staticlib: {}", e))
+            crate::BackendError::CompilationError(format!(
+                "Failed to build runtime staticlib: {}",
+                e
+            ))
         })?;
 
         if !status.success() || !rel_path.exists() {
@@ -294,10 +297,7 @@ impl LlvmCodegen {
         let mut out = String::new();
 
         // LLVM Header
-        out.push_str(&format!(
-            "; ModuleID = \"{}\"\n",
-            mir.name
-        ));
+        out.push_str(&format!("; ModuleID = \"{}\"\n", mir.name));
         out.push_str(&format!("source_filename = \"{}.tfg\"\n", mir.name));
         out.push_str(&format!("target datalayout = \"{}\"\n", datalayout));
         out.push_str(&format!("target triple = \"{}\"\n\n", triple));
@@ -305,7 +305,7 @@ impl LlvmCodegen {
         // String Constant Pool
         for (i, s) in self.strings.iter().enumerate() {
             let escaped = Self::escape_llvm_string(s);
-            let byte_len = s.as_bytes().len() + 1; // including \00 null terminator
+            let byte_len = s.len() + 1; // including \00 null terminator
             out.push_str(&format!(
                 "@.str.{} = private unnamed_addr constant [{} x i8] c\"{}\\00\", align 1\n",
                 i, byte_len, escaped
@@ -336,7 +336,11 @@ impl LlvmCodegen {
         Ok(out)
     }
 
-    fn emit_function(&self, func: &traceforge_mir::MirFunction, out: &mut String) -> Result<(), String> {
+    fn emit_function(
+        &self,
+        func: &traceforge_mir::MirFunction,
+        out: &mut String,
+    ) -> Result<(), String> {
         let ret_ty = match func.return_type {
             traceforge_mir::MirType::Int32 => "i32",
             traceforge_mir::MirType::Int64 => "i64",
@@ -364,7 +368,11 @@ impl LlvmCodegen {
                     MirInstruction::EvidenceInit {
                         investigation_name, ..
                     } => {
-                        let str_id = self.string_map.get(investigation_name).copied().unwrap_or(0);
+                        let str_id = self
+                            .string_map
+                            .get(investigation_name)
+                            .copied()
+                            .unwrap_or(0);
                         let reg = ssa_name();
                         ctx_reg = Some(reg.clone());
                         out.push_str(&format!(
@@ -533,8 +541,8 @@ mod tests {
     use super::*;
     use std::collections::HashSet;
     use traceforge_mir::{
-        MirBasicBlock, MirFunction, MirInstruction, MirLocal, MirProgram,
-        MirProvenance, MirTerminator, MirType,
+        MirBasicBlock, MirFunction, MirInstruction, MirLocal, MirProgram, MirProvenance,
+        MirTerminator, MirType,
     };
 
     #[test]
@@ -586,7 +594,9 @@ mod tests {
         };
 
         let backend = LlvmBackend::new(BuildConfig::default());
-        let ir = backend.generate_llvm_ir(&mir).expect("LLVM IR codegen failed");
+        let ir = backend
+            .generate_llvm_ir(&mir)
+            .expect("LLVM IR codegen failed");
 
         assert!(ir.contains("target triple = \"x86_64-pc-linux-gnu\""));
         assert!(ir.contains("declare ptr @traceforge_rt_evidence_init(ptr)"));

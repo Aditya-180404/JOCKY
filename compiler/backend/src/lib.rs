@@ -19,16 +19,11 @@ pub enum BackendError {
 pub mod llvm;
 pub use llvm::LlvmBackend;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, Default)]
 pub enum BackendKind {
     Rust,
+    #[default]
     Llvm,
-}
-
-impl Default for BackendKind {
-    fn default() -> Self {
-        BackendKind::Llvm
-    }
 }
 
 impl std::str::FromStr for BackendKind {
@@ -47,7 +42,6 @@ pub struct Backend {
     config: BuildConfig,
     kind: BackendKind,
 }
-
 
 fn command_exists(executable: &str) -> bool {
     std::process::Command::new(executable)
@@ -210,8 +204,8 @@ impl Backend {
         match self.kind {
             BackendKind::Llvm => {
                 let hir: traceforge_hir::HirInvestigation = ir.into();
-                let mir = traceforge_mir::MirLowering::lower(&hir)
-                    .map_err(|e| BackendError::CodeGenError(e))?;
+                let mir =
+                    traceforge_mir::MirLowering::lower(&hir).map_err(BackendError::CodeGenError)?;
                 let llvm_backend = LlvmBackend::new(self.config.clone());
                 llvm_backend.compile(&mir, output_dir)
             }
