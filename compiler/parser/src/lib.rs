@@ -156,6 +156,9 @@ impl Parser {
             TokenKind::Logs => Some("logs".to_string()),
             TokenKind::Drivers => Some("drivers".to_string()),
             TokenKind::Timeline => Some("timeline".to_string()),
+            TokenKind::MemoryRegions => Some("memory_regions".to_string()),
+            TokenKind::Registry => Some("registry".to_string()),
+            TokenKind::Artifacts => Some("artifacts".to_string()),
             TokenKind::Evidence => Some("evidence".to_string()),
             TokenKind::Target => Some("target".to_string()),
             _ => None,
@@ -310,6 +313,38 @@ impl Parser {
                     )?;
                 }
                 Ok(CollectTarget::Timeline { sources })
+            }
+            TokenKind::MemoryRegions => {
+                self.advance();
+                Ok(CollectTarget::MemoryRegions)
+            }
+            TokenKind::Registry => {
+                self.advance();
+                let hive = if self.check(TokenKind::String("".to_string())) {
+                    self.consume_string("expected registry hive")?
+                } else {
+                    "HKLM".to_string()
+                };
+                let key_path = if self.check(TokenKind::String("".to_string())) {
+                    self.consume_string("expected registry key path")?
+                } else {
+                    "SOFTWARE".to_string()
+                };
+                Ok(CollectTarget::Registry { hive, key_path })
+            }
+            TokenKind::Artifacts => {
+                self.advance();
+                let artifact_type = if self.check(TokenKind::String("".to_string())) {
+                    self.consume_string("expected artifact type")?
+                } else {
+                    "all".to_string()
+                };
+                let path = if self.check(TokenKind::String("".to_string())) {
+                    self.consume_string("expected artifact path")?
+                } else {
+                    "".to_string()
+                };
+                Ok(CollectTarget::Artifacts { artifact_type, path })
             }
             TokenKind::Files => {
                 self.advance();

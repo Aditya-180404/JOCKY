@@ -1,0 +1,13 @@
+investigation "memory_triage" {
+    metadata {
+        author = "TraceForge Forensics"
+        description = "Collect memory regions and identify suspicious executable mappings"
+        priority = "Critical"
+    }
+
+    collect system_info
+
+    collect memory_regions
+
+    export evidence "memory_triage_evidence.json"
+}

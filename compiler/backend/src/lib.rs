@@ -1,5 +1,6 @@
 //! TraceForge Backend - Code generation for target platforms
 
+use sha2::Digest;
 use std::path::Path;
 use thiserror::Error;
 use traceforge_ir::{ArtifactMetadata, BuildConfig, IrInvestigation, TargetArch, TargetPlatform};
@@ -252,6 +253,9 @@ impl Backend {
     ) -> Result<ArtifactMetadata, BackendError> {
         // Create a temporary project directory inside output_dir
         let project_dir = output_dir.join(&ir.name);
+        if project_dir.is_file() {
+            let _ = std::fs::remove_file(&project_dir);
+        }
         let src_dir = project_dir.join("src");
         std::fs::create_dir_all(&src_dir)?;
 
@@ -305,12 +309,22 @@ impl Backend {
         // Calculate artifact hash
         let artifact_hash = self.calculate_sha256(&output_path)?;
 
+        let source_json = traceforge_ir::serialize_ir(ir).unwrap_or_default();
+        let mut source_hasher = sha2::Sha256::new();
+        sha2::Digest::update(&mut source_hasher, source_json.as_bytes());
+        let source_hash = format!("{:x}", sha2::Digest::finalize(source_hasher));
+
+        let mut compiler_hasher = sha2::Sha256::new();
+        sha2::Digest::update(&mut compiler_hasher, env!("CARGO_PKG_VERSION").as_bytes());
+        sha2::Digest::update(&mut compiler_hasher, format!("{:?}-{:?}", TargetPlatform::Linux, self.config.target_arch).as_bytes());
+        let compiler_hash = format!("{:x}", sha2::Digest::finalize(compiler_hasher));
+
         // Generate metadata
         let metadata = ArtifactMetadata {
             investigation_name: ir.name.clone(),
-            source_hash: String::new(),
+            source_hash,
             compiler_version: env!("CARGO_PKG_VERSION").to_string(),
-            compiler_hash: String::new(),
+            compiler_hash,
             target_platform: TargetPlatform::Linux,
             target_arch: self.config.target_arch,
             build_timestamp: chrono::Utc::now().to_rfc3339(),
@@ -323,6 +337,9 @@ impl Backend {
             ir_version: traceforge_ir::IR_VERSION.to_string(),
         };
 
+        let manifest_path = output_dir.join(format!("{}.manifest.json", ir.name));
+        let _ = self.generate_manifest(&metadata, &manifest_path);
+
         Ok(metadata)
     }
 
@@ -332,6 +349,9 @@ impl Backend {
         output_dir: &Path,
     ) -> Result<ArtifactMetadata, BackendError> {
         let project_dir = output_dir.join(&ir.name);
+        if project_dir.is_file() {
+            let _ = std::fs::remove_file(&project_dir);
+        }
         let src_dir = project_dir.join("src");
         std::fs::create_dir_all(&src_dir)?;
 
@@ -389,11 +409,21 @@ impl Backend {
 
         let artifact_hash = self.calculate_sha256(&output_path)?;
 
+        let source_json = traceforge_ir::serialize_ir(ir).unwrap_or_default();
+        let mut source_hasher = sha2::Sha256::new();
+        sha2::Digest::update(&mut source_hasher, source_json.as_bytes());
+        let source_hash = format!("{:x}", sha2::Digest::finalize(source_hasher));
+
+        let mut compiler_hasher = sha2::Sha256::new();
+        sha2::Digest::update(&mut compiler_hasher, env!("CARGO_PKG_VERSION").as_bytes());
+        sha2::Digest::update(&mut compiler_hasher, format!("{:?}-{:?}", TargetPlatform::Windows, self.config.target_arch).as_bytes());
+        let compiler_hash = format!("{:x}", sha2::Digest::finalize(compiler_hasher));
+
         let metadata = ArtifactMetadata {
             investigation_name: ir.name.clone(),
-            source_hash: String::new(),
+            source_hash,
             compiler_version: env!("CARGO_PKG_VERSION").to_string(),
-            compiler_hash: String::new(),
+            compiler_hash,
             target_platform: TargetPlatform::Windows,
             target_arch: self.config.target_arch,
             build_timestamp: chrono::Utc::now().to_rfc3339(),
@@ -405,6 +435,9 @@ impl Backend {
                 .collect(),
             ir_version: traceforge_ir::IR_VERSION.to_string(),
         };
+
+        let manifest_path = output_dir.join(format!("{}.manifest.json", ir.name));
+        let _ = self.generate_manifest(&metadata, &manifest_path);
 
         Ok(metadata)
     }
@@ -468,10 +501,53 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
                 "    // Assignment: {} = ...\n    let _{} = evidence.collect_variable({:?})?;\n",
                 assign.variable, assign.variable, assign.expression
             )),
-            IrOperation::EvidencePipeline(ep) => Ok(format!(
-                "    // Evidence pipeline for variable: {}\n    evidence.process_pipeline(\"{}\", {:?})?;\n",
-                ep.variable, ep.variable, ep.stages.len()
-            )),
+            IrOperation::EvidencePipeline(ep) => {
+                let mut pipeline_code = format!(
+                    "    // Evidence pipeline for variable: {}\n",
+                    ep.variable
+                );
+                for stage in &ep.stages {
+                    match stage {
+                        traceforge_ir::IrPipelineStage::Where { condition, .. } => {
+                            let json_str = serde_json::to_string(condition).unwrap_or_default();
+                            pipeline_code.push_str(&format!(
+                                "    evidence.add_where(serde_json::from_str({:?}).unwrap_or_default());\n",
+                                json_str
+                            ));
+                        }
+                        traceforge_ir::IrPipelineStage::Filter { condition, .. } => {
+                            let json_str = serde_json::to_string(condition).unwrap_or_default();
+                            pipeline_code.push_str(&format!(
+                                "    evidence.add_filter(serde_json::from_str({:?}).unwrap_or_default());\n",
+                                json_str
+                            ));
+                        }
+                        traceforge_ir::IrPipelineStage::Hash { algorithm, .. } => {
+                            pipeline_code.push_str(&format!(
+                                "    evidence.compute_hash(\"{}\")?;\n",
+                                algorithm
+                            ));
+                        }
+                        traceforge_ir::IrPipelineStage::Timeline { .. } => {
+                            pipeline_code.push_str("    evidence.generate_timeline()?;\n");
+                        }
+                        traceforge_ir::IrPipelineStage::Export { path, .. } => {
+                            pipeline_code.push_str(&format!(
+                                "    evidence.set_output_format(\"json\", \"{}\");\n",
+                                path
+                            ));
+                        }
+                        traceforge_ir::IrPipelineStage::Limit { count, .. } => {
+                            let json_str = serde_json::to_string(count).unwrap_or_default();
+                            pipeline_code.push_str(&format!(
+                                "    evidence.set_limit(serde_json::from_str({:?}).unwrap_or_default());\n",
+                                json_str
+                            ));
+                        }
+                    }
+                }
+                Ok(pipeline_code)
+            }
         }
     }
 
@@ -542,6 +618,59 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
                     .unwrap_or("json");
                 code.push_str(&format!("    evidence.export_evidence(\"{}\")?;\n", format));
             }
+            "drivers.enumerate" => {
+                code.push_str("    evidence.collect_drivers()?;\n");
+            }
+            "timeline.build" => {
+                code.push_str("    evidence.generate_timeline()?;\n");
+            }
+            "memory.regions" => {
+                let pid = collect
+                    .options
+                    .get("pid")
+                    .and_then(|v| v.as_i64())
+                    .map(|p| p as i32);
+                let pid_str = match pid {
+                    Some(p) => format!("Some({})", p),
+                    None => "None".to_string(),
+                };
+                code.push_str(&format!(
+                    "    evidence.collect_memory_regions({})?;\n",
+                    pid_str
+                ));
+            }
+            "registry.enumerate" => {
+                let hive = collect
+                    .options
+                    .get("hive")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("HKLM");
+                let key_path = collect
+                    .options
+                    .get("key_path")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("SOFTWARE");
+                code.push_str(&format!(
+                    "    evidence.collect_registry(\"{}\", \"{}\")?;\n",
+                    hive, key_path
+                ));
+            }
+            "artifacts.carve" => {
+                let artifact_type = collect
+                    .options
+                    .get("artifact_type")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("all");
+                let path = collect
+                    .options
+                    .get("path")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
+                code.push_str(&format!(
+                    "    evidence.collect_artifacts(\"{}\", \"{}\")?;\n",
+                    artifact_type, path
+                ));
+            }
             _ => {
                 code.push_str(&format!(
                     "    // Unknown collect operation: {}\n",
@@ -567,9 +696,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
         &self,
         filter: &traceforge_ir::IrFilterOperation,
     ) -> Result<String, BackendError> {
+        let json_str = serde_json::to_string(&filter.condition).unwrap_or_default();
         Ok(format!(
-            "    evidence.add_filter({:?});\n",
-            filter.condition
+            "    evidence.add_filter(serde_json::from_str({:?}).unwrap_or_default());\n",
+            json_str
         ))
     }
 
@@ -577,9 +707,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
         &self,
         where_op: &traceforge_ir::IrWhereOperation,
     ) -> Result<String, BackendError> {
+        let json_str = serde_json::to_string(&where_op.condition).unwrap_or_default();
         Ok(format!(
-            "    evidence.add_where({:?});\n",
-            where_op.condition
+            "    evidence.add_where(serde_json::from_str({:?}).unwrap_or_default());\n",
+            json_str
         ))
     }
 
@@ -587,7 +718,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
         &self,
         limit: &traceforge_ir::IrLimitOperation,
     ) -> Result<String, BackendError> {
-        Ok(format!("    evidence.set_limit({:?});\n", limit.count))
+        let json_str = serde_json::to_string(&limit.count).unwrap_or_default();
+        Ok(format!(
+            "    evidence.set_limit(serde_json::from_str({:?}).unwrap_or_default());\n",
+            json_str
+        ))
+    }
+
+    pub fn generate_manifest(
+        &self,
+        metadata: &ArtifactMetadata,
+        output_path: &Path,
+    ) -> Result<(), BackendError> {
+        let manifest_json = serde_json::to_string_pretty(metadata)
+            .map_err(|e| BackendError::TemplateError(format!("Failed to serialize manifest: {}", e)))?;
+        std::fs::write(output_path, manifest_json)
+            .map_err(|e| BackendError::TemplateError(format!("Failed to write manifest: {}", e)))?;
+        Ok(())
     }
 
     fn generate_metadata(
@@ -651,6 +798,7 @@ traceforge-runtime = {{ path = "{}" }}
             }
         }
 
+        deps.push("serde_json = \"1.0\"".to_string());
         deps.sort();
         deps.dedup();
         deps.join("\n")

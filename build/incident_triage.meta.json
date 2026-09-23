@@ -1,0 +1,18 @@
+{
+  "investigation_name": "incident_triage",
+  "source_hash": "c11120c734e8340ca6c3aa3aa4064aa57c61554400d637882553547a1c9a630e",
+  "compiler_version": "0.1.0",
+  "compiler_hash": "9716523ff056baa2aafa8192087592114ff96de71dea42aa918440837eac71cf",
+  "target_platform": "Linux",
+  "target_arch": "X64",
+  "build_timestamp": "2026-09-23T18:43:36.320316640+00:00",
+  "artifact_hash": "8c300dfb0a5ab3009e547249f15f0f426595117f0918780ecbeec1f0738b8b13",
+  "required_capabilities": [
+    "SYSTEM_INFO_READ",
+    "PROCESS_READ",
+    "FILE_HASH",
+    "NETWORK_READ",
+    "DRIVER_READ"
+  ],
+  "ir_version": "0.1"
+}

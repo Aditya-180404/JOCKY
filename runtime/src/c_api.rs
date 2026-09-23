@@ -181,6 +181,91 @@ pub unsafe extern "C" fn traceforge_rt_collect_drivers(ctx_ptr: *mut c_void) -> 
 
 #[no_mangle]
 /// # Safety
+/// Caller must provide a valid runtime context pointer returned by `traceforge_rt_evidence_init`.
+pub unsafe extern "C" fn traceforge_rt_collect_memory_regions(
+    ctx_ptr: *mut c_void,
+    pid: c_int,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let pid_filter = if pid <= 0 { None } else { Some(pid) };
+    match ctx.collector.collect_memory_regions(pid_filter) {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[TraceForge Runtime] Memory regions collection error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer and valid UTF-8 strings or null.
+pub unsafe extern "C" fn traceforge_rt_collect_registry(
+    ctx_ptr: *mut c_void,
+    hive_ptr: *const c_char,
+    key_ptr: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let hive = if hive_ptr.is_null() {
+        "HKLM"
+    } else {
+        CStr::from_ptr(hive_ptr).to_str().unwrap_or("HKLM")
+    };
+    let key_path = if key_ptr.is_null() {
+        "SOFTWARE"
+    } else {
+        CStr::from_ptr(key_ptr).to_str().unwrap_or("SOFTWARE")
+    };
+
+    match ctx.collector.collect_registry(hive, key_path) {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[TraceForge Runtime] Registry collection error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer and valid UTF-8 strings or null.
+pub unsafe extern "C" fn traceforge_rt_collect_artifacts(
+    ctx_ptr: *mut c_void,
+    type_ptr: *const c_char,
+    path_ptr: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let artifact_type = if type_ptr.is_null() {
+        "all"
+    } else {
+        CStr::from_ptr(type_ptr).to_str().unwrap_or("all")
+    };
+    let path = if path_ptr.is_null() {
+        ""
+    } else {
+        CStr::from_ptr(path_ptr).to_str().unwrap_or("")
+    };
+
+    match ctx.collector.collect_artifacts(artifact_type, path) {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[TraceForge Runtime] Artifacts collection error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
 /// Caller must ensure `ctx_ptr` is valid and `filter_json` is a valid UTF-8 C string pointer.
 pub unsafe extern "C" fn traceforge_rt_evidence_filter(
     ctx_ptr: *mut c_void,
@@ -263,6 +348,60 @@ pub unsafe extern "C" fn traceforge_rt_evidence_export(
             -1
         }
     }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer and a valid UTF-8 C string pointer for
+/// `algo_ptr`, or null.
+pub unsafe extern "C" fn traceforge_rt_evidence_compute_hash(
+    ctx_ptr: *mut c_void,
+    algo_ptr: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let algo = if algo_ptr.is_null() {
+        "sha256"
+    } else {
+        CStr::from_ptr(algo_ptr).to_str().unwrap_or("sha256")
+    };
+    match ctx.collector.compute_hash(algo) {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[TraceForge Runtime] Compute hash error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer returned by `traceforge_rt_evidence_init`.
+pub unsafe extern "C" fn traceforge_rt_evidence_generate_timeline(
+    ctx_ptr: *mut c_void,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let host = ctx.collector.host_identifier().to_string();
+    let records = ctx.collector.records();
+    let mut timeline_records = Vec::with_capacity(records.len());
+    for (i, rec) in records.iter().enumerate() {
+        let ref_str = format!("ref-{}", i + 1);
+        if let Some(event) = traceforge_runtime_timeline::normalize_record(rec, &host, Some(&ref_str)) {
+            if let Ok(v) = serde_json::to_value(&event) {
+                timeline_records.push(v);
+                continue;
+            }
+        }
+        timeline_records.push(rec.clone());
+    }
+    ctx.collector.set_records(timeline_records);
+    ctx.collector.add_metadata("timeline_generated", serde_json::json!(true));
+    0
 }
 
 #[no_mangle]

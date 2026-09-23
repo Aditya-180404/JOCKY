@@ -1,0 +1,13 @@
+investigation "artifact_carving" {
+    metadata {
+        author = "TraceForge Forensics"
+        description = "Carve forensic execution and persistence artifacts"
+        target = "Host Evidence"
+    }
+
+    collect system_info
+
+    collect artifacts "history" "/home"
+
+    export evidence "carved_artifacts_evidence.json"
+}

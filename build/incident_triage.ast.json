@@ -1,0 +1,161 @@
+{
+  "name": "incident_triage",
+  "target": null,
+  "metadata": [
+    [
+      "author",
+      {
+        "StringLiteral": [
+          "Security Operations Center",
+          {
+            "start_line": 3,
+            "start_column": 18,
+            "end_line": 3,
+            "end_column": 46
+          }
+        ]
+      }
+    ],
+    [
+      "classification",
+      {
+        "StringLiteral": [
+          "Forensic Evidence",
+          {
+            "start_line": 4,
+            "start_column": 26,
+            "end_line": 4,
+            "end_column": 45
+          }
+        ]
+      }
+    ],
+    [
+      "incident_id",
+      {
+        "StringLiteral": [
+          "INC-2026-0924",
+          {
+            "start_line": 5,
+            "start_column": 23,
+            "end_line": 5,
+            "end_column": 38
+          }
+        ]
+      }
+    ],
+    [
+      "priority",
+      {
+        "StringLiteral": [
+          "Critical",
+          {
+            "start_line": 6,
+            "start_column": 20,
+            "end_line": 6,
+            "end_column": 30
+          }
+        ]
+      }
+    ]
+  ],
+  "statements": [
+    {
+      "Collect": {
+        "target": "SystemInfo",
+        "options": {
+          "fields": [],
+          "recursive": false,
+          "hash_algorithm": null,
+          "filter": null,
+          "limit": null
+        },
+        "span": {
+          "start_line": 9,
+          "start_column": 5,
+          "end_line": 9,
+          "end_column": 24
+        }
+      }
+    },
+    {
+      "Collect": {
+        "target": "Processes",
+        "options": {
+          "fields": [
+            "pid",
+            "name",
+            "parent",
+            "command_line",
+            "user",
+            "start_time"
+          ],
+          "recursive": false,
+          "hash_algorithm": "Sha256",
+          "filter": null,
+          "limit": null
+        },
+        "span": {
+          "start_line": 11,
+          "start_column": 5,
+          "end_line": 19,
+          "end_column": 6
+        }
+      }
+    },
+    {
+      "Collect": {
+        "target": "NetworkConnections",
+        "options": {
+          "fields": [],
+          "recursive": false,
+          "hash_algorithm": null,
+          "filter": null,
+          "limit": null
+        },
+        "span": {
+          "start_line": 21,
+          "start_column": 5,
+          "end_line": 21,
+          "end_column": 32
+        }
+      }
+    },
+    {
+      "Collect": {
+        "target": "Drivers",
+        "options": {
+          "fields": [],
+          "recursive": false,
+          "hash_algorithm": null,
+          "filter": null,
+          "limit": null
+        },
+        "span": {
+          "start_line": 23,
+          "start_column": 5,
+          "end_line": 23,
+          "end_column": 20
+        }
+      }
+    },
+    {
+      "Export": {
+        "format": "Json",
+        "path": "incident_triage_evidence.json",
+        "span": {
+          "start_line": 25,
+          "start_column": 5,
+          "end_line": 25,
+          "end_column": 52
+        }
+      }
+    }
+  ],
+  "span": {
+    "start_line": 1,
+    "start_column": 1,
+    "end_line": 26,
+    "end_column": 2
+  }
+}

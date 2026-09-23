@@ -12,6 +12,11 @@ traceforge-runtime-process = { path = "../process" }
 traceforge-runtime-network = { path = "../network" }
 traceforge-runtime-filesystem = { path = "../filesystem" }
 traceforge-runtime-logs = { path = "../logs" }
+traceforge-runtime-memory = { path = "../memory" }
+traceforge-runtime-registry = { path = "../registry" }
+traceforge-runtime-artifacts = { path = "../artifacts" }
+traceforge-runtime-drivers = { path = "../drivers" }
+traceforge-runtime-timeline = { path = "../timeline" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

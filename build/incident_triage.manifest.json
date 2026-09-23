@@ -1,0 +1,22 @@
+{
+  "backend": "llvm",
+  "hir_hash": "e4fb969042fd609f4baee138a5c64619d3e69a325293f1670564c4c55b58ef0c",
+  "investigation": "incident_triage",
+  "llvm_ir_hash": "286ab2a586bf94abfe16d06c6d95fc056cffb5869849f1dc45f9edb177c0351c",
+  "mir_hash": "cc088f78dc8c8e7546adab82bb22ca44053dda75af452ea7b1b51d9c052ba2a3",
+  "operations_count": 5,
+  "required_capabilities": [
+    "FILE_HASH",
+    "NETWORK_READ",
+    "DRIVER_READ",
+    "PROCESS_READ",
+    "SYSTEM_INFO_READ"
+  ],
+  "safety_invariants": {
+    "defensive_only": true,
+    "network_write": false,
+    "persistence": false,
+    "privilege_escalation": false
+  },
+  "source_hash": "c11120c734e8340ca6c3aa3aa4064aa57c61554400d637882553547a1c9a630e"
+}

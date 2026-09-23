@@ -64,6 +64,17 @@ pub struct VerificationResult {
     pub verified_at: DateTime<Utc>,
 }
 
+/// Detailed per-item verification result for deep evidence audits
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeepVerificationResult {
+    pub base_result: VerificationResult,
+    pub total_items: usize,
+    pub verified_items: usize,
+    pub failed_items: Vec<(usize, String)>,
+    pub per_item_proofs_valid: bool,
+    pub merkle_leaf_hashes: Vec<String>,
+}
+
 pub struct EvidenceCollector {
     investigation_name: String,
     tool_name: String,
@@ -141,6 +152,68 @@ impl EvidenceCollector {
         Ok(())
     }
 
+    pub fn collect_drivers(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let drivers = traceforge_runtime_drivers::enumerate_drivers()?;
+        for d in drivers {
+            self.data.push(d);
+        }
+        Ok(())
+    }
+
+    pub fn collect_memory_regions(
+        &mut self,
+        pid_filter: Option<i32>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let regions = traceforge_runtime_memory::enumerate_memory_regions(pid_filter)?;
+        for region in regions {
+            self.data.push(region);
+        }
+        Ok(())
+    }
+
+    pub fn collect_registry(
+        &mut self,
+        hive: &str,
+        key_path: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let entries = traceforge_runtime_registry::enumerate_registry(hive, key_path)?;
+        for entry in entries {
+            self.data.push(entry);
+        }
+        Ok(())
+    }
+
+    pub fn collect_artifacts(
+        &mut self,
+        artifact_type: &str,
+        search_path: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let artifacts = traceforge_runtime_artifacts::carve_artifacts(artifact_type, search_path)?;
+        for artifact in artifacts {
+            self.data.push(artifact);
+        }
+        Ok(())
+    }
+
+    pub fn generate_timeline(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let host = self.host_identifier.clone();
+        let records = self.data.clone();
+        let mut timeline_records = Vec::with_capacity(records.len());
+        for (i, rec) in records.iter().enumerate() {
+            let ref_str = format!("ref-{}", i + 1);
+            if let Some(event) = traceforge_runtime_timeline::normalize_record(rec, &host, Some(&ref_str)) {
+                if let Ok(v) = serde_json::to_value(&event) {
+                    timeline_records.push(v);
+                    continue;
+                }
+            }
+            timeline_records.push(rec.clone());
+        }
+        self.data = timeline_records;
+        self.metadata.insert("timeline_generated".to_string(), serde_json::json!(true));
+        Ok(())
+    }
+
     pub fn export_evidence(&mut self, format: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.output_format = format.to_string();
         Ok(())
@@ -171,6 +244,43 @@ impl EvidenceCollector {
 
     pub fn add_record(&mut self, record: serde_json::Value) {
         self.data.push(record);
+    }
+
+    pub fn host_identifier(&self) -> &str {
+        &self.host_identifier
+    }
+
+    pub fn records(&self) -> &[serde_json::Value] {
+        &self.data
+    }
+
+    pub fn set_records(&mut self, records: Vec<serde_json::Value>) {
+        self.data = records;
+    }
+
+    pub fn compute_hash(&mut self, algo: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let evidence_json = serde_json::to_vec(&self.data)?;
+        let hash_str = match algo.to_lowercase().as_str() {
+            "sha256" | "" => {
+                let mut hasher = Sha256::new();
+                hasher.update(&evidence_json);
+                format!("{:x}", hasher.finalize())
+            }
+            "sha512" => {
+                use sha2::Sha512;
+                let mut hasher = Sha512::new();
+                hasher.update(&evidence_json);
+                format!("{:x}", hasher.finalize())
+            }
+            _ => {
+                let mut hasher = Sha256::new();
+                hasher.update(&evidence_json);
+                format!("{:x}", hasher.finalize())
+            }
+        };
+        self.metadata.insert("hash_algorithm".to_string(), serde_json::json!(algo));
+        self.metadata.insert("evidence_hash".to_string(), serde_json::json!(&hash_str));
+        Ok(hash_str)
     }
 
     pub fn finalize(&mut self) -> Result<EvidenceMetadata, Box<dyn std::error::Error>> {
@@ -739,6 +849,79 @@ pub fn verify_evidence(
         stored_hash: Some(stored_hash),
         merkle_root_valid,
         verified_at: Utc::now(),
+    })
+}
+
+/// Perform deep verification of evidence: base integrity check + per-item Merkle proof checks
+pub fn verify_evidence_deep(
+    evidence_path: &str,
+    metadata_path: &str,
+) -> Result<DeepVerificationResult, Box<dyn std::error::Error>> {
+    let base = verify_evidence(evidence_path, metadata_path)?;
+    if !matches!(base.status, VerificationStatus::Verified) {
+        return Ok(DeepVerificationResult {
+            base_result: base,
+            total_items: 0,
+            verified_items: 0,
+            failed_items: vec![],
+            per_item_proofs_valid: false,
+            merkle_leaf_hashes: vec![],
+        });
+    }
+
+    let evidence_bytes = fs::read(evidence_path)?;
+    let evidence_items: Vec<serde_json::Value> = serde_json::from_slice(&evidence_bytes)?;
+    let meta_bytes = fs::read(metadata_path)?;
+    let metadata: EvidenceMetadata = serde_json::from_slice(&meta_bytes)?;
+
+    let item_hashes: Vec<String> = evidence_items
+        .iter()
+        .map(|item| {
+            let bytes = serde_json::to_vec(item).unwrap_or_default();
+            let mut h = Sha256::new();
+            h.update(&bytes);
+            format!("{:x}", h.finalize())
+        })
+        .collect();
+
+    let expected_root = metadata.merkle_root.as_deref().unwrap_or("");
+    let mut verified_count = 0;
+    let mut failed_items = Vec::new();
+
+    if !expected_root.is_empty() && !item_hashes.is_empty() {
+        for (idx, hash) in item_hashes.iter().enumerate() {
+            if let Some(proof) = generate_merkle_proof(&item_hashes, idx) {
+                if verify_merkle_proof_for_item(hash, &proof, expected_root) {
+                    verified_count += 1;
+                } else {
+                    failed_items.push((idx, format!("Proof verification failed for leaf {}", hash)));
+                }
+            } else {
+                failed_items.push((idx, format!("Could not generate proof for index {}", idx)));
+            }
+        }
+    } else {
+        verified_count = item_hashes.len();
+    }
+
+    let all_valid = failed_items.is_empty();
+    let mut final_base = base;
+    if !all_valid {
+        final_base.status = VerificationStatus::Tampered {
+            reason: format!(
+                "Deep verification failed: {} item proof(s) invalid",
+                failed_items.len()
+            ),
+        };
+    }
+
+    Ok(DeepVerificationResult {
+        base_result: final_base,
+        total_items: item_hashes.len(),
+        verified_items: verified_count,
+        failed_items,
+        per_item_proofs_valid: all_valid,
+        merkle_leaf_hashes: item_hashes,
     })
 }
 

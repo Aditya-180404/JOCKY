@@ -1,0 +1,99 @@
+{
+  "name": "incident_triage",
+  "target": null,
+  "metadata": [
+    [
+      "author",
+      "Security Operations Center"
+    ],
+    [
+      "classification",
+      "Forensic Evidence"
+    ],
+    [
+      "incident_id",
+      "INC-2026-0924"
+    ],
+    [
+      "priority",
+      "Critical"
+    ]
+  ],
+  "operations": [
+    {
+      "kind": "CollectSystemInfo",
+      "span": {
+        "start_line": 9,
+        "start_column": 5,
+        "end_line": 9,
+        "end_column": 24
+      }
+    },
+    {
+      "kind": "CollectProcesses",
+      "fields": [
+        "pid",
+        "name",
+        "parent",
+        "command_line",
+        "user",
+        "start_time"
+      ],
+      "hash_algorithm": "sha256",
+      "span": {
+        "start_line": 11,
+        "start_column": 5,
+        "end_line": 19,
+        "end_column": 6
+      }
+    },
+    {
+      "kind": "CollectNetworkConnections",
+      "span": {
+        "start_line": 21,
+        "start_column": 5,
+        "end_line": 21,
+        "end_column": 32
+      }
+    },
+    {
+      "kind": "CollectDrivers",
+      "span": {
+        "start_line": 23,
+        "start_column": 5,
+        "end_line": 23,
+        "end_column": 20
+      }
+    },
+    {
+      "kind": "Export",
+      "format": "json",
+      "path": "incident_triage_evidence.json",
+      "span": {
+        "start_line": 25,
+        "start_column": 5,
+        "end_line": 25,
+        "end_column": 52
+      }
+    }
+  ],
+  "capabilities": [
+    "FileHash",
+    "NetworkRead",
+    "DriverRead",
+    "ProcessRead",
+    "SystemInfoRead"
+  ],
+  "provenance": {
+    "source_hash": "e4fb969042fd609f4baee138a5c64619d3e69a325293f1670564c4c55b58ef0c",
+    "ast_hash": "e4fb969042fd609f4baee138a5c64619d3e69a325293f1670564c4c55b58ef0c",
+    "compiler_version": "0.1.0",
+    "created_at": "2026-09-23T18:40:19.801024990+00:00"
+  },
+  "span": {
+    "start_line": 1,
+    "start_column": 1,
+    "end_line": 26,
+    "end_column": 2
+  }
+}

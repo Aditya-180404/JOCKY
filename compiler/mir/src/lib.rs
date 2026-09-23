@@ -168,6 +168,23 @@ pub enum MirInstruction {
         dest: LocalId,
         ctx: LocalId,
     },
+    CollectMemoryRegions {
+        dest: LocalId,
+        ctx: LocalId,
+        pid: i32,
+    },
+    CollectRegistry {
+        dest: LocalId,
+        ctx: LocalId,
+        hive: String,
+        key_path: String,
+    },
+    CollectArtifacts {
+        dest: LocalId,
+        ctx: LocalId,
+        artifact_type: String,
+        path: String,
+    },
 
     // Comparison and call
     Compare {
@@ -383,6 +400,29 @@ impl MirLowering {
                 self.instructions
                     .push(MirInstruction::CollectDrivers { dest: res_id, ctx });
             }
+            HirOperation::CollectMemoryRegions { pid, .. } => {
+                self.instructions.push(MirInstruction::CollectMemoryRegions {
+                    dest: res_id,
+                    ctx,
+                    pid: *pid,
+                });
+            }
+            HirOperation::CollectRegistry { hive, key_path, .. } => {
+                self.instructions.push(MirInstruction::CollectRegistry {
+                    dest: res_id,
+                    ctx,
+                    hive: hive.clone(),
+                    key_path: key_path.clone(),
+                });
+            }
+            HirOperation::CollectArtifacts { artifact_type, path, .. } => {
+                self.instructions.push(MirInstruction::CollectArtifacts {
+                    dest: res_id,
+                    ctx,
+                    artifact_type: artifact_type.clone(),
+                    path: path.clone(),
+                });
+            }
             HirOperation::Filter { condition, .. } => {
                 self.instructions.push(MirInstruction::EvidenceAddFilter {
                     ctx,
@@ -578,7 +618,10 @@ impl MirValidator {
                         | MirInstruction::EvidenceInit { dest, .. }
                         | MirInstruction::CollectSystemInfo { dest, .. }
                         | MirInstruction::CollectNetwork { dest, .. }
-                        | MirInstruction::CollectDrivers { dest, .. } => {
+                        | MirInstruction::CollectDrivers { dest, .. }
+                        | MirInstruction::CollectMemoryRegions { dest, .. }
+                        | MirInstruction::CollectRegistry { dest, .. }
+                        | MirInstruction::CollectArtifacts { dest, .. } => {
                             if !valid_local_ids.contains(dest) {
                                 return Err(format!("Undefined destination local {}", dest));
                             }

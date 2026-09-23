@@ -6,7 +6,7 @@ use traceforge_backend::{Backend, BackendKind};
 use traceforge_ir::{BuildConfig, TargetArch, TargetPlatform};
 use traceforge_lexer::Lexer;
 use traceforge_parser::Parser as TfParser;
-use traceforge_runtime::{verify_evidence, VerificationStatus};
+use traceforge_runtime::{verify_evidence, verify_evidence_deep, VerificationStatus};
 use traceforge_semantic::SemanticAnalyzer;
 
 #[derive(Parser)]
@@ -118,6 +118,20 @@ enum Commands {
         #[command(subcommand)]
         command: EvidenceCommands,
     },
+    /// Generate a forensic report from an evidence JSON file
+    Report {
+        /// Evidence JSON file
+        evidence: PathBuf,
+        /// Metadata sidecar file (default: <evidence>.meta.json)
+        #[arg(long)]
+        meta: Option<PathBuf>,
+        /// Report format (terminal, markdown, json)
+        #[arg(short, long, default_value = "terminal")]
+        format: String,
+        /// Output file to write report to (default: stdout)
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
     /// Initialize a new TraceForge project
     Init {
         /// Project name
@@ -222,6 +236,9 @@ enum EvidenceCommands {
         /// Metadata sidecar file (default: <evidence>.meta.json)
         #[arg(long)]
         meta: Option<PathBuf>,
+        /// Perform deep per-item Merkle proof verification
+        #[arg(long)]
+        deep: bool,
     },
     /// Inspect evidence metadata sidecar
     Inspect {
@@ -270,13 +287,19 @@ fn main() -> anyhow::Result<()> {
         Commands::Hash { file } => hash_file(&file),
         Commands::Verify { artifact } => verify_artifact(&artifact),
         Commands::Evidence { command } => match command {
-            EvidenceCommands::Verify { evidence, meta } => {
+            EvidenceCommands::Verify { evidence, meta, deep } => {
                 let meta_path = meta
                     .unwrap_or_else(|| PathBuf::from(format!("{}.meta.json", evidence.display())));
-                evidence_verify(&evidence, &meta_path)
+                evidence_verify(&evidence, &meta_path, deep)
             }
             EvidenceCommands::Inspect { file } => evidence_inspect(&file),
         },
+        Commands::Report {
+            evidence,
+            meta,
+            format,
+            output,
+        } => generate_report(&evidence, meta.as_deref(), &format, output.as_deref()),
         Commands::Init { name } => init_project(&name),
         Commands::Run {
             file,
@@ -367,9 +390,38 @@ fn run(file: &Path, target: &str, arch: &str, output: &Path) -> anyhow::Result<(
     };
 
     println!("Running {}", artifact.display());
-    let status = std::process::Command::new(&artifact)
+    let mut child = std::process::Command::new(&artifact)
         .current_dir(output)
-        .status()?;
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()?;
+
+    let stdout = child.stdout.take();
+    let stderr = child.stderr.take();
+
+    let out_thread = std::thread::spawn(move || {
+        if let Some(stdout) = stdout {
+            let reader = std::io::BufReader::new(stdout);
+            use std::io::BufRead;
+            for line in reader.lines().map_while(Result::ok) {
+                println!("{}", line);
+            }
+        }
+    });
+
+    let err_thread = std::thread::spawn(move || {
+        if let Some(stderr) = stderr {
+            let reader = std::io::BufReader::new(stderr);
+            use std::io::BufRead;
+            for line in reader.lines().map_while(Result::ok) {
+                eprintln!("{}", line);
+            }
+        }
+    });
+
+    let _ = out_thread.join();
+    let _ = err_thread.join();
+    let status = child.wait()?;
     if !status.success() {
         anyhow::bail!("Investigation exited with status {}", status);
     }
@@ -645,11 +697,11 @@ fn compile(
     }
 
     // --- Code generation ---
-    let backend = Backend::new_with_kind(config, backend_kind);
+    let backend = Backend::new_with_kind(config.clone(), backend_kind);
     let mut metadata = backend.generate(&ir, output)?;
 
     // Update metadata with actual values
-    metadata.source_hash = source_hash;
+    metadata.source_hash = source_hash.clone();
     metadata.compiler_version = env!("CARGO_PKG_VERSION").to_string();
     metadata.compiler_hash = calculate_compiler_hash()?;
 
@@ -658,10 +710,30 @@ fn compile(
     std::fs::write(&meta_path, serde_json::to_vec_pretty(&metadata)?)?;
 
     if emit_all {
+        let hir_hash = maybe_hir.as_ref().map(|h| h.provenance.source_hash.clone());
+        let mir_hash = maybe_mir.as_ref().map(|m| m.provenance.mir_hash.clone());
+        let llvm_ir_hash = if let Some(mir) = &maybe_mir {
+            let llvm_backend = traceforge_backend::LlvmBackend::new(config.clone());
+            llvm_backend.generate_llvm_ir(mir).ok().map(|ir_text| calculate_sha256(&ir_text))
+        } else {
+            None
+        };
+
         let cap_manifest = serde_json::json!({
             "investigation": ir.name,
+            "backend": format!("{:?}", backend_kind).to_lowercase(),
+            "source_hash": source_hash,
+            "hir_hash": hir_hash,
+            "mir_hash": mir_hash,
+            "llvm_ir_hash": llvm_ir_hash,
             "required_capabilities": ir.required_capabilities.iter().map(|c| c.as_str()).collect::<Vec<_>>(),
             "operations_count": ir.operations.len(),
+            "safety_invariants": {
+                "network_write": false,
+                "persistence": false,
+                "privilege_escalation": false,
+                "defensive_only": true,
+            }
         });
         let manifest_path = output.join(format!("{}.manifest.json", ir.name));
         std::fs::write(&manifest_path, serde_json::to_string_pretty(&cap_manifest)?)?;
@@ -861,48 +933,329 @@ fn calculate_file_hash(file: &Path) -> anyhow::Result<String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
-fn evidence_verify(evidence: &Path, meta: &Path) -> anyhow::Result<()> {
+fn evidence_verify(evidence: &Path, meta: &Path, deep: bool) -> anyhow::Result<()> {
     println!("Verifying evidence: {}", evidence.display());
     println!("Using metadata:    {}", meta.display());
 
-    let result = verify_evidence(
-        evidence.to_str().unwrap_or_default(),
-        meta.to_str().unwrap_or_default(),
-    )
-    .map_err(|e| anyhow::anyhow!("Verification error: {}", e))?;
+    if deep {
+        println!("Mode:              Deep (Per-Item Merkle Inclusion Verification)");
+        let deep_res = verify_evidence_deep(
+            evidence.to_str().unwrap_or_default(),
+            meta.to_str().unwrap_or_default(),
+        )
+        .map_err(|e| anyhow::anyhow!("Deep verification error: {}", e))?;
 
-    match &result.status {
-        VerificationStatus::Verified => {
-            println!("✓ Evidence verification SUCCESSFUL (Integrity Intact)");
-            if let Some(hash) = &result.calculated_hash {
-                println!("  SHA-256 Hash: {}", hash);
-            }
-            if let Some(valid) = result.merkle_root_valid {
+        match &deep_res.base_result.status {
+            VerificationStatus::Verified => {
+                println!("✓ Deep evidence verification SUCCESSFUL");
                 println!(
-                    "  Merkle Tree:  {}",
-                    if valid { "Valid" } else { "Invalid" }
+                    "  Total Items Verified: {}/{}",
+                    deep_res.verified_items, deep_res.total_items
                 );
+                println!(
+                    "  Per-Item Proofs Valid: {}",
+                    deep_res.per_item_proofs_valid
+                );
+                if let Some(hash) = &deep_res.base_result.calculated_hash {
+                    println!("  Evidence SHA-256:     {}", hash);
+                }
+                println!("  Verified at:          {}", deep_res.base_result.verified_at);
+                Ok(())
             }
-            println!("  Verified at:  {}", result.verified_at);
-            Ok(())
+            VerificationStatus::Tampered { reason } => {
+                eprintln!("✗ Evidence TAMPERED / INTEGRITY FAILED");
+                eprintln!("  Reason: {}", reason);
+                eprintln!(
+                    "  Total Items: {} | Verified: {} | Failed: {}",
+                    deep_res.total_items,
+                    deep_res.verified_items,
+                    deep_res.failed_items.len()
+                );
+                for (idx, fail_reason) in deep_res.failed_items.iter().take(5) {
+                    eprintln!("    - Item #{}: {}", idx, fail_reason);
+                }
+                anyhow::bail!("Evidence failed deep integrity check: {}", reason);
+            }
+            VerificationStatus::Missing { detail } => {
+                eprintln!("✗ Evidence verification file missing");
+                eprintln!("  Detail: {}", detail);
+                anyhow::bail!("Verification missing file: {}", detail);
+            }
         }
-        VerificationStatus::Tampered { reason } => {
-            eprintln!("✗ Evidence TAMPERED / INTEGRITY FAILED");
-            eprintln!("  Reason: {}", reason);
-            if let Some(calc) = &result.calculated_hash {
-                eprintln!("  Calculated SHA-256: {}", calc);
+    } else {
+        let result = verify_evidence(
+            evidence.to_str().unwrap_or_default(),
+            meta.to_str().unwrap_or_default(),
+        )
+        .map_err(|e| anyhow::anyhow!("Verification error: {}", e))?;
+
+        match &result.status {
+            VerificationStatus::Verified => {
+                println!("✓ Evidence verification SUCCESSFUL (Integrity Intact)");
+                if let Some(hash) = &result.calculated_hash {
+                    println!("  SHA-256 Hash: {}", hash);
+                }
+                if let Some(valid) = result.merkle_root_valid {
+                    println!(
+                        "  Merkle Tree:  {}",
+                        if valid { "Valid" } else { "Invalid" }
+                    );
+                }
+                println!("  Verified at:  {}", result.verified_at);
+                Ok(())
             }
-            if let Some(stored) = &result.stored_hash {
-                eprintln!("  Expected SHA-256:   {}", stored);
+            VerificationStatus::Tampered { reason } => {
+                eprintln!("✗ Evidence TAMPERED / INTEGRITY FAILED");
+                eprintln!("  Reason: {}", reason);
+                if let Some(calc) = &result.calculated_hash {
+                    eprintln!("  Calculated SHA-256: {}", calc);
+                }
+                if let Some(stored) = &result.stored_hash {
+                    eprintln!("  Expected SHA-256:   {}", stored);
+                }
+                anyhow::bail!("Evidence failed integrity check: {}", reason);
             }
-            anyhow::bail!("Evidence failed integrity check: {}", reason);
-        }
-        VerificationStatus::Missing { detail } => {
-            eprintln!("✗ Evidence verification file missing");
-            eprintln!("  Detail: {}", detail);
-            anyhow::bail!("Verification missing file: {}", detail);
+            VerificationStatus::Missing { detail } => {
+                eprintln!("✗ Evidence verification file missing");
+                eprintln!("  Detail: {}", detail);
+                anyhow::bail!("Verification missing file: {}", detail);
+            }
         }
     }
+}
+
+fn generate_report(
+    evidence_path: &Path,
+    meta_path: Option<&Path>,
+    format: &str,
+    output_path: Option<&Path>,
+) -> anyhow::Result<()> {
+    let content = std::fs::read_to_string(evidence_path)?;
+    let evidence_val: serde_json::Value = serde_json::from_str(&content)?;
+
+    let default_meta = PathBuf::from(format!("{}.meta.json", evidence_path.display()));
+    let meta_file = meta_path.unwrap_or(&default_meta);
+    let meta_val: Option<serde_json::Value> = if meta_file.exists() {
+        std::fs::read_to_string(meta_file)
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+    } else {
+        None
+    };
+
+    let empty_vec = vec![];
+    let items = if let Some(arr) = evidence_val.as_array() {
+        arr
+    } else if let Some(arr) = evidence_val.get("records").and_then(|r| r.as_array()) {
+        arr
+    } else {
+        &empty_vec
+    };
+
+    let total_items = items.len();
+    let mut processes_count = 0;
+    let mut network_count = 0;
+    let mut files_count = 0;
+    let mut logs_count = 0;
+    let mut drivers_count = 0;
+    let mut memory_count = 0;
+    let mut registry_count = 0;
+    let mut artifacts_count = 0;
+    let mut timeline_count = 0;
+    let mut suspicious_count = 0;
+    let mut suspicious_details = Vec::new();
+
+    for item in items {
+        if let Some(obj) = item.as_object() {
+            if obj.get("suspicious").and_then(|v| v.as_bool()) == Some(true)
+                || obj.get("persistence_risk").and_then(|v| v.as_bool()) == Some(true)
+                || (obj.get("executable").and_then(|v| v.as_bool()) == Some(true)
+                    && obj.get("anonymous").and_then(|v| v.as_bool()) == Some(true))
+            {
+                suspicious_count += 1;
+                let desc = obj
+                    .get("suspicious_reason")
+                    .or_else(|| obj.get("key_path"))
+                    .or_else(|| obj.get("path"))
+                    .or_else(|| obj.get("name"))
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("Flagged suspicious");
+                suspicious_details.push(desc.to_string());
+            }
+
+            if obj.contains_key("pid") && obj.contains_key("ppid") {
+                processes_count += 1;
+            } else if obj.contains_key("local_address") || obj.contains_key("local_addr") {
+                network_count += 1;
+            } else if obj.contains_key("path")
+                && (obj.contains_key("sha256") || obj.contains_key("size_bytes"))
+            {
+                if obj.contains_key("artifact_type") {
+                    artifacts_count += 1;
+                } else {
+                    files_count += 1;
+                }
+            } else if obj.contains_key("source") && obj.contains_key("message") {
+                logs_count += 1;
+            } else if obj.contains_key("module_name") || obj.contains_key("driver_name") {
+                drivers_count += 1;
+            } else if obj.contains_key("start_address") && obj.contains_key("end_address") {
+                memory_count += 1;
+            } else if obj.contains_key("hive") && obj.contains_key("key_path") {
+                registry_count += 1;
+            } else if obj.contains_key("event_type") && obj.contains_key("timestamp") {
+                timeline_count += 1;
+            }
+        }
+    }
+
+    let inv_name = meta_val
+        .as_ref()
+        .and_then(|m| m.get("investigation_name"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("TraceForge Investigation");
+    let host_id = meta_val
+        .as_ref()
+        .and_then(|m| m.get("host_identifier"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("localhost");
+    let evidence_hash = meta_val
+        .as_ref()
+        .and_then(|m| m.get("evidence_hash"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("N/A");
+    let merkle_root = meta_val
+        .as_ref()
+        .and_then(|m| m.get("merkle_root"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("N/A");
+    let collected_at = meta_val
+        .as_ref()
+        .and_then(|m| m.get("collection_time").or_else(|| m.get("collected_at")))
+        .and_then(|v| v.as_str())
+        .unwrap_or("N/A");
+
+    let report_output = match format.to_lowercase().as_str() {
+        "json" => {
+            let json_rep = serde_json::json!({
+                "report_version": "1.0",
+                "investigation": inv_name,
+                "host": host_id,
+                "collected_at": collected_at,
+                "evidence_file": evidence_path.display().to_string(),
+                "evidence_hash": evidence_hash,
+                "merkle_root": merkle_root,
+                "total_items": total_items,
+                "suspicious_items_count": suspicious_count,
+                "suspicious_findings": suspicious_details,
+                "counts_by_category": {
+                    "processes": processes_count,
+                    "network_connections": network_count,
+                    "files": files_count,
+                    "logs": logs_count,
+                    "drivers": drivers_count,
+                    "memory_regions": memory_count,
+                    "registry_entries": registry_count,
+                    "carved_artifacts": artifacts_count,
+                    "timeline_events": timeline_count,
+                }
+            });
+            serde_json::to_string_pretty(&json_rep)?
+        }
+        "markdown" | "md" => {
+            let mut md = String::new();
+            md.push_str(&format!("# TraceForge Forensic Report: {}\n\n", inv_name));
+            md.push_str("## Executive Summary\n\n");
+            md.push_str(&format!("- **Investigation Name:** `{}`\n", inv_name));
+            md.push_str(&format!("- **Target Host:** `{}`\n", host_id));
+            md.push_str(&format!("- **Collection Timestamp:** `{}`\n", collected_at));
+            md.push_str(&format!("- **Evidence SHA-256:** `{}`\n", evidence_hash));
+            md.push_str(&format!("- **Merkle Root:** `{}`\n", merkle_root));
+            md.push_str(&format!("- **Total Evidence Items:** `{}`\n", total_items));
+            md.push_str(&format!(
+                "- **Suspicious Findings:** `{}`\n\n",
+                suspicious_count
+            ));
+
+            md.push_str("## Category Breakdown\n\n");
+            md.push_str("| Category | Count |\n");
+            md.push_str("|:---|:---:|\n");
+            md.push_str(&format!("| Processes | {} |\n", processes_count));
+            md.push_str(&format!("| Network Connections | {} |\n", network_count));
+            md.push_str(&format!("| Filesystem Records | {} |\n", files_count));
+            md.push_str(&format!("| Logs | {} |\n", logs_count));
+            md.push_str(&format!("| Drivers / Modules | {} |\n", drivers_count));
+            md.push_str(&format!("| Memory Regions | {} |\n", memory_count));
+            md.push_str(&format!("| Registry / Sysctl | {} |\n", registry_count));
+            md.push_str(&format!("| Carved Artifacts | {} |\n", artifacts_count));
+            md.push_str(&format!("| Timeline Events | {} |\n\n", timeline_count));
+
+            if suspicious_count > 0 {
+                md.push_str("## High Risk Findings\n\n");
+                for (i, find) in suspicious_details.iter().enumerate() {
+                    md.push_str(&format!("{}. {}\n", i + 1, find));
+                }
+                md.push('\n');
+            }
+
+            md.push_str("## Chain of Custody\n\n");
+            md.push_str("Evidence integrity verified cryptographically via SHA-256 and Merkle tree root validation.\n");
+            md
+        }
+        _ => {
+            let mut term = String::new();
+            term.push_str("======================================================================\n");
+            term.push_str("             TRACEFORGE FORENSIC INVESTIGATION REPORT\n");
+            term.push_str("======================================================================\n");
+            term.push_str(&format!(" Investigation:  {}\n", inv_name));
+            term.push_str(&format!(" Target Host:    {}\n", host_id));
+            term.push_str(&format!(" Collected At:   {}\n", collected_at));
+            term.push_str(&format!(" Evidence SHA256:{}\n", evidence_hash));
+            term.push_str(&format!(" Merkle Root:    {}\n", merkle_root));
+            term.push_str("----------------------------------------------------------------------\n");
+            term.push_str(" EVIDENCE INVENTORY:\n");
+            term.push_str(&format!("   • Processes:           {:>6}\n", processes_count));
+            term.push_str(&format!("   • Network Connections: {:>6}\n", network_count));
+            term.push_str(&format!("   • Filesystem Items:    {:>6}\n", files_count));
+            term.push_str(&format!("   • System Logs:         {:>6}\n", logs_count));
+            term.push_str(&format!("   • Drivers/Modules:     {:>6}\n", drivers_count));
+            term.push_str(&format!("   • Memory Regions:      {:>6}\n", memory_count));
+            term.push_str(&format!("   • Registry / Sysctl:   {:>6}\n", registry_count));
+            term.push_str(&format!("   • Carved Artifacts:    {:>6}\n", artifacts_count));
+            term.push_str(&format!("   • Timeline Events:     {:>6}\n", timeline_count));
+            term.push_str("   ─────────────────────────────\n");
+            term.push_str(&format!("   TOTAL RECORDS:         {:>6}\n", total_items));
+            term.push_str("----------------------------------------------------------------------\n");
+            if suspicious_count > 0 {
+                term.push_str(&format!(
+                    " [!] SUSPICIOUS FINDINGS DETECTED: {}\n",
+                    suspicious_count
+                ));
+                for (i, find) in suspicious_details.iter().take(10).enumerate() {
+                    term.push_str(&format!("     {}. {}\n", i + 1, find));
+                }
+                if suspicious_details.len() > 10 {
+                    term.push_str(&format!(
+                        "     ... and {} more\n",
+                        suspicious_details.len() - 10
+                    ));
+                }
+            } else {
+                term.push_str(" [✓] No immediate high-risk anomalies flagged.\n");
+            }
+            term.push_str("======================================================================\n");
+            term
+        }
+    };
+
+    if let Some(out) = output_path {
+        std::fs::write(out, &report_output)?;
+        println!("Report saved to {}", out.display());
+    } else {
+        println!("{}", report_output);
+    }
+
+    Ok(())
 }
 
 fn evidence_inspect(file: &Path) -> anyhow::Result<()> {

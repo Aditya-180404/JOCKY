@@ -1,0 +1,26 @@
+investigation "incident_triage" {
+    metadata {
+        author = "Security Operations Center"
+        classification = "Forensic Evidence"
+        incident_id = "INC-2026-0924"
+        priority = "Critical"
+    }
+
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        parent
+        command_line
+        user
+        start_time
+        hash.sha256
+    }
+
+    collect network_connections
+
+    collect drivers
+
+    export evidence "incident_triage_evidence.json"
+}

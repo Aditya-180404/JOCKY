@@ -118,7 +118,9 @@ impl LlvmBackend {
             TargetPlatform::Linux => output_dir.join(&mir.name),
             TargetPlatform::Windows => output_dir.join(format!("{}.exe", mir.name)),
         };
-        let _ = std::fs::copy(&output_path, &default_bin);
+        if !default_bin.is_dir() {
+            let _ = std::fs::copy(&output_path, &default_bin);
+        }
 
         // 6. Calculate artifact SHA-256 hash
         let artifact_hash = self.calculate_sha256(&output_path)?;
@@ -284,8 +286,19 @@ impl LlvmCodegen {
                         | MirInstruction::EvidenceAddWhere { condition_json, .. } => {
                             self.get_or_intern_string(condition_json);
                         }
+                        MirInstruction::EvidenceComputeHash { algorithm, .. } => {
+                            self.get_or_intern_string(algorithm);
+                        }
                         MirInstruction::EvidenceExport { format, path, .. } => {
                             self.get_or_intern_string(format);
+                            self.get_or_intern_string(path);
+                        }
+                        MirInstruction::CollectRegistry { hive, key_path, .. } => {
+                            self.get_or_intern_string(hive);
+                            self.get_or_intern_string(key_path);
+                        }
+                        MirInstruction::CollectArtifacts { artifact_type, path, .. } => {
+                            self.get_or_intern_string(artifact_type);
                             self.get_or_intern_string(path);
                         }
                         _ => {}
@@ -322,9 +335,14 @@ impl LlvmCodegen {
         out.push_str("declare i32 @traceforge_rt_collect_files(ptr, ptr, i32, ptr)\n");
         out.push_str("declare i32 @traceforge_rt_collect_logs(ptr, ptr)\n");
         out.push_str("declare i32 @traceforge_rt_collect_drivers(ptr)\n");
+        out.push_str("declare i32 @traceforge_rt_collect_memory_regions(ptr, i32)\n");
+        out.push_str("declare i32 @traceforge_rt_collect_registry(ptr, ptr, ptr)\n");
+        out.push_str("declare i32 @traceforge_rt_collect_artifacts(ptr, ptr, ptr)\n");
         out.push_str("declare i32 @traceforge_rt_evidence_filter(ptr, ptr)\n");
         out.push_str("declare i32 @traceforge_rt_evidence_where(ptr, ptr)\n");
         out.push_str("declare i32 @traceforge_rt_evidence_limit(ptr, i64)\n");
+        out.push_str("declare i32 @traceforge_rt_evidence_compute_hash(ptr, ptr)\n");
+        out.push_str("declare i32 @traceforge_rt_evidence_generate_timeline(ptr)\n");
         out.push_str("declare i32 @traceforge_rt_evidence_export(ptr, ptr, ptr)\n");
         out.push_str("declare void @traceforge_rt_evidence_free(ptr)\n\n");
 
@@ -336,20 +354,31 @@ impl LlvmCodegen {
         Ok(out)
     }
 
+    fn mir_to_llvm_type(ty: &traceforge_mir::MirType) -> &'static str {
+        match ty {
+            traceforge_mir::MirType::Void => "void",
+            traceforge_mir::MirType::Int32 => "i32",
+            traceforge_mir::MirType::Int64 => "i64",
+            traceforge_mir::MirType::Bool => "i1",
+            traceforge_mir::MirType::String => "ptr",
+            traceforge_mir::MirType::Pointer => "ptr",
+            traceforge_mir::MirType::EvidenceContext => "ptr",
+            traceforge_mir::MirType::RecordSet => "ptr",
+            traceforge_mir::MirType::JsonValue => "ptr",
+        }
+    }
+
     fn emit_function(
         &self,
         func: &traceforge_mir::MirFunction,
         out: &mut String,
     ) -> Result<(), String> {
-        let ret_ty = match func.return_type {
-            traceforge_mir::MirType::Int32 => "i32",
-            traceforge_mir::MirType::Int64 => "i64",
-            traceforge_mir::MirType::Bool => "i1",
-            traceforge_mir::MirType::Void => "void",
-            _ => "i32",
-        };
+        let ret_ty = Self::mir_to_llvm_type(&func.return_type);
 
         out.push_str(&format!("define {} @{}() {{\n", ret_ty, func.name));
+
+        let local_types: std::collections::HashMap<traceforge_mir::LocalId, traceforge_mir::MirType> =
+            func.locals.iter().map(|l| (l.id, l.ty.clone())).collect();
 
         let mut ssa_counter = 0usize;
         let mut ssa_name = || {
@@ -365,150 +394,291 @@ impl LlvmCodegen {
 
             for inst in &block.instructions {
                 match inst {
+                    MirInstruction::ConstInt { dest, value } => {
+                        let ty = local_types.get(dest).map(Self::mir_to_llvm_type).unwrap_or("i32");
+                        out.push_str(&format!("  %l{} = add {} 0, {}\n", dest, ty, value));
+                    }
+                    MirInstruction::ConstBool { dest, value } => {
+                        let b_val = if *value { 1 } else { 0 };
+                        out.push_str(&format!("  %l{} = icmp eq i32 {}, 1\n", dest, b_val));
+                    }
+                    MirInstruction::ConstString { dest, value } => {
+                        let str_id = self.string_map.get(value).copied().unwrap_or(0);
+                        let byte_len = value.len() + 1;
+                        out.push_str(&format!(
+                            "  %l{} = getelementptr inbounds [{} x i8], ptr @.str.{}, i64 0, i64 0\n",
+                            dest, byte_len, str_id
+                        ));
+                    }
+                    MirInstruction::Alloc { dest, ty } => {
+                        let llvm_ty = Self::mir_to_llvm_type(ty);
+                        out.push_str(&format!("  %l{} = alloca {}\n", dest, llvm_ty));
+                    }
+                    MirInstruction::Load { dest, src } => {
+                        let ty = local_types.get(dest).map(Self::mir_to_llvm_type).unwrap_or("i64");
+                        out.push_str(&format!("  %l{} = load {}, ptr %l{}\n", dest, ty, src));
+                    }
+                    MirInstruction::Store { dest, src } => {
+                        let ty = local_types.get(src).map(Self::mir_to_llvm_type).unwrap_or("i64");
+                        out.push_str(&format!("  store {} %l{}, ptr %l{}\n", ty, src, dest));
+                    }
                     MirInstruction::EvidenceInit {
-                        investigation_name, ..
+                        dest,
+                        investigation_name,
                     } => {
                         let str_id = self
                             .string_map
                             .get(investigation_name)
                             .copied()
                             .unwrap_or(0);
-                        let reg = ssa_name();
-                        ctx_reg = Some(reg.clone());
+                        ctx_reg = Some(format!("%l{}", dest));
                         out.push_str(&format!(
-                            "  {} = call ptr @traceforge_rt_evidence_init(ptr @.str.{})\n",
-                            reg, str_id
+                            "  %l{} = call ptr @traceforge_rt_evidence_init(ptr @.str.{})\n",
+                            dest, str_id
                         ));
                     }
-                    MirInstruction::CollectSystemInfo { .. } => {
-                        if let Some(ctx) = &ctx_reg {
-                            let reg = ssa_name();
-                            out.push_str(&format!(
-                                "  {} = call i32 @traceforge_rt_collect_system(ptr {})\n",
-                                reg, ctx
-                            ));
-                        }
+                    MirInstruction::CollectSystemInfo { dest, ctx } => {
+                        out.push_str(&format!(
+                            "  %l{} = call i32 @traceforge_rt_collect_system(ptr %l{})\n",
+                            dest, ctx
+                        ));
                     }
-                    MirInstruction::CollectProcesses { fields_json, .. } => {
-                        if let Some(ctx) = &ctx_reg {
-                            let str_id = self.string_map.get(fields_json).copied().unwrap_or(0);
-                            let reg = ssa_name();
-                            out.push_str(&format!(
-                                "  {} = call i32 @traceforge_rt_collect_processes(ptr {}, ptr @.str.{}, ptr null)\n",
-                                reg, ctx, str_id
-                            ));
-                        }
+                    MirInstruction::CollectProcesses {
+                        dest,
+                        ctx,
+                        fields_json,
+                        ..
+                    } => {
+                        let str_id = self.string_map.get(fields_json).copied().unwrap_or(0);
+                        out.push_str(&format!(
+                            "  %l{} = call i32 @traceforge_rt_collect_processes(ptr %l{}, ptr @.str.{}, ptr null)\n",
+                            dest, ctx, str_id
+                        ));
                     }
-                    MirInstruction::CollectNetwork { .. } => {
-                        if let Some(ctx) = &ctx_reg {
-                            let reg = ssa_name();
-                            out.push_str(&format!(
-                                "  {} = call i32 @traceforge_rt_collect_network(ptr {})\n",
-                                reg, ctx
-                            ));
-                        }
+                    MirInstruction::CollectNetwork { dest, ctx } => {
+                        out.push_str(&format!(
+                            "  %l{} = call i32 @traceforge_rt_collect_network(ptr %l{})\n",
+                            dest, ctx
+                        ));
                     }
                     MirInstruction::CollectFiles {
+                        dest,
+                        ctx,
                         path,
                         recursive,
                         hash_algo,
-                        ..
                     } => {
-                        if let Some(ctx) = &ctx_reg {
-                            let path_id = self.string_map.get(path).copied().unwrap_or(0);
-                            let hash_id = self.string_map.get(hash_algo).copied().unwrap_or(0);
-                            let rec_val = if *recursive { 1 } else { 0 };
-                            let reg = ssa_name();
+                        let path_id = self.string_map.get(path).copied().unwrap_or(0);
+                        let hash_id = self.string_map.get(hash_algo).copied().unwrap_or(0);
+                        let rec_val = if *recursive { 1 } else { 0 };
+                        out.push_str(&format!(
+                            "  %l{} = call i32 @traceforge_rt_collect_files(ptr %l{}, ptr @.str.{}, i32 {}, ptr @.str.{})\n",
+                            dest, ctx, path_id, rec_val, hash_id
+                        ));
+                    }
+                    MirInstruction::CollectLogs { dest, ctx, source } => {
+                        let src_id = self.string_map.get(source).copied().unwrap_or(0);
+                        out.push_str(&format!(
+                            "  %l{} = call i32 @traceforge_rt_collect_logs(ptr %l{}, ptr @.str.{})\n",
+                            dest, ctx, src_id
+                        ));
+                    }
+                    MirInstruction::CollectDrivers { dest, ctx } => {
+                        out.push_str(&format!(
+                            "  %l{} = call i32 @traceforge_rt_collect_drivers(ptr %l{})\n",
+                            dest, ctx
+                        ));
+                    }
+                    MirInstruction::CollectMemoryRegions { dest, ctx, pid } => {
+                        out.push_str(&format!(
+                            "  %l{} = call i32 @traceforge_rt_collect_memory_regions(ptr %l{}, i32 {})\n",
+                            dest, ctx, pid
+                        ));
+                    }
+                    MirInstruction::CollectRegistry {
+                        dest,
+                        ctx,
+                        hive,
+                        key_path,
+                    } => {
+                        let hive_id = self.string_map.get(hive).copied().unwrap_or(0);
+                        let key_id = self.string_map.get(key_path).copied().unwrap_or(0);
+                        out.push_str(&format!(
+                            "  %l{} = call i32 @traceforge_rt_collect_registry(ptr %l{}, ptr @.str.{}, ptr @.str.{})\n",
+                            dest, ctx, hive_id, key_id
+                        ));
+                    }
+                    MirInstruction::CollectArtifacts {
+                        dest,
+                        ctx,
+                        artifact_type,
+                        path,
+                    } => {
+                        let type_id = self.string_map.get(artifact_type).copied().unwrap_or(0);
+                        let path_id = self.string_map.get(path).copied().unwrap_or(0);
+                        out.push_str(&format!(
+                            "  %l{} = call i32 @traceforge_rt_collect_artifacts(ptr %l{}, ptr @.str.{}, ptr @.str.{})\n",
+                            dest, ctx, type_id, path_id
+                        ));
+                    }
+                    MirInstruction::EvidenceAddFilter {
+                        ctx,
+                        condition_json,
+                    } => {
+                        let cond_id = self.string_map.get(condition_json).copied().unwrap_or(0);
+                        let reg = ssa_name();
+                        out.push_str(&format!(
+                            "  {} = call i32 @traceforge_rt_evidence_filter(ptr %l{}, ptr @.str.{})\n",
+                            reg, ctx, cond_id
+                        ));
+                    }
+                    MirInstruction::EvidenceAddWhere {
+                        ctx,
+                        condition_json,
+                    } => {
+                        let cond_id = self.string_map.get(condition_json).copied().unwrap_or(0);
+                        let reg = ssa_name();
+                        out.push_str(&format!(
+                            "  {} = call i32 @traceforge_rt_evidence_where(ptr %l{}, ptr @.str.{})\n",
+                            reg, ctx, cond_id
+                        ));
+                    }
+                    MirInstruction::EvidenceSetLimit { ctx, limit } => {
+                        let reg = ssa_name();
+                        out.push_str(&format!(
+                            "  {} = call i32 @traceforge_rt_evidence_limit(ptr %l{}, i64 {})\n",
+                            reg, ctx, limit
+                        ));
+                    }
+                    MirInstruction::EvidenceComputeHash {
+                        dest,
+                        ctx,
+                        algorithm,
+                    } => {
+                        let algo_id = self.string_map.get(algorithm).copied().unwrap_or(0);
+                        out.push_str(&format!(
+                            "  %l{} = call i32 @traceforge_rt_evidence_compute_hash(ptr %l{}, ptr @.str.{})\n",
+                            dest, ctx, algo_id
+                        ));
+                    }
+                    MirInstruction::EvidenceGenerateTimeline { dest, ctx } => {
+                        out.push_str(&format!(
+                            "  %l{} = call i32 @traceforge_rt_evidence_generate_timeline(ptr %l{})\n",
+                            dest, ctx
+                        ));
+                    }
+                    MirInstruction::EvidenceExport { ctx, format, path } => {
+                        let fmt_id = self.string_map.get(format).copied().unwrap_or(0);
+                        let path_id = self.string_map.get(path).copied().unwrap_or(0);
+                        let reg = ssa_name();
+                        out.push_str(&format!(
+                            "  {} = call i32 @traceforge_rt_evidence_export(ptr %l{}, ptr @.str.{}, ptr @.str.{})\n",
+                            reg, ctx, fmt_id, path_id
+                        ));
+                    }
+                    MirInstruction::Compare {
+                        dest,
+                        op,
+                        left,
+                        right,
+                    } => {
+                        let ty = local_types.get(left).map(Self::mir_to_llvm_type).unwrap_or("i64");
+                        let pred = match op {
+                            traceforge_mir::MirCompareOp::Eq => "eq",
+                            traceforge_mir::MirCompareOp::Ne => "ne",
+                            traceforge_mir::MirCompareOp::Lt => "slt",
+                            traceforge_mir::MirCompareOp::Le => "sle",
+                            traceforge_mir::MirCompareOp::Gt => "sgt",
+                            traceforge_mir::MirCompareOp::Ge => "sge",
+                            traceforge_mir::MirCompareOp::Contains => "ne",
+                        };
+                        out.push_str(&format!(
+                            "  %l{} = icmp {} {} %l{}, %l{}\n",
+                            dest, pred, ty, left, right
+                        ));
+                    }
+                    MirInstruction::CallRuntime {
+                        dest,
+                        function_name,
+                        args,
+                    } => {
+                        let arg_strs: Vec<String> = args
+                            .iter()
+                            .map(|a| {
+                                let ty = local_types.get(a).map(Self::mir_to_llvm_type).unwrap_or("ptr");
+                                format!("{} %l{}", ty, a)
+                            })
+                            .collect();
+                        let args_joined = arg_strs.join(", ");
+                        if let Some(dest_id) = dest {
+                            let ret_ty = local_types
+                                .get(dest_id)
+                                .map(Self::mir_to_llvm_type)
+                                .unwrap_or("i32");
                             out.push_str(&format!(
-                                "  {} = call i32 @traceforge_rt_collect_files(ptr {}, ptr @.str.{}, i32 {}, ptr @.str.{})\n",
-                                reg, ctx, path_id, rec_val, hash_id
+                                "  %l{} = call {} @{}({})\n",
+                                dest_id, ret_ty, function_name, args_joined
+                            ));
+                        } else {
+                            out.push_str(&format!(
+                                "  call void @{}({})\n",
+                                function_name, args_joined
                             ));
                         }
                     }
-                    MirInstruction::CollectLogs { source, .. } => {
-                        if let Some(ctx) = &ctx_reg {
-                            let src_id = self.string_map.get(source).copied().unwrap_or(0);
-                            let reg = ssa_name();
-                            out.push_str(&format!(
-                                "  {} = call i32 @traceforge_rt_collect_logs(ptr {}, ptr @.str.{})\n",
-                                reg, ctx, src_id
-                            ));
-                        }
-                    }
-                    MirInstruction::CollectDrivers { .. } => {
-                        if let Some(ctx) = &ctx_reg {
-                            let reg = ssa_name();
-                            out.push_str(&format!(
-                                "  {} = call i32 @traceforge_rt_collect_drivers(ptr {})\n",
-                                reg, ctx
-                            ));
-                        }
-                    }
-                    MirInstruction::EvidenceAddFilter { condition_json, .. } => {
-                        if let Some(ctx) = &ctx_reg {
-                            let cond_id = self.string_map.get(condition_json).copied().unwrap_or(0);
-                            let reg = ssa_name();
-                            out.push_str(&format!(
-                                "  {} = call i32 @traceforge_rt_evidence_filter(ptr {}, ptr @.str.{})\n",
-                                reg, ctx, cond_id
-                            ));
-                        }
-                    }
-                    MirInstruction::EvidenceAddWhere { condition_json, .. } => {
-                        if let Some(ctx) = &ctx_reg {
-                            let cond_id = self.string_map.get(condition_json).copied().unwrap_or(0);
-                            let reg = ssa_name();
-                            out.push_str(&format!(
-                                "  {} = call i32 @traceforge_rt_evidence_where(ptr {}, ptr @.str.{})\n",
-                                reg, ctx, cond_id
-                            ));
-                        }
-                    }
-                    MirInstruction::EvidenceSetLimit { limit, .. } => {
-                        if let Some(ctx) = &ctx_reg {
-                            let reg = ssa_name();
-                            out.push_str(&format!(
-                                "  {} = call i32 @traceforge_rt_evidence_limit(ptr {}, i64 {})\n",
-                                reg, ctx, limit
-                            ));
-                        }
-                    }
-                    MirInstruction::EvidenceExport { format, path, .. } => {
-                        if let Some(ctx) = &ctx_reg {
-                            let fmt_id = self.string_map.get(format).copied().unwrap_or(0);
-                            let path_id = self.string_map.get(path).copied().unwrap_or(0);
-                            let reg = ssa_name();
-                            out.push_str(&format!(
-                                "  {} = call i32 @traceforge_rt_evidence_export(ptr {}, ptr @.str.{}, ptr @.str.{})\n",
-                                reg, ctx, fmt_id, path_id
-                            ));
-                        }
-                    }
-                    MirInstruction::ConstInt { .. } => {}
-                    _ => {}
                 }
             }
 
             // Cleanup before return
-            if let MirTerminator::Return { .. } = &block.terminator {
+            if let MirTerminator::Return { value } = &block.terminator {
                 if let Some(ctx) = &ctx_reg {
                     out.push_str(&format!(
                         "  call void @traceforge_rt_evidence_free(ptr {})\n",
                         ctx
                     ));
                 }
-                out.push_str("  ret i32 0\n");
+                match value {
+                    Some(v) => {
+                        let ty = local_types.get(v).map(Self::mir_to_llvm_type).unwrap_or("i32");
+                        out.push_str(&format!("  ret {} %l{}\n", ty, v));
+                    }
+                    None => {
+                        if func.return_type == traceforge_mir::MirType::Void {
+                            out.push_str("  ret void\n");
+                        } else {
+                            out.push_str("  ret i32 0\n");
+                        }
+                    }
+                }
             } else if let MirTerminator::Branch { target } = &block.terminator {
-                out.push_str(&format!("  br label %bb_{}\n", target));
+                let target_name = func
+                    .blocks
+                    .iter()
+                    .find(|b| b.id == *target)
+                    .map(|b| b.name.as_str())
+                    .unwrap_or("entry");
+                out.push_str(&format!("  br label %{}\n", target_name));
             } else if let MirTerminator::CondBranch {
                 cond,
                 then_target,
                 else_target,
             } = &block.terminator
             {
+                let then_name = func
+                    .blocks
+                    .iter()
+                    .find(|b| b.id == *then_target)
+                    .map(|b| b.name.as_str())
+                    .unwrap_or("entry");
+                let else_name = func
+                    .blocks
+                    .iter()
+                    .find(|b| b.id == *else_target)
+                    .map(|b| b.name.as_str())
+                    .unwrap_or("entry");
                 out.push_str(&format!(
-                    "  br i1 %l{}, label %bb_{}, label %bb_{}\n",
-                    cond, then_target, else_target
+                    "  br i1 %l{}, label %{}, label %{}\n",
+                    cond, then_name, else_name
                 ));
             } else if let MirTerminator::Unreachable = &block.terminator {
                 out.push_str("  unreachable\n");
@@ -604,6 +774,6 @@ mod tests {
         assert!(ir.contains("call i32 @traceforge_rt_collect_system"));
         assert!(ir.contains("call i32 @traceforge_rt_evidence_export"));
         assert!(ir.contains("call void @traceforge_rt_evidence_free"));
-        assert!(ir.contains("ret i32 0"));
+        assert!(ir.contains("ret i32 %l1"));
     }
 }

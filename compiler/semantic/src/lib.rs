@@ -332,6 +332,39 @@ impl SemanticAnalyzer {
                     span,
                 })])
             }
+            CollectTarget::MemoryRegions => {
+                self.required_capabilities.insert(Capability::MemoryRead);
+                Ok(vec![IrOperation::Collect(IrCollectOperation {
+                    operation: "memory.regions".to_string(),
+                    fields: options.fields.clone(),
+                    options: self.convert_collect_options(options)?,
+                    span,
+                })])
+            }
+            CollectTarget::Registry { hive, key_path } => {
+                self.required_capabilities.insert(Capability::RegistryRead);
+                let mut opts = self.convert_collect_options(options)?;
+                opts.insert("hive".to_string(), serde_json::Value::String(hive.clone()));
+                opts.insert("key_path".to_string(), serde_json::Value::String(key_path.clone()));
+                Ok(vec![IrOperation::Collect(IrCollectOperation {
+                    operation: "registry.enumerate".to_string(),
+                    fields: options.fields.clone(),
+                    options: opts,
+                    span,
+                })])
+            }
+            CollectTarget::Artifacts { artifact_type, path } => {
+                self.required_capabilities.insert(Capability::ArtifactCarve);
+                let mut opts = self.convert_collect_options(options)?;
+                opts.insert("artifact_type".to_string(), serde_json::Value::String(artifact_type.clone()));
+                opts.insert("path".to_string(), serde_json::Value::String(path.clone()));
+                Ok(vec![IrOperation::Collect(IrCollectOperation {
+                    operation: "artifacts.carve".to_string(),
+                    fields: options.fields.clone(),
+                    options: opts,
+                    span,
+                })])
+            }
         }
     }
 
@@ -429,6 +462,15 @@ impl SemanticAnalyzer {
                 }
                 CollectTarget::Timeline { .. } => {
                     self.required_capabilities.insert(Capability::TimelineRead);
+                }
+                CollectTarget::MemoryRegions => {
+                    self.required_capabilities.insert(Capability::MemoryRead);
+                }
+                CollectTarget::Registry { .. } => {
+                    self.required_capabilities.insert(Capability::RegistryRead);
+                }
+                CollectTarget::Artifacts { .. } => {
+                    self.required_capabilities.insert(Capability::ArtifactCarve);
                 }
                 CollectTarget::Evidence { .. } => {}
             },
@@ -602,6 +644,9 @@ impl SemanticAnalyzer {
                     CollectTarget::Evidence { .. } => "evidence",
                     CollectTarget::Drivers => "drivers",
                     CollectTarget::Timeline { .. } => "timeline",
+                    CollectTarget::MemoryRegions => "memory_regions",
+                    CollectTarget::Registry { .. } => "registry",
+                    CollectTarget::Artifacts { .. } => "artifacts",
                 };
                 Ok(serde_json::json!({
                     "collect": {

@@ -4035,14 +4035,29 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "thiserror 1.0.69",
+ "traceforge-runtime-artifacts",
  "traceforge-runtime-drivers",
  "traceforge-runtime-evidence",
  "traceforge-runtime-filesystem",
  "traceforge-runtime-logs",
+ "traceforge-runtime-memory",
  "traceforge-runtime-network",
  "traceforge-runtime-process",
+ "traceforge-runtime-registry",
  "traceforge-runtime-system",
  "traceforge-runtime-timeline",
+]
+
+[[package]]
+name = "traceforge-runtime-artifacts"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -4066,11 +4081,16 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "thiserror 1.0.69",
+ "traceforge-runtime-artifacts",
+ "traceforge-runtime-drivers",
  "traceforge-runtime-filesystem",
  "traceforge-runtime-logs",
+ "traceforge-runtime-memory",
  "traceforge-runtime-network",
  "traceforge-runtime-process",
+ "traceforge-runtime-registry",
  "traceforge-runtime-system",
+ "traceforge-runtime-timeline",
  "whoami",
 ]
 
@@ -4101,6 +4121,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "traceforge-runtime-memory"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "libc",
+ "procfs",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "traceforge-runtime-network"
 version = "0.1.0"
 dependencies = [
@@ -4124,6 +4158,18 @@ dependencies = [
  "sha2 0.10.9",
  "thiserror 1.0.69",
  "whoami",
+]
+
+[[package]]
+name = "traceforge-runtime-registry"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "winreg",
 ]
 
 [[package]]
@@ -4879,6 +4925,16 @@ name = "windows_x86_64_msvc"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
+
+[[package]]
+name = "winreg"
+version = "0.52.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a277a57398d4bfa075df44f501a17cfdf8542d224f0d36095a2adc7aee4ef0a5"
+dependencies = [
+ "cfg-if",
+ "windows-sys 0.48.0",
+]
 
 [[package]]
 name = "wit-bindgen"

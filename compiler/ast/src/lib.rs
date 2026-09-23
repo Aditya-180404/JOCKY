@@ -71,6 +71,9 @@ pub enum TokenKind {
     Evidence,
     Drivers,
     Timeline,
+    MemoryRegions,
+    Registry,
+    Artifacts,
     Recursive,
     Sha256,
     Sha1,
@@ -283,6 +286,9 @@ pub enum CollectTarget {
     Evidence { format: String },
     Drivers,
     Timeline { sources: Vec<String> },
+    MemoryRegions,
+    Registry { hive: String, key_path: String },
+    Artifacts { artifact_type: String, path: String },
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -376,6 +382,9 @@ pub enum Capability {
     FileHash,
     DriverRead,
     TimelineRead,
+    MemoryRead,
+    RegistryRead,
+    ArtifactCarve,
 }
 
 impl Capability {
@@ -389,6 +398,9 @@ impl Capability {
             Capability::FileHash => "FILE_HASH",
             Capability::DriverRead => "DRIVER_READ",
             Capability::TimelineRead => "TIMELINE_READ",
+            Capability::MemoryRead => "MEMORY_READ",
+            Capability::RegistryRead => "REGISTRY_READ",
+            Capability::ArtifactCarve => "ARTIFACT_CARVE",
         }
     }
 }
@@ -406,6 +418,9 @@ impl std::str::FromStr for Capability {
             "FILE_HASH" => Ok(Capability::FileHash),
             "DRIVER_READ" => Ok(Capability::DriverRead),
             "TIMELINE_READ" => Ok(Capability::TimelineRead),
+            "MEMORY_READ" => Ok(Capability::MemoryRead),
+            "REGISTRY_READ" => Ok(Capability::RegistryRead),
+            "ARTIFACT_CARVE" => Ok(Capability::ArtifactCarve),
             _ => Err(()),
         }
     }

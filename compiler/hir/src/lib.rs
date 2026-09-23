@@ -60,6 +60,20 @@ pub enum HirOperation {
     CollectDrivers {
         span: Span,
     },
+    CollectMemoryRegions {
+        pid: i32,
+        span: Span,
+    },
+    CollectRegistry {
+        hive: String,
+        key_path: String,
+        span: Span,
+    },
+    CollectArtifacts {
+        artifact_type: String,
+        path: String,
+        span: Span,
+    },
     Filter {
         condition: serde_json::Value,
         span: Span,
@@ -346,6 +360,17 @@ impl HirLowering {
                 span,
             }),
             CollectTarget::Drivers => Ok(HirOperation::CollectDrivers { span }),
+            CollectTarget::MemoryRegions => Ok(HirOperation::CollectMemoryRegions { pid: 0, span }),
+            CollectTarget::Registry { hive, key_path } => Ok(HirOperation::CollectRegistry {
+                hive: hive.clone(),
+                key_path: key_path.clone(),
+                span,
+            }),
+            CollectTarget::Artifacts { artifact_type, path } => Ok(HirOperation::CollectArtifacts {
+                artifact_type: artifact_type.clone(),
+                path: path.clone(),
+                span,
+            }),
             CollectTarget::Evidence { .. } | CollectTarget::Timeline { .. } => {
                 Ok(HirOperation::CollectSystemInfo { span })
             }
@@ -542,6 +567,55 @@ impl From<&traceforge_ir::IrInvestigation> for HirInvestigation {
                     "drivers.enumerate" => {
                         operations.push(HirOperation::CollectDrivers { span: c.span });
                     }
+                    "memory.regions" => {
+                        let pid = c
+                            .options
+                            .get("pid")
+                            .and_then(|v| v.as_i64())
+                            .unwrap_or(0) as i32;
+                        operations.push(HirOperation::CollectMemoryRegions {
+                            pid,
+                            span: c.span,
+                        });
+                    }
+                    "registry.enumerate" => {
+                        let hive = c
+                            .options
+                            .get("hive")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("HKLM")
+                            .to_string();
+                        let key_path = c
+                            .options
+                            .get("key_path")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("SOFTWARE")
+                            .to_string();
+                        operations.push(HirOperation::CollectRegistry {
+                            hive,
+                            key_path,
+                            span: c.span,
+                        });
+                    }
+                    "artifacts.carve" => {
+                        let artifact_type = c
+                            .options
+                            .get("artifact_type")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("all")
+                            .to_string();
+                        let path = c
+                            .options
+                            .get("path")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        operations.push(HirOperation::CollectArtifacts {
+                            artifact_type,
+                            path,
+                            span: c.span,
+                        });
+                    }
                     _ => {}
                 },
                 traceforge_ir::IrOperation::Export(e) => {
@@ -707,4 +781,162 @@ mod tests {
         assert_eq!(hir1.provenance.source_hash, hir2.provenance.source_hash);
         assert_eq!(hir1.provenance.ast_hash, hir2.provenance.ast_hash);
     }
+
+    #[test]
+    fn test_hir_lowering_all_collectors() {
+        use traceforge_ast::HashAlgorithm;
+
+        let ast = Investigation {
+            name: "all_collectors".to_string(),
+            target: Some("linux".to_string()),
+            metadata: vec![],
+            statements: vec![
+                Stmt::Collect {
+                    target: CollectTarget::SystemInfo,
+                    options: CollectOptions::default(),
+                    span: Span::new(1, 1, 1, 10),
+                },
+                Stmt::Collect {
+                    target: CollectTarget::Processes,
+                    options: CollectOptions {
+                        fields: vec!["pid".to_string(), "name".to_string()],
+                        ..Default::default()
+                    },
+                    span: Span::new(2, 1, 2, 10),
+                },
+                Stmt::Collect {
+                    target: CollectTarget::NetworkConnections,
+                    options: CollectOptions::default(),
+                    span: Span::new(3, 1, 3, 10),
+                },
+                Stmt::Collect {
+                    target: CollectTarget::Files { path: "/var/log".to_string() },
+                    options: CollectOptions {
+                        recursive: true,
+                        hash_algorithm: Some(HashAlgorithm::Sha256),
+                        ..Default::default()
+                    },
+                    span: Span::new(4, 1, 4, 10),
+                },
+                Stmt::Collect {
+                    target: CollectTarget::Logs { source: "auth".to_string() },
+                    options: CollectOptions::default(),
+                    span: Span::new(5, 1, 5, 10),
+                },
+                Stmt::Collect {
+                    target: CollectTarget::Drivers,
+                    options: CollectOptions::default(),
+                    span: Span::new(6, 1, 6, 10),
+                },
+                Stmt::Export {
+                    format: ExportFormat::Json,
+                    path: "evidence.json".to_string(),
+                    span: Span::new(7, 1, 7, 10),
+                },
+            ],
+            span: Span::new(1, 1, 7, 10),
+        };
+
+        let mut caps = HashSet::new();
+        caps.insert(Capability::SystemInfoRead);
+        caps.insert(Capability::ProcessRead);
+        caps.insert(Capability::NetworkRead);
+        caps.insert(Capability::FilesystemRead);
+        caps.insert(Capability::LogRead);
+        caps.insert(Capability::DriverRead);
+
+        let hir = HirLowering::lower(&ast, &caps, "source").expect("Hir lowering failed");
+        assert_eq!(hir.operations.len(), 7);
+
+        // Verify each operation variant exists in order
+        assert!(matches!(hir.operations[0], HirOperation::CollectSystemInfo { .. }));
+        assert!(matches!(hir.operations[1], HirOperation::CollectProcesses { .. }));
+        assert!(matches!(hir.operations[2], HirOperation::CollectNetworkConnections { .. }));
+        assert!(matches!(hir.operations[3], HirOperation::CollectFiles { .. }));
+        assert!(matches!(hir.operations[4], HirOperation::CollectLogs { .. }));
+        assert!(matches!(hir.operations[5], HirOperation::CollectDrivers { .. }));
+        assert!(matches!(hir.operations[6], HirOperation::Export { .. }));
+    }
+
+    #[test]
+    fn test_hir_lowering_pipelines_and_filters() {
+        use traceforge_ast::{Expr, HashAlgorithm, PipelineStage};
+
+        let ast = Investigation {
+            name: "pipeline_test".to_string(),
+            target: Some("linux".to_string()),
+            metadata: vec![],
+            statements: vec![
+                Stmt::Filter {
+                    condition: Expr::Identifier("status".to_string(), Span::new(1, 1, 1, 10)),
+                    span: Span::new(1, 1, 1, 10),
+                },
+                Stmt::Where {
+                    condition: Expr::Identifier("active".to_string(), Span::new(2, 1, 2, 10)),
+                    span: Span::new(2, 1, 2, 10),
+                },
+                Stmt::Limit {
+                    count: Expr::IntegerLiteral(25, Span::new(3, 1, 3, 10)),
+                    span: Span::new(3, 1, 3, 10),
+                },
+                Stmt::EvidencePipeline {
+                    variable: "procs".to_string(),
+                    stages: vec![
+                        PipelineStage::Hash(HashAlgorithm::Sha256, Span::new(4, 1, 4, 10)),
+                        PipelineStage::Timeline(Span::new(4, 11, 4, 20)),
+                        PipelineStage::Export("out.json".to_string(), Span::new(4, 21, 4, 30)),
+                    ],
+                    span: Span::new(4, 1, 4, 30),
+                },
+            ],
+            span: Span::new(1, 1, 4, 30),
+        };
+
+        let hir = HirLowering::lower(&ast, &HashSet::new(), "source").expect("HIR lowering failed");
+        assert_eq!(hir.operations.len(), 4);
+        assert!(matches!(hir.operations[0], HirOperation::Filter { .. }));
+        assert!(matches!(hir.operations[1], HirOperation::Where { .. }));
+        assert!(matches!(hir.operations[2], HirOperation::Limit { count: 25, .. }));
+        if let HirOperation::EvidencePipeline { stages, .. } = &hir.operations[3] {
+            assert_eq!(stages.len(), 3);
+            assert!(matches!(stages[0], HirPipelineStage::Hash { ref algorithm, .. } if algorithm == "sha256"));
+            assert!(matches!(stages[1], HirPipelineStage::Timeline { .. }));
+            assert!(matches!(stages[2], HirPipelineStage::Export { ref path, .. } if path == "out.json"));
+        } else {
+            panic!("Expected EvidencePipeline operation");
+        }
+    }
+
+    #[test]
+    fn test_hir_from_ir_roundtrip() {
+        use traceforge_ir::{IrCollectOperation, IrExportOperation, IrInvestigation, IrOperation};
+
+        let ir = IrInvestigation {
+            name: "from_ir_test".to_string(),
+            target: Some("windows".to_string()),
+            metadata: vec![],
+            operations: vec![
+                IrOperation::Collect(IrCollectOperation {
+                    operation: "system.info".to_string(),
+                    fields: vec![],
+                    options: serde_json::Map::new(),
+                    span: Span::new(1, 1, 1, 10),
+                }),
+                IrOperation::Export(IrExportOperation {
+                    format: "json".to_string(),
+                    path: "ir_out.json".to_string(),
+                    span: Span::new(2, 1, 2, 20),
+                }),
+            ],
+            required_capabilities: HashSet::new(),
+            span: Span::new(1, 1, 2, 20),
+        };
+
+        let hir = HirInvestigation::from(&ir);
+        assert_eq!(hir.name, "from_ir_test");
+        assert_eq!(hir.target, Some("windows".to_string()));
+        assert_eq!(hir.operations.len(), 2);
+        assert!(!hir.provenance.source_hash.is_empty());
+    }
 }
+

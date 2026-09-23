@@ -8,6 +8,9 @@ pub use traceforge_runtime_network::*;
 pub use traceforge_runtime_process::*;
 pub use traceforge_runtime_system::*;
 pub use traceforge_runtime_timeline as timeline;
+pub use traceforge_runtime_memory as memory;
+pub use traceforge_runtime_registry as registry;
+pub use traceforge_runtime_artifacts as artifacts;
 
 pub mod c_api;
 pub use c_api::*;

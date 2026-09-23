@@ -18,6 +18,9 @@ traceforge-runtime-logs = { path = "logs" }
 traceforge-runtime-evidence = { path = "evidence" }
 traceforge-runtime-drivers = { path = "drivers" }
 traceforge-runtime-timeline = { path = "timeline" }
+traceforge-runtime-memory = { path = "memory" }
+traceforge-runtime-registry = { path = "registry" }
+traceforge-runtime-artifacts = { path = "artifacts" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

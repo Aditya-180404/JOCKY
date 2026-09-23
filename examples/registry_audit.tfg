@@ -1,0 +1,13 @@
+investigation "registry_audit" {
+    metadata {
+        author = "TraceForge Forensics"
+        description = "Audit registry autorun keys and sysctl kernel configurations for persistence"
+        category = "Persistence Hunting"
+    }
+
+    collect system_info
+
+    collect registry "HKLM" "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+
+    export evidence "registry_audit_evidence.json"
+}
