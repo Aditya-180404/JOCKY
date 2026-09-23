@@ -150,10 +150,7 @@ impl SecurityAnalyzer {
     }
 
     /// Analyze process list for suspicious parent-child relationships
-    pub fn analyze_parent_child_relationships(
-        &mut self,
-        processes: &[serde_json::Value],
-    ) {
+    pub fn analyze_parent_child_relationships(&mut self, processes: &[serde_json::Value]) {
         // Build a PID → name lookup
         let mut pid_name: std::collections::HashMap<i32, String> = std::collections::HashMap::new();
         for proc in processes {
@@ -209,9 +206,9 @@ impl SecurityAnalyzer {
 
             if let Some(path) = exe_path {
                 let path_lower = path.to_lowercase();
-                let in_expected = EXPECTED_EXE_DIRS.iter().any(|dir| {
-                    path_lower.starts_with(&dir.to_lowercase())
-                });
+                let in_expected = EXPECTED_EXE_DIRS
+                    .iter()
+                    .any(|dir| path_lower.starts_with(&dir.to_lowercase()));
 
                 if !in_expected {
                     // Check for executables in temp directories
@@ -248,7 +245,12 @@ impl SecurityAnalyzer {
                 .get("command_line")
                 .and_then(|v| {
                     if let Some(arr) = v.as_array() {
-                        Some(arr.iter().filter_map(|e| e.as_str()).collect::<Vec<_>>().join(" "))
+                        Some(
+                            arr.iter()
+                                .filter_map(|e| e.as_str())
+                                .collect::<Vec<_>>()
+                                .join(" "),
+                        )
                     } else {
                         v.as_str().map(|s| s.to_string())
                     }
@@ -262,7 +264,14 @@ impl SecurityAnalyzer {
                     self.findings.push(SecurityFinding {
                         indicator: format!("Suspicious command line in {}: {}", name, description),
                         severity: FindingSeverity::High,
-                        evidence: format!("Command: {}", if cmdline.len() > 200 { &cmdline[..200] } else { &cmdline }),
+                        evidence: format!(
+                            "Command: {}",
+                            if cmdline.len() > 200 {
+                                &cmdline[..200]
+                            } else {
+                                &cmdline
+                            }
+                        ),
                         reason: description.to_string(),
                         timestamp: chrono::Utc::now(),
                         host: self.hostname.clone(),
@@ -319,7 +328,9 @@ impl SecurityAnalyzer {
                         severity: FindingSeverity::High,
                         evidence: format!(
                             "{}:{} → {}:{} ({})",
-                            conn.get("local_address").and_then(|v| v.as_str()).unwrap_or("?"),
+                            conn.get("local_address")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("?"),
                             conn.get("local_port").and_then(|v| v.as_u64()).unwrap_or(0),
                             remote_addr,
                             remote_port,
@@ -363,11 +374,31 @@ impl SecurityAnalyzer {
     /// Generate a summary report
     pub fn summary(&self) -> SecuritySummary {
         let total = self.findings.len();
-        let critical = self.findings.iter().filter(|f| f.severity == FindingSeverity::Critical).count();
-        let high = self.findings.iter().filter(|f| f.severity == FindingSeverity::High).count();
-        let medium = self.findings.iter().filter(|f| f.severity == FindingSeverity::Medium).count();
-        let low = self.findings.iter().filter(|f| f.severity == FindingSeverity::Low).count();
-        let info = self.findings.iter().filter(|f| f.severity == FindingSeverity::Informational).count();
+        let critical = self
+            .findings
+            .iter()
+            .filter(|f| f.severity == FindingSeverity::Critical)
+            .count();
+        let high = self
+            .findings
+            .iter()
+            .filter(|f| f.severity == FindingSeverity::High)
+            .count();
+        let medium = self
+            .findings
+            .iter()
+            .filter(|f| f.severity == FindingSeverity::Medium)
+            .count();
+        let low = self
+            .findings
+            .iter()
+            .filter(|f| f.severity == FindingSeverity::Low)
+            .count();
+        let info = self
+            .findings
+            .iter()
+            .filter(|f| f.severity == FindingSeverity::Informational)
+            .count();
 
         SecuritySummary {
             total_findings: total,
@@ -376,7 +407,9 @@ impl SecurityAnalyzer {
             medium,
             low,
             informational: info,
-            categories: self.findings.iter()
+            categories: self
+                .findings
+                .iter()
                 .map(|f| f.category)
                 .collect::<std::collections::HashSet<_>>()
                 .into_iter()
@@ -413,7 +446,10 @@ mod tests {
         analyzer.analyze_parent_child_relationships(&processes);
         assert_eq!(analyzer.findings().len(), 1);
         assert_eq!(analyzer.findings()[0].severity, FindingSeverity::High);
-        assert_eq!(analyzer.findings()[0].category, FindingCategory::SuspiciousParentChild);
+        assert_eq!(
+            analyzer.findings()[0].category,
+            FindingCategory::SuspiciousParentChild
+        );
     }
 
     #[test]
@@ -424,26 +460,30 @@ mod tests {
         ];
         analyzer.analyze_command_lines(&processes);
         assert_eq!(analyzer.findings().len(), 1);
-        assert_eq!(analyzer.findings()[0].category, FindingCategory::SuspiciousCommandLine);
+        assert_eq!(
+            analyzer.findings()[0].category,
+            FindingCategory::SuspiciousCommandLine
+        );
     }
 
     #[test]
     fn test_suspicious_network() {
         let mut analyzer = SecurityAnalyzer::new("test-host");
-        let connections = vec![
-            json!({
-                "local_address": "10.0.0.1",
-                "local_port": 54321,
-                "remote_address": "192.168.1.100",
-                "remote_port": 4444,
-                "state": "ESTABLISHED",
-                "pid": 1234,
-                "process_name": "unknown.exe"
-            }),
-        ];
+        let connections = vec![json!({
+            "local_address": "10.0.0.1",
+            "local_port": 54321,
+            "remote_address": "192.168.1.100",
+            "remote_port": 4444,
+            "state": "ESTABLISHED",
+            "pid": 1234,
+            "process_name": "unknown.exe"
+        })];
         analyzer.analyze_network_connections(&connections);
         assert_eq!(analyzer.findings().len(), 1);
-        assert_eq!(analyzer.findings()[0].category, FindingCategory::SuspiciousNetwork);
+        assert_eq!(
+            analyzer.findings()[0].category,
+            FindingCategory::SuspiciousNetwork
+        );
     }
 
     #[test]
@@ -464,13 +504,11 @@ mod tests {
             json!({"pid": 100, "name": "winword.exe", "ppid": 1}),
             json!({"pid": 200, "name": "cmd.exe", "ppid": 100}),
         ];
-        let connections = vec![
-            json!({
-                "remote_port": 4444,
-                "remote_address": "10.0.0.1",
-                "state": "ESTABLISHED"
-            }),
-        ];
+        let connections = vec![json!({
+            "remote_port": 4444,
+            "remote_address": "10.0.0.1",
+            "state": "ESTABLISHED"
+        })];
         analyzer.run_full_analysis(&processes, &connections);
         let summary = analyzer.summary();
         assert!(summary.total_findings >= 2);

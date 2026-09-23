@@ -18,9 +18,7 @@ pub struct NetworkConnection {
 pub fn enumerate_connections() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     #[cfg(target_os = "linux")]
     {
-        use netstat2::{
-            get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo,
-        };
+        use netstat2::{get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo};
 
         let af_flags = AddressFamilyFlags::IPV4 | AddressFamilyFlags::IPV6;
         let proto_flags = ProtocolFlags::TCP | ProtocolFlags::UDP;

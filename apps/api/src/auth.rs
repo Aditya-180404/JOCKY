@@ -112,11 +112,10 @@ pub async fn register(
     };
 
     // Check if organization exists
-    let org = sqlx::query_as!(
-        OrganizationRow,
+    let org = sqlx::query_as::<_, OrganizationRow>(
         "SELECT id, name, slug, description, created_at, updated_at FROM organizations WHERE slug = $1",
-        payload.organization_slug
     )
+    .bind(&payload.organization_slug)
     .fetch_optional(&mut *tx)
     .await;
 
@@ -125,13 +124,13 @@ pub async fn register(
         Ok(None) => {
             // Create organization
             let org_id = Uuid::new_v4();
-            if let Err(e) = sqlx::query!(
+            if let Err(e) = sqlx::query(
                 "INSERT INTO organizations (id, name, slug, description) VALUES ($1, $2, $3, $4)",
-                org_id,
-                payload.organization_name,
-                payload.organization_slug,
-                None::<String>
             )
+            .bind(org_id)
+            .bind(&payload.organization_name)
+            .bind(&payload.organization_slug)
+            .bind(None::<String>)
             .execute(&mut *tx)
             .await
             {
@@ -155,11 +154,11 @@ pub async fn register(
     };
 
     // Check if user exists
-    let existing = sqlx::query!(
+    let existing = sqlx::query_scalar::<_, Uuid>(
         "SELECT id FROM users WHERE email = $1 AND organization_id = $2",
-        payload.email,
-        org_id
     )
+    .bind(&payload.email)
+    .bind(org_id)
     .fetch_optional(&mut *tx)
     .await;
 
@@ -188,17 +187,17 @@ pub async fn register(
 
     // Create user
     let user_id = Uuid::new_v4();
-    if let Err(e) = sqlx::query!(
+    if let Err(e) = sqlx::query(
         r#"
         INSERT INTO users (id, organization_id, email, password_hash, full_name, role)
         VALUES ($1, $2, $3, $4, $5, 'INVESTIGATOR')
         "#,
-        user_id,
-        org_id,
-        payload.email,
-        password_hash,
-        payload.full_name
     )
+    .bind(user_id)
+    .bind(org_id)
+    .bind(&payload.email)
+    .bind(&password_hash)
+    .bind(&payload.full_name)
     .execute(&mut *tx)
     .await
     {
@@ -212,14 +211,14 @@ pub async fn register(
 
     // Create default project
     let project_id = Uuid::new_v4();
-    if let Err(e) = sqlx::query!(
+    if let Err(e) = sqlx::query(
         "INSERT INTO projects (id, organization_id, name, description, created_by) VALUES ($1, $2, $3, $4, $5)",
-        project_id,
-        org_id,
-        "Default Project",
-        "Default project for investigations",
-        user_id
     )
+    .bind(project_id)
+    .bind(org_id)
+    .bind("Default Project")
+    .bind("Default project for investigations")
+    .bind(user_id)
     .execute(&mut *tx)
     .await {
         error!("Failed to create default project: {}", e);
@@ -251,13 +250,13 @@ pub async fn register(
     let access_token_hash = sha256_hash(&tokens.0);
     let session_id = Uuid::new_v4();
     let expires_at = Utc::now() + Duration::hours(1);
-    if let Err(e) = sqlx::query!(
+    if let Err(e) = sqlx::query(
         "INSERT INTO sessions (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, $4)",
-        session_id,
-        user_id,
-        access_token_hash,
-        expires_at
     )
+    .bind(session_id)
+    .bind(user_id)
+    .bind(&access_token_hash)
+    .bind(expires_at)
     .execute(&state.db)
     .await
     {
@@ -296,14 +295,13 @@ pub async fn login(
     }
 
     // Find user
-    let user = sqlx::query_as!(
-        UserRow,
+    let user = sqlx::query_as::<_, UserRow>(
         r#"
-        SELECT id, organization_id, email, password_hash, full_name, role as "role: Role", is_active, last_login_at, created_at, updated_at
+        SELECT id, organization_id, email, password_hash, full_name, role, is_active, last_login_at, created_at, updated_at
         FROM users WHERE email = $1
         "#,
-        payload.email
     )
+    .bind(&payload.email)
     .fetch_optional(&state.db)
     .await;
 
@@ -379,13 +377,13 @@ pub async fn login(
     let access_token_hash = sha256_hash(&tokens.0);
     let session_id = Uuid::new_v4();
     let expires_at = Utc::now() + Duration::hours(1);
-    if let Err(e) = sqlx::query!(
+    if let Err(e) = sqlx::query(
         "INSERT INTO sessions (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, $4)",
-        session_id,
-        user.id,
-        access_token_hash,
-        expires_at
     )
+    .bind(session_id)
+    .bind(user.id)
+    .bind(&access_token_hash)
+    .bind(expires_at)
     .execute(&state.db)
     .await
     {
@@ -398,14 +396,12 @@ pub async fn login(
     }
 
     // Update last login
-    sqlx::query!(
-        "UPDATE users SET last_login_at = $1 WHERE id = $2",
-        Utc::now(),
-        user.id
-    )
-    .execute(&state.db)
-    .await
-    .ok();
+    sqlx::query("UPDATE users SET last_login_at = $1 WHERE id = $2")
+        .bind(Utc::now())
+        .bind(user.id)
+        .execute(&state.db)
+        .await
+        .ok();
 
     info!("User logged in: {}", payload.email);
 
@@ -431,13 +427,11 @@ pub async fn logout(
 ) -> impl IntoResponse {
     // Delete session
     let access_token_hash = sha256_hash(&auth_user.token);
-    sqlx::query!(
-        "DELETE FROM sessions WHERE token_hash = $1",
-        access_token_hash
-    )
-    .execute(&state.db)
-    .await
-    .ok();
+    sqlx::query("DELETE FROM sessions WHERE token_hash = $1")
+        .bind(&access_token_hash)
+        .execute(&state.db)
+        .await
+        .ok();
 
     info!("User logged out: {}", auth_user.user_id);
 
@@ -445,22 +439,20 @@ pub async fn logout(
 }
 
 pub async fn me(Extension(auth_user): Extension<AuthUser>) -> impl IntoResponse {
-    let user = sqlx::query_as!(
-        UserRow,
+    let user = sqlx::query_as::<_, UserRow>(
         r#"
-        SELECT id, organization_id, email, password_hash, full_name, role as "role: Role", is_active, last_login_at, created_at, updated_at
+        SELECT id, organization_id, email, password_hash, full_name, role, is_active, last_login_at, created_at, updated_at
         FROM users WHERE id = $1
         "#,
-        auth_user.user_id
     )
+    .bind(auth_user.user_id)
     .fetch_one(&*auth_user.db)
     .await;
 
-    let org = sqlx::query_as!(
-        OrganizationRow,
+    let org = sqlx::query_as::<_, OrganizationRow>(
         "SELECT id, name, slug, description, created_at, updated_at FROM organizations WHERE id = $1",
-        auth_user.organization_id
     )
+    .bind(auth_user.organization_id)
     .fetch_one(&*auth_user.db)
     .await;
 
@@ -517,14 +509,13 @@ pub async fn refresh_token(
     }
 
     // Verify user still exists and is active
-    let user = sqlx::query_as!(
-        UserRow,
+    let user = sqlx::query_as::<_, UserRow>(
         r#"
-        SELECT id, organization_id, email, password_hash, full_name, role as "role: Role", is_active, last_login_at, created_at, updated_at
+        SELECT id, organization_id, email, password_hash, full_name, role, is_active, last_login_at, created_at, updated_at
         FROM users WHERE id = $1
         "#,
-        Uuid::parse_str(&claims.sub).unwrap()
     )
+    .bind(Uuid::parse_str(&claims.sub).unwrap())
     .fetch_optional(&state.db)
     .await;
 
@@ -556,15 +547,13 @@ pub async fn refresh_token(
 
     // Update session
     let access_token_hash = sha256_hash(&tokens.0);
-    sqlx::query!(
-        "UPDATE sessions SET token_hash = $1, last_accessed_at = $2 WHERE user_id = $3",
-        access_token_hash,
-        Utc::now(),
-        user.id
-    )
-    .execute(&state.db)
-    .await
-    .ok();
+    sqlx::query("UPDATE sessions SET token_hash = $1, last_accessed_at = $2 WHERE user_id = $3")
+        .bind(&access_token_hash)
+        .bind(Utc::now())
+        .bind(user.id)
+        .execute(&state.db)
+        .await
+        .ok();
 
     Json(AuthResponse {
         access_token: tokens.0,

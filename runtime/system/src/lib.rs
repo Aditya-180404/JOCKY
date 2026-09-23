@@ -101,7 +101,11 @@ impl SystemInfo {
 
             let architecture = std::env::consts::ARCH.to_string();
             let mem_output = std::process::Command::new("powershell")
-                .args(["-NoProfile", "-Command", "(Get-CimInstance Win32_OperatingSystem).TotalVisibleMemorySize"])
+                .args([
+                    "-NoProfile",
+                    "-Command",
+                    "(Get-CimInstance Win32_OperatingSystem).TotalVisibleMemorySize",
+                ])
                 .output()
                 .ok()
                 .and_then(|o| String::from_utf8(o.stdout).ok())

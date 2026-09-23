@@ -110,15 +110,15 @@ pub async fn upload_evidence(
     };
 
     // Verify investigation exists and belongs to organization
-    let investigation = sqlx::query!(
+    let investigation = sqlx::query_scalar::<_, Uuid>(
         "SELECT id FROM investigations WHERE id = $1 AND organization_id = $2",
-        investigation_id,
-        auth.organization_id
     )
+    .bind(investigation_id)
+    .bind(auth.organization_id)
     .fetch_optional(&state.db)
     .await;
 
-    if investigation.is_err() || investigation.unwrap().is_none() {
+    if investigation.as_ref().map_or(true, |i| i.is_none()) {
         return error_response(
             StatusCode::NOT_FOUND,
             "Not found",
@@ -162,22 +162,22 @@ pub async fn upload_evidence(
     let evidence_id = Uuid::new_v4();
     let now = Utc::now();
 
-    let result = sqlx::query!(
+    let result = sqlx::query(
         r#"
         INSERT INTO evidence (id, investigation_id, tool_version_id, host_identifier, collection_time, sha256_hash, size_bytes, storage_path, metadata, created_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         "#,
-        evidence_id,
-        investigation_id,
-        tool_version_id,
-        host_identifier,
-        collection_time.unwrap_or(now),
-        sha256_hash,
-        size_bytes,
-        storage_path,
-        metadata,
-        now
     )
+    .bind(evidence_id)
+    .bind(investigation_id)
+    .bind(tool_version_id)
+    .bind(host_identifier.as_deref())
+    .bind(collection_time.unwrap_or(now))
+    .bind(&sha256_hash)
+    .bind(size_bytes)
+    .bind(&storage_path)
+    .bind(metadata.as_ref())
+    .bind(now)
     .execute(&state.db)
     .await;
 
@@ -218,16 +218,15 @@ pub async fn get_evidence(
     Extension(auth): Extension<AuthUser>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let evidence = sqlx::query_as!(
-        EvidenceRow,
+    let evidence = sqlx::query_as::<_, EvidenceRow>(
         r#"
         SELECT e.* FROM evidence e
         JOIN investigations i ON e.investigation_id = i.id
         WHERE e.id = $1 AND i.organization_id = $2
         "#,
-        id,
-        auth.organization_id
     )
+    .bind(id)
+    .bind(auth.organization_id)
     .fetch_optional(&state.db)
     .await;
 
@@ -284,16 +283,15 @@ pub async fn verify_evidence(
     Extension(auth): Extension<AuthUser>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let evidence = sqlx::query_as!(
-        EvidenceRow,
+    let evidence = sqlx::query_as::<_, EvidenceRow>(
         r#"
         SELECT e.* FROM evidence e
         JOIN investigations i ON e.investigation_id = i.id
         WHERE e.id = $1 AND i.organization_id = $2
         "#,
-        id,
-        auth.organization_id
     )
+    .bind(id)
+    .bind(auth.organization_id)
     .fetch_optional(&state.db)
     .await;
 
@@ -380,20 +378,20 @@ async fn log_audit(
     resource_id: Option<Uuid>,
     success: bool,
 ) {
-    sqlx::query!(
+    sqlx::query(
         r#"
         INSERT INTO audit_logs (id, organization_id, user_id, action, resource_type, resource_id, result, created_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         "#,
-        Uuid::new_v4(),
-        org_id,
-        user_id,
-        action,
-        resource_type,
-        resource_id,
-        if success { "success" } else { "failure" },
-        Utc::now()
     )
+    .bind(Uuid::new_v4())
+    .bind(org_id)
+    .bind(user_id)
+    .bind(action)
+    .bind(resource_type)
+    .bind(resource_id)
+    .bind(if success { "success" } else { "failure" })
+    .bind(Utc::now())
     .execute(db)
     .await
     .ok();

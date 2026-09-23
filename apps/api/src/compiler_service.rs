@@ -1,19 +1,14 @@
-use axum::{
-    extract::Path,
-    http::StatusCode,
-    response::IntoResponse,
-    Json,
-};
+use axum::{extract::Path, http::StatusCode, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::time::Instant;
 
 use traceforge_ast::Severity;
+use traceforge_backend::TargetSpec;
+use traceforge_ir::{TargetArch, TargetPlatform};
 use traceforge_lexer::Lexer;
 use traceforge_parser::Parser;
 use traceforge_semantic::SemanticAnalyzer;
-use traceforge_backend::TargetSpec;
-use traceforge_ir::{TargetArch, TargetPlatform};
 
 #[derive(Debug, Deserialize)]
 pub struct CheckRequest {
@@ -61,10 +56,18 @@ pub async fn targets_handler() -> Json<Vec<TargetResponse>> {
 
     for target in TargetSpec::supported_targets() {
         let (platform, architecture, id, name) = match (target.platform, target.arch) {
-            (TargetPlatform::Windows, TargetArch::X64) => ("windows", "x64", "windows-x64", "Windows x64"),
-            (TargetPlatform::Linux, TargetArch::X64) => ("linux", "x64", "linux-x64", "Linux x86_64"),
-            (TargetPlatform::Windows, TargetArch::Arm64) => ("windows", "arm64", "windows-arm64", "Windows ARM64"),
-            (TargetPlatform::Linux, TargetArch::Arm64) => ("linux", "arm64", "linux-arm64", "Linux ARM64"),
+            (TargetPlatform::Windows, TargetArch::X64) => {
+                ("windows", "x64", "windows-x64", "Windows x64")
+            }
+            (TargetPlatform::Linux, TargetArch::X64) => {
+                ("linux", "x64", "linux-x64", "Linux x86_64")
+            }
+            (TargetPlatform::Windows, TargetArch::Arm64) => {
+                ("windows", "arm64", "windows-arm64", "Windows ARM64")
+            }
+            (TargetPlatform::Linux, TargetArch::Arm64) => {
+                ("linux", "arm64", "linux-arm64", "Linux ARM64")
+            }
         };
         targets.push(TargetResponse {
             id: id.to_string(),
@@ -343,7 +346,10 @@ pub async fn execute_handler(
         }
     };
 
-    log.push(format!("Executing investigation '{}' in secure sandbox...", ir.name));
+    log.push(format!(
+        "Executing investigation '{}' in secure sandbox...",
+        ir.name
+    ));
 
     let mut collectors_executed = Vec::new();
     let mut evidence_items = Vec::new();
@@ -398,7 +404,8 @@ pub async fn execute_handler(
                     log.push("Running collector: processes".to_string());
                     collectors_executed.push("processes".to_string());
 
-                    let proc_data = match traceforge_runtime_process::enumerate_processes(&c.fields) {
+                    let proc_data = match traceforge_runtime_process::enumerate_processes(&c.fields)
+                    {
                         Ok(mut procs) => {
                             if procs.len() > 25 {
                                 procs.truncate(25);
@@ -565,7 +572,8 @@ pub async fn execute_handler(
                     log.push("Running collector: security_analysis".to_string());
                     collectors_executed.push("security_analysis".to_string());
 
-                    let analyzer = traceforge_runtime_security::SecurityAnalyzer::new("sandbox-host");
+                    let analyzer =
+                        traceforge_runtime_security::SecurityAnalyzer::new("sandbox-host");
                     let summary = analyzer.summary();
                     let sec_data = serde_json::to_value(&summary).unwrap_or_default();
 
@@ -602,7 +610,10 @@ pub async fn execute_handler(
     overall_hasher.update(&bundle_bytes);
     let overall_sha256 = format!("{:x}", overall_hasher.finalize());
 
-    log.push(format!("Finalized {} evidence items.", evidence_items.len()));
+    log.push(format!(
+        "Finalized {} evidence items.",
+        evidence_items.len()
+    ));
     log.push(format!("SHA-256 Checksum: {}", overall_sha256));
     log.push("Integrity status: VALID (Cryptographically verified)".to_string());
 
@@ -677,7 +688,8 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
                 filename: "TRACEFORGE-0.1.0-windows-x64.zip".to_string(),
                 version: "0.1.0".to_string(),
                 size_bytes: 1_580_458,
-                sha256: "35b29f54b6879b039b462a97293f3b7ed6ecdf25a4a2b90a7c55d65eb2bd7247".to_string(),
+                sha256: "35b29f54b6879b039b462a97293f3b7ed6ecdf25a4a2b90a7c55d65eb2bd7247"
+                    .to_string(),
                 release_date: "2026-09-23".to_string(),
                 requirements: "Windows 10 / 11 64-bit".to_string(),
                 download_url: "/api/downloads/TRACEFORGE-0.1.0-windows-x64.zip".to_string(),
@@ -689,7 +701,8 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
                 filename: "traceforge.exe".to_string(),
                 version: "0.1.0".to_string(),
                 size_bytes: 3_226_112,
-                sha256: "1e539f20b535e97ff4b44a983fb120ade3f6769bc7114212b50e92030b6321e2".to_string(),
+                sha256: "1e539f20b535e97ff4b44a983fb120ade3f6769bc7114212b50e92030b6321e2"
+                    .to_string(),
                 release_date: "2026-09-23".to_string(),
                 requirements: "Windows 10 / 11 64-bit".to_string(),
                 download_url: "/api/downloads/traceforge.exe".to_string(),
@@ -699,10 +712,11 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
 }
 
 /// Endpoint: GET /api/downloads/:filename
-pub async fn download_file_handler(
-    Path(filename): Path<String>,
-) -> impl IntoResponse {
-    let sanitized = filename.replace("..", "").replace('/', "").replace('\\', "");
+pub async fn download_file_handler(Path(filename): Path<String>) -> impl IntoResponse {
+    let sanitized = filename
+        .replace("..", "")
+        .replace('/', "")
+        .replace('\\', "");
     let package_path = std::path::PathBuf::from("./packages").join(&sanitized);
     let build_path = std::path::PathBuf::from("./build").join(&sanitized);
     let target_path = std::path::PathBuf::from("./target/release").join(&sanitized);

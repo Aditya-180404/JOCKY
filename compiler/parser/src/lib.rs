@@ -3,8 +3,8 @@
 use std::vec;
 use thiserror::Error;
 use traceforge_ast::{
-    BinaryOp, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr,
-    HashAlgorithm, Investigation, Span, Stmt, Token, TokenKind, UnaryOp,
+    BinaryOp, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr, HashAlgorithm,
+    Investigation, Span, Stmt, Token, TokenKind, UnaryOp,
 };
 use traceforge_lexer::LexerError;
 

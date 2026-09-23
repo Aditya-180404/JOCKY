@@ -155,10 +155,23 @@ pub fn enumerate_processes(
 
                 for item in items {
                     let pid = item.get("ProcessId").and_then(|v| v.as_i64()).unwrap_or(0) as i32;
-                    let ppid = item.get("ParentProcessId").and_then(|v| v.as_i64()).map(|v| v as i32);
-                    let name = item.get("Name").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                    let exe_path = item.get("ExecutablePath").and_then(|v| v.as_str()).map(|s| s.to_string());
-                    let cmdline_str = item.get("CommandLine").and_then(|v| v.as_str()).unwrap_or("");
+                    let ppid = item
+                        .get("ParentProcessId")
+                        .and_then(|v| v.as_i64())
+                        .map(|v| v as i32);
+                    let name = item
+                        .get("Name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                    let exe_path = item
+                        .get("ExecutablePath")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string());
+                    let cmdline_str = item
+                        .get("CommandLine")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("");
                     let command_line = if cmdline_str.is_empty() {
                         vec![name.clone()]
                     } else {
@@ -231,11 +244,16 @@ pub fn enumerate_processes(
 
         // Fallback to tasklist if WMI query failed
         if !got_processes {
-            if let Ok(output) = std::process::Command::new("tasklist").args(["/FO", "CSV"]).output() {
+            if let Ok(output) = std::process::Command::new("tasklist")
+                .args(["/FO", "CSV"])
+                .output()
+            {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 for line in stdout.lines().skip(1) {
                     let parts: Vec<&str> = line.split(',').map(|s| s.trim_matches('"')).collect();
-                    if parts.len() < 2 { continue; }
+                    if parts.len() < 2 {
+                        continue;
+                    }
                     let name = parts[0].to_string();
                     let pid = parts[1].parse::<i32>().unwrap_or(0);
                     let info = ProcessInfo {

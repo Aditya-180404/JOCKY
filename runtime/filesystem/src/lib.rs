@@ -1,7 +1,7 @@
 //! TraceForge Runtime - Filesystem enumeration and hashing
 
-use serde::{Deserialize, Serialize};
 use md5::Md5;
+use serde::{Deserialize, Serialize};
 use sha1::Sha1;
 use sha2::{Digest, Sha256};
 use std::fs;

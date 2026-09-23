@@ -237,12 +237,23 @@ pub fn analyze_evidence(evidence: &[serde_json::Value]) -> Vec<SecurityFinding> 
             let mut suspicious = false;
             let mut reason = String::new();
 
-            if map.get("state").and_then(serde_json::Value::as_str).is_some_and(|state| state.eq_ignore_ascii_case("LISTEN") || state.eq_ignore_ascii_case("ESTABLISHED")) {
+            if map
+                .get("state")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|state| {
+                    state.eq_ignore_ascii_case("LISTEN")
+                        || state.eq_ignore_ascii_case("ESTABLISHED")
+                })
+            {
                 suspicious = true;
                 reason.push_str("network endpoint is active");
             }
 
-            if map.get("pid").and_then(serde_json::Value::as_i64).is_some_and(|pid| pid > 0) {
+            if map
+                .get("pid")
+                .and_then(serde_json::Value::as_i64)
+                .is_some_and(|pid| pid > 0)
+            {
                 if !reason.is_empty() {
                     reason.push_str("; ");
                 }
@@ -263,7 +274,10 @@ pub fn analyze_evidence(evidence: &[serde_json::Value]) -> Vec<SecurityFinding> 
         }
     }
 
-    if evidence.iter().any(|item| item.to_string().contains("powershell") || item.to_string().contains("cmd.exe")) {
+    if evidence
+        .iter()
+        .any(|item| item.to_string().contains("powershell") || item.to_string().contains("cmd.exe"))
+    {
         findings.push(SecurityFinding {
             id: format!("finding-{}", findings.len() + 1),
             category: "execution".to_string(),
@@ -323,13 +337,17 @@ impl BlockchainAdapter for DevelopmentBlockchainAdapter {
         let tx_id = format!("dev-{}", &hash[..slice_len]);
         let existing = if self.manifest_path.exists() {
             let bytes = std::fs::read(&self.manifest_path)?;
-            let mut items: Vec<EvidenceManifest> = serde_json::from_slice(&bytes).unwrap_or_default();
+            let mut items: Vec<EvidenceManifest> =
+                serde_json::from_slice(&bytes).unwrap_or_default();
             items.push(manifest.clone());
             items
         } else {
             vec![manifest]
         };
-        std::fs::write(self.manifest_path.clone(), serde_json::to_vec_pretty(&existing)?)?;
+        std::fs::write(
+            self.manifest_path.clone(),
+            serde_json::to_vec_pretty(&existing)?,
+        )?;
         Ok(tx_id)
     }
 
@@ -345,7 +363,10 @@ impl BlockchainAdapter for DevelopmentBlockchainAdapter {
     }
 
     fn get_status(&self) -> Result<String, Box<dyn std::error::Error>> {
-        Ok(format!("development adapter active on {}", self.network_name))
+        Ok(format!(
+            "development adapter active on {}",
+            self.network_name
+        ))
     }
 }
 

@@ -8,9 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
 
-use traceforge_shared_types::{
-    AuditResult, ErrorResponse, PaginatedResponse, Pagination,
-};
+use traceforge_shared_types::{AuditResult, ErrorResponse, PaginatedResponse, Pagination};
 
 use crate::{AppState, AuthUser};
 
@@ -79,27 +77,25 @@ pub async fn list_audit_logs(
 
     // Note: This is a simplified version. In production, use sqlx::query_as with dynamic queries
     // For now, we'll use a simpler approach
-    let logs = sqlx::query_as!(
-        AuditLogRow,
+    let logs = sqlx::query_as::<_, AuditLogRow>(
         r#"
-        SELECT id, organization_id, user_id, action, resource_type, resource_id, result as "result: AuditResult", ip_address, user_agent, metadata, created_at
+        SELECT id, organization_id, user_id, action, resource_type, resource_id, result, ip_address, user_agent, metadata, created_at
         FROM audit_logs WHERE organization_id = $1
         ORDER BY created_at DESC
         LIMIT $2 OFFSET $3
         "#,
-        auth.organization_id,
-        per_page as i64,
-        ((page - 1) * per_page) as i64
     )
+    .bind(auth.organization_id)
+    .bind(per_page as i64)
+    .bind(((page - 1) * per_page) as i64)
     .fetch_all(&state.db)
     .await;
 
-    let total = sqlx::query!(
-        "SELECT COUNT(*) as count FROM audit_logs WHERE organization_id = $1",
-        auth.organization_id
-    )
-    .fetch_one(&state.db)
-    .await;
+    let total: Result<i64, _> =
+        sqlx::query_scalar("SELECT COUNT(*) FROM audit_logs WHERE organization_id = $1")
+            .bind(auth.organization_id)
+            .fetch_one(&state.db)
+            .await;
 
     match (logs, total) {
         (Ok(logs), Ok(total)) => {
@@ -125,7 +121,7 @@ pub async fn list_audit_logs(
                 pagination: Pagination {
                     page,
                     per_page,
-                    total: total.count.unwrap_or(0) as u64,
+                    total: total as u64,
                 },
             })
             .into_response()

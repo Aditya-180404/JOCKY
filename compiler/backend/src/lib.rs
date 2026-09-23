@@ -152,12 +152,7 @@ impl Backend {
         let output_path = output_dir.join(&artifact_name);
 
         let status = std::process::Command::new("cargo")
-            .args([
-                "build",
-                "--release",
-                "--target-dir",
-                "target",
-            ])
+            .args(["build", "--release", "--target-dir", "target"])
             .current_dir(&project_dir)
             .status()?;
 
@@ -246,12 +241,7 @@ impl Backend {
 
         let target_dir = project_dir.join("target");
         let status = std::process::Command::new("cargo")
-            .args([
-                "build",
-                "--release",
-                "--target-dir",
-                "target",
-            ])
+            .args(["build", "--release", "--target-dir", "target"])
             .current_dir(&project_dir)
             .status()?;
 
@@ -262,9 +252,7 @@ impl Backend {
         }
 
         let pkg_binary_name = format!("{}.exe", ir.name.replace('-', "_"));
-        let binary_path = target_dir
-            .join("release")
-            .join(&pkg_binary_name);
+        let binary_path = target_dir.join("release").join(&pkg_binary_name);
         if !binary_path.exists() {
             return Err(BackendError::CompilationError(format!(
                 "Binary not found after build: {}",
@@ -664,8 +652,12 @@ mod tests {
     #[test]
     fn test_supported_targets_include_linux_x64_and_windows_x64() {
         let targets = TargetSpec::supported_targets();
-        assert!(targets.iter().any(|t| t.platform == TargetPlatform::Linux && t.arch == TargetArch::X64));
-        assert!(targets.iter().any(|t| t.platform == TargetPlatform::Windows && t.arch == TargetArch::X64));
+        assert!(targets
+            .iter()
+            .any(|t| t.platform == TargetPlatform::Linux && t.arch == TargetArch::X64));
+        assert!(targets
+            .iter()
+            .any(|t| t.platform == TargetPlatform::Windows && t.arch == TargetArch::X64));
     }
 
     #[test]

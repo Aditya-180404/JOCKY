@@ -12,9 +12,7 @@ use tracing::{error, info};
 use uuid::Uuid;
 use validator::Validate;
 
-use traceforge_shared_types::{
-    BuildStatus, ErrorResponse, PaginatedResponse, Pagination,
-};
+use traceforge_shared_types::{BuildStatus, ErrorResponse, PaginatedResponse, Pagination};
 
 use crate::middleware::sha256_hash;
 use crate::{AppState, AuthUser};
@@ -75,37 +73,34 @@ pub async fn list_tools(
     Extension(auth): Extension<AuthUser>,
     Query(pagination): Query<Pagination>,
 ) -> impl IntoResponse {
-    let tools = sqlx::query_as!(
-        ToolRow,
+    let tools = sqlx::query_as::<_, ToolRow>(
         r#"
         SELECT id, organization_id, project_id, name, description, author_id, created_at, updated_at
         FROM tools WHERE organization_id = $1
         ORDER BY created_at DESC
         LIMIT $2 OFFSET $3
         "#,
-        auth.organization_id,
-        pagination.per_page as i64,
-        ((pagination.page - 1) * pagination.per_page) as i64
     )
+    .bind(auth.organization_id)
+    .bind(pagination.per_page as i64)
+    .bind(((pagination.page - 1) * pagination.per_page) as i64)
     .fetch_all(&state.db)
     .await;
 
-    let total = sqlx::query!(
-        "SELECT COUNT(*) as count FROM tools WHERE organization_id = $1",
-        auth.organization_id
-    )
-    .fetch_one(&state.db)
-    .await;
+    let total: Result<i64, _> =
+        sqlx::query_scalar("SELECT COUNT(*) FROM tools WHERE organization_id = $1")
+            .bind(auth.organization_id)
+            .fetch_one(&state.db)
+            .await;
 
     match (tools, total) {
         (Ok(tools), Ok(total)) => {
             let mut responses = Vec::new();
             for tool in tools {
-                let versions = sqlx::query_as!(
-                    ToolVersionRow,
+                let versions = sqlx::query_as::<_, ToolVersionRow>(
                     "SELECT * FROM tool_versions WHERE tool_id = $1 ORDER BY created_at DESC",
-                    tool.id
                 )
+                .bind(tool.id)
                 .fetch_all(&state.db)
                 .await
                 .unwrap_or_default();
@@ -142,7 +137,7 @@ pub async fn list_tools(
                 pagination: Pagination {
                     page: pagination.page,
                     per_page: pagination.per_page,
-                    total: total.count.unwrap_or(0) as u64,
+                    total: total as u64,
                 },
             })
             .into_response()
@@ -167,20 +162,20 @@ pub async fn create_tool(
     let tool_id = Uuid::new_v4();
     let now = Utc::now();
 
-    let result = sqlx::query!(
+    let result = sqlx::query(
         r#"
         INSERT INTO tools (id, organization_id, project_id, name, description, author_id, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         "#,
-        tool_id,
-        auth.organization_id,
-        payload.project_id,
-        payload.name,
-        payload.description,
-        auth.user_id,
-        now,
-        now
     )
+    .bind(tool_id)
+    .bind(auth.organization_id)
+    .bind(payload.project_id)
+    .bind(&payload.name)
+    .bind(&payload.description)
+    .bind(auth.user_id)
+    .bind(now)
+    .bind(now)
     .execute(&state.db)
     .await;
 
@@ -214,22 +209,19 @@ pub async fn get_tool(
     Extension(auth): Extension<AuthUser>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let tool = sqlx::query_as!(
-        ToolRow,
-        "SELECT * FROM tools WHERE id = $1 AND organization_id = $2",
-        id,
-        auth.organization_id
-    )
-    .fetch_optional(&state.db)
-    .await;
+    let tool =
+        sqlx::query_as::<_, ToolRow>("SELECT * FROM tools WHERE id = $1 AND organization_id = $2")
+            .bind(id)
+            .bind(auth.organization_id)
+            .fetch_optional(&state.db)
+            .await;
 
     match tool {
         Ok(Some(tool)) => {
-            let versions = sqlx::query_as!(
-                ToolVersionRow,
+            let versions = sqlx::query_as::<_, ToolVersionRow>(
                 "SELECT * FROM tool_versions WHERE tool_id = $1 ORDER BY created_at DESC",
-                tool.id
             )
+            .bind(tool.id)
             .fetch_all(&state.db)
             .await
             .unwrap_or_default();
@@ -284,15 +276,15 @@ pub async fn create_tool_version(
     }
 
     // Verify tool exists and belongs to organization
-    let tool = sqlx::query!(
+    let tool = sqlx::query_scalar::<_, Uuid>(
         "SELECT id FROM tools WHERE id = $1 AND organization_id = $2",
-        id,
-        auth.organization_id
     )
+    .bind(id)
+    .bind(auth.organization_id)
     .fetch_optional(&state.db)
     .await;
 
-    if tool.is_err() || tool.unwrap().is_none() {
+    if tool.as_ref().map_or(true, |t| t.is_none()) {
         return error_response(StatusCode::NOT_FOUND, "Not found", "Tool not found");
     }
 
@@ -357,24 +349,29 @@ pub async fn create_tool_version(
 
     let version_id = Uuid::new_v4();
     let now = Utc::now();
+    let capabilities: Vec<String> = ir
+        .required_capabilities
+        .iter()
+        .map(|c| c.as_str().to_string())
+        .collect();
 
-    let result = sqlx::query!(
+    let result = sqlx::query(
         r#"
         INSERT INTO tool_versions (id, tool_id, version, source, source_hash, compiler_version, compiler_hash, target_platform, target_arch, capabilities, created_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         "#,
-        version_id,
-        id,
-        payload.version,
-        payload.source,
-        source_hash,
-        compiler_version,
-        compiler_hash,
-        payload.target_platform,
-        payload.target_arch,
-        &ir.required_capabilities.iter().map(|c| c.as_str().to_string()).collect::<Vec<_>>(),
-        now
     )
+    .bind(version_id)
+    .bind(id)
+    .bind(&payload.version)
+    .bind(&payload.source)
+    .bind(&source_hash)
+    .bind(&compiler_version)
+    .bind(&compiler_hash)
+    .bind(&payload.target_platform)
+    .bind(&payload.target_arch)
+    .bind(&capabilities)
+    .bind(now)
     .execute(&state.db)
     .await;
 
@@ -419,17 +416,16 @@ pub async fn build_tool(
     Json(payload): Json<BuildToolRequest>,
 ) -> impl IntoResponse {
     // Get latest unpublished version or create build for specific version
-    let version = sqlx::query_as!(
-        ToolVersionRow,
+    let version = sqlx::query_as::<_, ToolVersionRow>(
         r#"
         SELECT tv.* FROM tool_versions tv
         JOIN tools t ON t.id = tv.tool_id
         WHERE tv.tool_id = $1 AND t.organization_id = $2 AND tv.is_published = false
-        ORDER BY created_at DESC LIMIT 1
+        ORDER BY tv.created_at DESC LIMIT 1
         "#,
-        id,
-        auth.organization_id
     )
+    .bind(id)
+    .bind(auth.organization_id)
     .fetch_optional(&state.db)
     .await;
 
@@ -456,14 +452,14 @@ pub async fn build_tool(
     let build_id = Uuid::new_v4();
     let now = Utc::now();
 
-    if let Err(e) = sqlx::query!(
+    if let Err(e) = sqlx::query(
         "INSERT INTO builds (id, tool_version_id, status, started_at, created_at) VALUES ($1, $2, $3, $4, $5)",
-        build_id,
-        version.id,
-        BuildStatus::Pending.as_str(),
-        now,
-        now
     )
+    .bind(build_id)
+    .bind(version.id)
+    .bind(BuildStatus::Pending.as_str())
+    .bind(now)
+    .bind(now)
     .execute(&state.db)
     .await {
         error!("Failed to create build: {}", e);
@@ -510,13 +506,11 @@ pub async fn build_tool(
     }
 
     // Update build status to running
-    if let Err(e) = sqlx::query!(
-        "UPDATE builds SET status = $1 WHERE id = $2",
-        BuildStatus::Running.as_str(),
-        build_id
-    )
-    .execute(&state.db)
-    .await
+    if let Err(e) = sqlx::query("UPDATE builds SET status = $1 WHERE id = $2")
+        .bind(BuildStatus::Running.as_str())
+        .bind(build_id)
+        .execute(&state.db)
+        .await
     {
         error!("Failed to update build status: {}", e);
     }
@@ -537,8 +531,7 @@ pub async fn publish_tool(
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
     // Check for successful build
-    let version = sqlx::query_as!(
-        ToolVersionRow,
+    let version = sqlx::query_as::<_, ToolVersionRow>(
         r#"
         SELECT tv.* FROM tool_versions tv
         JOIN builds b ON tv.id = b.tool_version_id
@@ -546,10 +539,10 @@ pub async fn publish_tool(
         WHERE tv.tool_id = $1 AND t.organization_id = $2 AND tv.is_published = false AND b.status = $3
         ORDER BY tv.created_at DESC LIMIT 1
         "#,
-        id,
-        auth.organization_id,
-        BuildStatus::Success.as_str()
     )
+    .bind(id)
+    .bind(auth.organization_id)
+    .bind(BuildStatus::Success.as_str())
     .fetch_optional(&state.db)
     .await;
 
@@ -573,13 +566,12 @@ pub async fn publish_tool(
     };
 
     let now = Utc::now();
-    if let Err(e) = sqlx::query!(
-        "UPDATE tool_versions SET is_published = true, published_at = $1 WHERE id = $2",
-        now,
-        version.id
-    )
-    .execute(&state.db)
-    .await
+    if let Err(e) =
+        sqlx::query("UPDATE tool_versions SET is_published = true, published_at = $1 WHERE id = $2")
+            .bind(now)
+            .bind(version.id)
+            .execute(&state.db)
+            .await
     {
         error!("Failed to publish tool: {}", e);
         return error_response(
@@ -604,12 +596,11 @@ pub async fn download_tool(
     Extension(auth): Extension<AuthUser>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let version = sqlx::query_as!(
-        ToolVersionRow,
+    let version = sqlx::query_as::<_, ToolVersionRow>(
         "SELECT tv.* FROM tool_versions tv JOIN tools t ON t.id = tv.tool_id WHERE tv.id = $1 AND t.organization_id = $2 AND tv.is_published = true",
-        id
-        , auth.organization_id
     )
+    .bind(id)
+    .bind(auth.organization_id)
     .fetch_optional(&state.db)
     .await;
 

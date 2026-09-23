@@ -10,9 +10,7 @@ use tracing::{error, info};
 use uuid::Uuid;
 use validator::Validate;
 
-use traceforge_shared_types::{
-    ErrorResponse, InvestigationStatus, PaginatedResponse, Pagination,
-};
+use traceforge_shared_types::{ErrorResponse, InvestigationStatus, PaginatedResponse, Pagination};
 
 use crate::{AppState, AuthUser};
 
@@ -44,27 +42,25 @@ pub async fn list_investigations(
     Extension(auth): Extension<AuthUser>,
     Query(pagination): Query<Pagination>,
 ) -> impl IntoResponse {
-    let investigations = sqlx::query_as!(
-        InvestigationRow,
+    let investigations = sqlx::query_as::<_, InvestigationRow>(
         r#"
-        SELECT id, organization_id, project_id, name, description, tool_version_id, status as "status: InvestigationStatus", created_by, started_at, completed_at, created_at, updated_at
+        SELECT id, organization_id, project_id, name, description, tool_version_id, status, created_by, started_at, completed_at, created_at, updated_at
         FROM investigations WHERE organization_id = $1
         ORDER BY created_at DESC
         LIMIT $2 OFFSET $3
         "#,
-        auth.organization_id,
-        pagination.per_page as i64,
-        ((pagination.page - 1) * pagination.per_page) as i64
     )
+    .bind(auth.organization_id)
+    .bind(pagination.per_page as i64)
+    .bind(((pagination.page - 1) * pagination.per_page) as i64)
     .fetch_all(&state.db)
     .await;
 
-    let total = sqlx::query!(
-        "SELECT COUNT(*) as count FROM investigations WHERE organization_id = $1",
-        auth.organization_id
-    )
-    .fetch_one(&state.db)
-    .await;
+    let total: Result<i64, _> =
+        sqlx::query_scalar("SELECT COUNT(*) FROM investigations WHERE organization_id = $1")
+            .bind(auth.organization_id)
+            .fetch_one(&state.db)
+            .await;
 
     match (investigations, total) {
         (Ok(investigations), Ok(total)) => {
@@ -89,7 +85,7 @@ pub async fn list_investigations(
                 pagination: Pagination {
                     page: pagination.page,
                     per_page: pagination.per_page,
-                    total: total.count.unwrap_or(0) as u64,
+                    total: total as u64,
                 },
             })
             .into_response()
@@ -113,15 +109,15 @@ pub async fn create_investigation(
 
     // Verify project exists if provided
     if let Some(project_id) = payload.project_id {
-        let project = sqlx::query!(
+        let project = sqlx::query_scalar::<_, Uuid>(
             "SELECT id FROM projects WHERE id = $1 AND organization_id = $2",
-            project_id,
-            auth.organization_id
         )
+        .bind(project_id)
+        .bind(auth.organization_id)
         .fetch_optional(&state.db)
         .await;
 
-        if project.is_err() || project.unwrap().is_none() {
+        if project.as_ref().map_or(true, |p| p.is_none()) {
             return error_response(
                 StatusCode::BAD_REQUEST,
                 "Invalid project",
@@ -132,15 +128,15 @@ pub async fn create_investigation(
 
     // Verify tool version exists if provided
     if let Some(tool_version_id) = payload.tool_version_id {
-        let version = sqlx::query!(
+        let version = sqlx::query_scalar::<_, Uuid>(
             "SELECT tv.id FROM tool_versions tv JOIN tools t ON tv.tool_id = t.id WHERE tv.id = $1 AND t.organization_id = $2",
-            tool_version_id,
-            auth.organization_id
         )
+        .bind(tool_version_id)
+        .bind(auth.organization_id)
         .fetch_optional(&state.db)
         .await;
 
-        if version.is_err() || version.unwrap().is_none() {
+        if version.as_ref().map_or(true, |v| v.is_none()) {
             return error_response(
                 StatusCode::BAD_REQUEST,
                 "Invalid tool version",
@@ -152,21 +148,21 @@ pub async fn create_investigation(
     let investigation_id = Uuid::new_v4();
     let now = Utc::now();
 
-    let result = sqlx::query!(
+    let result = sqlx::query(
         r#"
         INSERT INTO investigations (id, organization_id, project_id, name, description, tool_version_id, status, created_by, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, 'draft', $7, $8, $9)
         "#,
-        investigation_id,
-        auth.organization_id,
-        payload.project_id,
-        payload.name,
-        payload.description,
-        payload.tool_version_id,
-        auth.user_id,
-        now,
-        now
     )
+    .bind(investigation_id)
+    .bind(auth.organization_id)
+    .bind(payload.project_id)
+    .bind(&payload.name)
+    .bind(&payload.description)
+    .bind(payload.tool_version_id)
+    .bind(auth.user_id)
+    .bind(now)
+    .bind(now)
     .execute(&state.db)
     .await;
 
@@ -206,26 +202,24 @@ pub async fn get_investigation(
     Extension(auth): Extension<AuthUser>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let investigation = sqlx::query_as!(
-        InvestigationRow,
+    let investigation = sqlx::query_as::<_, InvestigationRow>(
         r#"
-        SELECT id, organization_id, project_id, name, description, tool_version_id, status as "status: InvestigationStatus", created_by, started_at, completed_at, created_at, updated_at
+        SELECT id, organization_id, project_id, name, description, tool_version_id, status, created_by, started_at, completed_at, created_at, updated_at
         FROM investigations WHERE id = $1 AND organization_id = $2
         "#,
-        id,
-        auth.organization_id
     )
+    .bind(id)
+    .bind(auth.organization_id)
     .fetch_optional(&state.db)
     .await;
 
     match investigation {
         Ok(Some(i)) => {
             // Get associated evidence
-            let evidence = sqlx::query_as!(
-                EvidenceRow,
+            let evidence = sqlx::query_as::<_, EvidenceRow>(
                 "SELECT * FROM evidence WHERE investigation_id = $1 ORDER BY collection_time DESC",
-                id
             )
+            .bind(id)
             .fetch_all(&state.db)
             .await
             .unwrap_or_default();
@@ -274,15 +268,14 @@ pub async fn run_investigation(
     Extension(auth): Extension<AuthUser>,
     Path(id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let investigation = sqlx::query_as!(
-        InvestigationRow,
+    let investigation = sqlx::query_as::<_, InvestigationRow>(
         r#"
-        SELECT id, organization_id, project_id, name, description, tool_version_id, status as "status: InvestigationStatus", created_by, started_at, completed_at, created_at, updated_at
+        SELECT id, organization_id, project_id, name, description, tool_version_id, status, created_by, started_at, completed_at, created_at, updated_at
         FROM investigations WHERE id = $1 AND organization_id = $2
         "#,
-        id,
-        auth.organization_id
     )
+    .bind(id)
+    .bind(auth.organization_id)
     .fetch_optional(&state.db)
     .await;
 
@@ -315,14 +308,12 @@ pub async fn run_investigation(
 
     // Update status to running
     let now = Utc::now();
-    sqlx::query!(
-        "UPDATE investigations SET status = 'running', started_at = $1 WHERE id = $2",
-        now,
-        id
-    )
-    .execute(&state.db)
-    .await
-    .ok();
+    sqlx::query("UPDATE investigations SET status = 'running', started_at = $1 WHERE id = $2")
+        .bind(now)
+        .bind(id)
+        .execute(&state.db)
+        .await
+        .ok();
 
     // In a real implementation, this would trigger the tool execution on an agent
     // For MVP, we'll return a message indicating the investigation was started

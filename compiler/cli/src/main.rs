@@ -203,13 +203,21 @@ fn main() -> anyhow::Result<()> {
         Commands::Target {
             command: TargetCommands::List,
         } => list_targets(),
-        Commands::Login { email, password, url } => repo_login(email, password, &url),
+        Commands::Login {
+            email,
+            password,
+            url,
+        } => repo_login(email, password, &url),
         Commands::Search { query } => repo_search(&query),
         Commands::Install { tool, version } => repo_install(&tool, version.as_deref()),
         Commands::List => repo_list(),
         Commands::Info { tool } => repo_info(&tool),
         Commands::Update { tool } => repo_update(tool.as_deref()),
-        Commands::Publish { file, version, description } => repo_publish(&file, &version, &description),
+        Commands::Publish {
+            file,
+            version,
+            description,
+        } => repo_publish(&file, &version, &description),
         Commands::Ide { port } => launch_ide(port),
     }
 }
@@ -232,7 +240,9 @@ fn run(file: &PathBuf, target: &str, arch: &str, output: &PathBuf) -> anyhow::Re
 
     match target_platform {
         TargetPlatform::Linux if !cfg!(target_os = "linux") => {
-            anyhow::bail!("Running Linux artifacts directly is only supported on a Linux host (or via WSL).");
+            anyhow::bail!(
+                "Running Linux artifacts directly is only supported on a Linux host (or via WSL)."
+            );
         }
         TargetPlatform::Windows if !cfg!(target_os = "windows") => {
             anyhow::bail!("Running Windows artifacts directly is only supported on a Windows host (or via Wine).");
@@ -462,7 +472,9 @@ fn compile(
 
     let artifact_file = match target_platform {
         TargetPlatform::Linux => output.join(format!("{}-linux-{}", ir.name, arch_suffix(arch)?)),
-        TargetPlatform::Windows => output.join(format!("{}-windows-{}.exe", ir.name, arch_suffix(arch)?)),
+        TargetPlatform::Windows => {
+            output.join(format!("{}-windows-{}.exe", ir.name, arch_suffix(arch)?))
+        }
     };
 
     println!("✓ Compilation successful");
@@ -536,7 +548,9 @@ fn verify_artifact(artifact: &PathBuf) -> anyhow::Result<()> {
     }
 
     let actual_hash = calculate_file_hash(artifact)?;
-    let parent = artifact.parent().unwrap_or_else(|| std::path::Path::new("."));
+    let parent = artifact
+        .parent()
+        .unwrap_or_else(|| std::path::Path::new("."));
     let metadata_dir = if parent.as_os_str().is_empty() {
         std::path::Path::new(".")
     } else {
@@ -546,24 +560,37 @@ fn verify_artifact(artifact: &PathBuf) -> anyhow::Result<()> {
     // Check direct sidecar first (e.g. file.meta.json)
     let sidecar = metadata_dir.join(format!(
         "{}.meta.json",
-        artifact.file_name().and_then(|n| n.to_str()).unwrap_or_default()
+        artifact
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or_default()
     ));
 
     if sidecar.is_file() {
         let content = std::fs::read(&sidecar)?;
         if let Ok(evidence_meta) = serde_json::from_slice::<serde_json::Value>(&content) {
-            if let Some(expected_hash) = evidence_meta.get("evidence_hash").and_then(|h| h.as_str()) {
+            if let Some(expected_hash) = evidence_meta.get("evidence_hash").and_then(|h| h.as_str())
+            {
                 if expected_hash == actual_hash {
                     println!("Integrity: VALID");
                     println!("SHA-256: {}", actual_hash);
                     println!("Metadata: {}", sidecar.display());
-                    if let Some(name) = evidence_meta.get("investigation_name").and_then(|n| n.as_str()) {
+                    if let Some(name) = evidence_meta
+                        .get("investigation_name")
+                        .and_then(|n| n.as_str())
+                    {
                         println!("Investigation: {}", name);
                     }
-                    if let Some(host) = evidence_meta.get("host_identifier").and_then(|h| h.as_str()) {
+                    if let Some(host) = evidence_meta
+                        .get("host_identifier")
+                        .and_then(|h| h.as_str())
+                    {
                         println!("Host: {}", host);
                     }
-                    if let Some(time) = evidence_meta.get("collection_time").and_then(|t| t.as_str()) {
+                    if let Some(time) = evidence_meta
+                        .get("collection_time")
+                        .and_then(|t| t.as_str())
+                    {
                         println!("Collected: {}", time);
                     }
                     return Ok(());
@@ -764,7 +791,11 @@ fn save_config(cfg: &CliConfig) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn repo_login(email: Option<String>, password: Option<String>, api_url: &str) -> anyhow::Result<()> {
+fn repo_login(
+    email: Option<String>,
+    password: Option<String>,
+    api_url: &str,
+) -> anyhow::Result<()> {
     let email = match email {
         Some(e) => e,
         None => {
@@ -813,14 +844,19 @@ fn repo_login(email: Option<String>, password: Option<String>, api_url: &str) ->
     save_config(&cfg)?;
 
     println!("✓ Successfully logged in as {}", email);
-    println!("  Auth token stored in {}", get_config_dir().join("config.json").display());
+    println!(
+        "  Auth token stored in {}",
+        get_config_dir().join("config.json").display()
+    );
 
     Ok(())
 }
 
 fn repo_search(query: &str) -> anyhow::Result<()> {
     let cfg = load_config();
-    let api_url = cfg.api_url.unwrap_or_else(|| "http://localhost:8080".to_string());
+    let api_url = cfg
+        .api_url
+        .unwrap_or_else(|| "http://localhost:8080".to_string());
     let url = if query.is_empty() {
         format!("{}/api/tools", api_url)
     } else {
@@ -844,9 +880,18 @@ fn repo_search(query: &str) -> anyhow::Result<()> {
 
     if let Some(items) = resp.get("data").and_then(|i| i.as_array()) {
         for item in items {
-            let name = item.get("name").and_then(|n| n.as_str()).unwrap_or("unknown");
-            let version = item.get("version").and_then(|v| v.as_str()).unwrap_or("0.1.0");
-            let desc = item.get("description").and_then(|d| d.as_str()).unwrap_or("");
+            let name = item
+                .get("name")
+                .and_then(|n| n.as_str())
+                .unwrap_or("unknown");
+            let version = item
+                .get("version")
+                .and_then(|v| v.as_str())
+                .unwrap_or("0.1.0");
+            let desc = item
+                .get("description")
+                .and_then(|d| d.as_str())
+                .unwrap_or("");
             println!("{:<28} {:<10} {:<40}", name, version, desc);
         }
     }
@@ -856,13 +901,20 @@ fn repo_search(query: &str) -> anyhow::Result<()> {
 
 fn repo_install(tool_name: &str, version: Option<&str>) -> anyhow::Result<()> {
     if version.is_some() {
-        anyhow::bail!("Installing a specific repository version is not supported by the current API");
+        anyhow::bail!(
+            "Installing a specific repository version is not supported by the current API"
+        );
     }
-    let tool_id = uuid::Uuid::parse_str(tool_name)
-        .map_err(|_| anyhow::anyhow!("Install requires a repository tool UUID, not a local example name"))?;
+    let tool_id = uuid::Uuid::parse_str(tool_name).map_err(|_| {
+        anyhow::anyhow!("Install requires a repository tool UUID, not a local example name")
+    })?;
     let cfg = load_config();
-    let api_url = cfg.api_url.unwrap_or_else(|| "http://localhost:8080".to_string());
-    let token = cfg.token.ok_or_else(|| anyhow::anyhow!("Not logged in; run traceforge login first"))?;
+    let api_url = cfg
+        .api_url
+        .unwrap_or_else(|| "http://localhost:8080".to_string());
+    let token = cfg
+        .token
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run traceforge login first"))?;
     println!("Installing '{}'...", tool_id);
     let target_dir = PathBuf::from(".").join("tools");
     std::fs::create_dir_all(&target_dir)?;
@@ -881,8 +933,12 @@ fn repo_install(tool_name: &str, version: Option<&str>) -> anyhow::Result<()> {
 
 fn repo_list() -> anyhow::Result<()> {
     let cfg = load_config();
-    let api_url = cfg.api_url.unwrap_or_else(|| "http://localhost:8080".to_string());
-    let token = cfg.token.ok_or_else(|| anyhow::anyhow!("Not logged in; run traceforge login first"))?;
+    let api_url = cfg
+        .api_url
+        .unwrap_or_else(|| "http://localhost:8080".to_string());
+    let token = cfg
+        .token
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run traceforge login first"))?;
     let response: serde_json::Value = ureq::get(&format!("{}/api/tools", api_url))
         .set("Authorization", &format!("Bearer {}", token))
         .call()
@@ -897,8 +953,12 @@ fn repo_info(tool: &str) -> anyhow::Result<()> {
     let tool_id = uuid::Uuid::parse_str(tool)
         .map_err(|_| anyhow::anyhow!("Info requires a repository tool UUID"))?;
     let cfg = load_config();
-    let api_url = cfg.api_url.unwrap_or_else(|| "http://localhost:8080".to_string());
-    let token = cfg.token.ok_or_else(|| anyhow::anyhow!("Not logged in; run traceforge login first"))?;
+    let api_url = cfg
+        .api_url
+        .unwrap_or_else(|| "http://localhost:8080".to_string());
+    let token = cfg
+        .token
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run traceforge login first"))?;
     let response: serde_json::Value = ureq::get(&format!("{}/api/tools/{}", api_url, tool_id))
         .set("Authorization", &format!("Bearer {}", token))
         .call()
@@ -923,19 +983,34 @@ fn repo_publish(file: &PathBuf, version: &str, description: &str) -> anyhow::Res
 
     let source = std::fs::read_to_string(file)?;
     let cfg = load_config();
-    let api_url = cfg.api_url.unwrap_or_else(|| "http://localhost:8080".to_string());
+    let api_url = cfg
+        .api_url
+        .unwrap_or_else(|| "http://localhost:8080".to_string());
 
-    println!("Publishing {} (version {}) to {}...", file.display(), version, api_url);
+    println!(
+        "Publishing {} (version {}) to {}...",
+        file.display(),
+        version,
+        api_url
+    );
     println!("Description: {}", description);
 
-    let token = cfg.token.ok_or_else(|| anyhow::anyhow!("Not logged in; run traceforge login first"))?;
-    let tool_name = file.file_stem().and_then(|s| s.to_str()).unwrap_or("traceforge-tool");
+    let token = cfg
+        .token
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run traceforge login first"))?;
+    let tool_name = file
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("traceforge-tool");
     let tool_response: serde_json::Value = ureq::post(&format!("{}/api/tools", api_url))
         .set("Authorization", &format!("Bearer {}", token))
         .send_json(&serde_json::json!({ "name": tool_name, "description": description }))
         .map_err(|e| anyhow::anyhow!("Tool creation failed: {e}"))?
         .into_json()?;
-    let tool_id = tool_response.get("id").and_then(|id| id.as_str()).ok_or_else(|| anyhow::anyhow!("API did not return a tool id"))?;
+    let tool_id = tool_response
+        .get("id")
+        .and_then(|id| id.as_str())
+        .ok_or_else(|| anyhow::anyhow!("API did not return a tool id"))?;
     let version_response = ureq::post(&format!("{}/api/tools/{}/versions", api_url, tool_id))
         .set("Authorization", &format!("Bearer {}", token))
         .send_json(&serde_json::json!({
@@ -945,7 +1020,10 @@ fn repo_publish(file: &PathBuf, version: &str, description: &str) -> anyhow::Res
             "target_arch": "x64"
         }))
         .map_err(|e| anyhow::anyhow!("Tool version creation failed: {e}"))?;
-    println!("✓ Tool version published to repository (HTTP {})", version_response.status());
+    println!(
+        "✓ Tool version published to repository (HTTP {})",
+        version_response.status()
+    );
     println!("  Artifact Hash: {}", calculate_sha256(&source));
 
     Ok(())
@@ -958,7 +1036,10 @@ fn launch_ide(port: u16) -> anyhow::Result<()> {
     println!("  Opening Web & Desktop Forensic IDE...");
     println!("  Local Web URL: http://localhost:{}", port);
     println!("  API Engine:    http://localhost:8080");
-    println!("  Runtime Host:  Local Windows Host ({})", whoami::devicename());
+    println!(
+        "  Runtime Host:  Local Windows Host ({})",
+        whoami::devicename()
+    );
     println!("============================================================");
 
     #[cfg(target_os = "windows")]

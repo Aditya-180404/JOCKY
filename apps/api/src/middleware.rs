@@ -58,15 +58,15 @@ pub async fn auth_middleware(
 
     // Verify session exists
     let token_hash = sha256_hash(&token);
-    let session = sqlx::query!(
+    let session = sqlx::query_scalar::<_, Uuid>(
         "SELECT user_id FROM sessions WHERE token_hash = $1 AND expires_at > $2",
-        token_hash,
-        chrono::Utc::now()
     )
+    .bind(&token_hash)
+    .bind(chrono::Utc::now())
     .fetch_optional(&state.db)
     .await;
 
-    if session.is_err() || session.unwrap().is_none() {
+    if session.as_ref().map_or(true, |s| s.is_none()) {
         return (StatusCode::UNAUTHORIZED, "Session expired or invalid").into_response();
     }
 
@@ -89,14 +89,12 @@ pub async fn auth_middleware(
     };
 
     // Update session last accessed
-    sqlx::query!(
-        "UPDATE sessions SET last_accessed_at = $1 WHERE token_hash = $2",
-        chrono::Utc::now(),
-        token_hash
-    )
-    .execute(&state.db)
-    .await
-    .ok();
+    sqlx::query("UPDATE sessions SET last_accessed_at = $1 WHERE token_hash = $2")
+        .bind(chrono::Utc::now())
+        .bind(&token_hash)
+        .execute(&state.db)
+        .await
+        .ok();
 
     // Add auth user to request extensions
     let auth_user = AuthUser {

@@ -119,7 +119,9 @@ fn collect_journal_logs() -> Result<Vec<serde_json::Value>, Box<dyn std::error::
 
 fn collect_auth_logs() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     #[cfg(target_os = "windows")]
-    return Err("Windows uses the system event log source; auth is not a Windows log source".into());
+    return Err(
+        "Windows uses the system event log source; auth is not a Windows log source".into(),
+    );
     #[cfg(not(target_os = "windows"))]
     let path = "/var/log/auth.log";
     #[cfg(not(target_os = "windows"))]
