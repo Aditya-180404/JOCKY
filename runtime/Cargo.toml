@@ -5,6 +5,9 @@ edition = { workspace = true }
 license = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
+[lib]
+name = "traceforge_runtime"
+crate-type = ["rlib", "staticlib"]
 
 [dependencies]
 traceforge-runtime-system = { path = "system" }

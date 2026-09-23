@@ -2,7 +2,7 @@
 
 use clap::{Parser, Subcommand};
 use std::path::{Path, PathBuf};
-use traceforge_backend::Backend;
+use traceforge_backend::{Backend, BackendKind};
 use traceforge_ir::{BuildConfig, TargetArch, TargetPlatform};
 use traceforge_lexer::Lexer;
 use traceforge_parser::Parser as TfParser;
@@ -44,6 +44,24 @@ enum Commands {
         /// Optimization level (none, size, speed)
         #[arg(long, default_value = "speed")]
         opt: String,
+        /// Compilation backend (llvm, rust)
+        #[arg(short, long, default_value = "llvm")]
+        backend: String,
+        /// Emit HIR representation (.hir.json)
+        #[arg(long)]
+        emit_hir: bool,
+        /// Emit MIR representation (.mir.json)
+        #[arg(long)]
+        emit_mir: bool,
+        /// Emit LLVM IR (.ll)
+        #[arg(long)]
+        emit_llvm: bool,
+        /// Emit all intermediate artifacts (.tokens, .ast.json, .hir.json, .mir.json, .ll, .manifest.json)
+        #[arg(long)]
+        emit_all: bool,
+        /// Verbose compiler pipeline output
+        #[arg(short, long)]
+        verbose: bool,
     },
     /// Build a TraceForge source file (alias for compile)
     Build {
@@ -58,9 +76,24 @@ enum Commands {
         /// Output directory
         #[arg(short, long, default_value = "./build")]
         output: PathBuf,
-        /// Emit all intermediate artifacts (.tokens, .ast.json, .ir.json, .manifest.json)
+        /// Compilation backend (llvm, rust)
+        #[arg(short, long, default_value = "llvm")]
+        backend: String,
+        /// Emit HIR representation (.hir.json)
+        #[arg(long)]
+        emit_hir: bool,
+        /// Emit MIR representation (.mir.json)
+        #[arg(long)]
+        emit_mir: bool,
+        /// Emit LLVM IR (.ll)
+        #[arg(long)]
+        emit_llvm: bool,
+        /// Emit all intermediate artifacts (.tokens, .ast.json, .hir.json, .mir.json, .ll, .manifest.json)
         #[arg(long)]
         emit_all: bool,
+        /// Verbose compiler pipeline output
+        #[arg(short, long)]
+        verbose: bool,
     },
     /// Inspect a TraceForge source file (show AST/IR)
     Inspect {
@@ -208,20 +241,49 @@ fn main() -> anyhow::Result<()> {
             arch,
             output,
             opt,
-        } => compile(&file, &target, &arch, &output, &opt),
+            backend,
+            emit_hir,
+            emit_mir,
+            emit_llvm,
+            emit_all,
+            verbose,
+        } => compile(
+            &file,
+            &target,
+            &arch,
+            &output,
+            &opt,
+            &backend,
+            emit_hir,
+            emit_mir,
+            emit_llvm,
+            emit_all,
+            verbose,
+        ),
         Commands::Build {
             file,
             target,
             arch,
             output,
+            backend,
+            emit_hir,
+            emit_mir,
+            emit_llvm,
             emit_all,
-        } => {
-            compile(&file, &target, &arch, &output, "speed")?;
-            if emit_all {
-                emit_all_artifacts(&file, &output)?;
-            }
-            Ok(())
-        }
+            verbose,
+        } => compile(
+            &file,
+            &target,
+            &arch,
+            &output,
+            "speed",
+            &backend,
+            emit_hir,
+            emit_mir,
+            emit_llvm,
+            emit_all,
+            verbose,
+        ),
         Commands::Inspect { file, format } => inspect(&file, &format),
         Commands::Hash { file } => hash_file(&file),
         Commands::Verify { artifact } => verify_artifact(&artifact),
@@ -264,7 +326,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn run(file: &Path, target: &str, arch: &str, output: &Path) -> anyhow::Result<()> {
-    compile(file, target, arch, output, "speed")?;
+    compile(file, target, arch, output, "speed", "llvm", false, false, false, false, false)?;
 
     let target_platform = match target.to_lowercase().as_str() {
         "linux" => TargetPlatform::Linux,
@@ -424,15 +486,39 @@ fn validate(file: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn compile(file: &Path, target: &str, arch: &str, output: &Path, opt: &str) -> anyhow::Result<()> {
+#[allow(clippy::too_many_arguments)]
+fn compile(
+    file: &Path,
+    target: &str,
+    arch: &str,
+    output: &Path,
+    opt: &str,
+    backend_name: &str,
+    emit_hir: bool,
+    emit_mir: bool,
+    emit_llvm: bool,
+    emit_all: bool,
+    verbose: bool,
+) -> anyhow::Result<()> {
     println!("Compiling {}", file.display());
 
     let source = std::fs::read_to_string(file)?;
     let source_hash = calculate_sha256(&source);
 
+    // --- Lex ---
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize()?;
 
+    if emit_all {
+        std::fs::create_dir_all(output)?;
+        let tok_path = output.join(format!("{}.tokens", file.file_stem().and_then(|s| s.to_str()).unwrap_or("output")));
+        let mut tok_str = String::new();
+        for t in &tokens { tok_str.push_str(&format!("{:?}\n", t)); }
+        std::fs::write(&tok_path, tok_str)?;
+        println!("  Tokens → {}", tok_path.display());
+    }
+
+    // --- Parse ---
     let mut parser = TfParser::new(tokens);
     let (ast, diags) = parser.parse_with_diagnostics();
 
@@ -445,6 +531,13 @@ fn compile(file: &Path, target: &str, arch: &str, output: &Path, opt: &str) -> a
 
     let ast = ast.unwrap();
 
+    if emit_all {
+        let ast_path = output.join(format!("{}.ast.json", file.file_stem().and_then(|s| s.to_str()).unwrap_or("output")));
+        std::fs::write(&ast_path, serde_json::to_string_pretty(&ast)?)?;
+        println!("  AST   → {}", ast_path.display());
+    }
+
+    // --- Semantic Analysis ---
     let mut analyzer = SemanticAnalyzer::new();
     let (ir, sem_diags) = analyzer.analyze_with_diagnostics(&ast);
 
@@ -455,7 +548,7 @@ fn compile(file: &Path, target: &str, arch: &str, output: &Path, opt: &str) -> a
 
     let ir = ir.unwrap();
 
-    // Parse target platform
+    // --- Target resolution ---
     let target_platform = match target.to_lowercase().as_str() {
         "linux" => TargetPlatform::Linux,
         "windows" => TargetPlatform::Windows,
@@ -490,10 +583,70 @@ fn compile(file: &Path, target: &str, arch: &str, output: &Path, opt: &str) -> a
         strip_symbols: true,
     };
 
-    println!("  Output directory: {}", output.display());
-    println!("  Investigation name: {}", ir.name);
+    // --- Resolve backend kind ---
+    let backend_kind: BackendKind = backend_name.parse().unwrap_or(BackendKind::Llvm);
+    if verbose {
+        println!("  Backend:          {:?}", backend_kind);
+        println!("  Target:           {:?}-{:?}", target_platform, target_arch);
+        println!("  Optimization:     {:?}", optimization_level);
+    }
 
-    let backend = Backend::new(config);
+    std::fs::create_dir_all(output)?;
+    println!("  Output directory: {}", output.display());
+    println!("  Investigation:    {}", ir.name);
+
+    // --- HIR lowering (for LLVM path and emit flags) ---
+    let maybe_hir = if backend_kind == BackendKind::Llvm || emit_hir || emit_all {
+        let hir: traceforge_hir::HirInvestigation = (&ir).into();
+        Some(hir)
+    } else {
+        None
+    };
+
+    if emit_hir || emit_all {
+        if let Some(hir) = &maybe_hir {
+            let hir_path = output.join(format!("{}.hir.json", ir.name));
+            std::fs::write(&hir_path, serde_json::to_string_pretty(hir)?)?;
+            println!("  HIR   → {}", hir_path.display());
+        }
+    }
+
+    // --- MIR lowering (for LLVM path and emit flags) ---
+    let maybe_mir = if backend_kind == BackendKind::Llvm || emit_mir || emit_llvm || emit_all {
+        if let Some(hir) = &maybe_hir {
+            let mir = traceforge_mir::MirLowering::lower(hir)
+                .map_err(|e| anyhow::anyhow!("MIR lowering failed: {}", e))?;
+            Some(mir)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    if emit_mir || emit_all {
+        if let Some(mir) = &maybe_mir {
+            let mir_path = output.join(format!("{}.mir.json", ir.name));
+            std::fs::write(&mir_path, serde_json::to_string_pretty(mir)?)?;
+            println!("  MIR   → {}", mir_path.display());
+        }
+    }
+
+    // --- LLVM IR emission (optional, before actual compilation) ---
+    if emit_llvm || emit_all {
+        if let Some(mir) = &maybe_mir {
+            let llvm_backend = traceforge_backend::LlvmBackend::new(config.clone());
+            let llvm_ir = llvm_backend
+                .generate_llvm_ir(mir)
+                .map_err(|e| anyhow::anyhow!("LLVM IR generation failed: {}", e))?;
+            let ll_path = output.join(format!("{}.ll", ir.name));
+            std::fs::write(&ll_path, &llvm_ir)?;
+            println!("  LLVM  → {}", ll_path.display());
+        }
+    }
+
+    // --- Code generation ---
+    let backend = Backend::new_with_kind(config, backend_kind);
     let mut metadata = backend.generate(&ir, output)?;
 
     // Update metadata with actual values
@@ -501,9 +654,20 @@ fn compile(file: &Path, target: &str, arch: &str, output: &Path, opt: &str) -> a
     metadata.compiler_version = env!("CARGO_PKG_VERSION").to_string();
     metadata.compiler_hash = calculate_compiler_hash()?;
 
-    // Write metadata
+    // Write compile metadata sidecar
     let meta_path = output.join(format!("{}.meta.json", ir.name));
     std::fs::write(&meta_path, serde_json::to_vec_pretty(&metadata)?)?;
+
+    if emit_all {
+        let cap_manifest = serde_json::json!({
+            "investigation": ir.name,
+            "required_capabilities": ir.required_capabilities.iter().map(|c| c.as_str()).collect::<Vec<_>>(),
+            "operations_count": ir.operations.len(),
+        });
+        let manifest_path = output.join(format!("{}.manifest.json", ir.name));
+        std::fs::write(&manifest_path, serde_json::to_string_pretty(&cap_manifest)?)?;
+        println!("  Manifest → {}", manifest_path.display());
+    }
 
     let artifact_file = match target_platform {
         TargetPlatform::Linux => output.join(format!("{}-linux-{}", ir.name, arch_suffix(arch)?)),
@@ -514,7 +678,7 @@ fn compile(file: &Path, target: &str, arch: &str, output: &Path, opt: &str) -> a
 
     println!("✓ Compilation successful");
     println!("  Artifact: {}", artifact_file.display());
-    println!("  SHA-256: {}", metadata.artifact_hash);
+    println!("  SHA-256:  {}", metadata.artifact_hash);
     println!("  Metadata: {}", meta_path.display());
 
     Ok(())
@@ -698,49 +862,6 @@ fn calculate_file_hash(file: &Path) -> anyhow::Result<String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
-fn emit_all_artifacts(file: &Path, output: &Path) -> anyhow::Result<()> {
-    let source = std::fs::read_to_string(file)?;
-    std::fs::create_dir_all(output)?;
-
-    let mut lexer = Lexer::new(&source);
-    let tokens = lexer.tokenize()?;
-    let tokens_path = output.join("tokens.txt");
-    let mut token_str = String::new();
-    for token in &tokens {
-        token_str.push_str(&format!("{:?}\n", token));
-    }
-    std::fs::write(&tokens_path, token_str)?;
-    println!("  Tokens emitted to: {}", tokens_path.display());
-
-    let mut parser = TfParser::new(tokens);
-    let (ast, _diags) = parser.parse_with_diagnostics();
-    if let Some(ast) = &ast {
-        let ast_json = serde_json::to_string_pretty(ast)?;
-        let ast_path = output.join("ast.json");
-        std::fs::write(&ast_path, ast_json)?;
-        println!("  AST emitted to: {}", ast_path.display());
-
-        let mut analyzer = SemanticAnalyzer::new();
-        let (ir, _sem_diags) = analyzer.analyze_with_diagnostics(ast);
-        if let Some(ir) = &ir {
-            let ir_json = serde_json::to_string_pretty(ir)?;
-            let ir_path = output.join("ir.json");
-            std::fs::write(&ir_path, ir_json)?;
-            println!("  IR emitted to: {}", ir_path.display());
-
-            let manifest = serde_json::json!({
-                "investigation": ir.name,
-                "required_capabilities": ir.required_capabilities.iter().map(|c| c.as_str()).collect::<Vec<_>>(),
-                "operations_count": ir.operations.len(),
-            });
-            let manifest_path = output.join("capabilities.json");
-            std::fs::write(&manifest_path, serde_json::to_string_pretty(&manifest)?)?;
-            println!("  Capabilities emitted to: {}", manifest_path.display());
-        }
-    }
-
-    Ok(())
-}
 
 fn evidence_verify(evidence: &Path, meta: &Path) -> anyhow::Result<()> {
     println!("Verifying evidence: {}", evidence.display());

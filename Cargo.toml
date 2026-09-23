@@ -6,6 +6,8 @@ members = [
     "compiler/ast",
     "compiler/semantic",
     "compiler/ir",
+    "compiler/hir",
+    "compiler/mir",
     "compiler/backend",
     "compiler/cli",
     "runtime",

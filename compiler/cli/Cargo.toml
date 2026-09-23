@@ -16,6 +16,8 @@ traceforge-parser = { path = "../parser" }
 traceforge-ast = { path = "../ast" }
 traceforge-semantic = { path = "../semantic" }
 traceforge-ir = { path = "../ir" }
+traceforge-hir = { path = "../hir" }
+traceforge-mir = { path = "../mir" }
 traceforge-backend = { path = "../backend" }
 traceforge-runtime = { path = "../../runtime" }
 anyhow = { workspace = true }

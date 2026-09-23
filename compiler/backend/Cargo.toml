@@ -9,6 +9,8 @@ repository = { workspace = true }
 [dependencies]
 traceforge-ast = { path = "../ast" }
 traceforge-ir = { path = "../ir" }
+traceforge-hir = { path = "../hir" }
+traceforge-mir = { path = "../mir" }
 traceforge-runtime = { path = "../../runtime" }
 anyhow = { workspace = true }
 chrono = { workspace = true }

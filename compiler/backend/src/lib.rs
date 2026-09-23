@@ -16,9 +16,38 @@ pub enum BackendError {
     TemplateError(String),
 }
 
+pub mod llvm;
+pub use llvm::LlvmBackend;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum BackendKind {
+    Rust,
+    Llvm,
+}
+
+impl Default for BackendKind {
+    fn default() -> Self {
+        BackendKind::Llvm
+    }
+}
+
+impl std::str::FromStr for BackendKind {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "llvm" => Ok(BackendKind::Llvm),
+            "rust" => Ok(BackendKind::Rust),
+            _ => Err(format!("Unknown backend kind: {}", s)),
+        }
+    }
+}
+
 pub struct Backend {
     config: BuildConfig,
+    kind: BackendKind,
 }
+
 
 fn command_exists(executable: &str) -> bool {
     std::process::Command::new(executable)
@@ -71,7 +100,18 @@ fn windows_cross_compile_requirement_message(
 
 impl Backend {
     pub fn new(config: BuildConfig) -> Self {
-        Self { config }
+        Self {
+            config,
+            kind: BackendKind::Llvm,
+        }
+    }
+
+    pub fn new_with_kind(config: BuildConfig, kind: BackendKind) -> Self {
+        Self { config, kind }
+    }
+
+    pub fn kind(&self) -> BackendKind {
+        self.kind
     }
 
     pub fn validate_target(&self) -> Result<(), BackendError> {
@@ -153,7 +193,33 @@ impl Backend {
         }
     }
 
+    pub fn generate_from_mir(
+        &self,
+        mir: &traceforge_mir::MirProgram,
+        output_dir: &Path,
+    ) -> Result<ArtifactMetadata, BackendError> {
+        let llvm_backend = LlvmBackend::new(self.config.clone());
+        llvm_backend.compile(mir, output_dir)
+    }
+
     pub fn generate(
+        &self,
+        ir: &IrInvestigation,
+        output_dir: &Path,
+    ) -> Result<ArtifactMetadata, BackendError> {
+        match self.kind {
+            BackendKind::Llvm => {
+                let hir: traceforge_hir::HirInvestigation = ir.into();
+                let mir = traceforge_mir::MirLowering::lower(&hir)
+                    .map_err(|e| BackendError::CodeGenError(e))?;
+                let llvm_backend = LlvmBackend::new(self.config.clone());
+                llvm_backend.compile(&mir, output_dir)
+            }
+            BackendKind::Rust => self.generate_rust(ir, output_dir),
+        }
+    }
+
+    pub fn generate_rust(
         &self,
         ir: &IrInvestigation,
         output_dir: &Path,

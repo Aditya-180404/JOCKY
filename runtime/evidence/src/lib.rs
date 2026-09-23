@@ -169,6 +169,10 @@ impl EvidenceCollector {
         self.metadata.insert(key.to_string(), value);
     }
 
+    pub fn add_record(&mut self, record: serde_json::Value) {
+        self.data.push(record);
+    }
+
     pub fn finalize(&mut self) -> Result<EvidenceMetadata, Box<dyn std::error::Error>> {
         // Apply filters
         self.apply_filters()?;

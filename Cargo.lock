@@ -3917,7 +3917,9 @@ dependencies = [
  "sha2 0.10.9",
  "thiserror 1.0.69",
  "traceforge-ast",
+ "traceforge-hir",
  "traceforge-ir",
+ "traceforge-mir",
  "traceforge-runtime",
 ]
 
@@ -3933,8 +3935,10 @@ dependencies = [
  "sha2 0.10.9",
  "traceforge-ast",
  "traceforge-backend",
+ "traceforge-hir",
  "traceforge-ir",
  "traceforge-lexer",
+ "traceforge-mir",
  "traceforge-parser",
  "traceforge-runtime",
  "traceforge-semantic",
@@ -3972,6 +3976,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "traceforge-hir"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "traceforge-ast",
+ "traceforge-ir",
+]
+
+[[package]]
 name = "traceforge-ir"
 version = "0.1.0"
 dependencies = [
@@ -3987,6 +4003,18 @@ dependencies = [
  "serde",
  "thiserror 1.0.69",
  "traceforge-ast",
+]
+
+[[package]]
+name = "traceforge-mir"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "traceforge-ast",
+ "traceforge-hir",
 ]
 
 [[package]]
