@@ -75,7 +75,9 @@ pub fn enumerate_connections() -> Result<Vec<serde_json::Value>, Box<dyn std::er
 
         if let Ok(output) = tcp_output {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            if let Ok(serde_json::Value::Array(items)) = serde_json::from_str::<serde_json::Value>(&stdout) {
+            if let Ok(serde_json::Value::Array(items)) =
+                serde_json::from_str::<serde_json::Value>(&stdout)
+            {
                 for item in items {
                     if let Some(map) = item.as_object() {
                         results.push(serde_json::json!({

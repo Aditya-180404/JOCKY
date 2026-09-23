@@ -383,13 +383,7 @@ fn validate(file: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn compile(
-    file: &Path,
-    target: &str,
-    arch: &str,
-    output: &Path,
-    opt: &str,
-) -> anyhow::Result<()> {
+fn compile(file: &Path, target: &str, arch: &str, output: &Path, opt: &str) -> anyhow::Result<()> {
     println!("Compiling {}", file.display());
 
     let source = std::fs::read_to_string(file)?;
