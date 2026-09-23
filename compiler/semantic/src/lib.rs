@@ -4,11 +4,12 @@ use std::collections::HashSet;
 use thiserror::Error;
 use traceforge_ast::{
     Capability, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr, HashAlgorithm,
-    Investigation, Span, Stmt,
+    Investigation, PipelineStage, Span, Stmt,
 };
 use traceforge_ir::{
-    IrCollectOperation, IrExportOperation, IrFilterOperation, IrInvestigation, IrLimitOperation,
-    IrMetadataOperation, IrOperation, IrWhereOperation,
+    IrAssignOperation, IrCollectOperation, IrEvidencePipelineOperation, IrExportOperation,
+    IrFilterOperation, IrInvestigation, IrLimitOperation, IrMetadataOperation, IrOperation,
+    IrPipelineStage, IrWhereOperation,
 };
 
 #[derive(Debug, Error)]
@@ -101,7 +102,7 @@ impl SemanticAnalyzer {
         let has_collect = investigation
             .statements
             .iter()
-            .any(|s| matches!(s, Stmt::Collect { .. }));
+            .any(|s| matches!(s, Stmt::Collect { .. } | Stmt::Assign { .. }));
         if !has_collect {
             self.add_error(
                 "Investigation must have at least one 'collect' statement",
@@ -109,8 +110,12 @@ impl SemanticAnalyzer {
             );
         }
 
-        // Must have export statement
-        if !has_export {
+        // Must have export statement or evidence pipeline
+        let has_export_or_evidence = investigation
+            .statements
+            .iter()
+            .any(|s| matches!(s, Stmt::Export { .. } | Stmt::EvidencePipeline { .. }));
+        if !has_export_or_evidence {
             self.add_error(
                 "Investigation must have an 'export evidence' statement",
                 investigation.span,
@@ -128,6 +133,9 @@ impl SemanticAnalyzer {
 
         for stmt in &investigation.statements {
             match stmt {
+                Stmt::Target(_, _) => {
+                    // Already captured in investigation.target — no IR op needed
+                }
                 Stmt::Collect {
                     target,
                     options,
@@ -135,6 +143,34 @@ impl SemanticAnalyzer {
                 } => {
                     let ops = self.convert_collect(target, options, *span)?;
                     operations.extend(ops);
+                }
+                Stmt::Assign {
+                    variable,
+                    expression,
+                    span,
+                } => {
+                    // Infer capabilities from expression
+                    self.infer_capabilities_from_expr(expression);
+                    let expr_json = self.expr_to_json(expression)?;
+                    operations.push(IrOperation::Assign(IrAssignOperation {
+                        variable: variable.clone(),
+                        expression: expr_json,
+                        span: *span,
+                    }));
+                }
+                Stmt::EvidencePipeline {
+                    variable,
+                    stages,
+                    span,
+                } => {
+                    let ir_stages = self.convert_pipeline_stages(stages)?;
+                    operations.push(IrOperation::EvidencePipeline(
+                        IrEvidencePipelineOperation {
+                            variable: variable.clone(),
+                            stages: ir_stages,
+                            span: *span,
+                        },
+                    ));
                 }
                 Stmt::Export { format, path, span } => {
                     operations.push(IrOperation::Export(IrExportOperation {
@@ -182,6 +218,7 @@ impl SemanticAnalyzer {
 
         Ok(IrInvestigation {
             name: investigation.name.clone(),
+            target: investigation.target.clone(),
             metadata: ir_metadata,
             operations,
             required_capabilities: self.required_capabilities.clone(),
@@ -269,6 +306,34 @@ impl SemanticAnalyzer {
                     span,
                 })])
             }
+            CollectTarget::Drivers => {
+                self.required_capabilities.insert(Capability::DriverRead);
+                Ok(vec![IrOperation::Collect(IrCollectOperation {
+                    operation: "drivers.enumerate".to_string(),
+                    fields: options.fields.clone(),
+                    options: self.convert_collect_options(options)?,
+                    span,
+                })])
+            }
+            CollectTarget::Timeline { sources } => {
+                self.required_capabilities.insert(Capability::TimelineRead);
+                let mut opts = self.convert_collect_options(options)?;
+                opts.insert(
+                    "sources".to_string(),
+                    serde_json::Value::Array(
+                        sources
+                            .iter()
+                            .map(|s| serde_json::Value::String(s.clone()))
+                            .collect(),
+                    ),
+                );
+                Ok(vec![IrOperation::Collect(IrCollectOperation {
+                    operation: "timeline.build".to_string(),
+                    fields: vec![],
+                    options: opts,
+                    span,
+                })])
+            }
         }
     }
 
@@ -330,6 +395,98 @@ impl SemanticAnalyzer {
 
     fn convert_expression(&self, expr: &Expr) -> Result<serde_json::Value, Vec<Diagnostic>> {
         self.expr_to_json(expr)
+    }
+
+    /// Infer capabilities from expressions that contain collect sub-expressions
+    fn infer_capabilities_from_expr(&mut self, expr: &Expr) {
+        match expr {
+            Expr::Collect { target, options, .. } => {
+                match target {
+                    CollectTarget::Processes => {
+                        self.required_capabilities.insert(Capability::ProcessRead);
+                        if options.hash_algorithm.is_some() {
+                            self.required_capabilities.insert(Capability::FileHash);
+                        }
+                    }
+                    CollectTarget::NetworkConnections => {
+                        self.required_capabilities.insert(Capability::NetworkRead);
+                    }
+                    CollectTarget::SystemInfo => {
+                        self.required_capabilities.insert(Capability::SystemInfoRead);
+                    }
+                    CollectTarget::Files { .. } => {
+                        self.required_capabilities.insert(Capability::FilesystemRead);
+                        if options.hash_algorithm.is_some() {
+                            self.required_capabilities.insert(Capability::FileHash);
+                        }
+                    }
+                    CollectTarget::Logs { .. } => {
+                        self.required_capabilities.insert(Capability::LogRead);
+                    }
+                    CollectTarget::Drivers => {
+                        self.required_capabilities.insert(Capability::DriverRead);
+                    }
+                    CollectTarget::Timeline { .. } => {
+                        self.required_capabilities.insert(Capability::TimelineRead);
+                    }
+                    CollectTarget::Evidence { .. } => {}
+                }
+            }
+            Expr::Pipeline { source, .. } => {
+                self.infer_capabilities_from_expr(source);
+            }
+            _ => {}
+        }
+    }
+
+    fn convert_pipeline_stages(
+        &self,
+        stages: &[PipelineStage],
+    ) -> Result<Vec<IrPipelineStage>, Vec<Diagnostic>> {
+        let mut ir_stages = Vec::new();
+        for stage in stages {
+            match stage {
+                PipelineStage::Where(cond, span) => {
+                    ir_stages.push(IrPipelineStage::Where {
+                        condition: self.expr_to_json(cond)?,
+                        span: *span,
+                    });
+                }
+                PipelineStage::Filter(cond, span) => {
+                    ir_stages.push(IrPipelineStage::Filter {
+                        condition: self.expr_to_json(cond)?,
+                        span: *span,
+                    });
+                }
+                PipelineStage::Hash(algo, span) => {
+                    ir_stages.push(IrPipelineStage::Hash {
+                        algorithm: match algo {
+                            HashAlgorithm::Sha256 => "sha256",
+                            HashAlgorithm::Sha1 => "sha1",
+                            HashAlgorithm::Md5 => "md5",
+                        }
+                        .to_string(),
+                        span: *span,
+                    });
+                }
+                PipelineStage::Timeline(span) => {
+                    ir_stages.push(IrPipelineStage::Timeline { span: *span });
+                }
+                PipelineStage::Export(path, span) => {
+                    ir_stages.push(IrPipelineStage::Export {
+                        path: path.clone(),
+                        span: *span,
+                    });
+                }
+                PipelineStage::Limit(count, span) => {
+                    ir_stages.push(IrPipelineStage::Limit {
+                        count: self.expr_to_json(count)?,
+                        span: *span,
+                    });
+                }
+            }
+        }
+        Ok(ir_stages)
     }
 
     fn expr_to_json(&self, expr: &Expr) -> Result<serde_json::Value, Vec<Diagnostic>> {
@@ -395,6 +552,72 @@ impl SemanticAnalyzer {
                     map.insert(key.clone(), self.expr_to_json(value)?);
                 }
                 Ok(serde_json::Value::Object(map))
+            }
+            Expr::Pipeline {
+                source,
+                stages,
+                ..
+            } => {
+                // Represent pipeline as JSON
+                let mut stage_arr = Vec::new();
+                for stage in stages {
+                    let stage_json = match stage {
+                        PipelineStage::Where(cond, _) => serde_json::json!({
+                            "stage": "where",
+                            "condition": self.expr_to_json(cond)?
+                        }),
+                        PipelineStage::Filter(cond, _) => serde_json::json!({
+                            "stage": "filter",
+                            "condition": self.expr_to_json(cond)?
+                        }),
+                        PipelineStage::Hash(algo, _) => serde_json::json!({
+                            "stage": "hash",
+                            "algorithm": format!("{:?}", algo).to_lowercase()
+                        }),
+                        PipelineStage::Timeline(_) => serde_json::json!({ "stage": "timeline" }),
+                        PipelineStage::Export(path, _) => serde_json::json!({
+                            "stage": "export",
+                            "path": path
+                        }),
+                        PipelineStage::Limit(count, _) => serde_json::json!({
+                            "stage": "limit",
+                            "count": self.expr_to_json(count)?
+                        }),
+                    };
+                    stage_arr.push(stage_json);
+                }
+                Ok(serde_json::json!({
+                    "pipeline": {
+                        "source": self.expr_to_json(source)?,
+                        "stages": stage_arr
+                    }
+                }))
+            }
+            Expr::Collect {
+                target, options, ..
+            } => {
+                // Serialize collect expression as JSON
+                let target_str = match target {
+                    CollectTarget::SystemInfo => "system_info",
+                    CollectTarget::Processes => "processes",
+                    CollectTarget::NetworkConnections => "network_connections",
+                    CollectTarget::Files { .. } => "files",
+                    CollectTarget::Logs { .. } => "logs",
+                    CollectTarget::Evidence { .. } => "evidence",
+                    CollectTarget::Drivers => "drivers",
+                    CollectTarget::Timeline { .. } => "timeline",
+                };
+                Ok(serde_json::json!({
+                    "collect": {
+                        "target": target_str,
+                        "fields": options.fields,
+                        "hash": options.hash_algorithm.map(|h| match h {
+                            HashAlgorithm::Sha256 => "sha256",
+                            HashAlgorithm::Sha1 => "sha1",
+                            HashAlgorithm::Md5 => "md5",
+                        })
+                    }
+                }))
             }
         }
     }
@@ -516,5 +739,48 @@ mod tests {
             .required_capabilities
             .contains(&Capability::FilesystemRead));
         assert!(ir.required_capabilities.contains(&Capability::FileHash));
+    }
+
+    #[test]
+    fn test_drivers_collect_adds_capability() {
+        let source = r#"
+            investigation "test" {
+                collect drivers
+                export evidence "out.json"
+            }
+        "#;
+        let (ir, diags) = analyze_source(source);
+        assert!(diags.is_empty(), "Expected no diagnostics, got: {:?}", diags);
+        let ir = ir.unwrap();
+        assert!(ir.required_capabilities.contains(&Capability::DriverRead));
+    }
+
+    #[test]
+    fn test_timeline_collect_adds_capability() {
+        let source = r#"
+            investigation "test" {
+                collect timeline
+                export evidence "out.json"
+            }
+        "#;
+        let (ir, diags) = analyze_source(source);
+        assert!(diags.is_empty(), "Expected no diagnostics, got: {:?}", diags);
+        let ir = ir.unwrap();
+        assert!(ir.required_capabilities.contains(&Capability::TimelineRead));
+    }
+
+    #[test]
+    fn test_target_statement() {
+        let source = r#"
+            investigation "test" {
+                target windows
+                collect system_info
+                export evidence "out.json"
+            }
+        "#;
+        let (ir, diags) = analyze_source(source);
+        assert!(diags.is_empty(), "Expected no diagnostics, got: {:?}", diags);
+        let ir = ir.unwrap();
+        assert_eq!(ir.target, Some("windows".to_string()));
     }
 }

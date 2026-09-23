@@ -342,6 +342,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
             IrOperation::Where(where_op) => self.generate_where(where_op),
             IrOperation::Limit(limit) => self.generate_limit(limit),
             IrOperation::Metadata(meta) => self.generate_metadata(meta),
+            IrOperation::Assign(assign) => Ok(format!(
+                "    // Assignment: {} = ...\n    let _{} = evidence.collect_variable({:?})?;\n",
+                assign.variable, assign.variable, assign.expression
+            )),
+            IrOperation::EvidencePipeline(ep) => Ok(format!(
+                "    // Evidence pipeline for variable: {}\n    evidence.process_pipeline(\"{}\", {:?})?;\n",
+                ep.variable, ep.variable, ep.stages.len()
+            )),
         }
     }
 
@@ -638,6 +646,7 @@ mod tests {
 
         let ir = IrInvestigation {
             name: "test_investigation".to_string(),
+            target: None,
             metadata: vec![],
             operations: vec![],
             required_capabilities: HashSet::from([Capability::SystemInfoRead]),

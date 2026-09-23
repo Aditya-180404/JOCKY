@@ -4,7 +4,7 @@ use std::vec;
 use thiserror::Error;
 use traceforge_ast::{
     BinaryOp, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr, HashAlgorithm,
-    Investigation, Span, Stmt, Token, TokenKind, UnaryOp,
+    Investigation, PipelineStage, Span, Stmt, Token, TokenKind, UnaryOp,
 };
 use traceforge_lexer::LexerError;
 
@@ -91,9 +91,20 @@ impl Parser {
             metadata = self.parse_metadata_block()?;
         }
 
+        let mut target = None;
+        if self.check(TokenKind::Target) {
+            self.advance();
+            target = Some(self.consume_identifier("expected target platform (e.g. windows, linux)")?);
+        }
+
         let mut statements = Vec::new();
         while !self.check(TokenKind::RightBrace) && !self.check(TokenKind::Eof) {
             if let Some(stmt) = self.parse_statement()? {
+                if let Stmt::Target(ref t, _) = stmt {
+                    if target.is_none() {
+                        target = Some(t.clone());
+                    }
+                }
                 statements.push(stmt);
             }
         }
@@ -104,6 +115,7 @@ impl Parser {
 
         Ok(Investigation {
             name,
+            target,
             metadata,
             statements,
             span: start_span.merge(&end_span),
@@ -133,16 +145,78 @@ impl Parser {
         Ok(metadata)
     }
 
+    fn token_as_identifier(&self, kind: &TokenKind) -> Option<String> {
+        match kind {
+            TokenKind::Identifier(name) => Some(name.clone()),
+            TokenKind::Processes => Some("processes".to_string()),
+            TokenKind::SystemInfo => Some("system_info".to_string()),
+            TokenKind::NetworkConnections => Some("network_connections".to_string()),
+            TokenKind::Files => Some("files".to_string()),
+            TokenKind::Logs => Some("logs".to_string()),
+            TokenKind::Drivers => Some("drivers".to_string()),
+            TokenKind::Timeline => Some("timeline".to_string()),
+            TokenKind::Evidence => Some("evidence".to_string()),
+            TokenKind::Target => Some("target".to_string()),
+            _ => None,
+        }
+    }
+
+    fn peek_is_equal(&self) -> bool {
+        if self.current + 1 < self.tokens.len() {
+            matches!(self.tokens[self.current + 1].kind, TokenKind::Equal)
+        } else {
+            false
+        }
+    }
+
     fn parse_statement(&mut self) -> Result<Option<Stmt>, Vec<Diagnostic>> {
-        let token = self.current_token();
+        let token = self.current_token().clone();
+
+        if self.peek_is_equal() {
+            if let Some(name) = self.token_as_identifier(&token.kind) {
+                let start_span = token.span;
+                self.advance(); // consume identifier
+                self.consume(TokenKind::Equal, "expected '='")?;
+                let expression = self.parse_expression()?;
+                let span = start_span.merge(&expression.span());
+                return Ok(Some(Stmt::Assign {
+                    variable: name,
+                    expression,
+                    span,
+                }));
+            }
+        }
 
         match &token.kind {
+            TokenKind::Target => self.parse_target_statement().map(Some),
             TokenKind::Collect => self.parse_collect_statement().map(Some),
             TokenKind::Export => self.parse_export_statement().map(Some),
             TokenKind::Filter => self.parse_filter_statement().map(Some),
             TokenKind::Where => self.parse_where_statement().map(Some),
             TokenKind::Limit => self.parse_limit_statement().map(Some),
             TokenKind::Metadata => self.parse_metadata_statement().map(Some),
+            TokenKind::Evidence => self.parse_evidence_statement().map(Some),
+            TokenKind::Identifier(name) => {
+                let name = name.clone();
+                let start_span = token.span;
+                self.advance();
+                if self.match_token(TokenKind::Equal) {
+                    let expression = self.parse_expression()?;
+                    let span = start_span.merge(&expression.span());
+                    Ok(Some(Stmt::Assign {
+                        variable: name,
+                        expression,
+                        span,
+                    }))
+                } else {
+                    self.add_diagnostic(Diagnostic::error(
+                        format!("Unexpected identifier '{}' in statement position, expected '='", name),
+                        start_span,
+                    ));
+                    self.synchronize();
+                    Ok(None)
+                }
+            }
             _ => {
                 self.add_diagnostic(Diagnostic::error(
                     format!("Unexpected token {:?} in statement position", token.kind),
@@ -152,6 +226,33 @@ impl Parser {
                 Ok(None)
             }
         }
+    }
+
+    fn parse_target_statement(&mut self) -> Result<Stmt, Vec<Diagnostic>> {
+        let start_span = self.consume(TokenKind::Target, "expected 'target'")?.span;
+        let target = self.consume_identifier("expected target platform (e.g. windows, linux)")?;
+        let span = start_span.merge(&self.previous_token_span());
+        Ok(Stmt::Target(target, span))
+    }
+
+    fn parse_evidence_statement(&mut self) -> Result<Stmt, Vec<Diagnostic>> {
+        let start_span = self.consume(TokenKind::Evidence, "expected 'evidence'")?.span;
+        let var_name = self.consume_identifier("expected variable name after 'evidence'")?;
+        let mut stages = Vec::new();
+        while self.match_token(TokenKind::Pipe) {
+            let stage = self.parse_pipeline_stage()?;
+            stages.push(stage);
+        }
+        let span = if let Some(last) = stages.last() {
+            start_span.merge(&last.span())
+        } else {
+            start_span.merge(&self.previous_token_span())
+        };
+        Ok(Stmt::EvidencePipeline {
+            variable: var_name,
+            stages,
+            span,
+        })
     }
 
     fn parse_collect_statement(&mut self) -> Result<Stmt, Vec<Diagnostic>> {
@@ -183,6 +284,23 @@ impl Parser {
             TokenKind::NetworkConnections => {
                 self.advance();
                 Ok(CollectTarget::NetworkConnections)
+            }
+            TokenKind::Drivers => {
+                self.advance();
+                Ok(CollectTarget::Drivers)
+            }
+            TokenKind::Timeline => {
+                self.advance();
+                let mut sources = Vec::new();
+                if self.check(TokenKind::LeftBrace) {
+                    self.advance();
+                    while !self.check(TokenKind::RightBrace) && !self.check(TokenKind::Eof) {
+                        let src = self.consume_identifier("expected timeline source event type")?;
+                        sources.push(src);
+                    }
+                    self.consume(TokenKind::RightBrace, "expected '}' closing timeline sources")?;
+                }
+                Ok(CollectTarget::Timeline { sources })
             }
             TokenKind::Files => {
                 self.advance();
@@ -441,7 +559,87 @@ impl Parser {
     }
 
     fn parse_expression(&mut self) -> Result<Expr, Vec<Diagnostic>> {
-        self.parse_or()
+        let mut expr = self.parse_or()?;
+
+        if self.check(TokenKind::Pipe) {
+            let mut stages = Vec::new();
+            while self.match_token(TokenKind::Pipe) {
+                let stage = self.parse_pipeline_stage()?;
+                stages.push(stage);
+            }
+            let span = if let Some(last) = stages.last() {
+                expr.span().merge(&last.span())
+            } else {
+                expr.span()
+            };
+            expr = Expr::Pipeline {
+                source: Box::new(expr),
+                stages,
+                span,
+            };
+        }
+
+        Ok(expr)
+    }
+
+    fn parse_pipeline_stage(&mut self) -> Result<PipelineStage, Vec<Diagnostic>> {
+        let token = self.current_token().clone();
+        match &token.kind {
+            TokenKind::Where => {
+                self.advance();
+                let cond = self.parse_or()?;
+                let span = token.span.merge(&cond.span());
+                Ok(PipelineStage::Where(cond, span))
+            }
+            TokenKind::Filter => {
+                self.advance();
+                let cond = self.parse_or()?;
+                let span = token.span.merge(&cond.span());
+                Ok(PipelineStage::Filter(cond, span))
+            }
+            TokenKind::Limit => {
+                self.advance();
+                let count = self.parse_or()?;
+                let span = token.span.merge(&count.span());
+                Ok(PipelineStage::Limit(count, span))
+            }
+            TokenKind::Hash => {
+                self.advance();
+                let algo_token = self.current_token().clone();
+                let (algo, algo_span) = match algo_token.kind {
+                    TokenKind::Sha256 => (HashAlgorithm::Sha256, algo_token.span),
+                    TokenKind::Sha1 => (HashAlgorithm::Sha1, algo_token.span),
+                    TokenKind::Md5 => (HashAlgorithm::Md5, algo_token.span),
+                    _ => {
+                        self.add_diagnostic(Diagnostic::error(
+                            "Expected hash algorithm (sha256, sha1, md5)",
+                            algo_token.span,
+                        ));
+                        (HashAlgorithm::Sha256, algo_token.span)
+                    }
+                };
+                self.advance();
+                let span = token.span.merge(&algo_span);
+                Ok(PipelineStage::Hash(algo, span))
+            }
+            TokenKind::Timeline => {
+                self.advance();
+                Ok(PipelineStage::Timeline(token.span))
+            }
+            TokenKind::Export => {
+                self.advance();
+                let path = self.consume_string("expected export file path")?;
+                let span = token.span.merge(&self.previous_token_span());
+                Ok(PipelineStage::Export(path, span))
+            }
+            _ => {
+                self.add_diagnostic(Diagnostic::error(
+                    format!("Unexpected pipeline stage '{:?}'", token.kind),
+                    token.span,
+                ));
+                Err(vec![])
+            }
+        }
     }
 
     fn parse_or(&mut self) -> Result<Expr, Vec<Diagnostic>> {
@@ -510,12 +708,14 @@ impl Parser {
             TokenKind::GreaterEqual,
             TokenKind::Less,
             TokenKind::LessEqual,
+            TokenKind::Contains,
         ]) {
             let op = match self.previous_token_kind() {
                 TokenKind::Greater => BinaryOp::Greater,
                 TokenKind::GreaterEqual => BinaryOp::GreaterEqual,
                 TokenKind::Less => BinaryOp::Less,
                 TokenKind::LessEqual => BinaryOp::LessEqual,
+                TokenKind::Contains => BinaryOp::Contains,
                 _ => unreachable!(),
             };
             let right = self.parse_term()?;
@@ -598,6 +798,17 @@ impl Parser {
         let token = self.current_token().clone();
 
         match token.kind {
+            TokenKind::Collect => {
+                let start_span = self.consume(TokenKind::Collect, "expected 'collect'")?.span;
+                let target = self.parse_collect_target()?;
+                let options = self.parse_collect_options()?;
+                let span = start_span.merge(&self.previous_token_span());
+                Ok(Expr::Collect {
+                    target,
+                    options: Box::new(options),
+                    span,
+                })
+            }
             TokenKind::True => {
                 self.advance();
                 Ok(Expr::BooleanLiteral(true, token.span))
@@ -621,14 +832,17 @@ impl Parser {
             TokenKind::Identifier(name) => {
                 self.advance();
 
-                // Check for field access or function call
-                if self.match_token(TokenKind::Dot) {
+                let mut expr = Expr::Identifier(name, token.span);
+
+                // Chained field access e.g. parent.name or hash.sha256
+                while self.match_token(TokenKind::Dot) {
                     let field = self.consume_identifier("expected field name after '.'")?;
-                    return Ok(Expr::FieldAccess {
-                        object: Box::new(Expr::Identifier(name, token.span)),
+                    let span = expr.span().merge(&self.previous_token_span());
+                    expr = Expr::FieldAccess {
+                        object: Box::new(expr),
                         field,
-                        span: token.span.merge(&self.previous_token_span()),
-                    });
+                        span,
+                    };
                 }
 
                 if self.match_token(TokenKind::LeftParen) {
@@ -643,13 +857,13 @@ impl Parser {
                     }
                     self.consume(TokenKind::RightParen, "expected ')' after arguments")?;
                     return Ok(Expr::Call {
-                        callee: Box::new(Expr::Identifier(name, token.span)),
+                        callee: Box::new(expr),
                         arguments: args,
                         span: token.span.merge(&self.previous_token_span()),
                     });
                 }
 
-                Ok(Expr::Identifier(name, token.span))
+                Ok(expr)
             }
             TokenKind::LeftParen => {
                 self.advance();
@@ -688,7 +902,25 @@ impl Parser {
                 let end_span = self.consume(TokenKind::RightBrace, "expected '}'")?.span;
                 Ok(Expr::ObjectLiteral(fields, token.span.merge(&end_span)))
             }
-            _ => {
+            ref kind => {
+                if let Some(name) = self.token_as_identifier(kind) {
+                    self.advance();
+                    let mut expr = Expr::Identifier(name, token.span);
+
+                    // Chained field access e.g. parent.name
+                    while self.match_token(TokenKind::Dot) {
+                        let field = self.consume_identifier("expected field name after '.'")?;
+                        let span = expr.span().merge(&self.previous_token_span());
+                        expr = Expr::FieldAccess {
+                            object: Box::new(expr),
+                            field,
+                            span,
+                        };
+                    }
+
+                    return Ok(expr);
+                }
+
                 self.add_diagnostic(Diagnostic::error(
                     format!("Unexpected token {:?} in expression", token.kind),
                     token.span,
@@ -773,7 +1005,7 @@ impl Parser {
 
     fn consume_identifier(&mut self, message: &str) -> Result<String, Vec<Diagnostic>> {
         let token = self.current_token().clone();
-        if let TokenKind::Identifier(name) = token.kind {
+        if let Some(name) = self.token_as_identifier(&token.kind) {
             self.advance();
             Ok(name)
         } else {
@@ -869,6 +1101,8 @@ impl ExprSpan for Expr {
             Expr::Call { span, .. } => *span,
             Expr::ArrayLiteral(_, span) => *span,
             Expr::ObjectLiteral(_, span) => *span,
+            Expr::Pipeline { span, .. } => *span,
+            Expr::Collect { span, .. } => *span,
         }
     }
 }
@@ -954,5 +1188,43 @@ mod tests {
         assert!(diags.is_empty());
         let inv = inv.unwrap();
         assert_eq!(inv.metadata.len(), 2);
+    }
+
+    #[test]
+    fn test_parse_full_pipeline_investigation() {
+        let source = r#"
+            investigation "process_triage" {
+                target windows
+
+                processes = collect processes {
+                    pid
+                    name
+                    parent
+                    command_line
+                    executable
+                    start_time
+                    hash.sha256
+                }
+
+                suspicious = processes
+                    | where command_line contains "powershell"
+                    | where parent.name == "winword.exe"
+
+                evidence suspicious
+                    | hash sha256
+                    | timeline
+                    | export "suspicious-processes.json"
+            }
+        "#;
+        let (inv, diags) = parse_source(source);
+        assert!(diags.is_empty(), "diags: {:?}", diags);
+        let inv = inv.unwrap();
+        assert_eq!(inv.name, "process_triage");
+        assert_eq!(inv.target, Some("windows".to_string()));
+        // target is consumed as investigation header, leaving 3 body statements:
+        //   1. processes = collect processes { ... }
+        //   2. suspicious = processes | where ... | where ...
+        //   3. evidence suspicious | hash sha256 | timeline | export "..."
+        assert_eq!(inv.statements.len(), 3);
     }
 }

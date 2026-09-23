@@ -7,6 +7,7 @@ use traceforge_ast::{Capability, Span};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IrInvestigation {
     pub name: String,
+    pub target: Option<String>,
     pub metadata: Vec<(String, serde_json::Value)>,
     pub operations: Vec<IrOperation>,
     pub required_capabilities: HashSet<Capability>,
@@ -22,6 +23,10 @@ pub enum IrOperation {
     Where(IrWhereOperation),
     Limit(IrLimitOperation),
     Metadata(IrMetadataOperation),
+    /// Variable assignment: `var = collect ...` or `var = expr | where ...`
+    Assign(IrAssignOperation),
+    /// Evidence pipeline statement: `evidence var | hash sha256 | timeline | export "out.json"`
+    EvidencePipeline(IrEvidencePipelineOperation),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -63,8 +68,39 @@ pub struct IrMetadataOperation {
     pub span: Span,
 }
 
+/// Assignment: variable_name = pipeline-expression (collect + optional filters)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IrAssignOperation {
+    /// Target variable name
+    pub variable: String,
+    /// The RHS expression in JSON form (for pipeline/collect expressions)
+    pub expression: serde_json::Value,
+    pub span: Span,
+}
+
+/// Evidence pipeline: `evidence varname | hash sha256 | timeline | export "path"`
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IrEvidencePipelineOperation {
+    pub variable: String,
+    pub stages: Vec<IrPipelineStage>,
+    pub span: Span,
+}
+
+/// A single pipeline stage in evidence pipelines
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "stage")]
+pub enum IrPipelineStage {
+    Where { condition: serde_json::Value, span: Span },
+    Filter { condition: serde_json::Value, span: Span },
+    Hash { algorithm: String, span: Span },
+    Timeline { span: Span },
+    Export { path: String, span: Span },
+    Limit { count: serde_json::Value, span: Span },
+}
+
 /// IR Version for compatibility checking
 pub const IR_VERSION: &str = "0.1";
+
 
 /// Serialize IR to JSON
 pub fn serialize_ir(investigation: &IrInvestigation) -> Result<String, serde_json::Error> {

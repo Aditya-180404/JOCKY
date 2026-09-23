@@ -16,6 +16,8 @@ members = [
     "runtime/logs",
     "runtime/evidence",
     "runtime/security",
+    "runtime/drivers",
+    "runtime/timeline",
     "apps/api",
     "services/compiler-worker",
     "packages/shared-types",

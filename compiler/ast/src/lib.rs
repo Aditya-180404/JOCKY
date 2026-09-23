@@ -55,6 +55,7 @@ impl fmt::Display for Span {
 pub enum TokenKind {
     // Keywords
     Investigation,
+    Target,
     Collect,
     Export,
     Filter,
@@ -68,12 +69,15 @@ pub enum TokenKind {
     Files,
     Logs,
     Evidence,
+    Drivers,
+    Timeline,
     Recursive,
     Sha256,
     Sha1,
     Md5,
     And,
     Or,
+    Contains,
 
     // Literals
     Identifier(String),
@@ -106,6 +110,7 @@ pub enum TokenKind {
     LessEqual,
     Greater,
     GreaterEqual,
+    Pipe,
 
     // Special
     Eof,
@@ -120,6 +125,30 @@ pub struct Token {
 impl Token {
     pub fn new(kind: TokenKind, span: Span) -> Self {
         Self { kind, span }
+    }
+}
+
+/// Pipeline processing stage node
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum PipelineStage {
+    Where(Expr, Span),
+    Filter(Expr, Span),
+    Hash(HashAlgorithm, Span),
+    Timeline(Span),
+    Export(String, Span),
+    Limit(Expr, Span),
+}
+
+impl PipelineStage {
+    pub fn span(&self) -> Span {
+        match self {
+            PipelineStage::Where(_, s) => *s,
+            PipelineStage::Filter(_, s) => *s,
+            PipelineStage::Hash(_, s) => *s,
+            PipelineStage::Timeline(s) => *s,
+            PipelineStage::Export(_, s) => *s,
+            PipelineStage::Limit(_, s) => *s,
+        }
     }
 }
 
@@ -154,6 +183,16 @@ pub enum Expr {
     },
     ArrayLiteral(Vec<Expr>, Span),
     ObjectLiteral(Vec<(String, Expr)>, Span),
+    Pipeline {
+        source: Box<Expr>,
+        stages: Vec<PipelineStage>,
+        span: Span,
+    },
+    Collect {
+        target: CollectTarget,
+        options: Box<CollectOptions>,
+        span: Span,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -170,6 +209,7 @@ pub enum BinaryOp {
     GreaterEqual,
     And,
     Or,
+    Contains,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -181,6 +221,7 @@ pub enum UnaryOp {
 /// Statement nodes
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Stmt {
+    Target(String, Span),
     Collect {
         target: CollectTarget,
         options: CollectOptions,
@@ -204,17 +245,30 @@ pub enum Stmt {
         span: Span,
     },
     Metadata(Vec<(String, Expr)>, Span),
+    Assign {
+        variable: String,
+        expression: Expr,
+        span: Span,
+    },
+    EvidencePipeline {
+        variable: String,
+        stages: Vec<PipelineStage>,
+        span: Span,
+    },
 }
 
 impl Stmt {
     pub fn span(&self) -> Span {
         match self {
+            Stmt::Target(_, span) => *span,
             Stmt::Collect { span, .. } => *span,
             Stmt::Export { span, .. } => *span,
             Stmt::Filter { span, .. } => *span,
             Stmt::Where { span, .. } => *span,
             Stmt::Limit { span, .. } => *span,
             Stmt::Metadata(_, span) => *span,
+            Stmt::Assign { span, .. } => *span,
+            Stmt::EvidencePipeline { span, .. } => *span,
         }
     }
 }
@@ -227,6 +281,8 @@ pub enum CollectTarget {
     Files { path: String },
     Logs { source: String },
     Evidence { format: String },
+    Drivers,
+    Timeline { sources: Vec<String> },
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -256,6 +312,7 @@ pub enum ExportFormat {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Investigation {
     pub name: String,
+    pub target: Option<String>,
     pub metadata: Vec<(String, Expr)>,
     pub statements: Vec<Stmt>,
     pub span: Span,
@@ -317,6 +374,8 @@ pub enum Capability {
     LogRead,
     SystemInfoRead,
     FileHash,
+    DriverRead,
+    TimelineRead,
 }
 
 impl Capability {
@@ -328,6 +387,8 @@ impl Capability {
             Capability::LogRead => "LOG_READ",
             Capability::SystemInfoRead => "SYSTEM_INFO_READ",
             Capability::FileHash => "FILE_HASH",
+            Capability::DriverRead => "DRIVER_READ",
+            Capability::TimelineRead => "TIMELINE_READ",
         }
     }
 }
@@ -343,6 +404,8 @@ impl std::str::FromStr for Capability {
             "LOG_READ" => Ok(Capability::LogRead),
             "SYSTEM_INFO_READ" => Ok(Capability::SystemInfoRead),
             "FILE_HASH" => Ok(Capability::FileHash),
+            "DRIVER_READ" => Ok(Capability::DriverRead),
+            "TIMELINE_READ" => Ok(Capability::TimelineRead),
             _ => Err(()),
         }
     }

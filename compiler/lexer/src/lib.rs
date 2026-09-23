@@ -122,6 +122,7 @@ impl Lexer {
                     Ok(Some(self.make_token(TokenKind::Greater)))
                 }
             }
+            '|' => Ok(Some(self.make_token(TokenKind::Pipe))),
             '"' => self.string_literal(),
             c if c.is_ascii_digit() => self.number(),
             c if c.is_ascii_alphabetic() || c == '_' => self.identifier(),
@@ -214,6 +215,7 @@ impl Lexer {
 
         let kind = match value.as_str() {
             "investigation" => TokenKind::Investigation,
+            "target" => TokenKind::Target,
             "collect" => TokenKind::Collect,
             "export" => TokenKind::Export,
             "filter" => TokenKind::Filter,
@@ -227,6 +229,8 @@ impl Lexer {
             "files" => TokenKind::Files,
             "logs" => TokenKind::Logs,
             "evidence" => TokenKind::Evidence,
+            "drivers" => TokenKind::Drivers,
+            "timeline" => TokenKind::Timeline,
             "true" => TokenKind::True,
             "false" => TokenKind::False,
             "recursive" => TokenKind::Recursive,
@@ -235,6 +239,7 @@ impl Lexer {
             "md5" => TokenKind::Md5,
             "and" => TokenKind::And,
             "or" => TokenKind::Or,
+            "contains" => TokenKind::Contains,
             _ => TokenKind::Identifier(value),
         };
 
@@ -367,5 +372,22 @@ mod tests {
         assert!(matches!(tokens[1].kind, TokenKind::SystemInfo));
         assert!(matches!(tokens[2].kind, TokenKind::Collect));
         assert!(matches!(tokens[3].kind, TokenKind::Processes));
+    }
+
+    #[test]
+    fn test_tokenize_pipeline_and_extended_tokens() {
+        let mut lexer = Lexer::new("target windows\nsuspicious = proc | where cmd contains \"powershell\"");
+        let tokens = lexer.tokenize().unwrap();
+
+        assert!(matches!(tokens[0].kind, TokenKind::Target));
+        assert!(matches!(tokens[1].kind, TokenKind::Identifier(ref s) if s == "windows"));
+        assert!(matches!(tokens[2].kind, TokenKind::Identifier(ref s) if s == "suspicious"));
+        assert!(matches!(tokens[3].kind, TokenKind::Equal));
+        assert!(matches!(tokens[4].kind, TokenKind::Identifier(ref s) if s == "proc"));
+        assert!(matches!(tokens[5].kind, TokenKind::Pipe));
+        assert!(matches!(tokens[6].kind, TokenKind::Where));
+        assert!(matches!(tokens[7].kind, TokenKind::Identifier(ref s) if s == "cmd"));
+        assert!(matches!(tokens[8].kind, TokenKind::Contains));
+        assert!(matches!(tokens[9].kind, TokenKind::String(ref s) if s == "powershell"));
     }
 }

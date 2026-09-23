@@ -17,8 +17,24 @@ pub struct EvidenceMetadata {
     pub evidence_hash: String,
     pub evidence_size: u64,
     pub merkle_root: Option<String>,
-    pub merkle_proof: Option<Vec<String>>,
+    pub merkle_proof: Option<Vec<MerkleProofNode>>,
     pub blockchain_anchor: Option<BlockchainAnchor>,
+}
+
+/// A single node in a Merkle inclusion proof path
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MerkleProofNode {
+    /// SHA-256 hash of the sibling node
+    pub sibling_hash: String,
+    /// Which side the sibling is on
+    pub position: MerkleNodePosition,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum MerkleNodePosition {
+    Left,
+    Right,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,6 +43,25 @@ pub struct BlockchainAnchor {
     pub block_height: u64,
     pub timestamp: DateTime<Utc>,
     pub network: String,
+}
+
+/// Result of verifying evidence integrity
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum VerificationStatus {
+    Verified,
+    Tampered { reason: String },
+    Missing { detail: String },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerificationResult {
+    pub status: VerificationStatus,
+    pub evidence_path: String,
+    pub metadata_path: String,
+    pub calculated_hash: Option<String>,
+    pub stored_hash: Option<String>,
+    pub merkle_root_valid: Option<bool>,
+    pub verified_at: DateTime<Utc>,
 }
 
 pub struct EvidenceCollector {
@@ -149,11 +184,29 @@ impl EvidenceCollector {
         // Serialize evidence
         let evidence_json = serde_json::to_vec_pretty(&self.data)?;
 
-        // Calculate SHA-256
+        // Calculate SHA-256 of entire evidence array
         let mut hasher = Sha256::new();
         hasher.update(&evidence_json);
         let evidence_hash = format!("{:x}", hasher.finalize());
         let evidence_size = evidence_json.len() as u64;
+
+        // Build Merkle tree from individual evidence items
+        let item_hashes: Vec<String> = self
+            .data
+            .iter()
+            .map(|item| {
+                let bytes = serde_json::to_vec(item).unwrap_or_default();
+                let mut h = Sha256::new();
+                h.update(&bytes);
+                format!("{:x}", h.finalize())
+            })
+            .collect();
+
+        let merkle_root = if item_hashes.is_empty() {
+            None
+        } else {
+            Some(compute_merkle_root(&item_hashes))
+        };
 
         // Write evidence file
         let mut file = fs::File::create(&self.output_path)?;
@@ -168,8 +221,8 @@ impl EvidenceCollector {
             collection_time: Utc::now(),
             evidence_hash,
             evidence_size,
-            merkle_root: None,
-            merkle_proof: None,
+            merkle_root,
+            merkle_proof: None, // Full per-leaf proof can be generated via generate_merkle_proof()
             blockchain_anchor: None,
         };
 
@@ -180,9 +233,28 @@ impl EvidenceCollector {
 
         println!("Evidence written to: {}", self.output_path);
         println!("SHA-256: {}", metadata.evidence_hash);
+        println!("Merkle root: {}", metadata.merkle_root.as_deref().unwrap_or("(empty)"));
         println!("Size: {} bytes", metadata.evidence_size);
 
         Ok(metadata)
+    }
+
+    /// Collect variable: returns a clone of current data (for pipeline variable assignment)
+    pub fn collect_variable(
+        &self,
+        _expr: serde_json::Value,
+    ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+        Ok(self.data.clone())
+    }
+
+    /// Process a pipeline stage count (for evidence pipeline IR operations)
+    pub fn process_pipeline(
+        &mut self,
+        _variable: &str,
+        _stage_count: usize,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // In the full implementation, this would apply pipeline stages to the named variable
+        Ok(())
     }
 
     fn apply_filters(&mut self) -> Result<(), Box<dyn std::error::Error>> {
@@ -546,28 +618,186 @@ pub fn hash_file(path: &str) -> Result<String, Box<dyn std::error::Error>> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
-/// Verify evidence integrity
+/// Verify evidence integrity with detailed result
 pub fn verify_evidence(
     evidence_path: &str,
     metadata_path: &str,
-) -> Result<bool, Box<dyn std::error::Error>> {
-    // Read evidence file
-    let evidence_bytes = fs::read(evidence_path)?;
+) -> Result<VerificationResult, Box<dyn std::error::Error>> {
+    let evidence_path_str = evidence_path.to_string();
+    let metadata_path_str = metadata_path.to_string();
 
-    // Calculate hash
+    // Read evidence file
+    let evidence_bytes = match fs::read(evidence_path) {
+        Ok(b) => b,
+        Err(e) => {
+            return Ok(VerificationResult {
+                status: VerificationStatus::Missing {
+                    detail: format!("Evidence file not readable: {}", e),
+                },
+                evidence_path: evidence_path_str,
+                metadata_path: metadata_path_str,
+                calculated_hash: None,
+                stored_hash: None,
+                merkle_root_valid: None,
+                verified_at: Utc::now(),
+            });
+        }
+    };
+
+    // Calculate hash of evidence file
     let mut hasher = Sha256::new();
     hasher.update(&evidence_bytes);
     let calculated_hash = format!("{:x}", hasher.finalize());
 
     // Read metadata
-    let meta_bytes = fs::read(metadata_path)?;
-    let metadata: EvidenceMetadata = serde_json::from_slice(&meta_bytes)?;
+    let meta_bytes = match fs::read(metadata_path) {
+        Ok(b) => b,
+        Err(e) => {
+            return Ok(VerificationResult {
+                status: VerificationStatus::Missing {
+                    detail: format!("Metadata file not readable: {}", e),
+                },
+                evidence_path: evidence_path_str,
+                metadata_path: metadata_path_str,
+                calculated_hash: Some(calculated_hash),
+                stored_hash: None,
+                merkle_root_valid: None,
+                verified_at: Utc::now(),
+            });
+        }
+    };
 
-    // Compare
-    Ok(calculated_hash == metadata.evidence_hash)
+    let metadata: EvidenceMetadata = serde_json::from_slice(&meta_bytes)?;
+    let stored_hash = metadata.evidence_hash.clone();
+
+    // Check hash match
+    if calculated_hash != stored_hash {
+        return Ok(VerificationResult {
+            status: VerificationStatus::Tampered {
+                reason: format!(
+                    "SHA-256 mismatch: calculated={} stored={}",
+                    &calculated_hash[..16],
+                    &stored_hash[..16]
+                ),
+            },
+            evidence_path: evidence_path_str,
+            metadata_path: metadata_path_str,
+            calculated_hash: Some(calculated_hash),
+            stored_hash: Some(stored_hash),
+            merkle_root_valid: None,
+            verified_at: Utc::now(),
+        });
+    }
+
+    // Verify Merkle root if present
+    let merkle_root_valid = if let Some(stored_root) = &metadata.merkle_root {
+        // Re-compute Merkle root from evidence items
+        let evidence_items: Vec<serde_json::Value> = serde_json::from_slice(&evidence_bytes)?;
+        let item_hashes: Vec<String> = evidence_items
+            .iter()
+            .map(|item| {
+                let bytes = serde_json::to_vec(item).unwrap_or_default();
+                let mut h = Sha256::new();
+                h.update(&bytes);
+                format!("{:x}", h.finalize())
+            })
+            .collect();
+        let computed_root = compute_merkle_root(&item_hashes);
+        Some(computed_root == *stored_root)
+    } else {
+        None
+    };
+
+    // Check Merkle root validity
+    if merkle_root_valid == Some(false) {
+        return Ok(VerificationResult {
+            status: VerificationStatus::Tampered {
+                reason: "Merkle root mismatch: individual evidence items have been modified".to_string(),
+            },
+            evidence_path: evidence_path_str,
+            metadata_path: metadata_path_str,
+            calculated_hash: Some(calculated_hash),
+            stored_hash: Some(stored_hash),
+            merkle_root_valid,
+            verified_at: Utc::now(),
+        });
+    }
+
+    Ok(VerificationResult {
+        status: VerificationStatus::Verified,
+        evidence_path: evidence_path_str,
+        metadata_path: metadata_path_str,
+        calculated_hash: Some(calculated_hash),
+        stored_hash: Some(stored_hash),
+        merkle_root_valid,
+        verified_at: Utc::now(),
+    })
 }
 
-/// Build Merkle tree from evidence files
+/// Generate a Merkle inclusion proof for the item at leaf_index
+pub fn generate_merkle_proof(
+    item_hashes: &[String],
+    leaf_index: usize,
+) -> Option<Vec<MerkleProofNode>> {
+    if item_hashes.is_empty() || leaf_index >= item_hashes.len() {
+        return None;
+    }
+
+    let mut level = item_hashes.to_vec();
+    let mut proof = Vec::new();
+    let mut index = leaf_index;
+
+    while level.len() > 1 {
+        let sibling_index = if index % 2 == 0 { index + 1 } else { index - 1 };
+        let sibling = if sibling_index < level.len() {
+            level[sibling_index].clone()
+        } else {
+            // Duplicate last node (standard Merkle tree padding)
+            level[index].clone()
+        };
+
+        proof.push(MerkleProofNode {
+            sibling_hash: sibling,
+            position: if index % 2 == 0 {
+                MerkleNodePosition::Right
+            } else {
+                MerkleNodePosition::Left
+            },
+        });
+
+        // Build next level
+        let mut next_level = Vec::with_capacity(level.len().div_ceil(2));
+        for pair in level.chunks(2) {
+            let right = pair.get(1).unwrap_or(&pair[0]);
+            next_level.push(format_hash(format!("{}{}", pair[0], right).as_bytes()));
+        }
+        level = next_level;
+        index /= 2;
+    }
+
+    Some(proof)
+}
+
+/// Verify a Merkle inclusion proof
+pub fn verify_merkle_proof_for_item(
+    leaf_hash: &str,
+    proof: &[MerkleProofNode],
+    expected_root: &str,
+) -> bool {
+    let mut current = leaf_hash.to_string();
+
+    for node in proof {
+        let combined = match node.position {
+            MerkleNodePosition::Right => format!("{}{}", current, node.sibling_hash),
+            MerkleNodePosition::Left => format!("{}{}", node.sibling_hash, current),
+        };
+        current = format_hash(combined.as_bytes());
+    }
+
+    current == expected_root
+}
+
+/// Build Merkle tree from evidence files (file-level hash tree)
 pub fn build_merkle_tree(evidence_paths: &[String]) -> Result<String, Box<dyn std::error::Error>> {
     let mut hashes = Vec::new();
     for path in evidence_paths {
@@ -575,22 +805,30 @@ pub fn build_merkle_tree(evidence_paths: &[String]) -> Result<String, Box<dyn st
         hashes.push(hash);
     }
 
-    Ok(merkle_root(&hashes))
+    if hashes.is_empty() {
+        return Ok(String::new());
+    }
+    Ok(compute_merkle_root(&hashes))
 }
 
-/// Verify Merkle proof
+/// Verify a simple Merkle proof (for backward compatibility)
 pub fn verify_merkle_proof(
     leaf_hash: &str,
     proof: &[String],
     root_hash: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
-    let mut hashes = Vec::with_capacity(proof.len() + 1);
-    hashes.push(leaf_hash.to_string());
-    hashes.extend_from_slice(proof);
-    Ok(merkle_root(&hashes) == root_hash)
+    // Convert simple string proof to MerkleProofNode (assumes right-sibling)
+    let nodes: Vec<MerkleProofNode> = proof
+        .iter()
+        .map(|h| MerkleProofNode {
+            sibling_hash: h.clone(),
+            position: MerkleNodePosition::Right,
+        })
+        .collect();
+    Ok(verify_merkle_proof_for_item(leaf_hash, &nodes, root_hash))
 }
 
-fn merkle_root(hashes: &[String]) -> String {
+pub fn compute_merkle_root(hashes: &[String]) -> String {
     if hashes.is_empty() {
         return format_hash(&[]);
     }
@@ -608,32 +846,40 @@ fn merkle_root(hashes: &[String]) -> String {
     level.remove(0)
 }
 
+// Keep old name for compatibility
+fn merkle_root(hashes: &[String]) -> String {
+    compute_merkle_root(hashes)
+}
+
 fn format_hash(bytes: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(bytes);
     format!("{:x}", hasher.finalize())
 }
 
-/// Mock blockchain anchor (for demonstration)
+/// Development blockchain adapter (local JSON ledger, NOT a real blockchain)
+/// This is a development-only adapter that records anchors locally.
+/// In production, replace with a real blockchain adapter implementation.
 pub fn anchor_to_blockchain(hash: &str) -> Result<BlockchainAnchor, Box<dyn std::error::Error>> {
-    // In production, this would submit to a real blockchain
-    // For MVP, we create a mock anchor
+    // Development-only: records to local manifest file
+    // A real production adapter would submit to a verifiable public ledger
+    let dev_adapter = DevelopmentBlockchainAdapter::new();
+    let tx_id = dev_adapter.anchor(hash, "traceforge-evidence")?;
     Ok(BlockchainAnchor {
-        transaction_id: format!("mock_tx_{}", &hash[..16]),
-        block_height: 12345,
+        transaction_id: tx_id,
+        block_height: 0, // Not applicable for development adapter
         timestamp: Utc::now(),
-        network: "mock".to_string(),
+        network: "dev-local".to_string(),
     })
 }
 
-/// Verify blockchain anchor
+/// Verify blockchain anchor (development adapter)
 pub fn verify_blockchain_anchor(
     anchor: &BlockchainAnchor,
     hash: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
-    // In production, this would verify against the blockchain
-    // For MVP, we just check the mock format
-    Ok(anchor.transaction_id == format!("mock_tx_{}", &hash[..16]))
+    let dev_adapter = DevelopmentBlockchainAdapter::new();
+    dev_adapter.verify(hash, &anchor.transaction_id)
 }
 
 #[test]
