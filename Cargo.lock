@@ -4007,12 +4007,25 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "thiserror 1.0.69",
+ "traceforge-runtime-drivers",
  "traceforge-runtime-evidence",
  "traceforge-runtime-filesystem",
  "traceforge-runtime-logs",
  "traceforge-runtime-network",
  "traceforge-runtime-process",
  "traceforge-runtime-system",
+ "traceforge-runtime-timeline",
+]
+
+[[package]]
+name = "traceforge-runtime-drivers"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -4105,6 +4118,16 @@ dependencies = [
  "serde_json",
  "thiserror 1.0.69",
  "whoami",
+]
+
+[[package]]
+name = "traceforge-runtime-timeline"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
 ]
 
 [[package]]

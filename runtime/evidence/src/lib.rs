@@ -846,10 +846,12 @@ pub fn compute_merkle_root(hashes: &[String]) -> String {
     level.remove(0)
 }
 
-// Keep old name for compatibility
+// Keep old name for backward compatibility with existing call sites
+#[allow(dead_code)]
 fn merkle_root(hashes: &[String]) -> String {
     compute_merkle_root(hashes)
 }
+
 
 fn format_hash(bytes: &[u8]) -> String {
     let mut hasher = Sha256::new();

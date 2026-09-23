@@ -7,6 +7,7 @@ use traceforge_ir::{BuildConfig, TargetArch, TargetPlatform};
 use traceforge_lexer::Lexer;
 use traceforge_parser::Parser as TfParser;
 use traceforge_semantic::SemanticAnalyzer;
+use traceforge_runtime_evidence::{VerificationStatus, verify_evidence};
 
 #[derive(Parser)]
 #[command(
@@ -57,6 +58,9 @@ enum Commands {
         /// Output directory
         #[arg(short, long, default_value = "./build")]
         output: PathBuf,
+        /// Emit all intermediate artifacts (.tokens, .ast.json, .ir.json, .manifest.json)
+        #[arg(long)]
+        emit_all: bool,
     },
     /// Inspect a TraceForge source file (show AST/IR)
     Inspect {
@@ -75,6 +79,11 @@ enum Commands {
     Verify {
         /// Artifact to verify
         artifact: PathBuf,
+    },
+    /// Evidence operations (verify integrity, inspect metadata)
+    Evidence {
+        #[command(subcommand)]
+        command: EvidenceCommands,
     },
     /// Initialize a new TraceForge project
     Init {
@@ -171,6 +180,23 @@ enum TargetCommands {
     List,
 }
 
+#[derive(Subcommand)]
+enum EvidenceCommands {
+    /// Verify evidence integrity (SHA-256 + Merkle root)
+    Verify {
+        /// Evidence JSON file to verify
+        evidence: PathBuf,
+        /// Metadata sidecar file (default: <evidence>.meta.json)
+        #[arg(long)]
+        meta: Option<PathBuf>,
+    },
+    /// Inspect evidence metadata sidecar
+    Inspect {
+        /// Evidence JSON or metadata file
+        file: PathBuf,
+    },
+}
+
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
@@ -188,10 +214,26 @@ fn main() -> anyhow::Result<()> {
             target,
             arch,
             output,
-        } => compile(&file, &target, &arch, &output, "speed"),
+            emit_all,
+        } => {
+            compile(&file, &target, &arch, &output, "speed")?;
+            if emit_all {
+                emit_all_artifacts(&file, &output)?;
+            }
+            Ok(())
+        }
         Commands::Inspect { file, format } => inspect(&file, &format),
         Commands::Hash { file } => hash_file(&file),
         Commands::Verify { artifact } => verify_artifact(&artifact),
+        Commands::Evidence { command } => match command {
+            EvidenceCommands::Verify { evidence, meta } => {
+                let meta_path = meta.unwrap_or_else(|| {
+                    PathBuf::from(format!("{}.meta.json", evidence.display()))
+                });
+                evidence_verify(&evidence, &meta_path)
+            }
+            EvidenceCommands::Inspect { file } => evidence_inspect(&file),
+        },
         Commands::Init { name } => init_project(&name),
         Commands::Run {
             file,
