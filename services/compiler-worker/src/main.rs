@@ -231,7 +231,8 @@ impl Worker {
             Some(member)
         } else {
             // Fallback: legacy FIFO list
-            conn.rpop::<_, Option<String>>(LEGACY_QUEUE_KEY, None).await?
+            conn.rpop::<_, Option<String>>(LEGACY_QUEUE_KEY, None)
+                .await?
         };
 
         if let Some(json) = job_json {
@@ -265,7 +266,12 @@ impl Worker {
                 self.state.bucket,
                 s3_key
             );
-            self.stream_log(job.build_id, "cache_hit", &format!("Reusing cached artifact: {}", s3_key)).await;
+            self.stream_log(
+                job.build_id,
+                "cache_hit",
+                &format!("Reusing cached artifact: {}", s3_key),
+            )
+            .await;
             self.update_build_status(job.build_id, BuildStatus::Success, Some(source_hash))
                 .await?;
             return Ok(());
@@ -274,7 +280,8 @@ impl Worker {
         // ── Fresh compilation ─────────────────────────────────────────────────
         self.update_build_status(job.build_id, BuildStatus::Running, None)
             .await?;
-        self.stream_log(job.build_id, "start", "Build started").await;
+        self.stream_log(job.build_id, "start", "Build started")
+            .await;
 
         let build_dir = self.state.work_dir.path().join(job.build_id.to_string());
         std::fs::create_dir_all(&build_dir)?;
@@ -282,7 +289,8 @@ impl Worker {
         let source_path = build_dir.join("investigation.tfg");
         std::fs::write(&source_path, &job.source)?;
 
-        self.stream_log(job.build_id, "compile", "Compiling source...").await;
+        self.stream_log(job.build_id, "compile", "Compiling source...")
+            .await;
         let result = self.compile_investigation(&job, &build_dir).await;
 
         match result {
@@ -308,7 +316,12 @@ impl Worker {
                 let artifact_size = std::fs::metadata(&artifact_path)?.len();
                 let s3_key = format!("artifacts/{}/{}", job.tool_version_id, artifact_name);
 
-                self.stream_log(job.build_id, "upload", &format!("Uploading artifact: {}", s3_key)).await;
+                self.stream_log(
+                    job.build_id,
+                    "upload",
+                    &format!("Uploading artifact: {}", s3_key),
+                )
+                .await;
                 self.upload_artifact(&artifact_path, &s3_key).await?;
 
                 // Cache the result
@@ -329,7 +342,8 @@ impl Worker {
                 self.update_tool_version(&job, &metadata, artifact_size, &s3_key)
                     .await?;
 
-                self.stream_log(job.build_id, "done", "Build completed successfully").await;
+                self.stream_log(job.build_id, "done", "Build completed successfully")
+                    .await;
                 info!("Build completed successfully: {}", job.tool_version_id);
             }
             Err(e) => {
@@ -540,6 +554,7 @@ fn target_arch_name(arch: &TargetArch) -> &'static str {
 struct BuildJob {
     build_id: uuid::Uuid,
     tool_version_id: uuid::Uuid,
+    #[allow(dead_code)]
     tool_name: String,
     source: String,
     target_platform: String,
@@ -557,11 +572,7 @@ fn cache_key_for_job(job: &BuildJob, source_hash: &str) -> String {
 
     format!(
         "{}:{}:{}:{}:{}",
-        CACHE_PREFIX,
-        job.tool_version_id,
-        target_platform,
-        target_arch,
-        source_hash
+        CACHE_PREFIX, job.tool_version_id, target_platform, target_arch, source_hash
     )
 }
 
@@ -633,7 +644,10 @@ mod tests {
             priority: None,
         };
 
-        assert_ne!(cache_key_for_job(&linux_job, &source_hash), cache_key_for_job(&windows_job, &source_hash));
+        assert_ne!(
+            cache_key_for_job(&linux_job, &source_hash),
+            cache_key_for_job(&windows_job, &source_hash)
+        );
     }
 
     #[test]
@@ -661,6 +675,9 @@ mod tests {
             priority: None,
         };
 
-        assert_eq!(cache_key_for_job(&x64_job, &source_hash), cache_key_for_job(&x8664_job, &source_hash));
+        assert_eq!(
+            cache_key_for_job(&x64_job, &source_hash),
+            cache_key_for_job(&x8664_job, &source_hash)
+        );
     }
 }

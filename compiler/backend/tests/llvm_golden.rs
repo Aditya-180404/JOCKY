@@ -10,9 +10,21 @@ use traceforge_mir::{
 #[test]
 fn test_llvm_golden_process_triage_ir() {
     let locals = vec![
-        MirLocal { id: 0, name: "ctx".to_string(), ty: MirType::EvidenceContext },
-        MirLocal { id: 1, name: "proc_res".to_string(), ty: MirType::Int32 },
-        MirLocal { id: 2, name: "ret".to_string(), ty: MirType::Int32 },
+        MirLocal {
+            id: 0,
+            name: "ctx".to_string(),
+            ty: MirType::EvidenceContext,
+        },
+        MirLocal {
+            id: 1,
+            name: "proc_res".to_string(),
+            ty: MirType::Int32,
+        },
+        MirLocal {
+            id: 2,
+            name: "ret".to_string(),
+            ty: MirType::Int32,
+        },
     ];
 
     let instructions = vec![
@@ -64,7 +76,9 @@ fn test_llvm_golden_process_triage_ir() {
     };
 
     let backend = LlvmBackend::new(BuildConfig::default());
-    let ir = backend.generate_llvm_ir(&mir).expect("Failed to generate IR");
+    let ir = backend
+        .generate_llvm_ir(&mir)
+        .expect("Failed to generate IR");
 
     // Golden verification
     assert!(ir.contains("; ModuleID = \"golden_triage\""));
@@ -97,6 +111,9 @@ fn test_llvm_golden_process_triage_ir() {
             let _ = stdin.write_all(ir.as_bytes());
         }
         let status = child.wait().expect("Clang process failed");
-        assert!(status.success(), "Clang must successfully validate generated LLVM IR");
+        assert!(
+            status.success(),
+            "Clang must successfully validate generated LLVM IR"
+        );
     }
 }

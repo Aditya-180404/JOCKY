@@ -194,7 +194,10 @@ pub unsafe extern "C" fn traceforge_rt_collect_memory_regions(
     match ctx.collector.collect_memory_regions(pid_filter) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[TraceForge Runtime] Memory regions collection error: {}", e);
+            eprintln!(
+                "[TraceForge Runtime] Memory regions collection error: {}",
+                e
+            );
             -1
         }
     }
@@ -379,9 +382,7 @@ pub unsafe extern "C" fn traceforge_rt_evidence_compute_hash(
 #[no_mangle]
 /// # Safety
 /// Caller must provide a valid runtime context pointer returned by `traceforge_rt_evidence_init`.
-pub unsafe extern "C" fn traceforge_rt_evidence_generate_timeline(
-    ctx_ptr: *mut c_void,
-) -> c_int {
+pub unsafe extern "C" fn traceforge_rt_evidence_generate_timeline(ctx_ptr: *mut c_void) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
     }
@@ -391,7 +392,9 @@ pub unsafe extern "C" fn traceforge_rt_evidence_generate_timeline(
     let mut timeline_records = Vec::with_capacity(records.len());
     for (i, rec) in records.iter().enumerate() {
         let ref_str = format!("ref-{}", i + 1);
-        if let Some(event) = traceforge_runtime_timeline::normalize_record(rec, &host, Some(&ref_str)) {
+        if let Some(event) =
+            traceforge_runtime_timeline::normalize_record(rec, &host, Some(&ref_str))
+        {
             if let Ok(v) = serde_json::to_value(&event) {
                 timeline_records.push(v);
                 continue;
@@ -400,7 +403,8 @@ pub unsafe extern "C" fn traceforge_rt_evidence_generate_timeline(
         timeline_records.push(rec.clone());
     }
     ctx.collector.set_records(timeline_records);
-    ctx.collector.add_metadata("timeline_generated", serde_json::json!(true));
+    ctx.collector
+        .add_metadata("timeline_generated", serde_json::json!(true));
     0
 }
 

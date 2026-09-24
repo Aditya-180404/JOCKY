@@ -345,7 +345,10 @@ impl SemanticAnalyzer {
                 self.required_capabilities.insert(Capability::RegistryRead);
                 let mut opts = self.convert_collect_options(options)?;
                 opts.insert("hive".to_string(), serde_json::Value::String(hive.clone()));
-                opts.insert("key_path".to_string(), serde_json::Value::String(key_path.clone()));
+                opts.insert(
+                    "key_path".to_string(),
+                    serde_json::Value::String(key_path.clone()),
+                );
                 Ok(vec![IrOperation::Collect(IrCollectOperation {
                     operation: "registry.enumerate".to_string(),
                     fields: options.fields.clone(),
@@ -353,10 +356,16 @@ impl SemanticAnalyzer {
                     span,
                 })])
             }
-            CollectTarget::Artifacts { artifact_type, path } => {
+            CollectTarget::Artifacts {
+                artifact_type,
+                path,
+            } => {
                 self.required_capabilities.insert(Capability::ArtifactCarve);
                 let mut opts = self.convert_collect_options(options)?;
-                opts.insert("artifact_type".to_string(), serde_json::Value::String(artifact_type.clone()));
+                opts.insert(
+                    "artifact_type".to_string(),
+                    serde_json::Value::String(artifact_type.clone()),
+                );
                 opts.insert("path".to_string(), serde_json::Value::String(path.clone()));
                 Ok(vec![IrOperation::Collect(IrCollectOperation {
                     operation: "artifacts.carve".to_string(),

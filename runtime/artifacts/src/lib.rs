@@ -121,9 +121,7 @@ fn modified_at(path: &Path) -> Option<String> {
 
 /// Scan for Windows Prefetch files (*.pf)
 /// On Linux/macOS this scans the provided path for any .pf files
-fn carve_prefetch(
-    search_path: &str,
-) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+fn carve_prefetch(search_path: &str) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     let path = Path::new(search_path);
     let mut results = Vec::new();
 
@@ -159,7 +157,10 @@ fn carve_prefetch(
         if entry.extension().and_then(|e| e.to_str()) == Some("pf") {
             let sha256 = sha256_file(&entry);
             let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-            let name = entry.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+            let name = entry
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default();
 
             // Prefetch filenames are: "PROGRAMNAME-XXXXXXXX.pf"
             let (exec_name, hash_part) = parse_prefetch_name(&name);
@@ -202,9 +203,22 @@ fn parse_prefetch_name(name: &str) -> (String, String) {
 
 fn is_suspicious_prefetch(exec_name: &str) -> bool {
     const SUSPICIOUS_NAMES: &[&str] = &[
-        "powershell", "cmd", "wscript", "cscript", "mshta", "regsvr32",
-        "rundll32", "certutil", "bitsadmin", "wmic", "nc", "netcat",
-        "mimikatz", "psexec", "meterpreter", "cobalt",
+        "powershell",
+        "cmd",
+        "wscript",
+        "cscript",
+        "mshta",
+        "regsvr32",
+        "rundll32",
+        "certutil",
+        "bitsadmin",
+        "wmic",
+        "nc",
+        "netcat",
+        "mimikatz",
+        "psexec",
+        "meterpreter",
+        "cobalt",
     ];
     SUSPICIOUS_NAMES.iter().any(|s| exec_name.contains(s))
 }
@@ -228,7 +242,10 @@ fn carve_lnk_files(
         if entry.extension().and_then(|e| e.to_str()) == Some("lnk") {
             let sha256 = sha256_file(&entry);
             let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-            let name = entry.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+            let name = entry
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default();
 
             // Parse LNK magic bytes: first 4 bytes should be 4C 00 00 00
             let is_valid_lnk = std::fs::read(&entry)
@@ -271,12 +288,18 @@ fn carve_recycle_bin(
 
     let mut results = Vec::new();
     for entry in walkdir_max_depth(path, 4) {
-        let fname = entry.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default();
+        let fname = entry
+            .file_name()
+            .map(|n| n.to_string_lossy().to_lowercase())
+            .unwrap_or_default();
         // $I files are metadata files for recycle bin entries
         if fname.starts_with("$i") || fname.starts_with("$r") {
             let sha256 = sha256_file(&entry);
             let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-            let name_str = entry.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+            let name_str = entry
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default();
 
             results.push(serde_json::to_value(CarvedArtifact {
                 artifact_type: "recycle_bin".to_string(),
@@ -346,10 +369,15 @@ fn carve_shell_history(
 
                 let suspicious = lines.iter().any(|l| {
                     let lo = l.to_lowercase();
-                    lo.contains("base64") || lo.contains("wget") || lo.contains("curl")
-                        || lo.contains("nc ") || lo.contains("/dev/tcp")
-                        || lo.contains("chmod +x") || lo.contains("python -c")
-                        || lo.contains("perl -e") || lo.contains("bash -i")
+                    lo.contains("base64")
+                        || lo.contains("wget")
+                        || lo.contains("curl")
+                        || lo.contains("nc ")
+                        || lo.contains("/dev/tcp")
+                        || lo.contains("chmod +x")
+                        || lo.contains("python -c")
+                        || lo.contains("perl -e")
+                        || lo.contains("bash -i")
                 });
 
                 results.push(serde_json::to_value(CarvedArtifact {
@@ -408,7 +436,9 @@ fn carve_linux_cron() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Erro
 
     for cron_path in &cron_paths {
         let path = Path::new(cron_path);
-        if !path.exists() { continue; }
+        if !path.exists() {
+            continue;
+        }
 
         let entries = if path.is_file() {
             vec![path.to_path_buf()]
@@ -419,7 +449,9 @@ fn carve_linux_cron() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Erro
         };
 
         for entry in entries {
-            if !entry.is_file() { continue; }
+            if !entry.is_file() {
+                continue;
+            }
             let content = std::fs::read_to_string(&entry).unwrap_or_default();
             let sha256 = sha256_file(&entry);
             let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
@@ -432,9 +464,13 @@ fn carve_linux_cron() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Erro
 
             let suspicious = cron_lines.iter().any(|l| {
                 let lo = l.to_lowercase();
-                lo.contains("wget") || lo.contains("curl") || lo.contains("nc ")
-                    || lo.contains("base64") || lo.contains("/tmp/")
-                    || lo.contains("python -c") || lo.contains("bash -i")
+                lo.contains("wget")
+                    || lo.contains("curl")
+                    || lo.contains("nc ")
+                    || lo.contains("base64")
+                    || lo.contains("/tmp/")
+                    || lo.contains("python -c")
+                    || lo.contains("bash -i")
             });
 
             results.push(serde_json::to_value(CarvedArtifact {
@@ -475,11 +511,16 @@ fn carve_systemd_units(
         let mut results = Vec::new();
         for dir_str in &systemd_dirs {
             let dir = Path::new(dir_str);
-            if !dir.exists() { continue; }
+            if !dir.exists() {
+                continue;
+            }
 
             for entry in walkdir_max_depth(dir, 2) {
                 let ext = entry.extension().and_then(|e| e.to_str());
-                if !matches!(ext, Some("service") | Some("timer") | Some("socket") | Some("path")) {
+                if !matches!(
+                    ext,
+                    Some("service") | Some("timer") | Some("socket") | Some("path")
+                ) {
                     continue;
                 }
 
@@ -495,9 +536,13 @@ fn carve_systemd_units(
 
                 let suspicious = exec_start.iter().any(|l| {
                     let lo = l.to_lowercase();
-                    lo.contains("/tmp/") || lo.contains("wget") || lo.contains("curl")
-                        || lo.contains("nc ") || lo.contains("base64")
-                        || lo.contains("python -c") || lo.contains("bash -i")
+                    lo.contains("/tmp/")
+                        || lo.contains("wget")
+                        || lo.contains("curl")
+                        || lo.contains("nc ")
+                        || lo.contains("base64")
+                        || lo.contains("python -c")
+                        || lo.contains("bash -i")
                 });
 
                 results.push(serde_json::to_value(CarvedArtifact {
@@ -540,7 +585,9 @@ fn walkdir_max_depth(dir: &Path, max_depth: usize) -> Vec<std::path::PathBuf> {
 }
 
 fn walk_recursive(dir: &Path, depth: usize, max_depth: usize, out: &mut Vec<std::path::PathBuf>) {
-    if depth > max_depth { return; }
+    if depth > max_depth {
+        return;
+    }
     let entries = match std::fs::read_dir(dir) {
         Ok(e) => e,
         Err(_) => return,
@@ -569,7 +616,11 @@ mod tests {
     #[test]
     fn test_carve_history_home() {
         let result = carve_artifacts("history", "/home");
-        assert!(result.is_ok(), "carve_artifacts history failed: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "carve_artifacts history failed: {:?}",
+            result.err()
+        );
     }
 
     #[cfg(target_os = "linux")]

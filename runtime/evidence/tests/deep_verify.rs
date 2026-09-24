@@ -1,9 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
-use traceforge_runtime_evidence::{
-    verify_evidence_deep, EvidenceCollector, VerificationStatus,
-};
+use traceforge_runtime_evidence::{verify_evidence_deep, EvidenceCollector, VerificationStatus};
 
 fn temp_path(name: &str) -> PathBuf {
     let nonce = SystemTime::now()
@@ -41,15 +39,21 @@ fn test_deep_verification_clean_evidence() {
     let meta = collector.finalize().expect("finalize must succeed");
     assert!(meta.merkle_root.is_some());
 
-    let result = verify_evidence_deep(path_str, &meta_path_str)
-        .expect("verify_evidence_deep must execute");
+    let result =
+        verify_evidence_deep(path_str, &meta_path_str).expect("verify_evidence_deep must execute");
 
     assert_eq!(result.total_items, 3);
     assert_eq!(result.verified_items, 3);
     assert!(result.per_item_proofs_valid);
     assert!(result.failed_items.is_empty());
-    assert!(matches!(result.base_result.status, VerificationStatus::Verified));
-    assert_eq!(result.base_result.calculated_hash, result.base_result.stored_hash);
+    assert!(matches!(
+        result.base_result.status,
+        VerificationStatus::Verified
+    ));
+    assert_eq!(
+        result.base_result.calculated_hash,
+        result.base_result.stored_hash
+    );
     assert_eq!(result.base_result.merkle_root_valid, Some(true));
 
     // Clean up
@@ -74,12 +78,18 @@ fn test_deep_verification_detects_tampered_record() {
     let tampered = content.replace("\"record\": 1", "\"record\": 999");
     fs::write(&path, tampered).unwrap();
 
-    let result = verify_evidence_deep(path_str, &meta_path_str)
-        .expect("verify_evidence_deep must execute");
+    let result =
+        verify_evidence_deep(path_str, &meta_path_str).expect("verify_evidence_deep must execute");
 
     // Base verification should catch that SHA-256 does not match
-    assert!(matches!(result.base_result.status, VerificationStatus::Tampered { .. }));
-    assert_ne!(result.base_result.calculated_hash, result.base_result.stored_hash);
+    assert!(matches!(
+        result.base_result.status,
+        VerificationStatus::Tampered { .. }
+    ));
+    assert_ne!(
+        result.base_result.calculated_hash,
+        result.base_result.stored_hash
+    );
 
     // Clean up
     let _ = fs::remove_file(&path);
@@ -100,13 +110,16 @@ fn test_deep_verification_single_item() {
     }));
     collector.finalize().expect("finalize must succeed");
 
-    let result = verify_evidence_deep(path_str, &meta_path_str)
-        .expect("verify_evidence_deep must execute");
+    let result =
+        verify_evidence_deep(path_str, &meta_path_str).expect("verify_evidence_deep must execute");
 
     assert_eq!(result.total_items, 1);
     assert_eq!(result.verified_items, 1);
     assert!(result.per_item_proofs_valid);
-    assert!(matches!(result.base_result.status, VerificationStatus::Verified));
+    assert!(matches!(
+        result.base_result.status,
+        VerificationStatus::Verified
+    ));
 
     // Clean up
     let _ = fs::remove_file(&path);

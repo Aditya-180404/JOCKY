@@ -366,7 +366,10 @@ impl HirLowering {
                 key_path: key_path.clone(),
                 span,
             }),
-            CollectTarget::Artifacts { artifact_type, path } => Ok(HirOperation::CollectArtifacts {
+            CollectTarget::Artifacts {
+                artifact_type,
+                path,
+            } => Ok(HirOperation::CollectArtifacts {
                 artifact_type: artifact_type.clone(),
                 path: path.clone(),
                 span,
@@ -568,15 +571,8 @@ impl From<&traceforge_ir::IrInvestigation> for HirInvestigation {
                         operations.push(HirOperation::CollectDrivers { span: c.span });
                     }
                     "memory.regions" => {
-                        let pid = c
-                            .options
-                            .get("pid")
-                            .and_then(|v| v.as_i64())
-                            .unwrap_or(0) as i32;
-                        operations.push(HirOperation::CollectMemoryRegions {
-                            pid,
-                            span: c.span,
-                        });
+                        let pid = c.options.get("pid").and_then(|v| v.as_i64()).unwrap_or(0) as i32;
+                        operations.push(HirOperation::CollectMemoryRegions { pid, span: c.span });
                     }
                     "registry.enumerate" => {
                         let hive = c
@@ -810,7 +806,9 @@ mod tests {
                     span: Span::new(3, 1, 3, 10),
                 },
                 Stmt::Collect {
-                    target: CollectTarget::Files { path: "/var/log".to_string() },
+                    target: CollectTarget::Files {
+                        path: "/var/log".to_string(),
+                    },
                     options: CollectOptions {
                         recursive: true,
                         hash_algorithm: Some(HashAlgorithm::Sha256),
@@ -819,7 +817,9 @@ mod tests {
                     span: Span::new(4, 1, 4, 10),
                 },
                 Stmt::Collect {
-                    target: CollectTarget::Logs { source: "auth".to_string() },
+                    target: CollectTarget::Logs {
+                        source: "auth".to_string(),
+                    },
                     options: CollectOptions::default(),
                     span: Span::new(5, 1, 5, 10),
                 },
@@ -849,12 +849,30 @@ mod tests {
         assert_eq!(hir.operations.len(), 7);
 
         // Verify each operation variant exists in order
-        assert!(matches!(hir.operations[0], HirOperation::CollectSystemInfo { .. }));
-        assert!(matches!(hir.operations[1], HirOperation::CollectProcesses { .. }));
-        assert!(matches!(hir.operations[2], HirOperation::CollectNetworkConnections { .. }));
-        assert!(matches!(hir.operations[3], HirOperation::CollectFiles { .. }));
-        assert!(matches!(hir.operations[4], HirOperation::CollectLogs { .. }));
-        assert!(matches!(hir.operations[5], HirOperation::CollectDrivers { .. }));
+        assert!(matches!(
+            hir.operations[0],
+            HirOperation::CollectSystemInfo { .. }
+        ));
+        assert!(matches!(
+            hir.operations[1],
+            HirOperation::CollectProcesses { .. }
+        ));
+        assert!(matches!(
+            hir.operations[2],
+            HirOperation::CollectNetworkConnections { .. }
+        ));
+        assert!(matches!(
+            hir.operations[3],
+            HirOperation::CollectFiles { .. }
+        ));
+        assert!(matches!(
+            hir.operations[4],
+            HirOperation::CollectLogs { .. }
+        ));
+        assert!(matches!(
+            hir.operations[5],
+            HirOperation::CollectDrivers { .. }
+        ));
         assert!(matches!(hir.operations[6], HirOperation::Export { .. }));
     }
 
@@ -896,12 +914,19 @@ mod tests {
         assert_eq!(hir.operations.len(), 4);
         assert!(matches!(hir.operations[0], HirOperation::Filter { .. }));
         assert!(matches!(hir.operations[1], HirOperation::Where { .. }));
-        assert!(matches!(hir.operations[2], HirOperation::Limit { count: 25, .. }));
+        assert!(matches!(
+            hir.operations[2],
+            HirOperation::Limit { count: 25, .. }
+        ));
         if let HirOperation::EvidencePipeline { stages, .. } = &hir.operations[3] {
             assert_eq!(stages.len(), 3);
-            assert!(matches!(stages[0], HirPipelineStage::Hash { ref algorithm, .. } if algorithm == "sha256"));
+            assert!(
+                matches!(stages[0], HirPipelineStage::Hash { ref algorithm, .. } if algorithm == "sha256")
+            );
             assert!(matches!(stages[1], HirPipelineStage::Timeline { .. }));
-            assert!(matches!(stages[2], HirPipelineStage::Export { ref path, .. } if path == "out.json"));
+            assert!(
+                matches!(stages[2], HirPipelineStage::Export { ref path, .. } if path == "out.json")
+            );
         } else {
             panic!("Expected EvidencePipeline operation");
         }
@@ -939,4 +964,3 @@ mod tests {
         assert!(!hir.provenance.source_hash.is_empty());
     }
 }
-

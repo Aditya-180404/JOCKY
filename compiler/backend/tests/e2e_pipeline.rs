@@ -81,10 +81,22 @@ fn e2e_basic_system_triage() {
     export evidence "sys.json"
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_basic_system_triage");
-    assert!(ir.contains("traceforge_rt_evidence_init"),     "missing evidence_init");
-    assert!(ir.contains("traceforge_rt_collect_system"),    "missing collect_system");
-    assert!(ir.contains("traceforge_rt_collect_processes"), "missing collect_processes");
-    assert!(ir.contains("traceforge_rt_evidence_export"),   "missing evidence_export");
+    assert!(
+        ir.contains("traceforge_rt_evidence_init"),
+        "missing evidence_init"
+    );
+    assert!(
+        ir.contains("traceforge_rt_collect_system"),
+        "missing collect_system"
+    );
+    assert!(
+        ir.contains("traceforge_rt_collect_processes"),
+        "missing collect_processes"
+    );
+    assert!(
+        ir.contains("traceforge_rt_evidence_export"),
+        "missing evidence_export"
+    );
     validate_with_clang(&ir, "e2e_basic_system_triage");
 }
 
@@ -96,7 +108,10 @@ fn e2e_network_investigation() {
     export evidence "net.json"
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_network_investigation");
-    assert!(ir.contains("traceforge_rt_collect_network"), "missing collect_network");
+    assert!(
+        ir.contains("traceforge_rt_collect_network"),
+        "missing collect_network"
+    );
     validate_with_clang(&ir, "e2e_network_investigation");
 }
 
@@ -107,7 +122,10 @@ fn e2e_filesystem_integrity() {
     export evidence "fs.json"
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_filesystem_integrity");
-    assert!(ir.contains("traceforge_rt_collect_files"), "missing collect_files");
+    assert!(
+        ir.contains("traceforge_rt_collect_files"),
+        "missing collect_files"
+    );
     validate_with_clang(&ir, "e2e_filesystem_integrity");
 }
 
@@ -118,7 +136,10 @@ fn e2e_memory_regions() {
     export evidence "mem.json"
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_memory_regions");
-    assert!(ir.contains("traceforge_rt_collect_memory_regions"), "missing collect_memory_regions");
+    assert!(
+        ir.contains("traceforge_rt_collect_memory_regions"),
+        "missing collect_memory_regions"
+    );
     validate_with_clang(&ir, "e2e_memory_regions");
 }
 
@@ -129,7 +150,10 @@ fn e2e_registry_audit() {
     export evidence "reg.json"
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_registry_audit");
-    assert!(ir.contains("traceforge_rt_collect_registry"), "missing collect_registry");
+    assert!(
+        ir.contains("traceforge_rt_collect_registry"),
+        "missing collect_registry"
+    );
     validate_with_clang(&ir, "e2e_registry_audit");
 }
 
@@ -140,7 +164,10 @@ fn e2e_artifact_carving() {
     export evidence "art.json"
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_artifact_carving");
-    assert!(ir.contains("traceforge_rt_collect_artifacts"), "missing collect_artifacts");
+    assert!(
+        ir.contains("traceforge_rt_collect_artifacts"),
+        "missing collect_artifacts"
+    );
     validate_with_clang(&ir, "e2e_artifact_carving");
 }
 
@@ -152,7 +179,10 @@ fn e2e_driver_hunt() {
     export evidence "drv.json"
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_driver_hunt");
-    assert!(ir.contains("traceforge_rt_collect_drivers"), "missing collect_drivers");
+    assert!(
+        ir.contains("traceforge_rt_collect_drivers"),
+        "missing collect_drivers"
+    );
     validate_with_clang(&ir, "e2e_driver_hunt");
 }
 

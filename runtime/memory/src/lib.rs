@@ -67,12 +67,7 @@ fn enumerate_linux(
     } else {
         fs::read_dir("/proc")?
             .filter_map(|e| e.ok())
-            .filter_map(|e| {
-                e.file_name()
-                    .to_string_lossy()
-                    .parse::<i32>()
-                    .ok()
-            })
+            .filter_map(|e| e.file_name().to_string_lossy().parse::<i32>().ok())
             .collect()
     };
 
@@ -133,7 +128,10 @@ fn parse_maps_line(
     let executable = perms.contains('x');
     let writable = perms.contains('w');
 
-    let mapped_file = parts.get(5).map(|s| s.trim().to_string()).unwrap_or_default();
+    let mapped_file = parts
+        .get(5)
+        .map(|s| s.trim().to_string())
+        .unwrap_or_default();
     let anonymous = mapped_file.is_empty() || mapped_file.starts_with('[');
 
     let rss_bytes = rss_map.get(&start).copied();
@@ -166,7 +164,7 @@ fn parse_smaps_rss(smaps_path: &str) -> std::collections::HashMap<String, u64> {
     let reader = BufReader::new(file);
     let mut current_start = String::new();
 
-    for line in reader.lines().filter_map(|l| l.ok()) {
+    for line in reader.lines().map_while(Result::ok) {
         // Header line: "7f4a000-7f4b000 r-xp ..."
         if let Some(dash_pos) = line.find('-') {
             let maybe_addr = &line[..dash_pos];
@@ -189,14 +187,16 @@ fn parse_smaps_rss(smaps_path: &str) -> std::collections::HashMap<String, u64> {
 }
 
 /// Summarize suspicious memory regions: anonymous + executable (classic shellcode indicator)
-pub fn find_suspicious_regions(
-    regions: &[serde_json::Value],
-) -> Vec<serde_json::Value> {
+pub fn find_suspicious_regions(regions: &[serde_json::Value]) -> Vec<serde_json::Value> {
     regions
         .iter()
         .filter(|r| {
-            r.get("executable").and_then(|v| v.as_bool()).unwrap_or(false)
-                && r.get("anonymous").and_then(|v| v.as_bool()).unwrap_or(false)
+            r.get("executable")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false)
+                && r.get("anonymous")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false)
         })
         .cloned()
         .collect()
@@ -210,7 +210,11 @@ mod tests {
     fn test_enumerate_memory_regions_runs() {
         // Should succeed even on CI (returns stub on non-Linux)
         let result = enumerate_memory_regions(None);
-        assert!(result.is_ok(), "enumerate_memory_regions returned error: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "enumerate_memory_regions returned error: {:?}",
+            result.err()
+        );
         let regions = result.unwrap();
         // Should have at least one entry (stub or real)
         assert!(!regions.is_empty(), "No memory regions returned");
@@ -223,10 +227,16 @@ mod tests {
         let result = enumerate_memory_regions(Some(pid));
         assert!(result.is_ok());
         let regions = result.unwrap();
-        assert!(!regions.is_empty(), "Expected memory regions for current process");
+        assert!(
+            !regions.is_empty(),
+            "Expected memory regions for current process"
+        );
         // Every region should have start_address
         for r in &regions {
-            assert!(r.get("start_address").is_some(), "Missing start_address field");
+            assert!(
+                r.get("start_address").is_some(),
+                "Missing start_address field"
+            );
             assert!(r.get("permissions").is_some(), "Missing permissions field");
         }
     }

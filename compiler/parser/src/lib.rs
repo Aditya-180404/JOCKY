@@ -344,7 +344,10 @@ impl Parser {
                 } else {
                     "".to_string()
                 };
-                Ok(CollectTarget::Artifacts { artifact_type, path })
+                Ok(CollectTarget::Artifacts {
+                    artifact_type,
+                    path,
+                })
             }
             TokenKind::Files => {
                 self.advance();

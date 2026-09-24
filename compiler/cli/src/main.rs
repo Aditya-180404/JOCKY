@@ -287,7 +287,11 @@ fn main() -> anyhow::Result<()> {
         Commands::Hash { file } => hash_file(&file),
         Commands::Verify { artifact } => verify_artifact(&artifact),
         Commands::Evidence { command } => match command {
-            EvidenceCommands::Verify { evidence, meta, deep } => {
+            EvidenceCommands::Verify {
+                evidence,
+                meta,
+                deep,
+            } => {
                 let meta_path = meta
                     .unwrap_or_else(|| PathBuf::from(format!("{}.meta.json", evidence.display())));
                 evidence_verify(&evidence, &meta_path, deep)
@@ -714,7 +718,10 @@ fn compile(
         let mir_hash = maybe_mir.as_ref().map(|m| m.provenance.mir_hash.clone());
         let llvm_ir_hash = if let Some(mir) = &maybe_mir {
             let llvm_backend = traceforge_backend::LlvmBackend::new(config.clone());
-            llvm_backend.generate_llvm_ir(mir).ok().map(|ir_text| calculate_sha256(&ir_text))
+            llvm_backend
+                .generate_llvm_ir(mir)
+                .ok()
+                .map(|ir_text| calculate_sha256(&ir_text))
         } else {
             None
         };
@@ -959,7 +966,10 @@ fn evidence_verify(evidence: &Path, meta: &Path, deep: bool) -> anyhow::Result<(
                 if let Some(hash) = &deep_res.base_result.calculated_hash {
                     println!("  Evidence SHA-256:     {}", hash);
                 }
-                println!("  Verified at:          {}", deep_res.base_result.verified_at);
+                println!(
+                    "  Verified at:          {}",
+                    deep_res.base_result.verified_at
+                );
                 Ok(())
             }
             VerificationStatus::Tampered { reason } => {
@@ -1204,28 +1214,48 @@ fn generate_report(
         }
         _ => {
             let mut term = String::new();
-            term.push_str("======================================================================\n");
+            term.push_str(
+                "======================================================================\n",
+            );
             term.push_str("             TRACEFORGE FORENSIC INVESTIGATION REPORT\n");
-            term.push_str("======================================================================\n");
+            term.push_str(
+                "======================================================================\n",
+            );
             term.push_str(&format!(" Investigation:  {}\n", inv_name));
             term.push_str(&format!(" Target Host:    {}\n", host_id));
             term.push_str(&format!(" Collected At:   {}\n", collected_at));
             term.push_str(&format!(" Evidence SHA256:{}\n", evidence_hash));
             term.push_str(&format!(" Merkle Root:    {}\n", merkle_root));
-            term.push_str("----------------------------------------------------------------------\n");
+            term.push_str(
+                "----------------------------------------------------------------------\n",
+            );
             term.push_str(" EVIDENCE INVENTORY:\n");
-            term.push_str(&format!("   • Processes:           {:>6}\n", processes_count));
+            term.push_str(&format!(
+                "   • Processes:           {:>6}\n",
+                processes_count
+            ));
             term.push_str(&format!("   • Network Connections: {:>6}\n", network_count));
             term.push_str(&format!("   • Filesystem Items:    {:>6}\n", files_count));
             term.push_str(&format!("   • System Logs:         {:>6}\n", logs_count));
             term.push_str(&format!("   • Drivers/Modules:     {:>6}\n", drivers_count));
             term.push_str(&format!("   • Memory Regions:      {:>6}\n", memory_count));
-            term.push_str(&format!("   • Registry / Sysctl:   {:>6}\n", registry_count));
-            term.push_str(&format!("   • Carved Artifacts:    {:>6}\n", artifacts_count));
-            term.push_str(&format!("   • Timeline Events:     {:>6}\n", timeline_count));
+            term.push_str(&format!(
+                "   • Registry / Sysctl:   {:>6}\n",
+                registry_count
+            ));
+            term.push_str(&format!(
+                "   • Carved Artifacts:    {:>6}\n",
+                artifacts_count
+            ));
+            term.push_str(&format!(
+                "   • Timeline Events:     {:>6}\n",
+                timeline_count
+            ));
             term.push_str("   ─────────────────────────────\n");
             term.push_str(&format!("   TOTAL RECORDS:         {:>6}\n", total_items));
-            term.push_str("----------------------------------------------------------------------\n");
+            term.push_str(
+                "----------------------------------------------------------------------\n",
+            );
             if suspicious_count > 0 {
                 term.push_str(&format!(
                     " [!] SUSPICIOUS FINDINGS DETECTED: {}\n",
@@ -1243,7 +1273,9 @@ fn generate_report(
             } else {
                 term.push_str(" [✓] No immediate high-risk anomalies flagged.\n");
             }
-            term.push_str("======================================================================\n");
+            term.push_str(
+                "======================================================================\n",
+            );
             term
         }
     };

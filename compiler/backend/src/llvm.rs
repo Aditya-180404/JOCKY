@@ -297,7 +297,11 @@ impl LlvmCodegen {
                             self.get_or_intern_string(hive);
                             self.get_or_intern_string(key_path);
                         }
-                        MirInstruction::CollectArtifacts { artifact_type, path, .. } => {
+                        MirInstruction::CollectArtifacts {
+                            artifact_type,
+                            path,
+                            ..
+                        } => {
                             self.get_or_intern_string(artifact_type);
                             self.get_or_intern_string(path);
                         }
@@ -377,8 +381,10 @@ impl LlvmCodegen {
 
         out.push_str(&format!("define {} @{}() {{\n", ret_ty, func.name));
 
-        let local_types: std::collections::HashMap<traceforge_mir::LocalId, traceforge_mir::MirType> =
-            func.locals.iter().map(|l| (l.id, l.ty.clone())).collect();
+        let local_types: std::collections::HashMap<
+            traceforge_mir::LocalId,
+            traceforge_mir::MirType,
+        > = func.locals.iter().map(|l| (l.id, l.ty.clone())).collect();
 
         let mut ssa_counter = 0usize;
         let mut ssa_name = || {
@@ -395,7 +401,10 @@ impl LlvmCodegen {
             for inst in &block.instructions {
                 match inst {
                     MirInstruction::ConstInt { dest, value } => {
-                        let ty = local_types.get(dest).map(Self::mir_to_llvm_type).unwrap_or("i32");
+                        let ty = local_types
+                            .get(dest)
+                            .map(Self::mir_to_llvm_type)
+                            .unwrap_or("i32");
                         out.push_str(&format!("  %l{} = add {} 0, {}\n", dest, ty, value));
                     }
                     MirInstruction::ConstBool { dest, value } => {
@@ -415,11 +424,17 @@ impl LlvmCodegen {
                         out.push_str(&format!("  %l{} = alloca {}\n", dest, llvm_ty));
                     }
                     MirInstruction::Load { dest, src } => {
-                        let ty = local_types.get(dest).map(Self::mir_to_llvm_type).unwrap_or("i64");
+                        let ty = local_types
+                            .get(dest)
+                            .map(Self::mir_to_llvm_type)
+                            .unwrap_or("i64");
                         out.push_str(&format!("  %l{} = load {}, ptr %l{}\n", dest, ty, src));
                     }
                     MirInstruction::Store { dest, src } => {
-                        let ty = local_types.get(src).map(Self::mir_to_llvm_type).unwrap_or("i64");
+                        let ty = local_types
+                            .get(src)
+                            .map(Self::mir_to_llvm_type)
+                            .unwrap_or("i64");
                         out.push_str(&format!("  store {} %l{}, ptr %l{}\n", ty, src, dest));
                     }
                     MirInstruction::EvidenceInit {
@@ -582,7 +597,10 @@ impl LlvmCodegen {
                         left,
                         right,
                     } => {
-                        let ty = local_types.get(left).map(Self::mir_to_llvm_type).unwrap_or("i64");
+                        let ty = local_types
+                            .get(left)
+                            .map(Self::mir_to_llvm_type)
+                            .unwrap_or("i64");
                         let pred = match op {
                             traceforge_mir::MirCompareOp::Eq => "eq",
                             traceforge_mir::MirCompareOp::Ne => "ne",
@@ -605,7 +623,10 @@ impl LlvmCodegen {
                         let arg_strs: Vec<String> = args
                             .iter()
                             .map(|a| {
-                                let ty = local_types.get(a).map(Self::mir_to_llvm_type).unwrap_or("ptr");
+                                let ty = local_types
+                                    .get(a)
+                                    .map(Self::mir_to_llvm_type)
+                                    .unwrap_or("ptr");
                                 format!("{} %l{}", ty, a)
                             })
                             .collect();
@@ -639,7 +660,10 @@ impl LlvmCodegen {
                 }
                 match value {
                     Some(v) => {
-                        let ty = local_types.get(v).map(Self::mir_to_llvm_type).unwrap_or("i32");
+                        let ty = local_types
+                            .get(v)
+                            .map(Self::mir_to_llvm_type)
+                            .unwrap_or("i32");
                         out.push_str(&format!("  ret {} %l{}\n", ty, v));
                     }
                     None => {

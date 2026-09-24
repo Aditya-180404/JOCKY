@@ -401,11 +401,12 @@ impl MirLowering {
                     .push(MirInstruction::CollectDrivers { dest: res_id, ctx });
             }
             HirOperation::CollectMemoryRegions { pid, .. } => {
-                self.instructions.push(MirInstruction::CollectMemoryRegions {
-                    dest: res_id,
-                    ctx,
-                    pid: *pid,
-                });
+                self.instructions
+                    .push(MirInstruction::CollectMemoryRegions {
+                        dest: res_id,
+                        ctx,
+                        pid: *pid,
+                    });
             }
             HirOperation::CollectRegistry { hive, key_path, .. } => {
                 self.instructions.push(MirInstruction::CollectRegistry {
@@ -415,7 +416,11 @@ impl MirLowering {
                     key_path: key_path.clone(),
                 });
             }
-            HirOperation::CollectArtifacts { artifact_type, path, .. } => {
+            HirOperation::CollectArtifacts {
+                artifact_type,
+                path,
+                ..
+            } => {
                 self.instructions.push(MirInstruction::CollectArtifacts {
                     dest: res_id,
                     ctx,

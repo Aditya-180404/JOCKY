@@ -201,7 +201,9 @@ impl EvidenceCollector {
         let mut timeline_records = Vec::with_capacity(records.len());
         for (i, rec) in records.iter().enumerate() {
             let ref_str = format!("ref-{}", i + 1);
-            if let Some(event) = traceforge_runtime_timeline::normalize_record(rec, &host, Some(&ref_str)) {
+            if let Some(event) =
+                traceforge_runtime_timeline::normalize_record(rec, &host, Some(&ref_str))
+            {
                 if let Ok(v) = serde_json::to_value(&event) {
                     timeline_records.push(v);
                     continue;
@@ -210,7 +212,8 @@ impl EvidenceCollector {
             timeline_records.push(rec.clone());
         }
         self.data = timeline_records;
-        self.metadata.insert("timeline_generated".to_string(), serde_json::json!(true));
+        self.metadata
+            .insert("timeline_generated".to_string(), serde_json::json!(true));
         Ok(())
     }
 
@@ -278,8 +281,10 @@ impl EvidenceCollector {
                 format!("{:x}", hasher.finalize())
             }
         };
-        self.metadata.insert("hash_algorithm".to_string(), serde_json::json!(algo));
-        self.metadata.insert("evidence_hash".to_string(), serde_json::json!(&hash_str));
+        self.metadata
+            .insert("hash_algorithm".to_string(), serde_json::json!(algo));
+        self.metadata
+            .insert("evidence_hash".to_string(), serde_json::json!(&hash_str));
         Ok(hash_str)
     }
 
@@ -894,7 +899,8 @@ pub fn verify_evidence_deep(
                 if verify_merkle_proof_for_item(hash, &proof, expected_root) {
                     verified_count += 1;
                 } else {
-                    failed_items.push((idx, format!("Proof verification failed for leaf {}", hash)));
+                    failed_items
+                        .push((idx, format!("Proof verification failed for leaf {}", hash)));
                 }
             } else {
                 failed_items.push((idx, format!("Could not generate proof for index {}", idx)));

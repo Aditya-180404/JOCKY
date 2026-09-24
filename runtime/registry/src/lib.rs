@@ -81,13 +81,24 @@ fn enumerate_linux_modules() -> Result<Vec<serde_json::Value>, Box<dyn std::erro
     for line in reader.lines() {
         let line = line?;
         let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.is_empty() { continue; }
+        if parts.is_empty() {
+            continue;
+        }
 
         let name = parts[0].to_string();
-        let size = parts.get(1).and_then(|s| s.parse::<u64>().ok()).unwrap_or(0);
-        let used_by = parts.get(3).map(|s| s.trim_end_matches(',').to_string()).unwrap_or_default();
+        let size = parts
+            .get(1)
+            .and_then(|s| s.parse::<u64>().ok())
+            .unwrap_or(0);
+        let used_by = parts
+            .get(3)
+            .map(|s| s.trim_end_matches(',').to_string())
+            .unwrap_or_default();
         let state = parts.get(4).map(|s| s.to_string()).unwrap_or_default();
-        let load_addr = parts.get(5).map(|s| s.trim_start_matches("0x").to_string()).unwrap_or_default();
+        let load_addr = parts
+            .get(5)
+            .map(|s| s.trim_start_matches("0x").to_string())
+            .unwrap_or_default();
 
         results.push(serde_json::json!({
             "collector": "modules",
@@ -111,10 +122,7 @@ fn enumerate_linux_sysctl(
     // Replace backslashes (Windows-style) and dots with forward slashes.
     let sysctl_path = format!(
         "/proc/sys/{}",
-        key_path
-            .replace('\\', "/")
-            .replace('.', "/")
-            .to_lowercase()
+        key_path.replace(['\\', '.'], "/").to_lowercase()
     );
 
     let path = std::path::Path::new(&sysctl_path);
@@ -143,9 +151,13 @@ fn walk_sysctl(
     results: &mut Vec<serde_json::Value>,
     depth: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    if depth > 5 { return Ok(()); } // Prevent infinite descent
+    if depth > 5 {
+        return Ok(());
+    } // Prevent infinite descent
 
-    if !dir.exists() { return Ok(()); }
+    if !dir.exists() {
+        return Ok(());
+    }
 
     if dir.is_file() {
         // Read value
@@ -156,7 +168,10 @@ fn walk_sysctl(
         results.push(serde_json::to_value(RegistryEntry {
             hive: hive.to_string(),
             key_path: key_path.clone(),
-            value_name: dir.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default(),
+            value_name: dir
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default(),
             value_data: val,
             value_type: "sysctl_string".to_string(),
             persistence_risk: false,
@@ -268,7 +283,11 @@ mod tests {
     fn test_enumerate_registry_does_not_panic() {
         // On Linux this maps to /proc/sys/kernel
         let result = enumerate_registry("HKLM", "kernel");
-        assert!(result.is_ok(), "enumerate_registry failed: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "enumerate_registry failed: {:?}",
+            result.err()
+        );
     }
 
     #[test]

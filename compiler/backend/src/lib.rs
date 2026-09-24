@@ -316,7 +316,10 @@ impl Backend {
 
         let mut compiler_hasher = sha2::Sha256::new();
         sha2::Digest::update(&mut compiler_hasher, env!("CARGO_PKG_VERSION").as_bytes());
-        sha2::Digest::update(&mut compiler_hasher, format!("{:?}-{:?}", TargetPlatform::Linux, self.config.target_arch).as_bytes());
+        sha2::Digest::update(
+            &mut compiler_hasher,
+            format!("{:?}-{:?}", TargetPlatform::Linux, self.config.target_arch).as_bytes(),
+        );
         let compiler_hash = format!("{:x}", sha2::Digest::finalize(compiler_hasher));
 
         // Generate metadata
@@ -416,7 +419,15 @@ impl Backend {
 
         let mut compiler_hasher = sha2::Sha256::new();
         sha2::Digest::update(&mut compiler_hasher, env!("CARGO_PKG_VERSION").as_bytes());
-        sha2::Digest::update(&mut compiler_hasher, format!("{:?}-{:?}", TargetPlatform::Windows, self.config.target_arch).as_bytes());
+        sha2::Digest::update(
+            &mut compiler_hasher,
+            format!(
+                "{:?}-{:?}",
+                TargetPlatform::Windows,
+                self.config.target_arch
+            )
+            .as_bytes(),
+        );
         let compiler_hash = format!("{:x}", sha2::Digest::finalize(compiler_hasher));
 
         let metadata = ArtifactMetadata {
@@ -502,10 +513,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
                 assign.variable, assign.variable, assign.expression
             )),
             IrOperation::EvidencePipeline(ep) => {
-                let mut pipeline_code = format!(
-                    "    // Evidence pipeline for variable: {}\n",
-                    ep.variable
-                );
+                let mut pipeline_code =
+                    format!("    // Evidence pipeline for variable: {}\n", ep.variable);
                 for stage in &ep.stages {
                     match stage {
                         traceforge_ir::IrPipelineStage::Where { condition, .. } => {
@@ -730,8 +739,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
         metadata: &ArtifactMetadata,
         output_path: &Path,
     ) -> Result<(), BackendError> {
-        let manifest_json = serde_json::to_string_pretty(metadata)
-            .map_err(|e| BackendError::TemplateError(format!("Failed to serialize manifest: {}", e)))?;
+        let manifest_json = serde_json::to_string_pretty(metadata).map_err(|e| {
+            BackendError::TemplateError(format!("Failed to serialize manifest: {}", e))
+        })?;
         std::fs::write(output_path, manifest_json)
             .map_err(|e| BackendError::TemplateError(format!("Failed to write manifest: {}", e)))?;
         Ok(())
