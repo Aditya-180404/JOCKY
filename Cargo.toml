@@ -32,8 +32,8 @@ members = [
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-authors = ["TraceForge Team"]
-repository = "https://github.com/traceforge/traceforge"
+authors = ["JOCKY Team"]
+repository = "https://github.com/Aditya-180404/JOCKY.git"
 
 [workspace.dependencies]
 # Core

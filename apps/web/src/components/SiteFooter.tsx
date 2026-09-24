@@ -10,9 +10,9 @@ export function SiteFooter() {
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <div className="h-6 w-6 rounded bg-blue-600 flex items-center justify-center font-mono font-bold text-white text-xs">
-                TF
+                JK
               </div>
-              <span className="font-mono font-bold text-slate-100 text-sm">TRACEFORGE</span>
+              <span className="font-mono font-bold text-slate-100 text-sm">JOCKY</span>
             </div>
             <p className="text-slate-400 leading-relaxed text-xs">
               Domain-specific forensic programming language and native compiler for verifiable digital investigations.
@@ -92,7 +92,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-[11px]">
-          <p>© 2026 TRACEFORGE Project. Read-only digital forensics and verifiable chain of custody.</p>
+          <p>© 2026 JOCKY Project. Read-only digital forensics and verifiable chain of custody.</p>
           <div className="flex items-center gap-3">
             <Link to="/about" className="hover:text-slate-300">Read-Only Safety Guarantee</Link>
             <span>•</span>

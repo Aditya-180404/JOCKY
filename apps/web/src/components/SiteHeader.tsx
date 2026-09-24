@@ -20,11 +20,11 @@ export function SiteHeader() {
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2.5">
           <div className="h-7 w-7 rounded bg-blue-600 flex items-center justify-center font-mono font-bold text-white text-xs">
-            TF
+            JK
           </div>
           <div className="flex items-center gap-2">
             <span className="font-mono font-bold text-sm tracking-wider text-slate-100">
-              TRACEFORGE
+              JOCKY
             </span>
             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
               v0.1.0

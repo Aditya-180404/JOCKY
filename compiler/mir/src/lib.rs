@@ -276,11 +276,8 @@ impl MirLowering {
         let mut lowering = Self::new();
         let main_fn = lowering.lower_investigation(hir)?;
 
-        // Calculate cryptographic hashes for MIR provenance
-        let hir_json = serde_json::to_string(hir).map_err(|e| e.to_string())?;
-        let mut hir_hasher = Sha256::new();
-        hir_hasher.update(hir_json.as_bytes());
-        let hir_hash = format!("{:x}", hir_hasher.finalize());
+        // Calculate deterministic cryptographic hashes for MIR provenance
+        let hir_hash = hir.calculate_deterministic_hash();
 
         let mut mir_hasher = Sha256::new();
         let fn_json = serde_json::to_string(&main_fn).map_err(|e| e.to_string())?;

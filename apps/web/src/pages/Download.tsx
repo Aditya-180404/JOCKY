@@ -67,11 +67,11 @@ export function DownloadPage() {
           </div>
 
           <h1 className="text-3xl font-bold font-mono text-white tracking-tight">
-            TRACEFORGE Compiler & Toolchain Downloads
+            JOCKY Compiler & Toolchain Downloads
           </h1>
 
           <p className="mt-2 text-sm text-slate-400 max-w-3xl leading-relaxed">
-            Download the standalone native TraceForge compiler for offline incident response and forensic triage.
+            Download the standalone native JOCKY compiler for offline incident response and forensic triage.
             All binaries are standalone, statically linked, and verified with canonical SHA-256 digests.
           </p>
         </div>
@@ -145,7 +145,7 @@ export function DownloadPage() {
                 Linux x86_64 & ARM64 Binaries
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                No Linux package is currently published by the downloads API. On Linux systems, TraceForge can be
+                No Linux package is currently published by the downloads API. On Linux systems, JOCKY can be
                 built directly from source:
               </p>
               <pre className="mt-3 p-3 rounded bg-[#090d15] border border-slate-800 font-mono text-xs text-slate-300">
@@ -153,7 +153,7 @@ export function DownloadPage() {
 git clone https://github.com/Aditya-180404/TRACEFORGE.git
 cd TRACEFORGE
 cargo build --release -p traceforge-cli
-./target/release/traceforge --version`}
+./target/release/jocky --version`}
               </pre>
             </div>
           </div>
@@ -170,10 +170,9 @@ cargo build --release -p traceforge-cli
           </p>
           <pre className="p-3 rounded bg-[#090d15] border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto">
 {`# Compute SHA-256 hash in PowerShell
-Get-FileHash .\\TRACEFORGE-0.1.0-windows-x64.zip -Algorithm SHA256
+Get-FileHash .\\JOCKY-0.1.0-windows-x64.zip -Algorithm SHA256
 
-# Verify that the output matches:
-# 35B29F54B6879B039B462A97293F3B7ED6ECDF25A4A2B90A7C55D65EB2BD7247`}
+# Verify that the output matches the published SHA-256 from the download page`}
           </pre>
         </div>
       </main>

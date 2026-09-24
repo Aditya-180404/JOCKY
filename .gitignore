@@ -33,12 +33,18 @@ Thumbs.db
 .idea/
 
 # Compiler generated artifacts and temporary builds
-# build/ covers all intermediate outputs; only add patterns here
-# for files that could escape the build directory.
 build/
+build_win/
+scratch/
 # LLVM / compiler intermediate files
 *.ll
 *.bc
 *.s
-# Packaged distributions
+# Packaged distributions and release bundles
 *.deb
+packages/*.zip
+packages/*.manifest.json
+packages/release-*/
+# Sidecar metadata and generated evidence outputs
+*.meta.json
+*_evidence.json

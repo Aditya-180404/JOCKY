@@ -7,6 +7,10 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [[bin]]
+name = "jocky"
+path = "src/main.rs"
+
+[[bin]]
 name = "traceforge"
 path = "src/main.rs"
 

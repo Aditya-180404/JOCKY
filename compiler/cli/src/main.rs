@@ -11,9 +11,9 @@ use traceforge_semantic::SemanticAnalyzer;
 
 #[derive(Parser)]
 #[command(
-    name = "traceforge",
+    name = "jocky",
     version,
-    about = "TraceForge Forensic Investigation Compiler"
+    about = "JOCKY Forensic Investigation Compiler"
 )]
 struct Cli {
     #[command(subcommand)]
@@ -22,13 +22,13 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Validate a TraceForge source file
+    /// Validate a JOCKY source file
     #[command(alias = "check")]
     Validate {
         /// Source file to validate
         file: PathBuf,
     },
-    /// Compile a TraceForge source file
+    /// Compile a JOCKY source file
     Compile {
         /// Source file to compile
         file: PathBuf,
@@ -63,7 +63,7 @@ enum Commands {
         #[arg(short, long)]
         verbose: bool,
     },
-    /// Build a TraceForge source file (alias for compile)
+    /// Build a JOCKY source file (alias for compile)
     Build {
         /// Source file to build
         file: PathBuf,
@@ -95,7 +95,7 @@ enum Commands {
         #[arg(short, long)]
         verbose: bool,
     },
-    /// Inspect a TraceForge source file (show AST/IR)
+    /// Inspect a JOCKY source file (show AST/IR)
     Inspect {
         /// Source file to inspect
         file: PathBuf,
@@ -132,12 +132,12 @@ enum Commands {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
-    /// Initialize a new TraceForge project
+    /// Initialize a new JOCKY project
     Init {
         /// Project name
         name: String,
     },
-    /// Compile and execute a TraceForge source file
+    /// Compile and execute a JOCKY source file
     Run {
         /// Source file to run
         file: PathBuf,
@@ -151,7 +151,7 @@ enum Commands {
         #[arg(short, long, default_value = "./build")]
         output: PathBuf,
     },
-    /// Validate and normalize a TraceForge source file
+    /// Validate and normalize a JOCKY source file
     Fmt {
         /// Source file to format
         file: PathBuf,
@@ -164,7 +164,7 @@ enum Commands {
         #[command(subcommand)]
         command: TargetCommands,
     },
-    /// Log in to the TraceForge tool repository
+    /// Log in to the JOCKY tool repository
     Login {
         /// User email
         #[arg(short, long)]
@@ -713,39 +713,78 @@ fn compile(
     let meta_path = output.join(format!("{}.meta.json", ir.name));
     std::fs::write(&meta_path, serde_json::to_vec_pretty(&metadata)?)?;
 
-    if emit_all {
-        let hir_hash = maybe_hir.as_ref().map(|h| h.provenance.source_hash.clone());
-        let mir_hash = maybe_mir.as_ref().map(|m| m.provenance.mir_hash.clone());
-        let llvm_ir_hash = if let Some(mir) = &maybe_mir {
-            let llvm_backend = traceforge_backend::LlvmBackend::new(config.clone());
-            llvm_backend
-                .generate_llvm_ir(mir)
-                .ok()
-                .map(|ir_text| calculate_sha256(&ir_text))
-        } else {
-            None
-        };
+    // Always generate deterministic build & capability provenance manifest sidecar
+    let hir_hash = maybe_mir.as_ref().map(|m| m.provenance.hir_hash.clone());
+    let mir_hash = maybe_mir.as_ref().map(|m| m.provenance.mir_hash.clone());
+    let llvm_ir_hash = if let Some(mir) = &maybe_mir {
+        let llvm_backend = traceforge_backend::LlvmBackend::new(config.clone());
+        llvm_backend
+            .generate_llvm_ir(mir)
+            .ok()
+            .map(|ir_text| calculate_sha256(&ir_text))
+    } else {
+        None
+    };
 
-        let cap_manifest = serde_json::json!({
-            "investigation": ir.name,
-            "backend": format!("{:?}", backend_kind).to_lowercase(),
-            "source_hash": source_hash,
-            "hir_hash": hir_hash,
-            "mir_hash": mir_hash,
-            "llvm_ir_hash": llvm_ir_hash,
-            "required_capabilities": ir.required_capabilities.iter().map(|c| c.as_str()).collect::<Vec<_>>(),
-            "operations_count": ir.operations.len(),
-            "safety_invariants": {
-                "network_write": false,
-                "persistence": false,
-                "privilege_escalation": false,
-                "defensive_only": true,
+    let mut cap_provenance = Vec::new();
+    for op in &ir.operations {
+        if let traceforge_ir::IrOperation::Collect(c) = op {
+            let (cap_name, stmt_name) = match c.target {
+                traceforge_ast::CollectTarget::Processes => ("PROCESS_READ", "collect processes"),
+                traceforge_ast::CollectTarget::NetworkConnections => ("NETWORK_READ", "collect network_connections"),
+                traceforge_ast::CollectTarget::Files => ("FILESYSTEM_READ", "collect files"),
+                traceforge_ast::CollectTarget::Logs => ("LOG_READ", "collect logs"),
+                traceforge_ast::CollectTarget::SystemInfo => ("SYSTEM_INFO_READ", "collect system_info"),
+                traceforge_ast::CollectTarget::Drivers => ("DRIVER_READ", "collect drivers"),
+                traceforge_ast::CollectTarget::Timeline => ("TIMELINE_READ", "collect timeline"),
+                traceforge_ast::CollectTarget::MemoryRegions => ("MEMORY_READ", "collect memory_regions"),
+                traceforge_ast::CollectTarget::Registry => ("REGISTRY_READ", "collect registry"),
+                traceforge_ast::CollectTarget::Artifacts => ("ARTIFACT_CARVE", "collect artifacts"),
+            };
+            cap_provenance.push(serde_json::json!({
+                "capability": cap_name,
+                "source_statement": stmt_name,
+                "span": c.span.to_string(),
+            }));
+            if c.options.hash_algorithm.is_some() {
+                cap_provenance.push(serde_json::json!({
+                    "capability": "FILE_HASH",
+                    "source_statement": format!("{}: hash requested", stmt_name),
+                    "span": c.span.to_string(),
+                }));
             }
-        });
-        let manifest_path = output.join(format!("{}.manifest.json", ir.name));
-        std::fs::write(&manifest_path, serde_json::to_string_pretty(&cap_manifest)?)?;
-        println!("  Manifest → {}", manifest_path.display());
+        }
     }
+
+    let cap_manifest = serde_json::json!({
+        "investigation": ir.name,
+        "language_version": "1.0",
+        "compiler_version": env!("CARGO_PKG_VERSION"),
+        "compiler_identifier": metadata.compiler_hash,
+        "source_hash": source_hash,
+        "artifact_hash": metadata.artifact_hash,
+        "target": format!("{:?}", target_platform).to_lowercase(),
+        "architecture": arch_suffix(arch)?,
+        "backend": format!("{:?}", backend_kind).to_lowercase(),
+        "optimization_level": format!("{:?}", config.optimization_level).to_lowercase(),
+        "runtime_version": env!("CARGO_PKG_VERSION"),
+        "compiler_capabilities": ir.required_capabilities.iter().map(|c| c.as_str()).collect::<Vec<_>>(),
+        "capability_provenance": cap_provenance,
+        "hir_hash": hir_hash,
+        "mir_hash": mir_hash,
+        "llvm_ir_hash": llvm_ir_hash,
+        "operations_count": ir.operations.len(),
+        "safety_invariants": {
+            "network_write": false,
+            "persistence": false,
+            "credential_access": false,
+            "kernel_modification": false,
+            "defensive_only": true,
+        }
+    });
+    let manifest_path = output.join(format!("{}.manifest.json", ir.name));
+    std::fs::write(&manifest_path, serde_json::to_string_pretty(&cap_manifest)?)?;
+    println!("  Manifest: {}", manifest_path.display());
 
     let artifact_file = match target_platform {
         TargetPlatform::Linux => output.join(format!("{}-linux-{}", ir.name, arch_suffix(arch)?)),
@@ -1414,16 +1453,16 @@ fn calculate_compiler_hash() -> anyhow::Result<String> {
 
 fn print_diagnostics(diags: &[traceforge_ast::Diagnostic]) {
     for diag in diags {
-        let prefix = match diag.severity {
-            traceforge_ast::Severity::Error => "ERROR",
-            traceforge_ast::Severity::Warning => "WARNING",
-            traceforge_ast::Severity::Info => "INFO",
-            traceforge_ast::Severity::Hint => "HINT",
+        let (prefix, code) = match diag.severity {
+            traceforge_ast::Severity::Error => ("error", diag.code.as_deref().unwrap_or("E1001")),
+            traceforge_ast::Severity::Warning => ("warning", diag.code.as_deref().unwrap_or("W1001")),
+            traceforge_ast::Severity::Info => ("info", diag.code.as_deref().unwrap_or("I1001")),
+            traceforge_ast::Severity::Hint => ("help", diag.code.as_deref().unwrap_or("H1001")),
         };
         if let Some(span) = diag.span {
-            eprintln!("{}: {} at {}", prefix, diag.message, span);
+            eprintln!("{}[{}]: {} (at {})", prefix, code, diag.message, span);
         } else {
-            eprintln!("{}: {}", prefix, diag.message);
+            eprintln!("{}[{}]: {}", prefix, code, diag.message);
         }
     }
 }

@@ -1,7 +1,11 @@
 //! Programmatic LLVM Code Generation Engine
 //!
-//! Lowers TraceForge MIR directly into programmatic LLVM Context, Module, Functions,
+//! Lowers JOCKY MIR directly into programmatic LLVM Context, Module, Functions,
 //! BasicBlocks, Instructions, and Terminators using the LLVM C API.
+//!
+//! Note on Runtime ABI:
+//! Runtime declarations use the `traceforge_rt_*` naming scheme as an intentional internal
+//! ABI compatibility boundary with the native runtime static library.
 
 use std::collections::HashMap;
 use std::ffi::CString;

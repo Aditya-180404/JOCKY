@@ -1,4 +1,10 @@
-//! TraceForge Runtime - Forensic operations library
+//! JOCKY Forensic Runtime
+//!
+//! # Architecture & Compatibility
+//! JOCKY is a domain-specific forensic programming language and compiler framework.
+//! The C-ABI symbols (`traceforge_rt_*` and `traceforge_runtime_*`) are intentional internal
+//! ABI compatibility identifiers ensuring stable interoperability between the LLVM backend
+//! code generator and the native runtime static library across platforms.
 
 pub use traceforge_runtime_artifacts as artifacts;
 pub use traceforge_runtime_drivers as drivers;

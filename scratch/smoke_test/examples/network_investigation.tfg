@@ -1,7 +1,0 @@
-investigation "network_investigation" {
-    collect system_info
-
-    collect network_connections
-
-    export evidence "network_evidence.json"
-}

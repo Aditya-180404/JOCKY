@@ -1,7 +1,0 @@
-investigation "basic_system_triage" {
-    collect system_info
-
-    collect processes
-
-    export evidence "system_triage.json"
-}

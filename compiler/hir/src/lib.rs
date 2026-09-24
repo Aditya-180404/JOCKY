@@ -23,6 +23,23 @@ pub struct HirInvestigation {
     pub span: Span,
 }
 
+impl HirInvestigation {
+    /// Compute a deterministic hash of HIR semantic content independent of wall-clock timestamps
+    pub fn calculate_deterministic_hash(&self) -> String {
+        let mut hasher = Sha256::new();
+        let val = serde_json::json!({
+            "name": self.name,
+            "target": self.target,
+            "operations": self.operations,
+            "capabilities": self.capabilities,
+            "source_hash": self.provenance.source_hash,
+            "ast_hash": self.provenance.ast_hash,
+        });
+        hasher.update(val.to_string().as_bytes());
+        format!("{:x}", hasher.finalize())
+    }
+}
+
 /// Provenance metadata tracking compilation lineage
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HirProvenance {
