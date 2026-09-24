@@ -7,7 +7,11 @@ use llvm_sys::core::*;
 use llvm_sys::prelude::*;
 use traceforge_mir::MirType;
 
-/// Translate a `MirType` into its corresponding `LLVMTypeRef`
+/// Translate a `MirType` into its corresponding `LLVMTypeRef`.
+///
+/// # Safety
+/// The caller must provide a valid `LLVMContextRef` that remains alive for the duration
+/// of the generated LLVM type handles.
 pub unsafe fn mir_type_to_llvm(ctx: LLVMContextRef, ty: &MirType) -> Result<LLVMTypeRef, String> {
     match ty {
         MirType::Void => Ok(LLVMVoidTypeInContext(ctx)),
@@ -45,6 +49,11 @@ pub struct RuntimeSignatures {
 }
 
 impl RuntimeSignatures {
+    /// Constructs the runtime signature table for the provided LLVM context.
+    ///
+    /// # Safety
+    /// The caller must ensure that `ctx` is a valid, live `LLVMContextRef` for the duration
+    /// of the signature objects created here.
     pub unsafe fn new(ctx: LLVMContextRef) -> Self {
         let ptr_ty = LLVMPointerTypeInContext(ctx, 0);
         let i32_ty = LLVMInt32TypeInContext(ctx);

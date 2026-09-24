@@ -223,6 +223,7 @@ impl ProgrammaticLlvmCodegen {
         Ok(ProgrammaticCodegenResult { module, context })
     }
 
+    #[allow(clippy::too_many_arguments)]
     unsafe fn lower_function<F>(
         &self,
         mir_fn: &MirFunction,

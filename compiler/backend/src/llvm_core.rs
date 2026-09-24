@@ -142,11 +142,14 @@ impl LlvmBuilder {
         self.raw
     }
 
+    /// Positions the builder at the end of the provided basic block.
+    ///
+    /// # Safety
+    /// The caller must ensure that `block` is a valid `LLVMBasicBlockRef` associated with
+    /// the same context as this builder.
     #[inline]
-    pub fn position_at_end(&self, block: LLVMBasicBlockRef) {
-        unsafe {
-            LLVMPositionBuilderAtEnd(self.raw, block);
-        }
+    pub unsafe fn position_at_end(&self, block: LLVMBasicBlockRef) {
+        LLVMPositionBuilderAtEnd(self.raw, block);
     }
 }
 

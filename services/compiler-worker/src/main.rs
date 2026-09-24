@@ -725,8 +725,10 @@ mod tests {
     #[test]
     fn source_size_limit_constant_is_reasonable() {
         // The constant must be large enough for real investigations but bounded
-        assert!(MAX_SOURCE_BYTES >= 8 * 1024, "limit too small");
-        assert!(MAX_SOURCE_BYTES <= 1024 * 1024, "limit too large");
+        const {
+            assert!(MAX_SOURCE_BYTES >= 8 * 1024, "limit too small");
+            assert!(MAX_SOURCE_BYTES <= 1024 * 1024, "limit too large");
+        }
     }
 
     #[test]
@@ -738,6 +740,8 @@ mod tests {
 
     #[test]
     fn build_timeout_constant_is_positive() {
-        assert!(BUILD_TIMEOUT_SECS > 0);
+        const {
+            assert!(BUILD_TIMEOUT_SECS > 0);
+        }
     }
 }

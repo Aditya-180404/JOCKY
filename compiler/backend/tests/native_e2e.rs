@@ -67,7 +67,7 @@ investigation "native_semantic_triage" {
     assert_eq!(metadata.investigation_name, "native_semantic_triage");
     assert!(!metadata.artifact_hash.is_empty());
 
-    let binary_name = format!("native_semantic_triage-linux-x64");
+    let binary_name = "native_semantic_triage-linux-x64".to_string();
     let binary_path = temp_dir.join(&binary_name);
     assert!(
         binary_path.exists(),

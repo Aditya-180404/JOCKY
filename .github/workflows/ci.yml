@@ -30,6 +30,12 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
+      - name: Install LLVM 21 toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y llvm-21-dev clang-21
+          echo "LLVM_SYS_211_PREFIX=/usr/lib/llvm-21" >> "$GITHUB_ENV"
+          echo "/usr/lib/llvm-21/bin" >> "$GITHUB_PATH"
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
