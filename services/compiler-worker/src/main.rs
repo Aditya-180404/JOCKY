@@ -35,7 +35,7 @@ const LOG_STREAM_PREFIX: &str = "build_log";
 /// Key prefix for source-hash → artifact-s3-key cache.
 const CACHE_PREFIX: &str = "artifact_cache";
 /// TTL for cached artifact entries (7 days in seconds).
-const CACHE_TTL_SECS: u64 = 7 * 24 * 3600;
+const CACHE_TTL_SECS: usize = 7 * 24 * 3600;
 /// HTTP port for /health endpoint.
 const HEALTH_PORT: u16 = 9100;
 

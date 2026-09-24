@@ -430,7 +430,7 @@ export function WebIDE() {
 
       // Hover provider — shows collector documentation
       monaco.languages.registerHoverProvider('traceforge', {
-        provideHover(model, position) {
+        provideHover(model: any, position: any) {
           const word = model.getWordAtPosition(position);
           if (!word) return null;
           const doc = COLLECTOR_DOCS[word.word];
@@ -450,7 +450,7 @@ export function WebIDE() {
 
       // Completion provider — suggests keywords and collector targets
       monaco.languages.registerCompletionItemProvider('traceforge', {
-        provideCompletionItems(model, position) {
+        provideCompletionItems(model: any, position: any) {
           const word = model.getWordUntilPosition(position);
           const range = {
             startLineNumber: position.lineNumber,
