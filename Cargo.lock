@@ -1952,6 +1952,8 @@ checksum = "cc4e190f5d26ca7051642629da2c52fc03bde85a03197c99408dcd291734c855"
 dependencies = [
  "equivalent",
  "hashbrown 0.17.1",
+ "serde",
+ "serde_core",
 ]
 
 [[package]]
@@ -2192,6 +2194,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "jockey-runtime-artifacts",
+ "jockey-runtime-correlation",
  "jockey-runtime-drivers",
  "jockey-runtime-evidence",
  "jockey-runtime-filesystem",
@@ -2200,6 +2203,7 @@ dependencies = [
  "jockey-runtime-network",
  "jockey-runtime-process",
  "jockey-runtime-registry",
+ "jockey-runtime-security",
  "jockey-runtime-system",
  "jockey-runtime-timeline",
  "serde",
@@ -2218,6 +2222,29 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-runtime-correlation"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "indexmap",
+ "jockey-runtime-artifacts",
+ "jockey-runtime-drivers",
+ "jockey-runtime-evidence",
+ "jockey-runtime-filesystem",
+ "jockey-runtime-logs",
+ "jockey-runtime-memory",
+ "jockey-runtime-network",
+ "jockey-runtime-process",
+ "jockey-runtime-registry",
+ "jockey-runtime-security",
+ "jockey-runtime-timeline",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "uuid",
 ]
 
 [[package]]

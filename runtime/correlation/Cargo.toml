@@ -1,0 +1,26 @@
+[package]
+name = "jockey-runtime-correlation"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+jockey-runtime-timeline = { path = "../timeline" }
+jockey-runtime-security = { path = "../security" }
+jockey-runtime-evidence = { path = "../evidence" }
+jockey-runtime-process = { path = "../process" }
+jockey-runtime-network = { path = "../network" }
+jockey-runtime-filesystem = { path = "../filesystem" }
+jockey-runtime-logs = { path = "../logs" }
+jockey-runtime-drivers = { path = "../drivers" }
+jockey-runtime-registry = { path = "../registry" }
+jockey-runtime-memory = { path = "../memory" }
+jockey-runtime-artifacts = { path = "../artifacts" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+indexmap = { workspace = true }
+thiserror = { workspace = true }

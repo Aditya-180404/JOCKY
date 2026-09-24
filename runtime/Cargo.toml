@@ -21,6 +21,8 @@ jockey-runtime-timeline = { path = "timeline" }
 jockey-runtime-memory = { path = "memory" }
 jockey-runtime-registry = { path = "registry" }
 jockey-runtime-artifacts = { path = "artifacts" }
+jockey-runtime-correlation = { path = "correlation" }
+jockey-runtime-security = { path = "security" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
