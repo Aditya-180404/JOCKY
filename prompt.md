@@ -1,4 +1,4 @@
-# TRACEFORGE — FULL-SCALE FORENSIC PROGRAMMING LANGUAGE & PLATFORM
+# jockey — FULL-SCALE FORENSIC PROGRAMMING LANGUAGE & PLATFORM
 
 You are the principal compiler engineer, cybersecurity engineer, digital-forensics engineer, backend engineer, frontend engineer, DevOps engineer, and software architect responsible for building this project.
 
@@ -27,7 +27,7 @@ The actual product consists of:
 
 The project name is currently:
 
-TRACEFORGE
+jockey
 
 Treat this as a provisional product name and keep naming configurable.
 
@@ -35,13 +35,13 @@ Treat this as a provisional product name and keep naming configurable.
 
 # 1. CORE PRODUCT VISION
 
-TraceForge is a domain-specific programming language and forensic analysis platform for creating, compiling, distributing, executing, and managing computer and network forensic investigations.
+jockey is a domain-specific programming language and forensic analysis platform for creating, compiling, distributing, executing, and managing computer and network forensic investigations.
 
 The system has TWO equal execution models.
 
 ## MODEL A — LOCAL
 
-A user downloads the TraceForge compiler from the website.
+A user downloads the jockey compiler from the website.
 
 They install it on Windows or Linux.
 
@@ -53,19 +53,19 @@ and compile locally:
 
 Linux:
 
-./traceforge process_triage.tfg -o process_triage
+./jockey process_triage.tfg -o process_triage
 
 Windows:
 
-traceforge.exe process_triage.tfg -o process_triage.exe
+jockey.exe process_triage.tfg -o process_triage.exe
 
 Explicit targets:
 
-./traceforge process_triage.tfg 
+./jockey process_triage.tfg 
     --target linux-x64 
     -o process_triage
 
-./traceforge process_triage.tfg 
+./jockey process_triage.tfg 
     --target windows-x64 
     -o process_triage.exe
 
@@ -77,13 +77,13 @@ The user does NOT need the cloud platform to compile their language.
 
 # 2. MODEL B — CLOUD
 
-The same language and compiler must be available through the TraceForge web platform.
+The same language and compiler must be available through the jockey web platform.
 
 Browser:
 
 Web IDE
    ↓
-TraceForge source
+jockey source
    ↓
 Cloud compiler
    ↓
@@ -111,7 +111,7 @@ The cloud platform additionally provides:
 
 The local compiler and cloud compiler MUST use the same language specification and compiler implementation.
 
-There must not be two incompatible TraceForge languages.
+There must not be two incompatible jockey languages.
 
 ---
 
@@ -140,7 +140,7 @@ The supplied problem statement requires:
 - blockchain
 - evidence integrity
 
-TraceForge must provide a corresponding implementation or defensive forensic-analysis module for every major area.
+jockey must provide a corresponding implementation or defensive forensic-analysis module for every major area.
 
 Where a technique in the source statement represents security-evasion or kernel-subversion behavior, implement the corresponding capability as:
 
@@ -159,7 +159,7 @@ The product should demonstrate that it understands and analyzes those techniques
 
 # 4. LANGUAGE
 
-Create a real programming language called TraceForge.
+Create a real programming language called jockey.
 
 File extension:
 
@@ -207,7 +207,7 @@ investigation "network_triage" {
 
 # 5. LANGUAGE PHILOSOPHY
 
-TraceForge is NOT intended to replace Rust, C, C++, Python, or Go.
+jockey is NOT intended to replace Rust, C, C++, Python, or Go.
 
 It is a domain-specific language optimized for:
 
@@ -292,7 +292,7 @@ Implement a real compiler.
 
 Pipeline:
 
-TraceForge source
+jockey source
        ↓
 Lexer
        ↓
@@ -302,7 +302,7 @@ AST
        ↓
 Semantic analysis
        ↓
-TraceForge IR
+jockey IR
        ↓
 Backend
        ↓
@@ -353,11 +353,11 @@ The team must NOT unnecessarily fork the entire Rust compiler.
 
 Preferred:
 
-TraceForge frontend
+jockey frontend
        ↓
-TraceForge AST
+jockey AST
        ↓
-TraceForge IR
+jockey IR
        ↓
 LLVM IR
        ↓
@@ -375,8 +375,8 @@ The downloadable compiler is a FIRST-CLASS product component.
 
 The website must provide downloads for:
 
-TraceForge Compiler — Windows x64
-TraceForge Compiler — Linux x64
+jockey Compiler — Windows x64
+jockey Compiler — Linux x64
 
 Future:
 
@@ -386,7 +386,7 @@ macOS
 
 The compiler package should contain:
 
-traceforge
+jockey
 standard library/runtime
 documentation
 example .tfg programs
@@ -399,41 +399,41 @@ version metadata
 
 The CLI must support:
 
-traceforge --help
+jockey --help
 
-traceforge --version
+jockey --version
 
-traceforge check script.tfg
+jockey check script.tfg
 
-traceforge compile script.tfg
+jockey compile script.tfg
 
-traceforge build script.tfg
+jockey build script.tfg
 
-traceforge run script.tfg
+jockey run script.tfg
 
-traceforge inspect script.tfg
+jockey inspect script.tfg
 
-traceforge fmt script.tfg
+jockey fmt script.tfg
 
-traceforge hash artifact
+jockey hash artifact
 
-traceforge target list
+jockey target list
 
 Examples:
 
-./traceforge process.tfg -o process
+./jockey process.tfg -o process
 
-./traceforge process.tfg 
+./jockey process.tfg 
     --target linux-x64 
     -o process
 
-./traceforge process.tfg 
+./jockey process.tfg 
     --target windows-x64 
     -o process.exe
 
 Compilation output:
 
-TraceForge Compiler 0.1.0
+jockey Compiler 0.1.0
 
 Source:
 process.tfg
@@ -502,7 +502,7 @@ Where practical, support reproducible builds.
 
 # 13. FORENSIC STANDARD LIBRARY
 
-Create a TraceForge forensic standard library.
+Create a jockey forensic standard library.
 
 Modules:
 
@@ -611,7 +611,7 @@ export evidence "connections.json"
 
 # 17. MALICIOUS-ACTIVITY ANALYSIS
 
-TraceForge must include forensic detection modules for suspicious behavior.
+jockey must include forensic detection modules for suspicious behavior.
 
 Examples:
 
@@ -651,7 +651,7 @@ thread hijacking
 API unhooking
 direct system calls
 
-TraceForge must provide a forensic-analysis layer capable of identifying indicators associated with these techniques.
+jockey must provide a forensic-analysis layer capable of identifying indicators associated with these techniques.
 
 Examples:
 
@@ -673,7 +673,7 @@ Do not create real-world EDR bypass or stealth execution functionality.
 
 The problem statement explicitly mentions BYOVD and vulnerable drivers.
 
-TraceForge must implement a driver-security analysis module.
+jockey must implement a driver-security analysis module.
 
 Capabilities:
 
@@ -738,7 +738,7 @@ Correlate these with forensic observations.
 
 The problem statement discusses polymorphic generation.
 
-TraceForge must provide a safe research implementation that demonstrates representation variation without generating malware or bypassing security products.
+jockey must provide a safe research implementation that demonstrates representation variation without generating malware or bypassing security products.
 
 Possible features:
 
@@ -752,7 +752,7 @@ binary-diff analysis
 
 Example:
 
-Same TraceForge program:
+Same jockey program:
 
 process.tfg
 
@@ -803,7 +803,7 @@ secure password hashing
 
 # 23. TOOL SIGNING
 
-Every published TraceForge tool should be signed.
+Every published jockey tool should be signed.
 
 Metadata:
 
@@ -821,7 +821,7 @@ Before execution, the local CLI should be able to verify the artifact.
 
 Example:
 
-traceforge verify process.exe
+jockey verify process.exe
 
 Result:
 
@@ -832,7 +832,7 @@ Artifact hash:
 VALID
 
 Publisher:
-TraceForge Repository
+jockey Repository
 
 Version:
 1.2.0
@@ -883,7 +883,7 @@ API
    ↓
 Compiler Worker
    ↓
-TraceForge Compiler
+jockey Compiler
    ↓
 Artifact
    ↓
@@ -901,7 +901,7 @@ The cloud platform must support multiple authorized systems.
 
 Conceptually:
 
-TraceForge Cloud
+jockey Cloud
        |
        +--- Organization A
        |       |
@@ -927,7 +927,7 @@ It must NOT be required for the basic product.
 
 The future architecture:
 
-TraceForge Cloud
+jockey Cloud
        |
        | authenticated outbound connection
        |
@@ -958,7 +958,7 @@ Do not use pivoting, reverse shells, or covert tunnels.
 
 VPN is OPTIONAL.
 
-TraceForge must not require organizations to build custom VPN infrastructure.
+jockey must not require organizations to build custom VPN infrastructure.
 
 The architecture should support:
 
@@ -975,7 +975,7 @@ Do not make VPN a prerequisite for the MVP.
 
 The original problem statement mentions trusted cloud infrastructure/CDNs and domain-fronting concepts.
 
-TraceForge should instead use:
+jockey should instead use:
 
 HTTPS
 TLS
@@ -1311,23 +1311,23 @@ In addition to compilation, the CLI should support repository interaction.
 
 Examples:
 
-traceforge login
+jockey login
 
-traceforge search "process"
+jockey search "process"
 
-traceforge install process-investigator
+jockey install process-investigator
 
-traceforge list
+jockey list
 
-traceforge info process-investigator
+jockey info process-investigator
 
-traceforge update
+jockey update
 
-traceforge verify process-investigator
+jockey verify process-investigator
 
-traceforge publish process-investigator
+jockey publish process-investigator
 
-This allows TraceForge to function like a forensic developer ecosystem rather than merely a compiler.
+This allows jockey to function like a forensic developer ecosystem rather than merely a compiler.
 
 ---
 
@@ -1341,7 +1341,7 @@ process.tfg
 
 Compile locally:
 
-./traceforge process.tfg -o process
+./jockey process.tfg -o process
 
 Run:
 
@@ -1349,21 +1349,21 @@ Run:
 
 Or compile Windows:
 
-./traceforge process.tfg 
+./jockey process.tfg 
     --target windows-x64 
     -o process.exe
 
 Publish:
 
-./traceforge publish process
+./jockey publish process
 
 Another investigator:
 
-traceforge search process
+jockey search process
 
-traceforge install process-investigator
+jockey install process-investigator
 
-traceforge run process-investigator
+jockey run process-investigator
 
 Evidence is generated.
 
@@ -1431,7 +1431,7 @@ Use a monorepo.
 
 Suggested:
 
-traceforge/
+jockey/
 
 apps/
     web/
@@ -1596,11 +1596,11 @@ process.tfg
 
 3. Run:
 
-./traceforge check process.tfg
+./jockey check process.tfg
 
 4. Compile:
 
-./traceforge process.tfg -o process
+./jockey process.tfg -o process
 
 5. Execute:
 
@@ -1719,7 +1719,7 @@ Create a dedicated compiler download page.
 
 Example:
 
-TraceForge Compiler
+jockey Compiler
 
 Latest:
 v0.1.0
@@ -1751,13 +1751,13 @@ The page must make clear that the compiler can operate independently of the clou
 
 # 53. LOCAL-FIRST PRINCIPLE
 
-A user must be able to use TraceForge without internet access after installing the compiler and runtime.
+A user must be able to use jockey without internet access after installing the compiler and runtime.
 
 Local compilation:
 
 .tfg
  ↓
-TraceForge compiler
+jockey compiler
  ↓
 native artifact
 
@@ -1877,7 +1877,7 @@ Phase 1:
 Monorepo and architecture
 
 Phase 2:
-TraceForge language
+jockey language
 
 Phase 3:
 Compiler + CLI
@@ -1952,7 +1952,7 @@ Hash evidence
 
 CLOUD:
 
-Open TraceForge
+Open jockey
    ↓
 Write .tfg
    ↓

@@ -1,4 +1,4 @@
-//! TraceForge Runtime - Network connection enumeration
+//! jockey Runtime - Network connection enumeration
 
 use serde::{Deserialize, Serialize};
 use std::net::IpAddr;

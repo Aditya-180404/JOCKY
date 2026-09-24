@@ -13,18 +13,18 @@ jobs:
     name: Rust checks
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgres://traceforge:traceforge_dev@localhost:5432/traceforge
+      DATABASE_URL: postgres://jockey:jockey_dev@localhost:5432/jockey
     services:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: traceforge
-          POSTGRES_USER: traceforge
-          POSTGRES_PASSWORD: traceforge_dev
+          POSTGRES_DB: jockey
+          POSTGRES_USER: jockey
+          POSTGRES_PASSWORD: jockey_dev
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U traceforge -d traceforge"
+          --health-cmd "pg_isready -U jockey -d jockey"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5

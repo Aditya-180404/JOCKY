@@ -1,4 +1,4 @@
-//! TraceForge Runtime - Evidence collection, integrity, and verification
+//! jockey Runtime - Evidence collection, integrity, and verification
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -93,7 +93,7 @@ impl EvidenceCollector {
     pub fn new(investigation_name: &str) -> Self {
         Self {
             investigation_name: investigation_name.to_string(),
-            tool_name: "traceforge-tool".to_string(),
+            tool_name: "jockey-tool".to_string(),
             tool_version: "0.1.0".to_string(),
             host_identifier: whoami::devicename(),
             output_format: "json".to_string(),
@@ -107,7 +107,7 @@ impl EvidenceCollector {
     }
 
     pub fn collect_system_info(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let info = traceforge_runtime_system::collect_system_info()?;
+        let info = jockey_runtime_system::collect_system_info()?;
         self.data.push(info);
         Ok(())
     }
@@ -116,7 +116,7 @@ impl EvidenceCollector {
         &mut self,
         fields: Vec<String>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let processes = traceforge_runtime_process::enumerate_processes(&fields)?;
+        let processes = jockey_runtime_process::enumerate_processes(&fields)?;
         for proc in processes {
             self.data.push(proc);
         }
@@ -124,7 +124,7 @@ impl EvidenceCollector {
     }
 
     pub fn collect_network_connections(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let connections = traceforge_runtime_network::enumerate_connections()?;
+        let connections = jockey_runtime_network::enumerate_connections()?;
         for conn in connections {
             self.data.push(conn);
         }
@@ -137,7 +137,7 @@ impl EvidenceCollector {
         recursive: bool,
         hash: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let files = traceforge_runtime_filesystem::enumerate_files(path, recursive, hash)?;
+        let files = jockey_runtime_filesystem::enumerate_files(path, recursive, hash)?;
         for file in files {
             self.data.push(file);
         }
@@ -145,7 +145,7 @@ impl EvidenceCollector {
     }
 
     pub fn collect_logs(&mut self, source: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let logs = traceforge_runtime_logs::collect_logs(source)?;
+        let logs = jockey_runtime_logs::collect_logs(source)?;
         for log in logs {
             self.data.push(log);
         }
@@ -153,7 +153,7 @@ impl EvidenceCollector {
     }
 
     pub fn collect_drivers(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let drivers = traceforge_runtime_drivers::enumerate_drivers()?;
+        let drivers = jockey_runtime_drivers::enumerate_drivers()?;
         for d in drivers {
             self.data.push(d);
         }
@@ -164,7 +164,7 @@ impl EvidenceCollector {
         &mut self,
         pid_filter: Option<i32>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let regions = traceforge_runtime_memory::enumerate_memory_regions(pid_filter)?;
+        let regions = jockey_runtime_memory::enumerate_memory_regions(pid_filter)?;
         for region in regions {
             self.data.push(region);
         }
@@ -176,7 +176,7 @@ impl EvidenceCollector {
         hive: &str,
         key_path: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let entries = traceforge_runtime_registry::enumerate_registry(hive, key_path)?;
+        let entries = jockey_runtime_registry::enumerate_registry(hive, key_path)?;
         for entry in entries {
             self.data.push(entry);
         }
@@ -188,7 +188,7 @@ impl EvidenceCollector {
         artifact_type: &str,
         search_path: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let artifacts = traceforge_runtime_artifacts::carve_artifacts(artifact_type, search_path)?;
+        let artifacts = jockey_runtime_artifacts::carve_artifacts(artifact_type, search_path)?;
         for artifact in artifacts {
             self.data.push(artifact);
         }
@@ -202,7 +202,7 @@ impl EvidenceCollector {
         for (i, rec) in records.iter().enumerate() {
             let ref_str = format!("ref-{}", i + 1);
             if let Some(event) =
-                traceforge_runtime_timeline::normalize_record(rec, &host, Some(&ref_str))
+                jockey_runtime_timeline::normalize_record(rec, &host, Some(&ref_str))
             {
                 if let Ok(v) = serde_json::to_value(&event) {
                     timeline_records.push(v);
@@ -509,7 +509,7 @@ impl Default for DevelopmentBlockchainAdapter {
     fn default() -> Self {
         Self {
             network_name: "dev-local".to_string(),
-            manifest_path: std::env::temp_dir().join("traceforge-blockchain-manifest.json"),
+            manifest_path: std::env::temp_dir().join("jockey-blockchain-manifest.json"),
         }
     }
 }
@@ -1066,7 +1066,7 @@ pub fn anchor_to_blockchain(hash: &str) -> Result<BlockchainAnchor, Box<dyn std:
     // Development-only: records to local manifest file
     // A real production adapter would submit to a verifiable public ledger
     let dev_adapter = DevelopmentBlockchainAdapter::new();
-    let tx_id = dev_adapter.anchor(hash, "traceforge-evidence")?;
+    let tx_id = dev_adapter.anchor(hash, "jockey-evidence")?;
     Ok(BlockchainAnchor {
         transaction_id: tx_id,
         block_height: 0, // Not applicable for development adapter

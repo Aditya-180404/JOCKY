@@ -1,6 +1,6 @@
 {
   "investigation_name": "process_triage",
-  "tool_name": "traceforge-tool",
+  "tool_name": "jockey-tool",
   "tool_version": "0.1.0",
   "host_identifier": "kali",
   "collection_time": "2026-09-23T16:04:16.855942936Z",

@@ -13,35 +13,35 @@ export function DocsPage() {
 
   const cliCommands = [
     {
-      cmd: 'traceforge check <file.tfg>',
+      cmd: 'jockey check <file.tfg>',
       desc: 'Validates source syntax, AST, and semantic capability constraints.',
     },
     {
-      cmd: 'traceforge compile <file.tfg> --target windows --arch x64',
+      cmd: 'jockey compile <file.tfg> --target windows --arch x64',
       desc: 'Compiles the .tfg investigation into a standalone native executable artifact.',
     },
     {
-      cmd: 'traceforge build <file.tfg>',
+      cmd: 'jockey build <file.tfg>',
       desc: 'Alias for speed-optimized compilation into release binary.',
     },
     {
-      cmd: 'traceforge run <file.tfg>',
+      cmd: 'jockey run <file.tfg>',
       desc: 'Compiles and immediately executes the investigation on the current host.',
     },
     {
-      cmd: 'traceforge fmt <file.tfg> [--write]',
-      desc: 'Parses and formats source code into normalized TraceForge syntax.',
+      cmd: 'jockey fmt <file.tfg> [--write]',
+      desc: 'Parses and formats source code into normalized jockey syntax.',
     },
     {
-      cmd: 'traceforge inspect <file.tfg> --format [tokens|ast|ir]',
+      cmd: 'jockey inspect <file.tfg> --format [tokens|ast|ir]',
       desc: 'Dumps lexer tokens, AST hierarchy, or Intermediate Representation (IR).',
     },
     {
-      cmd: 'traceforge verify <artifact/evidence.json>',
+      cmd: 'jockey verify <artifact/evidence.json>',
       desc: 'Verifies SHA-256 cryptographic checksums against sidecar metadata to detect tampering.',
     },
     {
-      cmd: 'traceforge target list',
+      cmd: 'jockey target list',
       desc: 'Lists all supported compilation target platforms and architectures.',
     },
   ];
@@ -84,7 +84,7 @@ export function DocsPage() {
               <div>
                 <h1 className="text-xl font-bold font-mono text-white">CLI Toolchain Reference</h1>
                 <p className="mt-1 text-xs text-slate-400">
-                  Command-line interface for checking, compiling, running, and verifying TRACEFORGE investigations.
+                  Command-line interface for checking, compiling, running, and verifying jockey investigations.
                 </p>
               </div>
 
@@ -153,7 +153,7 @@ export function DocsPage() {
                 </p>
 
                 <div className="font-bold text-slate-200 pt-2">3. Verification Command</div>
-                <div className="text-blue-300">traceforge verify evidence.json</div>
+                <div className="text-blue-300">jockey verify evidence.json</div>
                 <p className="text-slate-400 font-sans">
                   Recalculates the evidence hash and matches against sidecar. Exit code 0 if valid; exit code 1 if tampered.
                 </p>
@@ -174,7 +174,7 @@ export function DocsPage() {
                 <div className="p-3.5 rounded bg-[#090d15] border border-slate-800">
                   <h3 className="font-bold text-white mb-1">Read-Only Operation</h3>
                   <p className="text-slate-400">
-                    TraceForge collection primitives only query existing state. Handles are opened with read-only
+                    jockey collection primitives only query existing state. Handles are opened with read-only
                     rights (`PROCESS_QUERY_LIMITED_INFORMATION`, read-only file streams).
                   </p>
                 </div>

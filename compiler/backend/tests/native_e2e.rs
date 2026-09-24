@@ -16,9 +16,9 @@
 use std::fs;
 use std::process::Command;
 
-use traceforge_backend::llvm::LlvmBackend;
-use traceforge_ir::BuildConfig;
-use traceforge_runtime_evidence::{verify_evidence_deep, VerificationStatus};
+use jockey_backend::llvm::LlvmBackend;
+use jockey_ir::BuildConfig;
+use jockey_runtime_evidence::{verify_evidence_deep, VerificationStatus};
 
 #[test]
 fn test_native_end_to_end_forensic_pipeline() {
@@ -34,28 +34,28 @@ investigation "native_semantic_triage" {
 "#;
 
     let temp_dir =
-        std::env::temp_dir().join(format!("traceforge_native_test_{}", std::process::id()));
+        std::env::temp_dir().join(format!("jockey_native_test_{}", std::process::id()));
     let _ = fs::remove_dir_all(&temp_dir);
     fs::create_dir_all(&temp_dir).expect("Failed to create temp test directory");
 
     // 1. Lexer
-    let mut lexer = traceforge_lexer::Lexer::new(source);
+    let mut lexer = jockey_lexer::Lexer::new(source);
     let tokens = lexer.tokenize().expect("Lexer failed");
 
     // 2. Parser
-    let mut parser = traceforge_parser::Parser::new(tokens);
+    let mut parser = jockey_parser::Parser::new(tokens);
     let ast = parser.parse().expect("Parser failed");
 
     // 3. Semantic Analysis
-    let mut analyzer = traceforge_semantic::SemanticAnalyzer::new();
+    let mut analyzer = jockey_semantic::SemanticAnalyzer::new();
     let ir = analyzer.analyze(&ast).expect("Semantic analysis failed");
 
     // 4. HIR Lowering
-    let hir = traceforge_hir::HirLowering::lower(&ast, &ir.required_capabilities, source)
+    let hir = jockey_hir::HirLowering::lower(&ast, &ir.required_capabilities, source)
         .expect("HIR lowering failed");
 
     // 5. MIR Lowering
-    let mir = traceforge_mir::MirLowering::lower(&hir).expect("MIR lowering failed");
+    let mir = jockey_mir::MirLowering::lower(&hir).expect("MIR lowering failed");
 
     // 6. Programmatic LLVM Compilation to Native Executable
     let config = BuildConfig::default();

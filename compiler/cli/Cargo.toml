@@ -1,5 +1,5 @@
 [package]
-name = "traceforge-cli"
+name = "jockey-cli"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -7,23 +7,19 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [[bin]]
-name = "jocky"
-path = "src/main.rs"
-
-[[bin]]
-name = "traceforge"
+name = "jockey"
 path = "src/main.rs"
 
 [dependencies]
-traceforge-lexer = { path = "../lexer" }
-traceforge-parser = { path = "../parser" }
-traceforge-ast = { path = "../ast" }
-traceforge-semantic = { path = "../semantic" }
-traceforge-ir = { path = "../ir" }
-traceforge-hir = { path = "../hir" }
-traceforge-mir = { path = "../mir" }
-traceforge-backend = { path = "../backend" }
-traceforge-runtime = { path = "../../runtime" }
+jockey-lexer = { path = "../lexer" }
+jockey-parser = { path = "../parser" }
+jockey-ast = { path = "../ast" }
+jockey-semantic = { path = "../semantic" }
+jockey-ir = { path = "../ir" }
+jockey-hir = { path = "../hir" }
+jockey-mir = { path = "../mir" }
+jockey-backend = { path = "../backend" }
+jockey-runtime = { path = "../../runtime" }
 anyhow = { workspace = true }
 clap = { workspace = true }
 serde = { workspace = true }

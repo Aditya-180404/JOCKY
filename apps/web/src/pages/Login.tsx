@@ -33,7 +33,7 @@ export function Login() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
             <Activity className="h-10 w-10 text-accent-blue" />
-            <span className="text-2xl font-bold text-forensic-100">TraceForge</span>
+            <span className="text-2xl font-bold text-forensic-100">jockey</span>
           </Link>
           <h1 className="text-2xl font-bold text-forensic-100 mb-2">Welcome back</h1>
           <p className="text-forensic-400">Sign in to your account</p>
@@ -117,7 +117,7 @@ export function Login() {
         </div>
 
         <p className="mt-6 text-center text-forensic-600 text-sm">
-          TraceForge v0.1.0 — Defensive Digital Forensics
+          jockey v0.1.0 — Defensive Digital Forensics
         </p>
       </div>
     </div>

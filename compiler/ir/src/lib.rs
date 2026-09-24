@@ -1,8 +1,8 @@
-//! TraceForge IR - Intermediate Representation
+//! jockey IR - Intermediate Representation
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use traceforge_ast::{Capability, Span};
+use jockey_ast::{Capability, Span};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IrInvestigation {

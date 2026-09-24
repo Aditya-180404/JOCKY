@@ -1,4 +1,4 @@
-//! TraceForge Shared Types - Common types used across the platform
+//! jockey Shared Types - Common types used across the platform
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

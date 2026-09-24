@@ -1,5 +1,5 @@
 [package]
-name = "traceforge-compiler-worker"
+name = "jockey-compiler-worker"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -7,18 +7,18 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [[bin]]
-name = "traceforge-compiler-worker"
+name = "jockey-compiler-worker"
 path = "src/main.rs"
 
 [dependencies]
-traceforge-lexer = { path = "../../compiler/lexer" }
-traceforge-parser = { path = "../../compiler/parser" }
-traceforge-ast = { path = "../../compiler/ast" }
-traceforge-semantic = { path = "../../compiler/semantic" }
-traceforge-ir = { path = "../../compiler/ir" }
-traceforge-backend = { path = "../../compiler/backend" }
-traceforge-runtime = { path = "../../runtime" }
-traceforge-shared-types = { path = "../../packages/shared-types" }
+jockey-lexer = { path = "../../compiler/lexer" }
+jockey-parser = { path = "../../compiler/parser" }
+jockey-ast = { path = "../../compiler/ast" }
+jockey-semantic = { path = "../../compiler/semantic" }
+jockey-ir = { path = "../../compiler/ir" }
+jockey-backend = { path = "../../compiler/backend" }
+jockey-runtime = { path = "../../runtime" }
+jockey-shared-types = { path = "../../packages/shared-types" }
 anyhow = { workspace = true }
 tokio = { workspace = true }
 redis = { version = "0.23", features = ["tokio-comp", "connection-manager"] }

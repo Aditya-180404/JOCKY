@@ -1,11 +1,11 @@
-# TraceForge
+# jockey
 
 A cloud-based digital-forensics development and distribution platform with a domain-specific language for forensic investigations.
 
 ## Overview
 
-TraceForge enables investigators to:
-- Write forensic investigation programs using the TraceForge language
+jockey enables investigators to:
+- Write forensic investigation programs using the jockey language
 - Validate and compile programs into portable forensic tools
 - Version and publish tools to a centralized repository
 - Execute tools on authorized forensic/lab machines
@@ -15,10 +15,10 @@ TraceForge enables investigators to:
 ## Architecture
 
 ```
-TraceForge Cloud
+jockey Cloud
 ├── Web Frontend (React + TypeScript + Vite + Tailwind)
 ├── Web IDE (Monaco Editor)
-├── TraceForge Language & Compiler (Rust)
+├── jockey Language & Compiler (Rust)
 ├── Compiler Service (Rust worker)
 ├── Tool Repository
 ├── Investigation Management
@@ -31,11 +31,11 @@ TraceForge Cloud
 ## Project Structure
 
 ```
-traceforge/
+jockey/
 ├── apps/
 │   ├── web/          # Frontend application
 │   └── api/          # Backend API
-├── compiler/         # TraceForge compiler (Rust)
+├── compiler/         # jockey compiler (Rust)
 │   ├── lexer/
 │   ├── parser/
 │   ├── ast/
@@ -77,8 +77,8 @@ traceforge/
 ### Step 1 — Clone the Repository
 
 ```powershell
-git clone https://github.com/your-org/traceforge.git
-cd traceforge
+git clone https://github.com/your-org/jockey.git
+cd jockey
 ```
 
 ---
@@ -108,9 +108,9 @@ All three services should show **Up** / **healthy**.
 Open a new terminal and run:
 
 ```powershell
-$env:DATABASE_URL = "postgres://traceforge:traceforge_dev@localhost:5433/traceforge"
+$env:DATABASE_URL = "postgres://jockey:jockey_dev@localhost:5433/jockey"
 $env:RUST_LOG = "info"
-cargo run -p traceforge-api
+cargo run -p jockey-api
 ```
 
 You should see:
@@ -152,22 +152,22 @@ docker compose up -d postgres redis minio
 docker compose ps
 
 # 2. Configure the host-side API to use the Docker-mapped services
-$env:DATABASE_URL = "postgres://traceforge:traceforge_dev@localhost:5433/traceforge"
+$env:DATABASE_URL = "postgres://jockey:jockey_dev@localhost:5433/jockey"
 $env:REDIS_URL = "redis://localhost:6379"
 $env:MINIO_ENDPOINT = "http://localhost:9000"
-$env:MINIO_ACCESS_KEY = "traceforge"
-$env:MINIO_SECRET_KEY = "traceforge_dev"
-$env:MINIO_BUCKET = "traceforge-artifacts"
+$env:MINIO_ACCESS_KEY = "jockey"
+$env:MINIO_SECRET_KEY = "jockey_dev"
+$env:MINIO_BUCKET = "jockey-artifacts"
 $env:RUST_LOG = "info"
 
 # 3. If a previous API process is running, stop only that process before rebuilding
-Get-Process traceforge-api -ErrorAction SilentlyContinue
-Stop-Process -Name traceforge-api -Force -ErrorAction SilentlyContinue
+Get-Process jockey-api -ErrorAction SilentlyContinue
+Stop-Process -Name jockey-api -Force -ErrorAction SilentlyContinue
 cargo check --workspace
-cargo build -p traceforge-api
+cargo build -p jockey-api
 
 # 4. Start the API in one terminal
-cargo run -p traceforge-api
+cargo run -p jockey-api
 
 # 5. Start the frontend in another terminal
 cd apps\web
@@ -178,17 +178,17 @@ npm run dev
 The API provisions the configured MinIO bucket at startup. Verify `http://localhost:8080/health`, then open
 `http://localhost:5173/ide`, load an example, and use **Check** or **Run**. The Web IDE uses the real
 `/api/compiler/check` and `/api/compiler/execute` endpoints; execution is explicitly reported as the controlled
-TraceForge sandbox when local native execution is unavailable.
+jockey sandbox when local native execution is unavailable.
 
 ---
 
 ### Step 5 — Build the CLI
 
 ```powershell
-cargo build --release -p traceforge-cli
+cargo build --release -p jockey-cli
 ```
 
-The CLI binary is created at `target\release\traceforge.exe`.
+The CLI binary is created at `target\release\jockey.exe`.
 
 Optionally add it to your PATH:
 
@@ -199,8 +199,8 @@ $env:PATH += ";$PWD\target\release"
 Verify:
 
 ```powershell
-traceforge --version
-# traceforge 0.1.0
+jockey --version
+# jockey 0.1.0
 ```
 
 ---
@@ -209,13 +209,13 @@ traceforge --version
 
 ```powershell
 # Validate a .tfg file
-traceforge validate examples\process_triage.tfg
+jockey validate examples\process_triage.tfg
 
 # Compile + execute (auto-detects Windows target)
-traceforge run examples\process_triage.tfg
+jockey run examples\process_triage.tfg
 
 # Verify the evidence file integrity
-traceforge verify process_triage_evidence.json
+jockey verify process_triage_evidence.json
 ```
 
 Expected output:
@@ -234,7 +234,7 @@ Collected: 2026-09-23T...
 Navigate to **http://localhost:5173/ide** in your browser, or run:
 
 ```powershell
-traceforge ide
+jockey ide
 ```
 
 Write `.tfg` code in the Monaco editor, click **Check** to validate, or **Execute** to run live forensic collection through the API.
@@ -246,7 +246,7 @@ Write `.tfg` code in the Monaco editor, click **Check** to validate, or **Execut
 Save as `start.ps1` and run from the repo root:
 
 ```powershell
-# start.ps1 — Start all TRACEFORGE services
+# start.ps1 — Start all jockey services
 
 Write-Host "Starting infrastructure..." -ForegroundColor Cyan
 docker compose up -d postgres redis minio
@@ -257,7 +257,7 @@ Start-Sleep -Seconds 8
 Write-Host "Starting API server (background)..." -ForegroundColor Cyan
 Start-Process powershell -ArgumentList `
   '-NoExit', '-Command', `
-  '$env:DATABASE_URL="postgres://traceforge:traceforge_dev@localhost:5433/traceforge"; $env:RUST_LOG="info"; cargo run -p traceforge-api'
+  '$env:DATABASE_URL="postgres://jockey:jockey_dev@localhost:5433/jockey"; $env:RUST_LOG="info"; cargo run -p jockey-api'
 
 Write-Host "Starting web frontend (background)..." -ForegroundColor Cyan
 Start-Process powershell -ArgumentList `
@@ -265,7 +265,7 @@ Start-Process powershell -ArgumentList `
   'cd apps\web; npm run dev'
 
 Write-Host ""
-Write-Host "TraceForge is starting up!" -ForegroundColor Green
+Write-Host "jockey is starting up!" -ForegroundColor Green
 Write-Host "  Web UI:  http://localhost:5173"
 Write-Host "  Web IDE: http://localhost:5173/ide"
 Write-Host "  API:     http://localhost:8080"
@@ -278,7 +278,7 @@ Write-Host "  API:     http://localhost:8080"
 
 ## Language Example
 
-```traceforge
+```jockey
 investigation "process_triage" {
     collect system_info
     collect processes {
@@ -296,7 +296,7 @@ investigation "process_triage" {
 
 ## Security
 
-TraceForge is a **defensive** digital-forensics platform. It does not implement:
+jockey is a **defensive** digital-forensics platform. It does not implement:
 - Antivirus/EDR bypass techniques
 - Process injection or hollowing
 - Credential theft

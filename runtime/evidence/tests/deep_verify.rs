@@ -1,14 +1,14 @@
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
-use traceforge_runtime_evidence::{verify_evidence_deep, EvidenceCollector, VerificationStatus};
+use jockey_runtime_evidence::{verify_evidence_deep, EvidenceCollector, VerificationStatus};
 
 fn temp_path(name: &str) -> PathBuf {
     let nonce = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    std::env::temp_dir().join(format!("traceforge_test_{}_{}.json", name, nonce))
+    std::env::temp_dir().join(format!("jockey_test_{}_{}.json", name, nonce))
 }
 
 #[test]

@@ -1,5 +1,5 @@
 [package]
-name = "traceforge-backend"
+name = "jockey-backend"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -7,11 +7,11 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-traceforge-ast = { path = "../ast" }
-traceforge-ir = { path = "../ir" }
-traceforge-hir = { path = "../hir" }
-traceforge-mir = { path = "../mir" }
-traceforge-runtime = { path = "../../runtime" }
+jockey-ast = { path = "../ast" }
+jockey-ir = { path = "../ir" }
+jockey-hir = { path = "../hir" }
+jockey-mir = { path = "../mir" }
+jockey-runtime = { path = "../../runtime" }
 anyhow = { workspace = true }
 chrono = { workspace = true }
 serde = { workspace = true }
@@ -21,7 +21,7 @@ thiserror = { workspace = true }
 llvm-sys = { version = "211.1.0", features = ["prefer-dynamic"] }
 
 [dev-dependencies]
-traceforge-lexer = { path = "../lexer" }
-traceforge-parser = { path = "../parser" }
-traceforge-semantic = { path = "../semantic" }
-traceforge-runtime-evidence = { path = "../../runtime/evidence" }
+jockey-lexer = { path = "../lexer" }
+jockey-parser = { path = "../parser" }
+jockey-semantic = { path = "../semantic" }
+jockey-runtime-evidence = { path = "../../runtime/evidence" }

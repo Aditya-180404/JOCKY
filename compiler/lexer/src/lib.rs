@@ -1,7 +1,7 @@
-//! TraceForge Lexer - Tokenizes TraceForge source code
+//! jockey Lexer - Tokenizes jockey source code
 
 use thiserror::Error;
-use traceforge_ast::{Span, Token, TokenKind};
+use jockey_ast::{Span, Token, TokenKind};
 
 #[derive(Debug, Error)]
 pub enum LexerError {

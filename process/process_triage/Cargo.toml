@@ -6,6 +6,6 @@ edition = "2021"
 [workspace]
 
 [dependencies]
-traceforge-runtime = { path = "../../../../../runtime" }
+jockey-runtime = { path = "../../../../../runtime" }
 procfs = "0.15"
 sha2 = "0.10"

@@ -1,12 +1,12 @@
 //! Real Programmatic LLVM Code Generation Backend
 //!
-//! Lowers TraceForge MIR into standard, valid LLVM 15-21 Intermediate Representation (`.ll`),
-//! optimizes via LLVM passes, and links against the native TraceForge runtime staticlib
+//! Lowers jockey MIR into standard, valid LLVM 15-21 Intermediate Representation (`.ll`),
+//! optimizes via LLVM passes, and links against the native jockey runtime staticlib
 //! using `clang` to produce platform-native ELF and PE executables.
 
 use std::path::{Path, PathBuf};
-use traceforge_ir::{ArtifactMetadata, BuildConfig, TargetArch, TargetPlatform};
-use traceforge_mir::MirProgram;
+use jockey_ir::{ArtifactMetadata, BuildConfig, TargetArch, TargetPlatform};
+use jockey_mir::MirProgram;
 
 /// LLVM backend configuration and compilation driver
 pub struct LlvmBackend {
@@ -84,13 +84,13 @@ impl LlvmBackend {
         let mut cmd = std::process::Command::new("clang");
         // Optimization level
         match self.config.optimization_level {
-            traceforge_ir::OptimizationLevel::None => {
+            jockey_ir::OptimizationLevel::None => {
                 cmd.arg("-O0");
             }
-            traceforge_ir::OptimizationLevel::Size => {
+            jockey_ir::OptimizationLevel::Size => {
                 cmd.arg("-Os");
             }
-            traceforge_ir::OptimizationLevel::Speed => {
+            jockey_ir::OptimizationLevel::Speed => {
                 cmd.arg("-O2");
             }
         }
@@ -170,7 +170,7 @@ impl LlvmBackend {
                 workspace_root
                     .join("target")
                     .join("release")
-                    .join("libtraceforge_runtime.a"),
+                    .join("libjockey_runtime.a"),
             ),
             TargetPlatform::Windows => (
                 Some("x86_64-pc-windows-gnu"),
@@ -178,7 +178,7 @@ impl LlvmBackend {
                     .join("target")
                     .join("x86_64-pc-windows-gnu")
                     .join("release")
-                    .join("libtraceforge_runtime.a"),
+                    .join("libjockey_runtime.a"),
             ),
         };
 
@@ -188,7 +188,7 @@ impl LlvmBackend {
 
         // Build runtime static library on demand
         let mut cmd = std::process::Command::new("cargo");
-        cmd.args(["build", "-p", "traceforge-runtime", "--release"]);
+        cmd.args(["build", "-p", "jockey-runtime", "--release"]);
         if let Some(target) = target_arg {
             cmd.args(["--target", target]);
         }
@@ -231,7 +231,7 @@ impl LlvmBackend {
 mod tests {
     use super::*;
     use std::collections::HashSet;
-    use traceforge_mir::{
+    use jockey_mir::{
         MirBasicBlock, MirFunction, MirInstruction, MirLocal, MirProgram, MirProvenance,
         MirTerminator, MirType,
     };
@@ -290,11 +290,11 @@ mod tests {
             .expect("LLVM IR codegen failed");
 
         assert!(ir.contains("target triple = \"x86_64-pc-linux-gnu\""));
-        assert!(ir.contains("declare ptr @traceforge_rt_evidence_init(ptr)"));
-        assert!(ir.contains("call ptr @traceforge_rt_evidence_init"));
-        assert!(ir.contains("call i32 @traceforge_rt_collect_system"));
-        assert!(ir.contains("call i32 @traceforge_rt_evidence_export"));
-        assert!(ir.contains("call void @traceforge_rt_evidence_free"));
+        assert!(ir.contains("declare ptr @jockey_rt_evidence_init(ptr)"));
+        assert!(ir.contains("call ptr @jockey_rt_evidence_init"));
+        assert!(ir.contains("call i32 @jockey_rt_collect_system"));
+        assert!(ir.contains("call i32 @jockey_rt_evidence_export"));
+        assert!(ir.contains("call void @jockey_rt_evidence_free"));
         assert!(ir.contains("ret i32"));
     }
 }

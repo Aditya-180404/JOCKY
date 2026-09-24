@@ -6873,7 +6873,7 @@
   },
   {
     "command_line": [
-      "\"c:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Antigravity IDE\\resources\\app\\extensions\\antigravity\\bin\\language_server_windows_x64.exe\" --enable_lsp --csrf_token 5cf32972-dc48-4e9e-a65d-3964de288bd7 --extension_server_port 62674 --extension_server_csrf_token 66b2aeff-5b98-4d4f-8292-57f67538e0b0 --https_server_port 62675 --lsp_port 62683 --workspace_id file_g_3A_TRACEFORGE --cloud_code_endpoint https://daily-cloudcode-pa.googleapis.com --subclient_type ide --app_data_dir antigravity-ide --parent_pipe_path \\\\.\\pipe\\server_e9b7a7a97042a2f9"
+      "\"c:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Antigravity IDE\\resources\\app\\extensions\\antigravity\\bin\\language_server_windows_x64.exe\" --enable_lsp --csrf_token 5cf32972-dc48-4e9e-a65d-3964de288bd7 --extension_server_port 62674 --extension_server_csrf_token 66b2aeff-5b98-4d4f-8292-57f67538e0b0 --https_server_port 62675 --lsp_port 62683 --workspace_id file_g_3A_jockey --cloud_code_endpoint https://daily-cloudcode-pa.googleapis.com --subclient_type ide --app_data_dir antigravity-ide --parent_pipe_path \\\\.\\pipe\\server_e9b7a7a97042a2f9"
     ],
     "cpu_percent": null,
     "executable_path": "c:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Antigravity IDE\\resources\\app\\extensions\\antigravity\\bin\\language_server_windows_x64.exe",
@@ -7272,7 +7272,7 @@
   },
   {
     "command_line": [
-      "powershell -Command \"cargo run -p traceforge-cli -- run examples\\basic_system_triage.tfg --target windows --arch x64 --output ./build 2>&1 | Select-Object -Last 30\""
+      "powershell -Command \"cargo run -p jockey-cli -- run examples\\basic_system_triage.tfg --target windows --arch x64 --output ./build 2>&1 | Select-Object -Last 30\""
     ],
     "cpu_percent": null,
     "executable_path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
@@ -7291,7 +7291,7 @@
   },
   {
     "command_line": [
-      "\"C:\\Users\\SAMARESH\\.cargo\\bin\\cargo.exe\" run -p traceforge-cli -- run examples\\basic_system_triage.tfg --target windows --arch x64 --output ./build"
+      "\"C:\\Users\\SAMARESH\\.cargo\\bin\\cargo.exe\" run -p jockey-cli -- run examples\\basic_system_triage.tfg --target windows --arch x64 --output ./build"
     ],
     "cpu_percent": null,
     "executable_path": "C:\\Users\\SAMARESH\\.cargo\\bin\\cargo.exe",
@@ -7310,7 +7310,7 @@
   },
   {
     "command_line": [
-      "\"C:\\Users\\SAMARESH\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe\" run -p traceforge-cli -- run examples\\basic_system_triage.tfg --target windows --arch x64 --output ./build"
+      "\"C:\\Users\\SAMARESH\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe\" run -p jockey-cli -- run examples\\basic_system_triage.tfg --target windows --arch x64 --output ./build"
     ],
     "cpu_percent": null,
     "executable_path": "C:\\Users\\SAMARESH\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
@@ -7329,14 +7329,14 @@
   },
   {
     "command_line": [
-      "\"target\\debug\\traceforge.exe\" run examples\\basic_system_triage.tfg --target windows --arch x64 --output ./build"
+      "\"target\\debug\\jockey.exe\" run examples\\basic_system_triage.tfg --target windows --arch x64 --output ./build"
     ],
     "cpu_percent": null,
-    "executable_path": "G:\\TRACEFORGE\\target\\debug\\traceforge.exe",
+    "executable_path": "G:\\jockey\\target\\debug\\jockey.exe",
     "group": null,
     "memory_rss_bytes": 7966720,
     "memory_vms_bytes": 4361551872,
-    "name": "traceforge.exe",
+    "name": "jockey.exe",
     "network_connections": [],
     "open_files": [],
     "pid": 38352,
@@ -7389,7 +7389,7 @@
       "\"./build\\basic_system_triage-windows-x64.exe\""
     ],
     "cpu_percent": null,
-    "executable_path": "G:\\TRACEFORGE\\build\\basic_system_triage-windows-x64.exe",
+    "executable_path": "G:\\jockey\\build\\basic_system_triage-windows-x64.exe",
     "group": null,
     "memory_rss_bytes": 5832704,
     "memory_vms_bytes": 4353695744,

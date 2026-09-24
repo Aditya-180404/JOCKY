@@ -1,4 +1,4 @@
-//! TraceForge Runtime - System information collection
+//! jockey Runtime - System information collection
 
 use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -12,7 +12,7 @@ use std::sync::Arc;
 use tracing::{error, info};
 use uuid::Uuid;
 
-use traceforge_shared_types::ErrorResponse;
+use jockey_shared_types::ErrorResponse;
 
 use crate::{AppState, AuthUser};
 

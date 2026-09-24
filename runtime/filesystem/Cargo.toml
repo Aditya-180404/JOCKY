@@ -1,5 +1,5 @@
 [package]
-name = "traceforge-runtime-filesystem"
+name = "jockey-runtime-filesystem"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }

@@ -1,4 +1,4 @@
-//! TraceForge API - REST API for the TraceForge platform
+//! jockey API - REST API for the jockey platform
 
 use aws_sdk_s3::Client as S3Client;
 use axum::{
@@ -56,22 +56,22 @@ async fn main() -> anyhow::Result<()> {
         .json()
         .init();
 
-    info!("Starting TraceForge API");
+    info!("Starting jockey API");
 
     // Load configuration - default PostgreSQL port 5433 for local docker container mapping
     let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
-        "postgres://traceforge:traceforge_dev@localhost:5433/traceforge".to_string()
+        "postgres://jockey:jockey_dev@localhost:5433/jockey".to_string()
     });
     let redis_url =
         std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".to_string());
     let minio_endpoint =
         std::env::var("MINIO_ENDPOINT").unwrap_or_else(|_| "http://localhost:9000".to_string());
     let minio_access_key =
-        std::env::var("MINIO_ACCESS_KEY").unwrap_or_else(|_| "traceforge".to_string());
+        std::env::var("MINIO_ACCESS_KEY").unwrap_or_else(|_| "jockey".to_string());
     let minio_secret_key =
-        std::env::var("MINIO_SECRET_KEY").unwrap_or_else(|_| "traceforge_dev".to_string());
+        std::env::var("MINIO_SECRET_KEY").unwrap_or_else(|_| "jockey_dev".to_string());
     let minio_bucket =
-        std::env::var("MINIO_BUCKET").unwrap_or_else(|_| "traceforge-artifacts".to_string());
+        std::env::var("MINIO_BUCKET").unwrap_or_else(|_| "jockey-artifacts".to_string());
     let jwt_secret = std::env::var("JWT_SECRET")
         .unwrap_or_else(|_| "dev_secret_change_in_production_at_least_32_chars_long".to_string());
 
@@ -215,7 +215,7 @@ async fn main() -> anyhow::Result<()> {
 async fn health_check() -> impl IntoResponse {
     Json(serde_json::json!({
         "status": "ok",
-        "service": "traceforge-api",
+        "service": "jockey-api",
         "version": env!("CARGO_PKG_VERSION")
     }))
 }

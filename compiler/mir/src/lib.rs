@@ -1,4 +1,4 @@
-//! TraceForge MIR - Mid-Level Intermediate Representation
+//! jockey MIR - Mid-Level Intermediate Representation
 //!
 //! A strongly-typed, control-flow-graph (CFG) representation with basic blocks,
 //! explicit instructions, temporaries/locals, typed values, and terminators.
@@ -7,8 +7,8 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
-use traceforge_ast::Capability;
-use traceforge_hir::{HirExpr, HirInvestigation, HirOperation, HirPipelineStage};
+use jockey_ast::Capability;
+use jockey_hir::{HirExpr, HirInvestigation, HirOperation, HirPipelineStage};
 
 pub type LocalId = usize;
 pub type BasicBlockId = usize;
@@ -679,8 +679,8 @@ impl MirOptimizer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use traceforge_ast::Span;
-    use traceforge_hir::HirProvenance;
+    use jockey_ast::Span;
+    use jockey_hir::HirProvenance;
 
     #[test]
     fn test_mir_lowering_and_validation() {

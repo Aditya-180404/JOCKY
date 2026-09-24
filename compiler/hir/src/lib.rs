@@ -1,4 +1,4 @@
-//! TraceForge HIR - High-Level Intermediate Representation
+//! jockey HIR - High-Level Intermediate Representation
 //!
 //! HIR captures semantic meaning, resolved capabilities, evidence requirements,
 //! and provenance, separating syntax structure from semantic operations.
@@ -6,12 +6,12 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
-use traceforge_ast::{
+use jockey_ast::{
     BinaryOp, Capability, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr,
     HashAlgorithm, Investigation, PipelineStage, Span, Stmt,
 };
 
-/// High-Level Intermediate Representation of a TraceForge Investigation
+/// High-Level Intermediate Representation of a jockey Investigation
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HirInvestigation {
     pub name: String,
@@ -523,12 +523,12 @@ impl HirLowering {
     }
 }
 
-impl From<&traceforge_ir::IrInvestigation> for HirInvestigation {
-    fn from(ir: &traceforge_ir::IrInvestigation) -> Self {
+impl From<&jockey_ir::IrInvestigation> for HirInvestigation {
+    fn from(ir: &jockey_ir::IrInvestigation) -> Self {
         let mut operations = Vec::new();
         for op in &ir.operations {
             match op {
-                traceforge_ir::IrOperation::Collect(c) => match c.operation.as_str() {
+                jockey_ir::IrOperation::Collect(c) => match c.operation.as_str() {
                     "system.info" => {
                         operations.push(HirOperation::CollectSystemInfo { span: c.span });
                     }
@@ -631,33 +631,33 @@ impl From<&traceforge_ir::IrInvestigation> for HirInvestigation {
                     }
                     _ => {}
                 },
-                traceforge_ir::IrOperation::Export(e) => {
+                jockey_ir::IrOperation::Export(e) => {
                     operations.push(HirOperation::Export {
                         format: e.format.clone(),
                         path: e.path.clone(),
                         span: e.span,
                     });
                 }
-                traceforge_ir::IrOperation::Filter(f) => {
+                jockey_ir::IrOperation::Filter(f) => {
                     operations.push(HirOperation::Filter {
                         condition: f.condition.clone(),
                         span: f.span,
                     });
                 }
-                traceforge_ir::IrOperation::Where(w) => {
+                jockey_ir::IrOperation::Where(w) => {
                     operations.push(HirOperation::Where {
                         condition: w.condition.clone(),
                         span: w.span,
                     });
                 }
-                traceforge_ir::IrOperation::Limit(l) => {
+                jockey_ir::IrOperation::Limit(l) => {
                     let count = l.count.as_u64().unwrap_or(0) as usize;
                     operations.push(HirOperation::Limit {
                         count,
                         span: l.span,
                     });
                 }
-                traceforge_ir::IrOperation::Assign(a) => {
+                jockey_ir::IrOperation::Assign(a) => {
                     operations.push(HirOperation::Assign {
                         variable: a.variable.clone(),
                         expr: HirExpr::Literal {
@@ -666,40 +666,40 @@ impl From<&traceforge_ir::IrInvestigation> for HirInvestigation {
                         span: a.span,
                     });
                 }
-                traceforge_ir::IrOperation::EvidencePipeline(ep) => {
+                jockey_ir::IrOperation::EvidencePipeline(ep) => {
                     let stages = ep
                         .stages
                         .iter()
                         .map(|s| match s {
-                            traceforge_ir::IrPipelineStage::Where { condition, span } => {
+                            jockey_ir::IrPipelineStage::Where { condition, span } => {
                                 HirPipelineStage::Where {
                                     condition: condition.clone(),
                                     span: *span,
                                 }
                             }
-                            traceforge_ir::IrPipelineStage::Filter { condition, span } => {
+                            jockey_ir::IrPipelineStage::Filter { condition, span } => {
                                 HirPipelineStage::Filter {
                                     condition: condition.clone(),
                                     span: *span,
                                 }
                             }
-                            traceforge_ir::IrPipelineStage::Limit { count, span } => {
+                            jockey_ir::IrPipelineStage::Limit { count, span } => {
                                 let lim = count.as_u64().unwrap_or(0) as usize;
                                 HirPipelineStage::Limit {
                                     count: lim,
                                     span: *span,
                                 }
                             }
-                            traceforge_ir::IrPipelineStage::Hash { algorithm, span } => {
+                            jockey_ir::IrPipelineStage::Hash { algorithm, span } => {
                                 HirPipelineStage::Hash {
                                     algorithm: algorithm.clone(),
                                     span: *span,
                                 }
                             }
-                            traceforge_ir::IrPipelineStage::Timeline { span } => {
+                            jockey_ir::IrPipelineStage::Timeline { span } => {
                                 HirPipelineStage::Timeline { span: *span }
                             }
-                            traceforge_ir::IrPipelineStage::Export { path, span } => {
+                            jockey_ir::IrPipelineStage::Export { path, span } => {
                                 HirPipelineStage::Export {
                                     format: "json".to_string(),
                                     path: path.clone(),
@@ -714,7 +714,7 @@ impl From<&traceforge_ir::IrInvestigation> for HirInvestigation {
                         span: ep.span,
                     });
                 }
-                traceforge_ir::IrOperation::Metadata(..) => {}
+                jockey_ir::IrOperation::Metadata(..) => {}
             }
         }
 
@@ -743,7 +743,7 @@ impl From<&traceforge_ir::IrInvestigation> for HirInvestigation {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use traceforge_ast::{CollectOptions, CollectTarget, ExportFormat, Investigation, Stmt};
+    use jockey_ast::{CollectOptions, CollectTarget, ExportFormat, Investigation, Stmt};
 
     #[test]
     fn test_hir_lowering_basic() {
@@ -797,7 +797,7 @@ mod tests {
 
     #[test]
     fn test_hir_lowering_all_collectors() {
-        use traceforge_ast::HashAlgorithm;
+        use jockey_ast::HashAlgorithm;
 
         let ast = Investigation {
             name: "all_collectors".to_string(),
@@ -895,7 +895,7 @@ mod tests {
 
     #[test]
     fn test_hir_lowering_pipelines_and_filters() {
-        use traceforge_ast::{Expr, HashAlgorithm, PipelineStage};
+        use jockey_ast::{Expr, HashAlgorithm, PipelineStage};
 
         let ast = Investigation {
             name: "pipeline_test".to_string(),
@@ -951,7 +951,7 @@ mod tests {
 
     #[test]
     fn test_hir_from_ir_roundtrip() {
-        use traceforge_ir::{IrCollectOperation, IrExportOperation, IrInvestigation, IrOperation};
+        use jockey_ir::{IrCollectOperation, IrExportOperation, IrInvestigation, IrOperation};
 
         let ir = IrInvestigation {
             name: "from_ir_test".to_string(),

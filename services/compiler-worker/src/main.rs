@@ -1,4 +1,4 @@
-//! TraceForge Compiler Worker — Background job processor with:
+//! jockey Compiler Worker — Background job processor with:
 //!   • Priority queue via Redis BZPOPMIN on sorted set `build_queue_priority`
 //!   • Fallback to RPOP on legacy `build_queue` list
 //!   • Source-hash artifact caching (skip recompile if identical source)
@@ -15,12 +15,12 @@ use tokio::signal;
 use tokio::time::interval;
 use tracing::{error, info, warn};
 
-use traceforge_backend::Backend;
-use traceforge_ir::{serialize_ir, BuildConfig, TargetArch, TargetPlatform};
-use traceforge_lexer::Lexer;
-use traceforge_parser::Parser;
-use traceforge_semantic::SemanticAnalyzer;
-use traceforge_shared_types::BuildStatus;
+use jockey_backend::Backend;
+use jockey_ir::{serialize_ir, BuildConfig, TargetArch, TargetPlatform};
+use jockey_lexer::Lexer;
+use jockey_parser::Parser;
+use jockey_semantic::SemanticAnalyzer;
+use jockey_shared_types::BuildStatus;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Config constants
@@ -68,22 +68,22 @@ async fn main() -> anyhow::Result<()> {
         .json()
         .init();
 
-    info!("Starting TraceForge Compiler Worker");
+    info!("Starting jockey Compiler Worker");
 
     // Load configuration
     let redis_url =
         std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".to_string());
     let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
-        "postgres://traceforge:traceforge_dev@localhost:5432/traceforge".to_string()
+        "postgres://jockey:jockey_dev@localhost:5432/jockey".to_string()
     });
     let minio_endpoint =
         std::env::var("MINIO_ENDPOINT").unwrap_or_else(|_| "http://localhost:9000".to_string());
     let minio_access_key =
-        std::env::var("MINIO_ACCESS_KEY").unwrap_or_else(|_| "traceforge".to_string());
+        std::env::var("MINIO_ACCESS_KEY").unwrap_or_else(|_| "jockey".to_string());
     let minio_secret_key =
-        std::env::var("MINIO_SECRET_KEY").unwrap_or_else(|_| "traceforge_dev".to_string());
+        std::env::var("MINIO_SECRET_KEY").unwrap_or_else(|_| "jockey_dev".to_string());
     let minio_bucket =
-        std::env::var("MINIO_BUCKET").unwrap_or_else(|_| "traceforge-artifacts".to_string());
+        std::env::var("MINIO_BUCKET").unwrap_or_else(|_| "jockey-artifacts".to_string());
 
     // Connect to Redis
     let redis_client = redis::Client::open(redis_url)?;
@@ -414,7 +414,7 @@ impl Worker {
         &self,
         job: &BuildJob,
         build_dir: &std::path::Path,
-    ) -> anyhow::Result<traceforge_ir::ArtifactMetadata> {
+    ) -> anyhow::Result<jockey_ir::ArtifactMetadata> {
         // Parse and analyze
         let mut lexer = Lexer::new(&job.source);
         let tokens = lexer.tokenize()?;
@@ -458,7 +458,7 @@ impl Worker {
         let config = BuildConfig {
             target_platform,
             target_arch,
-            optimization_level: traceforge_ir::OptimizationLevel::Speed,
+            optimization_level: jockey_ir::OptimizationLevel::Speed,
             debug_symbols: false,
             strip_symbols: true,
         };
@@ -552,7 +552,7 @@ impl Worker {
     async fn update_tool_version(
         &self,
         job: &BuildJob,
-        metadata: &traceforge_ir::ArtifactMetadata,
+        metadata: &jockey_ir::ArtifactMetadata,
         artifact_size: u64,
         s3_key: &str,
     ) -> anyhow::Result<()> {

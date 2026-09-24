@@ -1,5 +1,5 @@
 [package]
-name = "traceforge-runtime-drivers"
+name = "jockey-runtime-drivers"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }

@@ -11,7 +11,7 @@ use std::sync::Arc;
 use tracing::warn;
 use uuid::Uuid;
 
-use traceforge_shared_types::Role;
+use jockey_shared_types::Role;
 
 use crate::auth::Claims;
 

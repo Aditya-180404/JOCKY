@@ -13,7 +13,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{AppState, AuthUser};
-use traceforge_shared_types::{ErrorResponse, Role};
+use jockey_shared_types::{ErrorResponse, Role};
 
 #[derive(Clone)]
 pub struct AuthState {

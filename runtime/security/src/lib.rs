@@ -1,4 +1,4 @@
-//! TraceForge Runtime - Security Analysis Module
+//! jockey Runtime - Security Analysis Module
 //!
 //! Provides forensic detection capabilities for suspicious system behavior,
 //! including process anomalies, unsigned executables, and unexpected locations.

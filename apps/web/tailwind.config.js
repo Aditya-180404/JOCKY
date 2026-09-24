@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // TraceForge dark theme
+        // jockey dark theme
         forensic: {
           50: '#f0f4f8',
           100: '#d9e2ec',

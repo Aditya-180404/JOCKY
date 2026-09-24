@@ -150,10 +150,10 @@ export function DownloadPage() {
               </p>
               <pre className="mt-3 p-3 rounded bg-[#090d15] border border-slate-800 font-mono text-xs text-slate-300">
 {`# Clone and build native release binary on Linux
-git clone https://github.com/Aditya-180404/TRACEFORGE.git
-cd TRACEFORGE
-cargo build --release -p traceforge-cli
-./target/release/jocky --version`}
+git clone https://github.com/Aditya-180404/jockey.git
+cd jockey
+cargo build --release -p jockey-cli
+./target/release/jockey --version`}
               </pre>
             </div>
           </div>

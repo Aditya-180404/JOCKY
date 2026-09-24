@@ -14,10 +14,10 @@ export function AboutPage() {
             <span>Forensic Safety & Integrity Standards</span>
           </div>
           <h1 className="text-3xl font-bold font-mono text-white">
-            About TRACEFORGE
+            About jockey
           </h1>
           <p className="text-xs text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            TRACEFORGE bridges the gap between digital forensic rigor and modern declarative programming languages.
+            jockey bridges the gap between digital forensic rigor and modern declarative programming languages.
           </p>
         </div>
 
@@ -27,7 +27,7 @@ export function AboutPage() {
             Traditional digital triage often relies on brittle shell scripts, inconsistent data formats, and manual verification steps that can compromise the forensic chain of custody.
           </p>
           <p>
-            <strong>TRACEFORGE enforces structural guarantees:</strong>
+            <strong>jockey enforces structural guarantees:</strong>
           </p>
           <ul className="space-y-3 pl-2">
             <li className="flex items-start gap-2.5">

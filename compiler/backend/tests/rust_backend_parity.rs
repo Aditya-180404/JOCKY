@@ -1,11 +1,11 @@
 use std::collections::HashSet;
-use traceforge_ast::Capability;
-use traceforge_backend::llvm::LlvmBackend;
-use traceforge_backend::{Backend, BackendKind};
-use traceforge_ir::{BuildConfig, IrInvestigation};
-use traceforge_lexer::Lexer;
-use traceforge_parser::Parser;
-use traceforge_semantic::SemanticAnalyzer;
+use jockey_ast::Capability;
+use jockey_backend::llvm::LlvmBackend;
+use jockey_backend::{Backend, BackendKind};
+use jockey_ir::{BuildConfig, IrInvestigation};
+use jockey_lexer::Lexer;
+use jockey_parser::Parser;
+use jockey_semantic::SemanticAnalyzer;
 
 fn parse_to_ir(source: &str, test_name: &str) -> IrInvestigation {
     let mut lexer = Lexer::new(source);
@@ -101,52 +101,52 @@ fn test_rust_and_llvm_backend_parity_all_collectors() {
     let cargo_toml = rust_backend
         .generate_cargo_toml(&ir)
         .expect("Cargo.toml generation must succeed");
-    assert!(cargo_toml.contains("traceforge-runtime"));
+    assert!(cargo_toml.contains("jockey-runtime"));
     assert!(cargo_toml.contains("name = \"full_parity_triage\""));
 
     // 2. LLVM backend verification
-    let hir: traceforge_hir::HirInvestigation = (&ir).into();
-    let mir = traceforge_mir::MirLowering::lower(&hir).expect("MIR lowering must succeed");
+    let hir: jockey_hir::HirInvestigation = (&ir).into();
+    let mir = jockey_mir::MirLowering::lower(&hir).expect("MIR lowering must succeed");
     let llvm_backend = LlvmBackend::new(build_config);
     let llvm_ir = llvm_backend
         .generate_llvm_ir(&mir)
         .expect("LLVM IR codegen must succeed");
 
     assert!(
-        llvm_ir.contains("traceforge_rt_collect_system"),
-        "Missing traceforge_rt_collect_system in LLVM backend"
+        llvm_ir.contains("jockey_rt_collect_system"),
+        "Missing jockey_rt_collect_system in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("traceforge_rt_collect_processes"),
-        "Missing traceforge_rt_collect_processes in LLVM backend"
+        llvm_ir.contains("jockey_rt_collect_processes"),
+        "Missing jockey_rt_collect_processes in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("traceforge_rt_collect_network"),
-        "Missing traceforge_rt_collect_network in LLVM backend"
+        llvm_ir.contains("jockey_rt_collect_network"),
+        "Missing jockey_rt_collect_network in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("traceforge_rt_collect_memory_regions"),
-        "Missing traceforge_rt_collect_memory_regions in LLVM backend"
+        llvm_ir.contains("jockey_rt_collect_memory_regions"),
+        "Missing jockey_rt_collect_memory_regions in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("traceforge_rt_collect_registry"),
-        "Missing traceforge_rt_collect_registry in LLVM backend"
+        llvm_ir.contains("jockey_rt_collect_registry"),
+        "Missing jockey_rt_collect_registry in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("traceforge_rt_collect_artifacts"),
-        "Missing traceforge_rt_collect_artifacts in LLVM backend"
+        llvm_ir.contains("jockey_rt_collect_artifacts"),
+        "Missing jockey_rt_collect_artifacts in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("traceforge_rt_collect_drivers"),
-        "Missing traceforge_rt_collect_drivers in LLVM backend"
+        llvm_ir.contains("jockey_rt_collect_drivers"),
+        "Missing jockey_rt_collect_drivers in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("traceforge_rt_collect_logs"),
-        "Missing traceforge_rt_collect_logs in LLVM backend"
+        llvm_ir.contains("jockey_rt_collect_logs"),
+        "Missing jockey_rt_collect_logs in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("traceforge_rt_evidence_export"),
-        "Missing traceforge_rt_evidence_export in LLVM backend"
+        llvm_ir.contains("jockey_rt_evidence_export"),
+        "Missing jockey_rt_evidence_export in LLVM backend"
     );
 
     // 3. Parity checks: both backends target identical required capabilities

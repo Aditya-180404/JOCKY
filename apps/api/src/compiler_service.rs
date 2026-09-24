@@ -3,12 +3,12 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::time::Instant;
 
-use traceforge_ast::Severity;
-use traceforge_backend::TargetSpec;
-use traceforge_ir::{TargetArch, TargetPlatform};
-use traceforge_lexer::Lexer;
-use traceforge_parser::Parser;
-use traceforge_semantic::SemanticAnalyzer;
+use jockey_ast::Severity;
+use jockey_backend::TargetSpec;
+use jockey_ir::{TargetArch, TargetPlatform};
+use jockey_lexer::Lexer;
+use jockey_parser::Parser;
+use jockey_semantic::SemanticAnalyzer;
 
 #[derive(Debug, Deserialize)]
 pub struct CheckRequest {
@@ -46,7 +46,7 @@ pub struct TargetResponse {
 pub async fn targets_handler() -> Json<Vec<TargetResponse>> {
     let mut targets = vec![TargetResponse {
         id: "sandbox".to_string(),
-        name: "TraceForge server sandbox".to_string(),
+        name: "jockey server sandbox".to_string(),
         platform: "sandbox".to_string(),
         architecture: "server".to_string(),
         supported: true,
@@ -202,7 +202,7 @@ pub async fn check_handler(
         if let Some(ir) = ir {
             let mut collectors: Vec<String> = Vec::new();
             for op in &ir.operations {
-                if let traceforge_ir::IrOperation::Collect(c) = op {
+                if let jockey_ir::IrOperation::Collect(c) = op {
                     collectors.push(c.operation.clone());
                 }
             }
@@ -238,7 +238,7 @@ pub async fn execute_handler(
 ) -> Result<Json<ExecuteResponse>, (StatusCode, Json<serde_json::Value>)> {
     let start_time = Instant::now();
     let mut log = Vec::new();
-    log.push("TraceForge Sandbox Execution Engine v0.1.0".to_string());
+    log.push("jockey Sandbox Execution Engine v0.1.0".to_string());
     log.push("Parsing investigation specification...".to_string());
 
     let mut lexer = Lexer::new(&req.source);
@@ -248,7 +248,7 @@ pub async fn execute_handler(
             return Ok(Json(ExecuteResponse {
                 success: false,
                 investigation_name: "unknown".to_string(),
-                execution_target: "TRACEFORGE Sandbox".to_string(),
+                execution_target: "jockey Sandbox".to_string(),
                 execution_time_ms: start_time.elapsed().as_millis() as u64,
                 collectors_executed: vec![],
                 evidence_count: 0,
@@ -294,7 +294,7 @@ pub async fn execute_handler(
             return Ok(Json(ExecuteResponse {
                 success: false,
                 investigation_name: "unknown".to_string(),
-                execution_target: "TRACEFORGE Sandbox".to_string(),
+                execution_target: "jockey Sandbox".to_string(),
                 execution_time_ms: start_time.elapsed().as_millis() as u64,
                 collectors_executed: vec![],
                 evidence_count: 0,
@@ -333,7 +333,7 @@ pub async fn execute_handler(
             return Ok(Json(ExecuteResponse {
                 success: false,
                 investigation_name: "unknown".to_string(),
-                execution_target: "TRACEFORGE Sandbox".to_string(),
+                execution_target: "jockey Sandbox".to_string(),
                 execution_time_ms: start_time.elapsed().as_millis() as u64,
                 collectors_executed: vec![],
                 evidence_count: 0,
@@ -356,22 +356,22 @@ pub async fn execute_handler(
     let mut aggregated_evidence = Vec::new();
 
     for op in &ir.operations {
-        if let traceforge_ir::IrOperation::Collect(c) = op {
+        if let jockey_ir::IrOperation::Collect(c) = op {
             match c.operation.as_str() {
                 "system.info" | "system_info" | "system" => {
                     log.push("Running collector: system_info".to_string());
                     collectors_executed.push("system_info".to_string());
 
-                    let sys_data = match traceforge_runtime_system::collect_system_info() {
+                    let sys_data = match jockey_runtime_system::collect_system_info() {
                         Ok(info) => serde_json::to_value(&info).unwrap_or(serde_json::json!({
-                            "hostname": "sandbox-traceforge-node",
+                            "hostname": "sandbox-jockey-node",
                             "os": "Linux 6.6.0-sandbox",
                             "arch": "x86_64",
                             "cpu_count": 8,
                             "total_memory": 16777216,
                         })),
                         Err(_) => serde_json::json!({
-                            "hostname": "sandbox-traceforge-node",
+                            "hostname": "sandbox-jockey-node",
                             "os": "Linux 6.6.0-sandbox",
                             "arch": "x86_64",
                             "cpu_count": 8,
@@ -404,7 +404,7 @@ pub async fn execute_handler(
                     log.push("Running collector: processes".to_string());
                     collectors_executed.push("processes".to_string());
 
-                    let proc_data = match traceforge_runtime_process::enumerate_processes(&c.fields)
+                    let proc_data = match jockey_runtime_process::enumerate_processes(&c.fields)
                     {
                         Ok(mut procs) => {
                             if procs.len() > 25 {
@@ -423,9 +423,9 @@ pub async fn execute_handler(
                             },
                             {
                                 "pid": 284,
-                                "name": "traceforge-agent",
-                                "path": "/usr/local/bin/traceforge-agent",
-                                "user": "traceforge",
+                                "name": "jockey-agent",
+                                "path": "/usr/local/bin/jockey-agent",
+                                "user": "jockey",
                                 "ppid": 1,
                                 "sha256": "4b971ca60773d2b270a4173873426e952670eef80133cfa5d9eb7efb5e5a2db3"
                             }
@@ -457,7 +457,7 @@ pub async fn execute_handler(
                     log.push("Running collector: network_connections".to_string());
                     collectors_executed.push("network_connections".to_string());
 
-                    let net_data = match traceforge_runtime_network::enumerate_connections() {
+                    let net_data = match jockey_runtime_network::enumerate_connections() {
                         Ok(mut conns) => {
                             if conns.len() > 20 {
                                 conns.truncate(20);
@@ -573,7 +573,7 @@ pub async fn execute_handler(
                     collectors_executed.push("security_analysis".to_string());
 
                     let analyzer =
-                        traceforge_runtime_security::SecurityAnalyzer::new("sandbox-host");
+                        jockey_runtime_security::SecurityAnalyzer::new("sandbox-host");
                     let summary = analyzer.summary();
                     let sec_data = serde_json::to_value(&summary).unwrap_or_default();
 
@@ -620,7 +620,7 @@ pub async fn execute_handler(
     Ok(Json(ExecuteResponse {
         success: true,
         investigation_name: ir.name,
-        execution_target: "TRACEFORGE Sandbox".to_string(),
+        execution_target: "jockey Sandbox".to_string(),
         execution_time_ms: start_time.elapsed().as_millis() as u64,
         collectors_executed,
         evidence_count: evidence_items.len(),
@@ -684,28 +684,28 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
             DownloadPackage {
                 platform: "Windows".to_string(),
                 arch: "x64".to_string(),
-                name: "TRACEFORGE Windows Distribution Archive".to_string(),
-                filename: "TRACEFORGE-0.1.0-windows-x64.zip".to_string(),
+                name: "jockey Windows Distribution Archive".to_string(),
+                filename: "jockey-0.1.0-windows-x64.zip".to_string(),
                 version: "0.1.0".to_string(),
                 size_bytes: 1_580_458,
                 sha256: "35b29f54b6879b039b462a97293f3b7ed6ecdf25a4a2b90a7c55d65eb2bd7247"
                     .to_string(),
                 release_date: "2026-09-23".to_string(),
                 requirements: "Windows 10 / 11 64-bit".to_string(),
-                download_url: "/api/downloads/TRACEFORGE-0.1.0-windows-x64.zip".to_string(),
+                download_url: "/api/downloads/jockey-0.1.0-windows-x64.zip".to_string(),
             },
             DownloadPackage {
                 platform: "Windows".to_string(),
                 arch: "x64".to_string(),
-                name: "TRACEFORGE CLI Executable".to_string(),
-                filename: "traceforge.exe".to_string(),
+                name: "jockey CLI Executable".to_string(),
+                filename: "jockey.exe".to_string(),
                 version: "0.1.0".to_string(),
                 size_bytes: 3_226_112,
                 sha256: "1e539f20b535e97ff4b44a983fb120ade3f6769bc7114212b50e92030b6321e2"
                     .to_string(),
                 release_date: "2026-09-23".to_string(),
                 requirements: "Windows 10 / 11 64-bit".to_string(),
-                download_url: "/api/downloads/traceforge.exe".to_string(),
+                download_url: "/api/downloads/jockey.exe".to_string(),
             },
         ],
     })

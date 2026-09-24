@@ -1,4 +1,4 @@
-//! TraceForge Runtime - Kernel Driver / Kernel Module Enumeration
+//! jockey Runtime - Kernel Driver / Kernel Module Enumeration
 //!
 //! Defensive forensic enumeration of loaded kernel drivers and modules.
 //! This module performs **read-only** observation only — no driver loading,

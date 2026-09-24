@@ -1,11 +1,11 @@
-//! C-compatible ABI for TraceForge LLVM code generation
+//! C-compatible ABI for jockey LLVM code generation
 //!
 //! Provides `extern "C"` endpoints called directly by the LLVM IR generated
-//! by the TraceForge compiler.
+//! by the jockey compiler.
 
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int, c_void};
-use traceforge_runtime_evidence::EvidenceCollector;
+use jockey_runtime_evidence::EvidenceCollector;
 
 /// Context wrapper holding the collector
 pub struct RuntimeContext {
@@ -15,7 +15,7 @@ pub struct RuntimeContext {
 #[no_mangle]
 /// # Safety
 /// Caller must ensure `investigation_name` is either a valid UTF-8 C string pointer or null.
-pub unsafe extern "C" fn traceforge_rt_evidence_init(
+pub unsafe extern "C" fn jockey_rt_evidence_init(
     investigation_name: *const c_char,
 ) -> *mut c_void {
     let name_str = if investigation_name.is_null() {
@@ -33,9 +33,9 @@ pub unsafe extern "C" fn traceforge_rt_evidence_init(
 
 #[no_mangle]
 /// # Safety
-/// Caller must provide a valid pointer returned by `traceforge_rt_evidence_init` and must not
-/// dereference it after calling `traceforge_rt_evidence_free`.
-pub unsafe extern "C" fn traceforge_rt_collect_system(ctx_ptr: *mut c_void) -> c_int {
+/// Caller must provide a valid pointer returned by `jockey_rt_evidence_init` and must not
+/// dereference it after calling `jockey_rt_evidence_free`.
+pub unsafe extern "C" fn jockey_rt_collect_system(ctx_ptr: *mut c_void) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
     }
@@ -43,7 +43,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_system(ctx_ptr: *mut c_void) -> c
     match ctx.collector.collect_system_info() {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[TraceForge Runtime] System info collection error: {}", e);
+            eprintln!("[jockey Runtime] System info collection error: {}", e);
             -1
         }
     }
@@ -53,7 +53,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_system(ctx_ptr: *mut c_void) -> c
 /// # Safety
 /// Caller must ensure `ctx_ptr` is a valid runtime context pointer and that `fields_json` is a
 /// valid UTF-8 C string pointer or null.
-pub unsafe extern "C" fn traceforge_rt_collect_processes(
+pub unsafe extern "C" fn jockey_rt_collect_processes(
     ctx_ptr: *mut c_void,
     fields_json: *const c_char,
     _hash_algo: *const c_char,
@@ -73,7 +73,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_processes(
     match ctx.collector.collect_processes(fields) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[TraceForge Runtime] Process collection error: {}", e);
+            eprintln!("[jockey Runtime] Process collection error: {}", e);
             -1
         }
     }
@@ -81,8 +81,8 @@ pub unsafe extern "C" fn traceforge_rt_collect_processes(
 
 #[no_mangle]
 /// # Safety
-/// Caller must provide a valid runtime context pointer returned by `traceforge_rt_evidence_init`.
-pub unsafe extern "C" fn traceforge_rt_collect_network(ctx_ptr: *mut c_void) -> c_int {
+/// Caller must provide a valid runtime context pointer returned by `jockey_rt_evidence_init`.
+pub unsafe extern "C" fn jockey_rt_collect_network(ctx_ptr: *mut c_void) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
     }
@@ -90,7 +90,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_network(ctx_ptr: *mut c_void) -> 
     match ctx.collector.collect_network_connections() {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[TraceForge Runtime] Network collection error: {}", e);
+            eprintln!("[jockey Runtime] Network collection error: {}", e);
             -1
         }
     }
@@ -100,7 +100,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_network(ctx_ptr: *mut c_void) -> 
 /// # Safety
 /// Caller must provide a valid runtime context pointer and ensure `path_ptr` and `hash_algo_ptr`
 /// are valid UTF-8 C strings or null.
-pub unsafe extern "C" fn traceforge_rt_collect_files(
+pub unsafe extern "C" fn jockey_rt_collect_files(
     ctx_ptr: *mut c_void,
     path_ptr: *const c_char,
     recursive: c_int,
@@ -124,7 +124,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_files(
     match ctx.collector.collect_files(path, recursive != 0, hash_algo) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[TraceForge Runtime] Filesystem collection error: {}", e);
+            eprintln!("[jockey Runtime] Filesystem collection error: {}", e);
             -1
         }
     }
@@ -134,7 +134,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_files(
 /// # Safety
 /// Caller must provide a valid runtime context pointer and a valid UTF-8 C string pointer for
 /// `source_ptr`, or null.
-pub unsafe extern "C" fn traceforge_rt_collect_logs(
+pub unsafe extern "C" fn jockey_rt_collect_logs(
     ctx_ptr: *mut c_void,
     source_ptr: *const c_char,
 ) -> c_int {
@@ -151,7 +151,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_logs(
     match ctx.collector.collect_logs(source) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[TraceForge Runtime] Logs collection error: {}", e);
+            eprintln!("[jockey Runtime] Logs collection error: {}", e);
             -1
         }
     }
@@ -159,8 +159,8 @@ pub unsafe extern "C" fn traceforge_rt_collect_logs(
 
 #[no_mangle]
 /// # Safety
-/// Caller must provide a valid runtime context pointer returned by `traceforge_rt_evidence_init`.
-pub unsafe extern "C" fn traceforge_rt_collect_drivers(ctx_ptr: *mut c_void) -> c_int {
+/// Caller must provide a valid runtime context pointer returned by `jockey_rt_evidence_init`.
+pub unsafe extern "C" fn jockey_rt_collect_drivers(ctx_ptr: *mut c_void) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
     }
@@ -173,7 +173,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_drivers(ctx_ptr: *mut c_void) -> 
             0
         }
         Err(e) => {
-            eprintln!("[TraceForge Runtime] Drivers collection error: {}", e);
+            eprintln!("[jockey Runtime] Drivers collection error: {}", e);
             -1
         }
     }
@@ -181,8 +181,8 @@ pub unsafe extern "C" fn traceforge_rt_collect_drivers(ctx_ptr: *mut c_void) -> 
 
 #[no_mangle]
 /// # Safety
-/// Caller must provide a valid runtime context pointer returned by `traceforge_rt_evidence_init`.
-pub unsafe extern "C" fn traceforge_rt_collect_memory_regions(
+/// Caller must provide a valid runtime context pointer returned by `jockey_rt_evidence_init`.
+pub unsafe extern "C" fn jockey_rt_collect_memory_regions(
     ctx_ptr: *mut c_void,
     pid: c_int,
 ) -> c_int {
@@ -195,7 +195,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_memory_regions(
         Ok(_) => 0,
         Err(e) => {
             eprintln!(
-                "[TraceForge Runtime] Memory regions collection error: {}",
+                "[jockey Runtime] Memory regions collection error: {}",
                 e
             );
             -1
@@ -206,7 +206,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_memory_regions(
 #[no_mangle]
 /// # Safety
 /// Caller must provide a valid runtime context pointer and valid UTF-8 strings or null.
-pub unsafe extern "C" fn traceforge_rt_collect_registry(
+pub unsafe extern "C" fn jockey_rt_collect_registry(
     ctx_ptr: *mut c_void,
     hive_ptr: *const c_char,
     key_ptr: *const c_char,
@@ -229,7 +229,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_registry(
     match ctx.collector.collect_registry(hive, key_path) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[TraceForge Runtime] Registry collection error: {}", e);
+            eprintln!("[jockey Runtime] Registry collection error: {}", e);
             -1
         }
     }
@@ -238,7 +238,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_registry(
 #[no_mangle]
 /// # Safety
 /// Caller must provide a valid runtime context pointer and valid UTF-8 strings or null.
-pub unsafe extern "C" fn traceforge_rt_collect_artifacts(
+pub unsafe extern "C" fn jockey_rt_collect_artifacts(
     ctx_ptr: *mut c_void,
     type_ptr: *const c_char,
     path_ptr: *const c_char,
@@ -261,7 +261,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_artifacts(
     match ctx.collector.collect_artifacts(artifact_type, path) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[TraceForge Runtime] Artifacts collection error: {}", e);
+            eprintln!("[jockey Runtime] Artifacts collection error: {}", e);
             -1
         }
     }
@@ -270,7 +270,7 @@ pub unsafe extern "C" fn traceforge_rt_collect_artifacts(
 #[no_mangle]
 /// # Safety
 /// Caller must ensure `ctx_ptr` is valid and `filter_json` is a valid UTF-8 C string pointer.
-pub unsafe extern "C" fn traceforge_rt_evidence_filter(
+pub unsafe extern "C" fn jockey_rt_evidence_filter(
     ctx_ptr: *mut c_void,
     filter_json: *const c_char,
 ) -> c_int {
@@ -290,7 +290,7 @@ pub unsafe extern "C" fn traceforge_rt_evidence_filter(
 #[no_mangle]
 /// # Safety
 /// Caller must ensure `ctx_ptr` is valid and `where_json` is a valid UTF-8 C string pointer.
-pub unsafe extern "C" fn traceforge_rt_evidence_where(
+pub unsafe extern "C" fn jockey_rt_evidence_where(
     ctx_ptr: *mut c_void,
     where_json: *const c_char,
 ) -> c_int {
@@ -309,8 +309,8 @@ pub unsafe extern "C" fn traceforge_rt_evidence_where(
 
 #[no_mangle]
 /// # Safety
-/// Caller must provide a valid runtime context pointer returned by `traceforge_rt_evidence_init`.
-pub unsafe extern "C" fn traceforge_rt_evidence_limit(ctx_ptr: *mut c_void, limit: usize) -> c_int {
+/// Caller must provide a valid runtime context pointer returned by `jockey_rt_evidence_init`.
+pub unsafe extern "C" fn jockey_rt_evidence_limit(ctx_ptr: *mut c_void, limit: usize) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
     }
@@ -323,7 +323,7 @@ pub unsafe extern "C" fn traceforge_rt_evidence_limit(ctx_ptr: *mut c_void, limi
 /// # Safety
 /// Caller must provide a valid runtime context pointer and valid UTF-8 C string pointers for the
 /// format and output path, or null.
-pub unsafe extern "C" fn traceforge_rt_evidence_export(
+pub unsafe extern "C" fn jockey_rt_evidence_export(
     ctx_ptr: *mut c_void,
     format_ptr: *const c_char,
     path_ptr: *const c_char,
@@ -347,7 +347,7 @@ pub unsafe extern "C" fn traceforge_rt_evidence_export(
     match ctx.collector.finalize() {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[TraceForge Runtime] Export error: {}", e);
+            eprintln!("[jockey Runtime] Export error: {}", e);
             -1
         }
     }
@@ -357,7 +357,7 @@ pub unsafe extern "C" fn traceforge_rt_evidence_export(
 /// # Safety
 /// Caller must provide a valid runtime context pointer and a valid UTF-8 C string pointer for
 /// `algo_ptr`, or null.
-pub unsafe extern "C" fn traceforge_rt_evidence_compute_hash(
+pub unsafe extern "C" fn jockey_rt_evidence_compute_hash(
     ctx_ptr: *mut c_void,
     algo_ptr: *const c_char,
 ) -> c_int {
@@ -373,7 +373,7 @@ pub unsafe extern "C" fn traceforge_rt_evidence_compute_hash(
     match ctx.collector.compute_hash(algo) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[TraceForge Runtime] Compute hash error: {}", e);
+            eprintln!("[jockey Runtime] Compute hash error: {}", e);
             -1
         }
     }
@@ -381,8 +381,8 @@ pub unsafe extern "C" fn traceforge_rt_evidence_compute_hash(
 
 #[no_mangle]
 /// # Safety
-/// Caller must provide a valid runtime context pointer returned by `traceforge_rt_evidence_init`.
-pub unsafe extern "C" fn traceforge_rt_evidence_generate_timeline(ctx_ptr: *mut c_void) -> c_int {
+/// Caller must provide a valid runtime context pointer returned by `jockey_rt_evidence_init`.
+pub unsafe extern "C" fn jockey_rt_evidence_generate_timeline(ctx_ptr: *mut c_void) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
     }
@@ -393,7 +393,7 @@ pub unsafe extern "C" fn traceforge_rt_evidence_generate_timeline(ctx_ptr: *mut 
     for (i, rec) in records.iter().enumerate() {
         let ref_str = format!("ref-{}", i + 1);
         if let Some(event) =
-            traceforge_runtime_timeline::normalize_record(rec, &host, Some(&ref_str))
+            jockey_runtime_timeline::normalize_record(rec, &host, Some(&ref_str))
         {
             if let Ok(v) = serde_json::to_value(&event) {
                 timeline_records.push(v);
@@ -411,8 +411,8 @@ pub unsafe extern "C" fn traceforge_rt_evidence_generate_timeline(ctx_ptr: *mut 
 #[no_mangle]
 /// # Safety
 /// Caller must ensure `ctx_ptr` is either null or a pointer previously returned by
-/// `traceforge_rt_evidence_init` and not already freed.
-pub unsafe extern "C" fn traceforge_rt_evidence_free(ctx_ptr: *mut c_void) {
+/// `jockey_rt_evidence_init` and not already freed.
+pub unsafe extern "C" fn jockey_rt_evidence_free(ctx_ptr: *mut c_void) {
     if !ctx_ptr.is_null() {
         drop(Box::from_raw(ctx_ptr as *mut RuntimeContext));
     }

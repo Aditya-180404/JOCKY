@@ -373,7 +373,7 @@ export function WebIDE() {
         }));
         setTargets(availableTargets);
       })
-      .catch(() => setTargets([{ id: 'sandbox', name: 'TraceForge server sandbox', status: 'Unavailable' }]));
+      .catch(() => setTargets([{ id: 'sandbox', name: 'jockey server sandbox', status: 'Unavailable' }]));
   }, []);
 
   // Configure Monaco Editor
@@ -381,11 +381,11 @@ export function WebIDE() {
     editorRef.current = editor;
     monacoRef.current = monaco;
 
-    // Register TraceForge language definition
-    if (!monaco.languages.getLanguages().some((l: any) => l.id === 'traceforge')) {
-      monaco.languages.register({ id: 'traceforge' });
+    // Register jockey language definition
+    if (!monaco.languages.getLanguages().some((l: any) => l.id === 'jockey')) {
+      monaco.languages.register({ id: 'jockey' });
 
-      monaco.languages.setMonarchTokensProvider('traceforge', {
+      monaco.languages.setMonarchTokensProvider('jockey', {
         keywords: ALL_KEYWORDS,
         tokenizer: {
           root: [
@@ -410,7 +410,7 @@ export function WebIDE() {
         },
       });
 
-      monaco.languages.setLanguageConfiguration('traceforge', {
+      monaco.languages.setLanguageConfiguration('jockey', {
         comments: {
           lineComment: '//',
           blockComment: ['/*', '*/'],
@@ -429,7 +429,7 @@ export function WebIDE() {
       });
 
       // Hover provider — shows collector documentation
-      monaco.languages.registerHoverProvider('traceforge', {
+      monaco.languages.registerHoverProvider('jockey', {
         provideHover(model: any, position: any) {
           const word = model.getWordAtPosition(position);
           if (!word) return null;
@@ -441,7 +441,7 @@ export function WebIDE() {
               position.lineNumber, word.endColumn
             ),
             contents: [
-              { value: `**${word.word}** — TraceForge collector` },
+              { value: `**${word.word}** — jockey collector` },
               { value: doc },
             ],
           };
@@ -449,7 +449,7 @@ export function WebIDE() {
       });
 
       // Completion provider — suggests keywords and collector targets
-      monaco.languages.registerCompletionItemProvider('traceforge', {
+      monaco.languages.registerCompletionItemProvider('jockey', {
         provideCompletionItems(model: any, position: any) {
           const word = model.getWordUntilPosition(position);
           const range = {
@@ -491,7 +491,7 @@ export function WebIDE() {
     }
 
     // Professional, restrained editor theme
-    monaco.editor.defineTheme('traceforge-pro', {
+    monaco.editor.defineTheme('jockey-pro', {
       base: 'vs-dark',
       inherit: true,
       rules: [
@@ -515,7 +515,7 @@ export function WebIDE() {
       },
     });
 
-    monaco.editor.setTheme('traceforge-pro');
+    monaco.editor.setTheme('jockey-pro');
   };
 
   // Debounced auto-check: fires 800 ms after the user stops typing
@@ -546,7 +546,7 @@ export function WebIDE() {
             endLineNumber: d.line || 1,
             endColumn: (d.column || 1) + 8,
           }));
-          monacoRef.current.editor.setModelMarkers(model, 'traceforge', markers);
+          monacoRef.current.editor.setModelMarkers(model, 'jockey', markers);
         }
       } catch { /* silent — user will see errors on explicit check */ }
     }, 800);
@@ -600,7 +600,7 @@ export function WebIDE() {
           endLineNumber: d.line || 1,
           endColumn: (d.column || 1) + 8,
         }));
-        monacoRef.current.editor.setModelMarkers(model, 'traceforge', markers);
+        monacoRef.current.editor.setModelMarkers(model, 'jockey', markers);
       }
     } catch (err: any) {
       setStatusMessage('Compiler check failed');
@@ -667,7 +667,7 @@ export function WebIDE() {
         integrity: 'ERROR',
         evidence_items: [],
         output_log: [
-          'ERROR: Failed to contact TraceForge execution runtime.',
+          'ERROR: Failed to contact jockey execution runtime.',
           err.response?.data?.message || err.message || 'Unknown network error',
         ],
       });
@@ -723,7 +723,7 @@ export function WebIDE() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 font-mono font-bold text-slate-100 pr-2 border-r border-slate-800">
             <TerminalIcon className="h-3.5 w-3.5 text-blue-400" />
-            <span>TRACEFORGE IDE</span>
+            <span>jockey IDE</span>
           </div>
 
           <button
@@ -829,7 +829,7 @@ export function WebIDE() {
           <aside className="w-56 bg-[#0e1422] border-r border-slate-800 flex flex-col select-none text-xs">
             <div className="p-2 border-b border-slate-800 flex items-center justify-between text-slate-400 font-semibold tracking-wider uppercase text-[10px]">
               <span>Explorer</span>
-              <span className="text-[10px] text-slate-400">TRACEFORGE</span>
+              <span className="text-[10px] text-slate-400">jockey</span>
             </div>
 
             <div className="flex-1 overflow-y-auto p-1.5 space-y-1">
@@ -916,7 +916,7 @@ export function WebIDE() {
           <div className="flex-1 overflow-hidden">
             <MonacoEditor
               height="100%"
-              language="traceforge"
+              language="jockey"
               value={source}
               onChange={(value) => handleSourceChange(value || '')}
               onMount={handleEditorDidMount}

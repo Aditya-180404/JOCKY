@@ -10,7 +10,7 @@ use tracing::{error, info};
 use uuid::Uuid;
 use validator::Validate;
 
-use traceforge_shared_types::{ErrorResponse, InvestigationStatus, PaginatedResponse, Pagination};
+use jockey_shared_types::{ErrorResponse, InvestigationStatus, PaginatedResponse, Pagination};
 
 use crate::{AppState, AuthUser};
 

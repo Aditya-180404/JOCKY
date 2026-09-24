@@ -125,7 +125,7 @@ export function Landing() {
                     <span>1. LOCAL STANDALONE COMPILER</span>
                   </div>
                   <p className="text-xs text-slate-300 font-mono">
-                    Write .tfg → jocky compile → Standalone executable → Execute on target host → SHA-256 sidecar
+                    Write .tfg → jockey compile → Standalone executable → Execute on target host → SHA-256 sidecar
                   </p>
                   <p className="text-xs text-slate-400 mt-1">
                     Zero external runtime dependencies. Runs offline on air-gapped systems.

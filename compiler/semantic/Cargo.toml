@@ -1,5 +1,5 @@
 [package]
-name = "traceforge-semantic"
+name = "jockey-semantic"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -7,12 +7,12 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-traceforge-ast = { path = "../ast" }
-traceforge-ir = { path = "../ir" }
+jockey-ast = { path = "../ast" }
+jockey-ir = { path = "../ir" }
 thiserror = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
 [dev-dependencies]
-traceforge-lexer = { path = "../lexer" }
-traceforge-parser = { path = "../parser" }
+jockey-lexer = { path = "../lexer" }
+jockey-parser = { path = "../parser" }

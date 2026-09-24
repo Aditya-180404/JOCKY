@@ -1,4 +1,4 @@
-# TraceForge Implementation Status
+# jockey Implementation Status
 
 Audit date: 2026-09-24 (final pass)
 
@@ -26,8 +26,8 @@ This document records repository state observed during the final implementation 
 | `cargo fmt --check` | ✅ zero diff |
 | `cargo clippy --workspace -- -D warnings` | ✅ zero warnings |
 | `cargo test --workspace` | ✅ 100% pass (all crates) |
-| `cargo test -p traceforge-backend` | ✅ 18/18 pass (incl. native E2E + LLVM golden) |
-| `cargo test -p traceforge-runtime-security` | ✅ 7/7 pass (incl. MITRE ATT&CK ID tests) |
-| `cargo build -p traceforge-compiler-worker` | ✅ exit 0 |
+| `cargo test -p jockey-backend` | ✅ 18/18 pass (incl. native E2E + LLVM golden) |
+| `cargo test -p jockey-runtime-security` | ✅ 7/7 pass (incl. MITRE ATT&CK ID tests) |
+| `cargo build -p jockey-compiler-worker` | ✅ exit 0 |
 | `npm run build` (apps/web) | ✅ Vite production bundle, 2.00s |
 | LLVM IR validation (`clang -x ir - -c -o /dev/null`) | ✅ zero errors |

@@ -5,11 +5,11 @@
 //! without the runtime linker step, making them fast and suitable for CI.
 
 use std::process::Command;
-use traceforge_backend::llvm::LlvmBackend;
-use traceforge_ir::BuildConfig;
-use traceforge_lexer::Lexer;
-use traceforge_parser::Parser;
-use traceforge_semantic::SemanticAnalyzer;
+use jockey_backend::llvm::LlvmBackend;
+use jockey_ir::BuildConfig;
+use jockey_lexer::Lexer;
+use jockey_parser::Parser;
+use jockey_semantic::SemanticAnalyzer;
 
 /// Run the full compiler stack from source text, stopping just before the
 /// linker, and return the LLVM IR string.
@@ -37,8 +37,8 @@ fn compile_to_llvm_ir(source: &str, test_name: &str) -> String {
     let ir = ir.unwrap_or_else(|| panic!("[{}] No IR produced", test_name));
 
     // Lower IR → HIR → MIR
-    let hir: traceforge_hir::HirInvestigation = (&ir).into();
-    let mir = traceforge_mir::MirLowering::lower(&hir)
+    let hir: jockey_hir::HirInvestigation = (&ir).into();
+    let mir = jockey_mir::MirLowering::lower(&hir)
         .unwrap_or_else(|e| panic!("[{}] MIR lowering error: {}", test_name, e));
 
     // Generate LLVM IR text
@@ -82,19 +82,19 @@ fn e2e_basic_system_triage() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_basic_system_triage");
     assert!(
-        ir.contains("traceforge_rt_evidence_init"),
+        ir.contains("jockey_rt_evidence_init"),
         "missing evidence_init"
     );
     assert!(
-        ir.contains("traceforge_rt_collect_system"),
+        ir.contains("jockey_rt_collect_system"),
         "missing collect_system"
     );
     assert!(
-        ir.contains("traceforge_rt_collect_processes"),
+        ir.contains("jockey_rt_collect_processes"),
         "missing collect_processes"
     );
     assert!(
-        ir.contains("traceforge_rt_evidence_export"),
+        ir.contains("jockey_rt_evidence_export"),
         "missing evidence_export"
     );
     validate_with_clang(&ir, "e2e_basic_system_triage");
@@ -109,7 +109,7 @@ fn e2e_network_investigation() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_network_investigation");
     assert!(
-        ir.contains("traceforge_rt_collect_network"),
+        ir.contains("jockey_rt_collect_network"),
         "missing collect_network"
     );
     validate_with_clang(&ir, "e2e_network_investigation");
@@ -123,7 +123,7 @@ fn e2e_filesystem_integrity() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_filesystem_integrity");
     assert!(
-        ir.contains("traceforge_rt_collect_files"),
+        ir.contains("jockey_rt_collect_files"),
         "missing collect_files"
     );
     validate_with_clang(&ir, "e2e_filesystem_integrity");
@@ -137,7 +137,7 @@ fn e2e_memory_regions() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_memory_regions");
     assert!(
-        ir.contains("traceforge_rt_collect_memory_regions"),
+        ir.contains("jockey_rt_collect_memory_regions"),
         "missing collect_memory_regions"
     );
     validate_with_clang(&ir, "e2e_memory_regions");
@@ -151,7 +151,7 @@ fn e2e_registry_audit() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_registry_audit");
     assert!(
-        ir.contains("traceforge_rt_collect_registry"),
+        ir.contains("jockey_rt_collect_registry"),
         "missing collect_registry"
     );
     validate_with_clang(&ir, "e2e_registry_audit");
@@ -165,7 +165,7 @@ fn e2e_artifact_carving() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_artifact_carving");
     assert!(
-        ir.contains("traceforge_rt_collect_artifacts"),
+        ir.contains("jockey_rt_collect_artifacts"),
         "missing collect_artifacts"
     );
     validate_with_clang(&ir, "e2e_artifact_carving");
@@ -180,7 +180,7 @@ fn e2e_driver_hunt() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_driver_hunt");
     assert!(
-        ir.contains("traceforge_rt_collect_drivers"),
+        ir.contains("jockey_rt_collect_drivers"),
         "missing collect_drivers"
     );
     validate_with_clang(&ir, "e2e_driver_hunt");
@@ -203,16 +203,16 @@ fn e2e_full_triage_all_collectors() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_full_triage_all_collectors");
     for symbol in &[
-        "traceforge_rt_collect_system",
-        "traceforge_rt_collect_processes",
-        "traceforge_rt_collect_network",
-        "traceforge_rt_collect_files",
-        "traceforge_rt_collect_logs",
-        "traceforge_rt_collect_drivers",
-        "traceforge_rt_collect_memory_regions",
-        "traceforge_rt_collect_registry",
-        "traceforge_rt_collect_artifacts",
-        "traceforge_rt_evidence_export",
+        "jockey_rt_collect_system",
+        "jockey_rt_collect_processes",
+        "jockey_rt_collect_network",
+        "jockey_rt_collect_files",
+        "jockey_rt_collect_logs",
+        "jockey_rt_collect_drivers",
+        "jockey_rt_collect_memory_regions",
+        "jockey_rt_collect_registry",
+        "jockey_rt_collect_artifacts",
+        "jockey_rt_evidence_export",
     ] {
         assert!(ir.contains(symbol), "missing runtime symbol: {}", symbol);
     }

@@ -2012,6 +2012,383 @@ dependencies = [
 ]
 
 [[package]]
+name = "jockey-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argon2",
+ "aws-config",
+ "aws-sdk-s3",
+ "axum",
+ "chrono",
+ "ipnetwork",
+ "jockey-ast",
+ "jockey-backend",
+ "jockey-ir",
+ "jockey-lexer",
+ "jockey-parser",
+ "jockey-runtime",
+ "jockey-runtime-evidence",
+ "jockey-runtime-filesystem",
+ "jockey-runtime-logs",
+ "jockey-runtime-network",
+ "jockey-runtime-process",
+ "jockey-runtime-security",
+ "jockey-runtime-system",
+ "jockey-semantic",
+ "jockey-shared-types",
+ "jsonwebtoken",
+ "rand 0.8.8",
+ "redis",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "sqlx",
+ "tokio",
+ "tower 0.4.13",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "validator",
+]
+
+[[package]]
+name = "jockey-ast"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-backend"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "jockey-ast",
+ "jockey-hir",
+ "jockey-ir",
+ "jockey-lexer",
+ "jockey-mir",
+ "jockey-parser",
+ "jockey-runtime",
+ "jockey-runtime-evidence",
+ "jockey-semantic",
+ "llvm-sys",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "jockey-ast",
+ "jockey-backend",
+ "jockey-hir",
+ "jockey-ir",
+ "jockey-lexer",
+ "jockey-mir",
+ "jockey-parser",
+ "jockey-runtime",
+ "jockey-semantic",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "ureq",
+ "uuid",
+ "whoami",
+]
+
+[[package]]
+name = "jockey-compiler-worker"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "aws-config",
+ "aws-sdk-s3",
+ "chrono",
+ "jockey-ast",
+ "jockey-backend",
+ "jockey-ir",
+ "jockey-lexer",
+ "jockey-parser",
+ "jockey-runtime",
+ "jockey-semantic",
+ "jockey-shared-types",
+ "redis",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "sqlx",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
+name = "jockey-hir"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "jockey-ast",
+ "jockey-ir",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+]
+
+[[package]]
+name = "jockey-ir"
+version = "0.1.0"
+dependencies = [
+ "jockey-ast",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "jockey-lexer"
+version = "0.1.0"
+dependencies = [
+ "jockey-ast",
+ "serde",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-mir"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "jockey-ast",
+ "jockey-hir",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+]
+
+[[package]]
+name = "jockey-parser"
+version = "0.1.0"
+dependencies = [
+ "jockey-ast",
+ "jockey-lexer",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-runtime"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "jockey-runtime-artifacts",
+ "jockey-runtime-drivers",
+ "jockey-runtime-evidence",
+ "jockey-runtime-filesystem",
+ "jockey-runtime-logs",
+ "jockey-runtime-memory",
+ "jockey-runtime-network",
+ "jockey-runtime-process",
+ "jockey-runtime-registry",
+ "jockey-runtime-system",
+ "jockey-runtime-timeline",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-runtime-artifacts"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-runtime-drivers"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-runtime-evidence"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "jockey-runtime-artifacts",
+ "jockey-runtime-drivers",
+ "jockey-runtime-filesystem",
+ "jockey-runtime-logs",
+ "jockey-runtime-memory",
+ "jockey-runtime-network",
+ "jockey-runtime-process",
+ "jockey-runtime-registry",
+ "jockey-runtime-system",
+ "jockey-runtime-timeline",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
+ "whoami",
+]
+
+[[package]]
+name = "jockey-runtime-filesystem"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "md-5 0.10.6",
+ "serde",
+ "serde_json",
+ "sha1 0.10.7",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
+ "walkdir",
+]
+
+[[package]]
+name = "jockey-runtime-logs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-runtime-memory"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "libc",
+ "procfs",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-runtime-network"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "netstat2",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-runtime-process"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "libc",
+ "procfs",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
+ "whoami",
+]
+
+[[package]]
+name = "jockey-runtime-registry"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "winreg",
+]
+
+[[package]]
+name = "jockey-runtime-security"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+]
+
+[[package]]
+name = "jockey-runtime-system"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "whoami",
+]
+
+[[package]]
+name = "jockey-runtime-timeline"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-semantic"
+version = "0.1.0"
+dependencies = [
+ "jockey-ast",
+ "jockey-ir",
+ "jockey-lexer",
+ "jockey-parser",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-shared-types"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "uuid",
+]
+
+[[package]]
 name = "js-sys"
 version = "0.3.105"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3869,383 +4246,6 @@ name = "tower-service"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8df9b6e13f2d32c91b9bd719c00d1958837bc7dec474d94952798cc8e69eeec3"
-
-[[package]]
-name = "traceforge-api"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "argon2",
- "aws-config",
- "aws-sdk-s3",
- "axum",
- "chrono",
- "ipnetwork",
- "jsonwebtoken",
- "rand 0.8.8",
- "redis",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "sqlx",
- "tokio",
- "tower 0.4.13",
- "tower-http",
- "traceforge-ast",
- "traceforge-backend",
- "traceforge-ir",
- "traceforge-lexer",
- "traceforge-parser",
- "traceforge-runtime",
- "traceforge-runtime-evidence",
- "traceforge-runtime-filesystem",
- "traceforge-runtime-logs",
- "traceforge-runtime-network",
- "traceforge-runtime-process",
- "traceforge-runtime-security",
- "traceforge-runtime-system",
- "traceforge-semantic",
- "traceforge-shared-types",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "validator",
-]
-
-[[package]]
-name = "traceforge-ast"
-version = "0.1.0"
-dependencies = [
- "serde",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "traceforge-backend"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "llvm-sys",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 1.0.69",
- "traceforge-ast",
- "traceforge-hir",
- "traceforge-ir",
- "traceforge-lexer",
- "traceforge-mir",
- "traceforge-parser",
- "traceforge-runtime",
- "traceforge-runtime-evidence",
- "traceforge-semantic",
-]
-
-[[package]]
-name = "traceforge-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "traceforge-ast",
- "traceforge-backend",
- "traceforge-hir",
- "traceforge-ir",
- "traceforge-lexer",
- "traceforge-mir",
- "traceforge-parser",
- "traceforge-runtime",
- "traceforge-semantic",
- "ureq",
- "uuid",
- "whoami",
-]
-
-[[package]]
-name = "traceforge-compiler-worker"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "aws-config",
- "aws-sdk-s3",
- "chrono",
- "redis",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "sqlx",
- "tempfile",
- "tokio",
- "traceforge-ast",
- "traceforge-backend",
- "traceforge-ir",
- "traceforge-lexer",
- "traceforge-parser",
- "traceforge-runtime",
- "traceforge-semantic",
- "traceforge-shared-types",
- "tracing",
- "tracing-subscriber",
- "uuid",
-]
-
-[[package]]
-name = "traceforge-hir"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "traceforge-ast",
- "traceforge-ir",
-]
-
-[[package]]
-name = "traceforge-ir"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "traceforge-ast",
-]
-
-[[package]]
-name = "traceforge-lexer"
-version = "0.1.0"
-dependencies = [
- "serde",
- "thiserror 1.0.69",
- "traceforge-ast",
-]
-
-[[package]]
-name = "traceforge-mir"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "traceforge-ast",
- "traceforge-hir",
-]
-
-[[package]]
-name = "traceforge-parser"
-version = "0.1.0"
-dependencies = [
- "thiserror 1.0.69",
- "traceforge-ast",
- "traceforge-lexer",
-]
-
-[[package]]
-name = "traceforge-runtime"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 1.0.69",
- "traceforge-runtime-artifacts",
- "traceforge-runtime-drivers",
- "traceforge-runtime-evidence",
- "traceforge-runtime-filesystem",
- "traceforge-runtime-logs",
- "traceforge-runtime-memory",
- "traceforge-runtime-network",
- "traceforge-runtime-process",
- "traceforge-runtime-registry",
- "traceforge-runtime-system",
- "traceforge-runtime-timeline",
-]
-
-[[package]]
-name = "traceforge-runtime-artifacts"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "traceforge-runtime-drivers"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "traceforge-runtime-evidence"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 1.0.69",
- "traceforge-runtime-artifacts",
- "traceforge-runtime-drivers",
- "traceforge-runtime-filesystem",
- "traceforge-runtime-logs",
- "traceforge-runtime-memory",
- "traceforge-runtime-network",
- "traceforge-runtime-process",
- "traceforge-runtime-registry",
- "traceforge-runtime-system",
- "traceforge-runtime-timeline",
- "whoami",
-]
-
-[[package]]
-name = "traceforge-runtime-filesystem"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "md-5 0.10.6",
- "serde",
- "serde_json",
- "sha1 0.10.7",
- "sha2 0.10.9",
- "thiserror 1.0.69",
- "walkdir",
-]
-
-[[package]]
-name = "traceforge-runtime-logs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "traceforge-runtime-memory"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "libc",
- "procfs",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "traceforge-runtime-network"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "netstat2",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "traceforge-runtime-process"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "libc",
- "procfs",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 1.0.69",
- "whoami",
-]
-
-[[package]]
-name = "traceforge-runtime-registry"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "winreg",
-]
-
-[[package]]
-name = "traceforge-runtime-security"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "serde",
- "serde_json",
- "sha2 0.10.9",
-]
-
-[[package]]
-name = "traceforge-runtime-system"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "whoami",
-]
-
-[[package]]
-name = "traceforge-runtime-timeline"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "traceforge-semantic"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "traceforge-ast",
- "traceforge-ir",
- "traceforge-lexer",
- "traceforge-parser",
-]
-
-[[package]]
-name = "traceforge-shared-types"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "serde",
- "serde_json",
- "sqlx",
- "uuid",
-]
 
 [[package]]
 name = "tracing"

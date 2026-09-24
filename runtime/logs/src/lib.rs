@@ -1,4 +1,4 @@
-//! TraceForge Runtime - Log collection
+//! jockey Runtime - Log collection
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

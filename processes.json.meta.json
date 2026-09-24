@@ -1,6 +1,6 @@
 {
   "investigation_name": "process_triage",
-  "tool_name": "traceforge-tool",
+  "tool_name": "jockey-tool",
   "tool_version": "0.1.0",
   "host_identifier": "DESKTOP-9C230F9",
   "collection_time": "2026-09-22T23:13:18.951321600Z",

@@ -1,17 +1,17 @@
-//! TraceForge CLI - Command-line interface for the TraceForge compiler
+//! jockey CLI - Command-line interface for the jockey compiler
 
 use clap::{Parser, Subcommand};
 use std::path::{Path, PathBuf};
-use traceforge_backend::{Backend, BackendKind};
-use traceforge_ir::{BuildConfig, TargetArch, TargetPlatform};
-use traceforge_lexer::Lexer;
-use traceforge_parser::Parser as TfParser;
-use traceforge_runtime::{verify_evidence, verify_evidence_deep, VerificationStatus};
-use traceforge_semantic::SemanticAnalyzer;
+use jockey_backend::{Backend, BackendKind};
+use jockey_ir::{BuildConfig, TargetArch, TargetPlatform};
+use jockey_lexer::Lexer;
+use jockey_parser::Parser as TfParser;
+use jockey_runtime::{verify_evidence, verify_evidence_deep, VerificationStatus};
+use jockey_semantic::SemanticAnalyzer;
 
 #[derive(Parser)]
 #[command(
-    name = "jocky",
+    name = "jockey",
     version,
     about = "JOCKY Forensic Investigation Compiler"
 )]
@@ -213,7 +213,7 @@ enum Commands {
         #[arg(short, long, default_value = "Initial release")]
         description: String,
     },
-    /// Launch the TraceForge Desktop / Web IDE
+    /// Launch the jockey Desktop / Web IDE
     Ide {
         /// Port to launch on
         #[arg(short, long, default_value = "3000")]
@@ -621,10 +621,10 @@ fn compile(
     };
 
     let optimization_level = match opt.to_lowercase().as_str() {
-        "none" => traceforge_ir::OptimizationLevel::None,
-        "size" => traceforge_ir::OptimizationLevel::Size,
-        "speed" => traceforge_ir::OptimizationLevel::Speed,
-        _ => traceforge_ir::OptimizationLevel::Speed,
+        "none" => jockey_ir::OptimizationLevel::None,
+        "size" => jockey_ir::OptimizationLevel::Size,
+        "speed" => jockey_ir::OptimizationLevel::Speed,
+        _ => jockey_ir::OptimizationLevel::Speed,
     };
 
     let config = BuildConfig {
@@ -652,7 +652,7 @@ fn compile(
 
     // --- HIR lowering (for LLVM path and emit flags) ---
     let maybe_hir = if backend_kind == BackendKind::Llvm || emit_hir || emit_all {
-        let hir: traceforge_hir::HirInvestigation = (&ir).into();
+        let hir: jockey_hir::HirInvestigation = (&ir).into();
         Some(hir)
     } else {
         None
@@ -669,7 +669,7 @@ fn compile(
     // --- MIR lowering (for LLVM path and emit flags) ---
     let maybe_mir = if backend_kind == BackendKind::Llvm || emit_mir || emit_llvm || emit_all {
         if let Some(hir) = &maybe_hir {
-            let mir = traceforge_mir::MirLowering::lower(hir)
+            let mir = jockey_mir::MirLowering::lower(hir)
                 .map_err(|e| anyhow::anyhow!("MIR lowering failed: {}", e))?;
             Some(mir)
         } else {
@@ -690,7 +690,7 @@ fn compile(
     // --- LLVM IR emission (optional, before actual compilation) ---
     if emit_llvm || emit_all {
         if let Some(mir) = &maybe_mir {
-            let llvm_backend = traceforge_backend::LlvmBackend::new(config.clone());
+            let llvm_backend = jockey_backend::LlvmBackend::new(config.clone());
             let llvm_ir = llvm_backend
                 .generate_llvm_ir(mir)
                 .map_err(|e| anyhow::anyhow!("LLVM IR generation failed: {}", e))?;
@@ -717,7 +717,7 @@ fn compile(
     let hir_hash = maybe_mir.as_ref().map(|m| m.provenance.hir_hash.clone());
     let mir_hash = maybe_mir.as_ref().map(|m| m.provenance.mir_hash.clone());
     let llvm_ir_hash = if let Some(mir) = &maybe_mir {
-        let llvm_backend = traceforge_backend::LlvmBackend::new(config.clone());
+        let llvm_backend = jockey_backend::LlvmBackend::new(config.clone());
         llvm_backend
             .generate_llvm_ir(mir)
             .ok()
@@ -728,18 +728,18 @@ fn compile(
 
     let mut cap_provenance = Vec::new();
     for op in &ir.operations {
-        if let traceforge_ir::IrOperation::Collect(c) = op {
+        if let jockey_ir::IrOperation::Collect(c) = op {
             let (cap_name, stmt_name) = match c.target {
-                traceforge_ast::CollectTarget::Processes => ("PROCESS_READ", "collect processes"),
-                traceforge_ast::CollectTarget::NetworkConnections => ("NETWORK_READ", "collect network_connections"),
-                traceforge_ast::CollectTarget::Files => ("FILESYSTEM_READ", "collect files"),
-                traceforge_ast::CollectTarget::Logs => ("LOG_READ", "collect logs"),
-                traceforge_ast::CollectTarget::SystemInfo => ("SYSTEM_INFO_READ", "collect system_info"),
-                traceforge_ast::CollectTarget::Drivers => ("DRIVER_READ", "collect drivers"),
-                traceforge_ast::CollectTarget::Timeline => ("TIMELINE_READ", "collect timeline"),
-                traceforge_ast::CollectTarget::MemoryRegions => ("MEMORY_READ", "collect memory_regions"),
-                traceforge_ast::CollectTarget::Registry => ("REGISTRY_READ", "collect registry"),
-                traceforge_ast::CollectTarget::Artifacts => ("ARTIFACT_CARVE", "collect artifacts"),
+                jockey_ast::CollectTarget::Processes => ("PROCESS_READ", "collect processes"),
+                jockey_ast::CollectTarget::NetworkConnections => ("NETWORK_READ", "collect network_connections"),
+                jockey_ast::CollectTarget::Files => ("FILESYSTEM_READ", "collect files"),
+                jockey_ast::CollectTarget::Logs => ("LOG_READ", "collect logs"),
+                jockey_ast::CollectTarget::SystemInfo => ("SYSTEM_INFO_READ", "collect system_info"),
+                jockey_ast::CollectTarget::Drivers => ("DRIVER_READ", "collect drivers"),
+                jockey_ast::CollectTarget::Timeline => ("TIMELINE_READ", "collect timeline"),
+                jockey_ast::CollectTarget::MemoryRegions => ("MEMORY_READ", "collect memory_regions"),
+                jockey_ast::CollectTarget::Registry => ("REGISTRY_READ", "collect registry"),
+                jockey_ast::CollectTarget::Artifacts => ("ARTIFACT_CARVE", "collect artifacts"),
             };
             cap_provenance.push(serde_json::json!({
                 "capability": cap_name,
@@ -836,7 +836,7 @@ fn inspect(file: &Path, format: &str) -> anyhow::Result<()> {
                     print_diagnostics(&sem_diags);
                 }
                 if let Some(ir) = ir {
-                    println!("{}", traceforge_ir::serialize_ir(&ir)?);
+                    println!("{}", jockey_ir::serialize_ir(&ir)?);
                 }
             }
         }
@@ -934,7 +934,7 @@ fn verify_artifact(artifact: &Path) -> anyhow::Result<()> {
             continue;
         }
         let content = std::fs::read(&path)?;
-        if let Ok(metadata) = serde_json::from_slice::<traceforge_ir::ArtifactMetadata>(&content) {
+        if let Ok(metadata) = serde_json::from_slice::<jockey_ir::ArtifactMetadata>(&content) {
             if metadata.artifact_hash == actual_hash {
                 matching_metadata = Some((path, metadata));
                 break;
@@ -1162,7 +1162,7 @@ fn generate_report(
         .as_ref()
         .and_then(|m| m.get("investigation_name"))
         .and_then(|v| v.as_str())
-        .unwrap_or("TraceForge Investigation");
+        .unwrap_or("jockey Investigation");
     let host_id = meta_val
         .as_ref()
         .and_then(|m| m.get("host_identifier"))
@@ -1213,7 +1213,7 @@ fn generate_report(
         }
         "markdown" | "md" => {
             let mut md = String::new();
-            md.push_str(&format!("# TraceForge Forensic Report: {}\n\n", inv_name));
+            md.push_str(&format!("# jockey Forensic Report: {}\n\n", inv_name));
             md.push_str("## Executive Summary\n\n");
             md.push_str(&format!("- **Investigation Name:** `{}`\n", inv_name));
             md.push_str(&format!("- **Target Host:** `{}`\n", host_id));
@@ -1256,7 +1256,7 @@ fn generate_report(
             term.push_str(
                 "======================================================================\n",
             );
-            term.push_str("             TRACEFORGE FORENSIC INVESTIGATION REPORT\n");
+            term.push_str("             jockey FORENSIC INVESTIGATION REPORT\n");
             term.push_str(
                 "======================================================================\n",
             );
@@ -1403,14 +1403,14 @@ fn init_project(name: &str) -> anyhow::Result<()> {
 
     // Create README
     let readme = format!(
-        r#"# {} - TraceForge Investigation
+        r#"# {} - jockey Investigation
 
 This investigation collects system information, process details, and network connections.
 
 ## Building
 
 ```bash
-traceforge build {}.tfg --target linux --arch x64
+jockey build {}.tfg --target linux --arch x64
 ```
 
 ## Running
@@ -1430,7 +1430,7 @@ Evidence will be written to `{}_evidence.json` with a SHA-256 hash for integrity
 
     println!("Created project: {}", dir.display());
     println!("  Edit {}.tfg to customize your investigation", name);
-    println!("  Run `traceforge build {}.tfg` to compile", name);
+    println!("  Run `jockey build {}.tfg` to compile", name);
 
     Ok(())
 }
@@ -1451,13 +1451,13 @@ fn calculate_compiler_hash() -> anyhow::Result<String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
-fn print_diagnostics(diags: &[traceforge_ast::Diagnostic]) {
+fn print_diagnostics(diags: &[jockey_ast::Diagnostic]) {
     for diag in diags {
         let (prefix, code) = match diag.severity {
-            traceforge_ast::Severity::Error => ("error", diag.code.as_deref().unwrap_or("E1001")),
-            traceforge_ast::Severity::Warning => ("warning", diag.code.as_deref().unwrap_or("W1001")),
-            traceforge_ast::Severity::Info => ("info", diag.code.as_deref().unwrap_or("I1001")),
-            traceforge_ast::Severity::Hint => ("help", diag.code.as_deref().unwrap_or("H1001")),
+            jockey_ast::Severity::Error => ("error", diag.code.as_deref().unwrap_or("E1001")),
+            jockey_ast::Severity::Warning => ("warning", diag.code.as_deref().unwrap_or("W1001")),
+            jockey_ast::Severity::Info => ("info", diag.code.as_deref().unwrap_or("I1001")),
+            jockey_ast::Severity::Hint => ("help", diag.code.as_deref().unwrap_or("H1001")),
         };
         if let Some(span) = diag.span {
             eprintln!("{}[{}]: {} (at {})", prefix, code, diag.message, span);
@@ -1478,7 +1478,7 @@ fn get_config_dir() -> PathBuf {
     let home = std::env::var("USERPROFILE")
         .or_else(|_| std::env::var("HOME"))
         .unwrap_or_else(|_| ".".to_string());
-    let dir = PathBuf::from(home).join(".traceforge");
+    let dir = PathBuf::from(home).join(".jockey");
     let _ = std::fs::create_dir_all(&dir);
     dir
 }
@@ -1625,7 +1625,7 @@ fn repo_install(tool_name: &str, version: Option<&str>) -> anyhow::Result<()> {
         .unwrap_or_else(|| "http://localhost:8080".to_string());
     let token = cfg
         .token
-        .ok_or_else(|| anyhow::anyhow!("Not logged in; run traceforge login first"))?;
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jockey login first"))?;
     println!("Installing '{}'...", tool_id);
     let target_dir = PathBuf::from(".").join("tools");
     std::fs::create_dir_all(&target_dir)?;
@@ -1649,7 +1649,7 @@ fn repo_list() -> anyhow::Result<()> {
         .unwrap_or_else(|| "http://localhost:8080".to_string());
     let token = cfg
         .token
-        .ok_or_else(|| anyhow::anyhow!("Not logged in; run traceforge login first"))?;
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jockey login first"))?;
     let response: serde_json::Value = ureq::get(&format!("{}/api/tools", api_url))
         .set("Authorization", &format!("Bearer {}", token))
         .call()
@@ -1669,7 +1669,7 @@ fn repo_info(tool: &str) -> anyhow::Result<()> {
         .unwrap_or_else(|| "http://localhost:8080".to_string());
     let token = cfg
         .token
-        .ok_or_else(|| anyhow::anyhow!("Not logged in; run traceforge login first"))?;
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jockey login first"))?;
     let response: serde_json::Value = ureq::get(&format!("{}/api/tools/{}", api_url, tool_id))
         .set("Authorization", &format!("Bearer {}", token))
         .call()
@@ -1708,11 +1708,11 @@ fn repo_publish(file: &Path, version: &str, description: &str) -> anyhow::Result
 
     let token = cfg
         .token
-        .ok_or_else(|| anyhow::anyhow!("Not logged in; run traceforge login first"))?;
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jockey login first"))?;
     let tool_name = file
         .file_stem()
         .and_then(|s| s.to_str())
-        .unwrap_or("traceforge-tool");
+        .unwrap_or("jockey-tool");
     let tool_response: serde_json::Value = ureq::post(&format!("{}/api/tools", api_url))
         .set("Authorization", &format!("Bearer {}", token))
         .send_json(serde_json::json!({ "name": tool_name, "description": description }))
@@ -1742,7 +1742,7 @@ fn repo_publish(file: &Path, version: &str, description: &str) -> anyhow::Result
 
 fn launch_ide(port: u16) -> anyhow::Result<()> {
     println!("============================================================");
-    println!("  TRACEFORGE Forensic Programming Environment");
+    println!("  jockey Forensic Programming Environment");
     println!("============================================================");
     println!("  Opening Web & Desktop Forensic IDE...");
     println!("  Local Web URL: http://localhost:{}", port);

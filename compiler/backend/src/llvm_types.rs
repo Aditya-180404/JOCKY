@@ -1,11 +1,11 @@
-//! Centralized Type Lowering from TraceForge MIR to LLVM Types
+//! Centralized Type Lowering from jockey MIR to LLVM Types
 //!
 //! Provides authoritative translation of `MirType` and external C ABI function
 //! prototypes to `LLVMTypeRef`.
 
 use llvm_sys::core::*;
 use llvm_sys::prelude::*;
-use traceforge_mir::MirType;
+use jockey_mir::MirType;
 
 /// Translate a `MirType` into its corresponding `LLVMTypeRef`.
 ///
@@ -60,92 +60,92 @@ impl RuntimeSignatures {
         let i64_ty = LLVMInt64TypeInContext(ctx);
         let void_ty = LLVMVoidTypeInContext(ctx);
 
-        // traceforge_rt_evidence_init(investigation_name: *const c_char) -> *mut c_void
+        // jockey_rt_evidence_init(investigation_name: *const c_char) -> *mut c_void
         let mut init_params = [ptr_ty];
         let init_ty = LLVMFunctionType(ptr_ty, init_params.as_mut_ptr(), 1, 0);
 
-        // traceforge_rt_collect_system(ctx: *mut c_void) -> c_int
+        // jockey_rt_collect_system(ctx: *mut c_void) -> c_int
         let mut sys_params = [ptr_ty];
         let sys_ty = LLVMFunctionType(i32_ty, sys_params.as_mut_ptr(), 1, 0);
 
-        // traceforge_rt_collect_processes(ctx: *mut c_void, fields_json: *const c_char, hash_algo: *const c_char) -> c_int
+        // jockey_rt_collect_processes(ctx: *mut c_void, fields_json: *const c_char, hash_algo: *const c_char) -> c_int
         let mut proc_params = [ptr_ty, ptr_ty, ptr_ty];
         let proc_ty = LLVMFunctionType(i32_ty, proc_params.as_mut_ptr(), 3, 0);
 
-        // traceforge_rt_collect_network(ctx: *mut c_void) -> c_int
+        // jockey_rt_collect_network(ctx: *mut c_void) -> c_int
         let mut net_params = [ptr_ty];
         let net_ty = LLVMFunctionType(i32_ty, net_params.as_mut_ptr(), 1, 0);
 
-        // traceforge_rt_collect_files(ctx: *mut c_void, path: *const c_char, recursive: c_int, hash_algo: *const c_char) -> c_int
+        // jockey_rt_collect_files(ctx: *mut c_void, path: *const c_char, recursive: c_int, hash_algo: *const c_char) -> c_int
         let mut files_params = [ptr_ty, ptr_ty, i32_ty, ptr_ty];
         let files_ty = LLVMFunctionType(i32_ty, files_params.as_mut_ptr(), 4, 0);
 
-        // traceforge_rt_collect_logs(ctx: *mut c_void, source: *const c_char) -> c_int
+        // jockey_rt_collect_logs(ctx: *mut c_void, source: *const c_char) -> c_int
         let mut logs_params = [ptr_ty, ptr_ty];
         let logs_ty = LLVMFunctionType(i32_ty, logs_params.as_mut_ptr(), 2, 0);
 
-        // traceforge_rt_collect_drivers(ctx: *mut c_void) -> c_int
+        // jockey_rt_collect_drivers(ctx: *mut c_void) -> c_int
         let mut drv_params = [ptr_ty];
         let drv_ty = LLVMFunctionType(i32_ty, drv_params.as_mut_ptr(), 1, 0);
 
-        // traceforge_rt_collect_memory_regions(ctx: *mut c_void, pid: c_int) -> c_int
+        // jockey_rt_collect_memory_regions(ctx: *mut c_void, pid: c_int) -> c_int
         let mut mem_params = [ptr_ty, i32_ty];
         let mem_ty = LLVMFunctionType(i32_ty, mem_params.as_mut_ptr(), 2, 0);
 
-        // traceforge_rt_collect_registry(ctx: *mut c_void, hive: *const c_char, key_path: *const c_char) -> c_int
+        // jockey_rt_collect_registry(ctx: *mut c_void, hive: *const c_char, key_path: *const c_char) -> c_int
         let mut reg_params = [ptr_ty, ptr_ty, ptr_ty];
         let reg_ty = LLVMFunctionType(i32_ty, reg_params.as_mut_ptr(), 3, 0);
 
-        // traceforge_rt_collect_artifacts(ctx: *mut c_void, artifact_type: *const c_char, path: *const c_char) -> c_int
+        // jockey_rt_collect_artifacts(ctx: *mut c_void, artifact_type: *const c_char, path: *const c_char) -> c_int
         let mut art_params = [ptr_ty, ptr_ty, ptr_ty];
         let art_ty = LLVMFunctionType(i32_ty, art_params.as_mut_ptr(), 3, 0);
 
-        // traceforge_rt_evidence_filter(ctx: *mut c_void, filter_json: *const c_char) -> c_int
+        // jockey_rt_evidence_filter(ctx: *mut c_void, filter_json: *const c_char) -> c_int
         let mut filter_params = [ptr_ty, ptr_ty];
         let filter_ty = LLVMFunctionType(i32_ty, filter_params.as_mut_ptr(), 2, 0);
 
-        // traceforge_rt_evidence_where(ctx: *mut c_void, where_json: *const c_char) -> c_int
+        // jockey_rt_evidence_where(ctx: *mut c_void, where_json: *const c_char) -> c_int
         let mut where_params = [ptr_ty, ptr_ty];
         let where_ty = LLVMFunctionType(i32_ty, where_params.as_mut_ptr(), 2, 0);
 
-        // traceforge_rt_evidence_limit(ctx: *mut c_void, limit: usize/i64) -> c_int
+        // jockey_rt_evidence_limit(ctx: *mut c_void, limit: usize/i64) -> c_int
         let mut limit_params = [ptr_ty, i64_ty];
         let limit_ty = LLVMFunctionType(i32_ty, limit_params.as_mut_ptr(), 2, 0);
 
-        // traceforge_rt_evidence_export(ctx: *mut c_void, format: *const c_char, path: *const c_char) -> c_int
+        // jockey_rt_evidence_export(ctx: *mut c_void, format: *const c_char, path: *const c_char) -> c_int
         let mut export_params = [ptr_ty, ptr_ty, ptr_ty];
         let export_ty = LLVMFunctionType(i32_ty, export_params.as_mut_ptr(), 3, 0);
 
-        // traceforge_rt_evidence_compute_hash(ctx: *mut c_void, algo: *const c_char) -> c_int
+        // jockey_rt_evidence_compute_hash(ctx: *mut c_void, algo: *const c_char) -> c_int
         let mut hash_params = [ptr_ty, ptr_ty];
         let hash_ty = LLVMFunctionType(i32_ty, hash_params.as_mut_ptr(), 2, 0);
 
-        // traceforge_rt_evidence_generate_timeline(ctx: *mut c_void) -> c_int
+        // jockey_rt_evidence_generate_timeline(ctx: *mut c_void) -> c_int
         let mut time_params = [ptr_ty];
         let time_ty = LLVMFunctionType(i32_ty, time_params.as_mut_ptr(), 1, 0);
 
-        // traceforge_rt_evidence_free(ctx: *mut c_void) -> void
+        // jockey_rt_evidence_free(ctx: *mut c_void) -> void
         let mut free_params = [ptr_ty];
         let free_ty = LLVMFunctionType(void_ty, free_params.as_mut_ptr(), 1, 0);
 
         Self {
-            evidence_init: (init_ty, "traceforge_rt_evidence_init"),
-            collect_system: (sys_ty, "traceforge_rt_collect_system"),
-            collect_processes: (proc_ty, "traceforge_rt_collect_processes"),
-            collect_network: (net_ty, "traceforge_rt_collect_network"),
-            collect_files: (files_ty, "traceforge_rt_collect_files"),
-            collect_logs: (logs_ty, "traceforge_rt_collect_logs"),
-            collect_drivers: (drv_ty, "traceforge_rt_collect_drivers"),
-            collect_memory_regions: (mem_ty, "traceforge_rt_collect_memory_regions"),
-            collect_registry: (reg_ty, "traceforge_rt_collect_registry"),
-            collect_artifacts: (art_ty, "traceforge_rt_collect_artifacts"),
-            evidence_filter: (filter_ty, "traceforge_rt_evidence_filter"),
-            evidence_where: (where_ty, "traceforge_rt_evidence_where"),
-            evidence_limit: (limit_ty, "traceforge_rt_evidence_limit"),
-            evidence_export: (export_ty, "traceforge_rt_evidence_export"),
-            evidence_compute_hash: (hash_ty, "traceforge_rt_evidence_compute_hash"),
-            evidence_generate_timeline: (time_ty, "traceforge_rt_evidence_generate_timeline"),
-            evidence_free: (free_ty, "traceforge_rt_evidence_free"),
+            evidence_init: (init_ty, "jockey_rt_evidence_init"),
+            collect_system: (sys_ty, "jockey_rt_collect_system"),
+            collect_processes: (proc_ty, "jockey_rt_collect_processes"),
+            collect_network: (net_ty, "jockey_rt_collect_network"),
+            collect_files: (files_ty, "jockey_rt_collect_files"),
+            collect_logs: (logs_ty, "jockey_rt_collect_logs"),
+            collect_drivers: (drv_ty, "jockey_rt_collect_drivers"),
+            collect_memory_regions: (mem_ty, "jockey_rt_collect_memory_regions"),
+            collect_registry: (reg_ty, "jockey_rt_collect_registry"),
+            collect_artifacts: (art_ty, "jockey_rt_collect_artifacts"),
+            evidence_filter: (filter_ty, "jockey_rt_evidence_filter"),
+            evidence_where: (where_ty, "jockey_rt_evidence_where"),
+            evidence_limit: (limit_ty, "jockey_rt_evidence_limit"),
+            evidence_export: (export_ty, "jockey_rt_evidence_export"),
+            evidence_compute_hash: (hash_ty, "jockey_rt_evidence_compute_hash"),
+            evidence_generate_timeline: (time_ty, "jockey_rt_evidence_generate_timeline"),
+            evidence_free: (free_ty, "jockey_rt_evidence_free"),
         }
     }
 }

@@ -1,12 +1,12 @@
-//! TraceForge Parser - Parses tokens into AST
+//! jockey Parser - Parses tokens into AST
 
 use std::vec;
 use thiserror::Error;
-use traceforge_ast::{
+use jockey_ast::{
     BinaryOp, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr, HashAlgorithm,
     Investigation, PipelineStage, Span, Stmt, Token, TokenKind, UnaryOp,
 };
-use traceforge_lexer::LexerError;
+use jockey_lexer::LexerError;
 
 #[derive(Debug, Error)]
 pub enum ParseError {
@@ -1157,7 +1157,7 @@ impl ExprSpan for Expr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use traceforge_lexer::Lexer;
+    use jockey_lexer::Lexer;
 
     fn parse_source(source: &str) -> (Option<Investigation>, Vec<Diagnostic>) {
         let mut lexer = Lexer::new(source);

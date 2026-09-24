@@ -1,26 +1,26 @@
 [package]
-name = "traceforge-runtime"
+name = "jockey-runtime"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
 authors = { workspace = true }
 repository = { workspace = true }
 [lib]
-name = "traceforge_runtime"
+name = "jockey_runtime"
 crate-type = ["rlib", "staticlib"]
 
 [dependencies]
-traceforge-runtime-system = { path = "system" }
-traceforge-runtime-process = { path = "process" }
-traceforge-runtime-network = { path = "network" }
-traceforge-runtime-filesystem = { path = "filesystem" }
-traceforge-runtime-logs = { path = "logs" }
-traceforge-runtime-evidence = { path = "evidence" }
-traceforge-runtime-drivers = { path = "drivers" }
-traceforge-runtime-timeline = { path = "timeline" }
-traceforge-runtime-memory = { path = "memory" }
-traceforge-runtime-registry = { path = "registry" }
-traceforge-runtime-artifacts = { path = "artifacts" }
+jockey-runtime-system = { path = "system" }
+jockey-runtime-process = { path = "process" }
+jockey-runtime-network = { path = "network" }
+jockey-runtime-filesystem = { path = "filesystem" }
+jockey-runtime-logs = { path = "logs" }
+jockey-runtime-evidence = { path = "evidence" }
+jockey-runtime-drivers = { path = "drivers" }
+jockey-runtime-timeline = { path = "timeline" }
+jockey-runtime-memory = { path = "memory" }
+jockey-runtime-registry = { path = "registry" }
+jockey-runtime-artifacts = { path = "artifacts" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

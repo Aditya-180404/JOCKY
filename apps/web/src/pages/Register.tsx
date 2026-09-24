@@ -60,7 +60,7 @@ export function Register() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
             <Activity className="h-10 w-10 text-accent-blue" />
-            <span className="text-2xl font-bold text-forensic-100">TraceForge</span>
+            <span className="text-2xl font-bold text-forensic-100">jockey</span>
           </Link>
           <h1 className="text-2xl font-bold text-forensic-100 mb-2">Create your account</h1>
           <p className="text-forensic-400">Start building forensic tools today</p>
@@ -135,7 +135,7 @@ export function Register() {
             <div>
               <label htmlFor="organizationSlug" className="label">Organization Slug</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-forensic-500 text-sm font-mono">traceforge.io/</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-forensic-500 text-sm font-mono">jockey.io/</span>
                 <input
                   id="organizationSlug"
                   name="organizationSlug"
@@ -224,7 +224,7 @@ export function Register() {
         </div>
 
         <p className="mt-6 text-center text-forensic-600 text-sm">
-          TraceForge v0.1.0 — Defensive Digital Forensics
+          jockey v0.1.0 — Defensive Digital Forensics
         </p>
       </div>
     </div>

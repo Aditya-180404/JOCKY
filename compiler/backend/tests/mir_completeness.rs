@@ -1,7 +1,7 @@
 use std::collections::HashSet;
-use traceforge_backend::llvm::LlvmBackend;
-use traceforge_ir::BuildConfig;
-use traceforge_mir::{
+use jockey_backend::llvm::LlvmBackend;
+use jockey_ir::BuildConfig;
+use jockey_mir::{
     MirBasicBlock, MirCompareOp, MirFunction, MirInstruction, MirLocal, MirProgram, MirProvenance,
     MirTerminator, MirType,
 };
@@ -199,7 +199,7 @@ fn test_every_mir_instruction_has_explicit_llvm_lowering() {
         // 21. CallRuntime
         MirInstruction::CallRuntime {
             dest: Some(15),
-            function_name: "traceforge_rt_collect_system".to_string(),
+            function_name: "jockey_rt_collect_system".to_string(),
             args: vec![5],
         },
         // 22. CollectMemoryRegions (NEW)
@@ -273,75 +273,75 @@ fn test_every_mir_instruction_has_explicit_llvm_lowering() {
     assert!(ir.contains("store ptr"), "Store lowering missing");
     assert!(ir.contains("load i32"), "Load lowering missing");
     assert!(
-        ir.contains("call ptr @traceforge_rt_evidence_init"),
+        ir.contains("call ptr @jockey_rt_evidence_init"),
         "EvidenceInit lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_collect_system"),
+        ir.contains("call i32 @jockey_rt_collect_system"),
         "CollectSystemInfo lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_collect_processes"),
+        ir.contains("call i32 @jockey_rt_collect_processes"),
         "CollectProcesses lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_collect_network"),
+        ir.contains("call i32 @jockey_rt_collect_network"),
         "CollectNetwork lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_collect_files"),
+        ir.contains("call i32 @jockey_rt_collect_files"),
         "CollectFiles lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_collect_logs"),
+        ir.contains("call i32 @jockey_rt_collect_logs"),
         "CollectLogs lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_collect_drivers"),
+        ir.contains("call i32 @jockey_rt_collect_drivers"),
         "CollectDrivers lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_evidence_filter"),
+        ir.contains("call i32 @jockey_rt_evidence_filter"),
         "EvidenceAddFilter lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_evidence_where"),
+        ir.contains("call i32 @jockey_rt_evidence_where"),
         "EvidenceAddWhere lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_evidence_limit"),
+        ir.contains("call i32 @jockey_rt_evidence_limit"),
         "EvidenceSetLimit lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_evidence_compute_hash"),
+        ir.contains("call i32 @jockey_rt_evidence_compute_hash"),
         "EvidenceComputeHash lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_evidence_generate_timeline"),
+        ir.contains("call i32 @jockey_rt_evidence_generate_timeline"),
         "EvidenceGenerateTimeline lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_evidence_export"),
+        ir.contains("call i32 @jockey_rt_evidence_export"),
         "EvidenceExport lowering missing"
     );
     assert!(ir.contains("icmp eq i32"), "Compare lowering missing");
     assert!(
-        ir.contains("call void @traceforge_rt_evidence_free"),
+        ir.contains("call void @jockey_rt_evidence_free"),
         "EvidenceFree on return missing"
     );
     assert!(ir.contains("ret i32"), "Return value lowering missing");
 
     // ── Forensic collector lowering assertions ──────────────────────
     assert!(
-        ir.contains("call i32 @traceforge_rt_collect_memory_regions"),
+        ir.contains("call i32 @jockey_rt_collect_memory_regions"),
         "CollectMemoryRegions lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_collect_registry"),
+        ir.contains("call i32 @jockey_rt_collect_registry"),
         "CollectRegistry lowering missing"
     );
     assert!(
-        ir.contains("call i32 @traceforge_rt_collect_artifacts"),
+        ir.contains("call i32 @jockey_rt_collect_artifacts"),
         "CollectArtifacts lowering missing"
     );
 

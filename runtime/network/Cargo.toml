@@ -1,5 +1,5 @@
 [package]
-name = "traceforge-runtime-network"
+name = "jockey-runtime-network"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }

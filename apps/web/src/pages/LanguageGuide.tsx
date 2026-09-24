@@ -21,27 +21,27 @@ interface GuideSection {
 
 const GUIDE_SECTIONS: GuideSection[] = [
   {
-    id: 'what_is_traceforge',
-    title: 'What is TRACEFORGE?',
+    id: 'what_is_jockey',
+    title: 'What is jockey?',
     category: 'Getting Started',
-    content: `TRACEFORGE is a domain-specific forensic programming language designed to author, compile, and execute digital incident response investigations deterministically.
-Unlike ad-hoc shell scripts, TRACEFORGE programs compile into secure, tamper-evident forensic binaries that emit structured evidence bundles verified by SHA-256 cryptographic digests.`,
+    content: `jockey is a domain-specific forensic programming language designed to author, compile, and execute digital incident response investigations deterministically.
+Unlike ad-hoc shell scripts, jockey programs compile into secure, tamper-evident forensic binaries that emit structured evidence bundles verified by SHA-256 cryptographic digests.`,
   },
   {
     id: 'installation',
     title: 'Installation',
     category: 'Getting Started',
-    content: `You can use TRACEFORGE directly in your browser via the Web IDE, or install the native standalone CLI toolchain and Desktop IDE for Windows or Linux.
+    content: `You can use jockey directly in your browser via the Web IDE, or install the native standalone CLI toolchain and Desktop IDE for Windows or Linux.
 No Rust compiler or development tools are required on target endpoint machines.`,
     codeSnippet: `# Verify and run CLI
-traceforge --version
-traceforge check investigation.tfg`,
+jockey --version
+jockey check investigation.tfg`,
   },
   {
     id: 'first_program',
     title: 'First Program',
     category: 'Language Basics',
-    content: `Every TRACEFORGE file contains an \`investigation\` block defining one or more collectors and an export target.`,
+    content: `Every jockey file contains an \`investigation\` block defining one or more collectors and an export target.`,
     codeSnippet: `investigation "first_triage" {
     collect system_info
     collect processes
@@ -52,7 +52,7 @@ traceforge check investigation.tfg`,
     id: 'syntax_rules',
     title: 'Syntax & Grammar',
     category: 'Language Basics',
-    content: `TRACEFORGE syntax uses clean curly-brace blocks without requiring trailing semicolons.
+    content: `jockey syntax uses clean curly-brace blocks without requiring trailing semicolons.
 Keywords include: \`investigation\`, \`metadata\`, \`collect\`, \`export\`, \`evidence\`, \`where\`, \`limit\`, \`hash\`, \`recursive\`.`,
   },
   {
@@ -154,15 +154,15 @@ Keywords include: \`investigation\`, \`metadata\`, \`collect\`, \`export\`, \`ev
     id: 'evidence_model',
     title: 'Evidence & SHA-256',
     category: 'Integrity & Verification',
-    content: `TRACEFORGE evidence is serialized to structured JSON accompanied by a \`.meta.json\` cryptographic sidecar.
+    content: `jockey evidence is serialized to structured JSON accompanied by a \`.meta.json\` cryptographic sidecar.
 The SHA-256 digest is calculated over the canonical byte stream.`,
   },
   {
     id: 'verification',
     title: 'Integrity Verification',
     category: 'Integrity & Verification',
-    content: `Verify evidence bundles anytime using \`traceforge verify <evidence.json>\`. Any modification to the data or metadata triggers a tamper alert.`,
-    codeSnippet: `traceforge verify processes.json
+    content: `Verify evidence bundles anytime using \`jockey verify <evidence.json>\`. Any modification to the data or metadata triggers a tamper alert.`,
+    codeSnippet: `jockey verify processes.json
 # Output:
 # Integrity: VALID
 # SHA-256: 5244f44aae2f7445e8d0f868276323132a50e3ecf9169fa60578962851f6405b`,
@@ -171,7 +171,7 @@ The SHA-256 digest is calculated over the canonical byte stream.`,
     id: 'security_model',
     title: 'Security Model & Safety Boundaries',
     category: 'Security',
-    content: `TRACEFORGE strictly isolates forensic operations:
+    content: `jockey strictly isolates forensic operations:
 - Defensive and read-only collection operations only
 - No arbitrary shell, PowerShell, or Python execution
 - No persistence, evasion, AV/EDR bypass mechanisms

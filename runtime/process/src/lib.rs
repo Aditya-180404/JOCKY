@@ -1,4 +1,4 @@
-//! TraceForge Runtime - Process enumeration and information
+//! jockey Runtime - Process enumeration and information
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};

@@ -1,4 +1,4 @@
-//! TraceForge Runtime — Memory region forensic collector
+//! jockey Runtime — Memory region forensic collector
 //!
 //! On Linux: reads `/proc/<pid>/maps` and `/proc/<pid>/smaps`.
 //! On Windows: would use `VirtualQueryEx` (stub provided, full impl requires windows crate).

@@ -3,15 +3,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: traceforge
-      POSTGRES_USER: traceforge
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-traceforge_dev}
+      POSTGRES_DB: jockey
+      POSTGRES_USER: jockey
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jockey_dev}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U traceforge -d traceforge"]
+      test: ["CMD-SHELL", "pg_isready -U jockey -d jockey"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -34,8 +34,8 @@ services:
     image: quay.io/minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-traceforge}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-traceforge_dev}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-jockey}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-jockey_dev}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -55,12 +55,12 @@ services:
       extra_hosts:
         - "host.docker.internal:host-gateway"
     environment:
-      DATABASE_URL: postgres://traceforge:traceforge_dev@postgres:5432/traceforge
+      DATABASE_URL: postgres://jockey:jockey_dev@postgres:5432/jockey
       REDIS_URL: redis://redis:6379
       MINIO_ENDPOINT: http://minio:9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-traceforge}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-traceforge_dev}
-      MINIO_BUCKET: traceforge-artifacts
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-jockey}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-jockey_dev}
+      MINIO_BUCKET: jockey-artifacts
       JWT_SECRET: ${JWT_SECRET:-dev_secret_change_in_production}
       RUST_LOG: info
     ports:
@@ -86,10 +86,10 @@ services:
     environment:
       REDIS_URL: redis://redis:6379
       MINIO_ENDPOINT: http://minio:9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-traceforge}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-traceforge_dev}
-      MINIO_BUCKET: traceforge-artifacts
-      DATABASE_URL: postgres://traceforge:traceforge_dev@postgres:5432/traceforge
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-jockey}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-jockey_dev}
+      MINIO_BUCKET: jockey-artifacts
+      DATABASE_URL: postgres://jockey:jockey_dev@postgres:5432/jockey
       RUST_LOG: info
     depends_on:
       redis:

@@ -1,5 +1,5 @@
 [package]
-name = "traceforge-ir"
+name = "jockey-ir"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -7,6 +7,6 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-traceforge-ast = { path = "../ast" }
+jockey-ast = { path = "../ast" }
 serde = { workspace = true }
 serde_json = { workspace = true }

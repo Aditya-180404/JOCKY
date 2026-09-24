@@ -236,7 +236,7 @@ export function Settings() {
               <div>
                 <label htmlFor="orgSlug" className="label">Organization Slug</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-forensic-500 text-sm font-mono">traceforge.io/</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-forensic-500 text-sm font-mono">jockey.io/</span>
                   <input
                     id="orgSlug"
                     type="text"

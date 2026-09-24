@@ -1,4 +1,4 @@
-//! TraceForge AST - Abstract Syntax Tree definitions
+//! jockey AST - Abstract Syntax Tree definitions
 
 use serde::{Deserialize, Serialize};
 use std::fmt;

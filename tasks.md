@@ -1,4 +1,4 @@
-# TRACEFORGE - Task Tracker
+# jockey - Task Tracker
 
 Based on the prompt.md specification, here are all tasks organized by phase with completion status.
 
@@ -26,7 +26,7 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 
 ---
 
-## Phase 2: TraceForge Language ✅ CORE COMPLETED
+## Phase 2: jockey Language ✅ CORE COMPLETED
 ### Lexer (`compiler/lexer`)
 - [x] Token definitions for all keywords
 - [x] String literal parsing with escapes
@@ -91,20 +91,20 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 - [ ] Direct native code generation - **NOT IMPLEMENTED**
 
 ### CLI (`compiler/cli`)
-- [x] `traceforge validate` - validate .tfg files
-- [x] `traceforge compile` / `build` - compile to native executable
-- [x] `traceforge inspect` - show AST/IR/tokens
-- [x] `traceforge hash` - calculate SHA-256
-- [x] `traceforge init` - create new project
+- [x] `jockey validate` - validate .tfg files
+- [x] `jockey compile` / `build` - compile to native executable
+- [x] `jockey inspect` - show AST/IR/tokens
+- [x] `jockey hash` - calculate SHA-256
+- [x] `jockey init` - create new project
 - [x] Target platform/arch selection
 - [x] Optimization levels
 - [x] Source hash calculation
 - [x] Compiler hash calculation
 - [x] Metadata output
-- [x] `traceforge run` - run directly without explicit build
-- [x] `traceforge fmt` - validate and normalize .tfg files
-- [x] `traceforge target list` - list supported targets
-- [ ] `traceforge login` / `search` / `install` / `list` / `info` / `update` / `verify` / `publish` - **NOT IMPLEMENTED** (repository commands)
+- [x] `jockey run` - run directly without explicit build
+- [x] `jockey fmt` - validate and normalize .tfg files
+- [x] `jockey target list` - list supported targets
+- [ ] `jockey login` / `search` / `install` / `list` / `info` / `update` / `verify` / `publish` - **NOT IMPLEMENTED** (repository commands)
 
 ---
 
@@ -235,14 +235,14 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 - [x] Signature/hash tracking
 
 ### Client-side (CLI)
-- [x] `traceforge login` - authenticate with cloud
-- [x] `traceforge search` - search repository (real API only)
-- [x] `traceforge install` - download tool artifact by UUID
-- [x] `traceforge list` - list repository tools (real API only)
-- [x] `traceforge info` - show tool details by UUID
-- [ ] `traceforge update` - API does not expose update semantics
-- [ ] `traceforge verify` - verify tool signature
-- [x] `traceforge publish` - create tool and version through API
+- [x] `jockey login` - authenticate with cloud
+- [x] `jockey search` - search repository (real API only)
+- [x] `jockey install` - download tool artifact by UUID
+- [x] `jockey list` - list repository tools (real API only)
+- [x] `jockey info` - show tool details by UUID
+- [ ] `jockey update` - API does not expose update semantics
+- [ ] `jockey verify` - verify tool signature
+- [x] `jockey publish` - create tool and version through API
 
 ---
 
@@ -262,7 +262,7 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 - [x] Admin
 
 ### Components Needed
-- [x] Monaco editor integration with TraceForge syntax highlighting
+- [x] Monaco editor integration with jockey syntax highlighting
 - [x] File explorer
 - [ ] Autocomplete/intellisense for .tfg
 - [x] Diagnostics panel
@@ -377,8 +377,8 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 - [x] Write `process.tfg` with collect system_info, collect processes, export evidence
 - [x] Lexer/parser/semantic/IR can parse it
 - [x] Backend generates Rust code
-- [x] CLI `traceforge check process.tfg` command is available (execution needs Rust toolchain)
-- [ ] CLI `traceforge build process.tfg -o process` works on Linux (requires Linux host/toolchain)
+- [x] CLI `jockey check process.tfg` command is available (execution needs Rust toolchain)
+- [ ] CLI `jockey build process.tfg -o process` works on Linux (requires Linux host/toolchain)
 - [ ] Execute `./process` generates `processes.json` (needs compiled binary)
 - [ ] Calculate SHA-256
 - [ ] Upload to cloud (API ready, CLI command missing)
@@ -463,7 +463,7 @@ Based on the prompt.md specification, here are all tasks organized by phase with
 ## Immediate Next Steps (Priority Order)
 
 1. **Install Rust toolchain** - Required to build and test the compiler
-2. **Build the CLI** - `cargo build --release -p traceforge-cli`
+2. **Build the CLI** - `cargo build --release -p jockey-cli`
 3. **Test Vertical Slice 1** - Create process.tfg, validate, compile, run
 4. **Implement missing CLI commands** (run, fmt, target list, repository commands)
 5. **Complete Web IDE** - Monaco editor integration

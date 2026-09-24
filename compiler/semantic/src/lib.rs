@@ -1,12 +1,12 @@
-//! TraceForge Semantic Analysis - Type checking and validation
+//! jockey Semantic Analysis - Type checking and validation
 
 use std::collections::HashSet;
 use thiserror::Error;
-use traceforge_ast::{
+use jockey_ast::{
     Capability, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr, HashAlgorithm,
     Investigation, PipelineStage, Span, Stmt,
 };
-use traceforge_ir::{
+use jockey_ir::{
     IrAssignOperation, IrCollectOperation, IrEvidencePipelineOperation, IrExportOperation,
     IrFilterOperation, IrInvestigation, IrLimitOperation, IrMetadataOperation, IrOperation,
     IrPipelineStage, IrWhereOperation,
@@ -686,11 +686,11 @@ impl Default for SemanticAnalyzer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use traceforge_ast::Severity;
-    use traceforge_lexer::Lexer;
-    use traceforge_parser::Parser;
+    use jockey_ast::Severity;
+    use jockey_lexer::Lexer;
+    use jockey_parser::Parser;
 
-    fn analyze_source(source: &str) -> (Option<traceforge_ir::IrInvestigation>, Vec<Diagnostic>) {
+    fn analyze_source(source: &str) -> (Option<jockey_ir::IrInvestigation>, Vec<Diagnostic>) {
         let mut lexer = Lexer::new(source);
         let tokens = lexer.tokenize().unwrap();
         let mut parser = Parser::new(tokens);

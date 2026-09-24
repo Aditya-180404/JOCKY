@@ -2678,17 +2678,17 @@
   },
   {
     "command_line": [
-      "traceforge"
+      "jockey"
     ],
-    "name": "traceforge",
+    "name": "jockey",
     "pid": 34284,
     "start_time": null
   },
   {
     "command_line": [
-      "traceforge-api"
+      "jockey-api"
     ],
-    "name": "traceforge-api",
+    "name": "jockey-api",
     "pid": 12692,
     "start_time": null
   },

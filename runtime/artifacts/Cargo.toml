@@ -1,5 +1,5 @@
 [package]
-name = "traceforge-runtime-artifacts"
+name = "jockey-runtime-artifacts"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
