@@ -442,7 +442,7 @@ impl Backend {
         Ok(metadata)
     }
 
-    fn generate_rust_code(&self, ir: &IrInvestigation) -> Result<String, BackendError> {
+    pub fn generate_rust_code(&self, ir: &IrInvestigation) -> Result<String, BackendError> {
         let mut code = String::new();
 
         // Header
@@ -751,7 +751,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
         Ok(code)
     }
 
-    fn generate_cargo_toml(&self, ir: &IrInvestigation) -> Result<String, BackendError> {
+    pub fn generate_cargo_toml(&self, ir: &IrInvestigation) -> Result<String, BackendError> {
         let deps = self.required_dependencies(ir);
         let runtime_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../../runtime")

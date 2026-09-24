@@ -3919,8 +3919,11 @@ dependencies = [
  "traceforge-ast",
  "traceforge-hir",
  "traceforge-ir",
+ "traceforge-lexer",
  "traceforge-mir",
+ "traceforge-parser",
  "traceforge-runtime",
+ "traceforge-semantic",
 ]
 
 [[package]]

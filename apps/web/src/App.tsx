@@ -21,6 +21,7 @@ import { EvidenceUpload } from './pages/EvidenceUpload';
 import { Settings } from './pages/Settings';
 import { Admin } from './pages/Admin';
 import { Landing } from './pages/Landing';
+import { PlaybookGallery } from './pages/PlaybookGallery';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
@@ -86,6 +87,7 @@ export default function App() {
       <Route path="/download" element={<DownloadPage />} />
       <Route path="/guide" element={<LanguageGuide />} />
       <Route path="/examples" element={<ExamplesPage />} />
+      <Route path="/playbooks" element={<PlaybookGallery />} />
       <Route path="/docs" element={<DocsPage />} />
       <Route path="/about" element={<AboutPage />} />
 

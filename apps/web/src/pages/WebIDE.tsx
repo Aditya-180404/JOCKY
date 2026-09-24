@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import MonacoEditor, { OnMount } from '@monaco-editor/react';
 import { useSearchParams } from 'react-router-dom';
 import { SiteHeader } from '../components/SiteHeader';
@@ -21,6 +21,26 @@ import {
   Hash,
 } from 'lucide-react';
 import clsx from 'clsx';
+
+/** Collector docs for hover / completions */
+const COLLECTOR_DOCS: Record<string, string> = {
+  system_info: 'Collect host OS metadata: hostname, kernel, uptime, CPU, memory.',
+  processes: 'Collect running process list with PID, name, command line, user, and optional binary hash.',
+  network_connections: 'Collect active TCP/UDP socket table with local/remote endpoints and process owner.',
+  files: 'Collect filesystem entries under a given path. Supports recursive traversal and SHA-256 hashing.',
+  logs: 'Collect OS event log or syslog entries with timestamp, severity, and source.',
+  drivers: 'Collect loaded kernel modules/drivers with path and hash (Linux: /proc/modules; Windows: DriverStore).',
+  memory_regions: 'Collect virtual memory map of a process (PID). Maps readable/writable/executable regions.',
+  registry: 'Collect Windows Registry entries under a hive and key path (no-op on Linux).',
+  artifacts: 'Carve forensic artifacts of the specified type (prefetch, eventlog, shimcache …) from an optional path.',
+};
+
+const ALL_KEYWORDS = [
+  'investigation', 'metadata', 'collect', 'export', 'evidence',
+  'filter', 'where', 'limit', 'hash', 'sha256', 'sha1', 'md5',
+  'recursive', 'true', 'false', 'target', 'capability',
+  ...Object.keys(COLLECTOR_DOCS),
+];
 
 interface Diagnostic {
   severity: 'error' | 'warning' | 'info' | 'hint';
@@ -181,7 +201,122 @@ const EXAMPLES = [
     export evidence "complete_triage_evidence.json"
 }`,
   },
+  {
+    id: 'memory_process_triage',
+    filename: 'memory_process_triage.tfg',
+    name: 'Memory Region Triage',
+    description: 'Dump virtual memory maps of a target process to detect injected shellcode or hollowed sections.',
+    code: `investigation "memory_process_triage" {
+    metadata {
+        priority = "Critical"
+        category = "Memory Forensics"
+    }
+
+    collect processes {
+        pid
+        name
+        hash.sha256
+    }
+
+    collect memory_regions pid=1234
+
+    export evidence "memory_triage.json"
+}`,
+  },
+  {
+    id: 'windows_registry_audit',
+    filename: 'windows_registry_audit.tfg',
+    name: 'Windows Registry Audit',
+    description: 'Enumerate persistence keys in the Windows Registry (Run, Services).',
+    code: `investigation "windows_registry_audit" {
+    metadata {
+        category = "Persistence Detection"
+        platform = "Windows"
+    }
+
+    collect registry hive="HKLM" key="SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
+    collect registry hive="HKLM" key="SYSTEM\\CurrentControlSet\\Services"
+
+    export evidence "registry_audit.json"
+}`,
+  },
+  {
+    id: 'artifact_carving',
+    filename: 'artifact_carving.tfg',
+    name: 'Forensic Artifact Carving',
+    description: 'Extract Prefetch, Shimcache, and Event Log artifacts to reconstruct execution history.',
+    code: `investigation "artifact_carving" {
+    metadata {
+        category = "Artifact Analysis"
+        author   = "DFIR Team"
+    }
+
+    collect artifacts type="prefetch"  path="C:\\Windows\\Prefetch"
+    collect artifacts type="shimcache"
+    collect artifacts type="eventlog"
+
+    export evidence "artifact_carving.json"
+}`,
+  },
+  {
+    id: 'log_threat_hunt',
+    filename: 'log_threat_hunt.tfg',
+    name: 'Log-Based Threat Hunt',
+    description: 'Correlate auth logs with privileged process activity to detect privilege escalation.',
+    code: `investigation "log_threat_hunt" {
+    metadata { priority = "High" }
+
+    collect system_info
+    collect logs source="auth"
+    collect logs source="system"
+
+    collect processes {
+        pid
+        name
+        user
+        parent
+    } where user == "root"
+
+    export evidence "threat_hunt.json"
+}`,
+  },
+  {
+    id: 'driver_rootkit_hunt',
+    filename: 'driver_rootkit_hunt.tfg',
+    name: 'Driver & Rootkit Hunt',
+    description: 'Enumerate and hash loaded kernel modules to detect unsigned or injected rootkit drivers.',
+    code: `investigation "driver_rootkit_hunt" {
+    metadata { priority = "Critical" }
+
+    collect system_info
+    collect drivers
+
+    export evidence "driver_audit.json"
+}`,
+  },
+  {
+    id: 'full_incident_triage',
+    filename: 'full_incident_triage.tfg',
+    name: 'Full Incident Response Triage',
+    description: 'Comprehensive sweep covering system, processes, network, filesystem, and logs.',
+    code: `investigation "full_incident_triage" {
+    metadata {
+        author   = "DFIR Team"
+        priority = "High"
+        category = "Incident Response"
+    }
+
+    collect system_info
+    collect processes { pid name parent command_line user hash.sha256 }
+    collect network_connections
+    collect files "/tmp" { recursive hash.sha256 } limit 100
+    collect logs source="auth"
+
+    export evidence "incident_triage.json"
+}`,
+  },
 ];
+
 
 interface TargetOption {
   id: string;
@@ -251,30 +386,7 @@ export function WebIDE() {
       monaco.languages.register({ id: 'traceforge' });
 
       monaco.languages.setMonarchTokensProvider('traceforge', {
-        keywords: [
-          'investigation',
-          'metadata',
-          'collect',
-          'export',
-          'evidence',
-          'filter',
-          'where',
-          'limit',
-          'system_info',
-          'processes',
-          'network_connections',
-          'files',
-          'logs',
-          'hash',
-          'sha256',
-          'sha1',
-          'md5',
-          'recursive',
-          'true',
-          'false',
-          'target',
-          'capability',
-        ],
+        keywords: ALL_KEYWORDS,
         tokenizer: {
           root: [
             [/[a-zA-Z_]\w*/, {
@@ -315,6 +427,67 @@ export function WebIDE() {
           { open: '"', close: '"' },
         ],
       });
+
+      // Hover provider — shows collector documentation
+      monaco.languages.registerHoverProvider('traceforge', {
+        provideHover(model, position) {
+          const word = model.getWordAtPosition(position);
+          if (!word) return null;
+          const doc = COLLECTOR_DOCS[word.word];
+          if (!doc) return null;
+          return {
+            range: new monaco.Range(
+              position.lineNumber, word.startColumn,
+              position.lineNumber, word.endColumn
+            ),
+            contents: [
+              { value: `**${word.word}** — TraceForge collector` },
+              { value: doc },
+            ],
+          };
+        },
+      });
+
+      // Completion provider — suggests keywords and collector targets
+      monaco.languages.registerCompletionItemProvider('traceforge', {
+        provideCompletionItems(model, position) {
+          const word = model.getWordUntilPosition(position);
+          const range = {
+            startLineNumber: position.lineNumber,
+            endLineNumber: position.lineNumber,
+            startColumn: word.startColumn,
+            endColumn: word.endColumn,
+          };
+          const collectorItems = Object.entries(COLLECTOR_DOCS).map(([kw, doc]) => ({
+            label: kw,
+            kind: monaco.languages.CompletionItemKind.Module,
+            detail: 'Forensic collector',
+            documentation: doc,
+            insertText: kw,
+            range,
+          }));
+          const kwItems = [
+            'investigation', 'metadata', 'collect', 'export', 'evidence',
+            'filter', 'where', 'limit', 'recursive', 'true', 'false',
+          ].map((kw) => ({
+            label: kw,
+            kind: monaco.languages.CompletionItemKind.Keyword,
+            insertText: kw,
+            range,
+          }));
+          const snippetItems = [
+            {
+              label: 'investigation (snippet)',
+              kind: monaco.languages.CompletionItemKind.Snippet,
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              insertText: 'investigation "${1:name}" {\n    collect system_info\n    export evidence "${2:output.json}"\n}',
+              documentation: 'Create a new investigation scaffold',
+              range,
+            },
+          ];
+          return { suggestions: [...collectorItems, ...kwItems, ...snippetItems] };
+        },
+      });
     }
 
     // Professional, restrained editor theme
@@ -344,6 +517,40 @@ export function WebIDE() {
 
     monaco.editor.setTheme('traceforge-pro');
   };
+
+  // Debounced auto-check: fires 800 ms after the user stops typing
+  const autoCheckTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleSourceChange = useCallback((newSource: string) => {
+    setSource(newSource);
+    if (autoCheckTimerRef.current) clearTimeout(autoCheckTimerRef.current);
+    autoCheckTimerRef.current = setTimeout(async () => {
+      if (!newSource.trim()) return;
+      try {
+        const res = await api.post('/api/compiler/check', { source: newSource });
+        const data: CheckResponse = res.data;
+        setDiagnostics(data.diagnostics || []);
+        setCheckPassed(data.valid);
+        setRequiredCapabilities(data.required_capabilities || []);
+        if (monacoRef.current && editorRef.current) {
+          const model = editorRef.current.getModel();
+          const markers = (data.diagnostics || []).map((d: Diagnostic) => ({
+            severity:
+              d.severity === 'error'
+                ? monacoRef.current.MarkerSeverity.Error
+                : d.severity === 'warning'
+                ? monacoRef.current.MarkerSeverity.Warning
+                : monacoRef.current.MarkerSeverity.Info,
+            message: d.message,
+            startLineNumber: d.line || 1,
+            startColumn: d.column || 1,
+            endLineNumber: d.line || 1,
+            endColumn: (d.column || 1) + 8,
+          }));
+          monacoRef.current.editor.setModelMarkers(model, 'traceforge', markers);
+        }
+      } catch { /* silent — user will see errors on explicit check */ }
+    }, 800);
+  }, []);
 
   const handleSelectExample = (id: string) => {
     const example = EXAMPLES.find((e) => e.id === id);
@@ -711,7 +918,7 @@ export function WebIDE() {
               height="100%"
               language="traceforge"
               value={source}
-              onChange={(value) => setSource(value || '')}
+              onChange={(value) => handleSourceChange(value || '')}
               onMount={handleEditorDidMount}
               options={{
                 fontSize: 13,

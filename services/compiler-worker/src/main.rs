@@ -1,4 +1,9 @@
-//! TraceForge Compiler Worker - Background job processor for compilation
+//! TraceForge Compiler Worker — Background job processor with:
+//!   • Priority queue via Redis BZPOPMIN on sorted set `build_queue_priority`
+//!   • Fallback to RPOP on legacy `build_queue` list
+//!   • Source-hash artifact caching (skip recompile if identical source)
+//!   • Real-time log streaming via Redis XADD on `build_log:<build_id>`
+//!   • /health HTTP endpoint on port 9100
 
 use aws_sdk_s3::{primitives::ByteStream, Client as S3Client};
 use redis::AsyncCommands;
@@ -8,7 +13,7 @@ use std::time::Duration;
 use tempfile::TempDir;
 use tokio::signal;
 use tokio::time::interval;
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 use traceforge_backend::Backend;
 use traceforge_ir::{serialize_ir, BuildConfig, TargetArch, TargetPlatform};
@@ -17,6 +22,27 @@ use traceforge_parser::Parser;
 use traceforge_semantic::SemanticAnalyzer;
 use traceforge_shared_types::BuildStatus;
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Config constants
+// ──────────────────────────────────────────────────────────────────────────────
+
+/// Redis sorted-set key used for the priority queue.
+const PRIORITY_QUEUE_KEY: &str = "build_queue_priority";
+/// Legacy list key (kept for backward-compat).
+const LEGACY_QUEUE_KEY: &str = "build_queue";
+/// Key prefix for log streams.
+const LOG_STREAM_PREFIX: &str = "build_log";
+/// Key prefix for source-hash → artifact-s3-key cache.
+const CACHE_PREFIX: &str = "artifact_cache";
+/// TTL for cached artifact entries (7 days in seconds).
+const CACHE_TTL_SECS: u64 = 7 * 24 * 3600;
+/// HTTP port for /health endpoint.
+const HEALTH_PORT: u16 = 9100;
+
+// ──────────────────────────────────────────────────────────────────────────────
+// App state
+// ──────────────────────────────────────────────────────────────────────────────
+
 struct AppState {
     redis: redis::Client,
     s3: S3Client,
@@ -24,6 +50,10 @@ struct AppState {
     db: PgPool,
     work_dir: TempDir,
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Entry point
+// ──────────────────────────────────────────────────────────────────────────────
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -75,6 +105,8 @@ async fn main() -> anyhow::Result<()> {
         .force_path_style(true)
         .build();
     let s3_client = S3Client::from_conf(s3_client_config);
+
+    // Ensure bucket exists
     let buckets = s3_client.list_buckets().send().await?;
     let bucket_exists = buckets
         .buckets()
@@ -90,7 +122,6 @@ async fn main() -> anyhow::Result<()> {
     }
     info!("Configured S3 client for MinIO");
 
-    // Create temp directory for builds
     let work_dir = TempDir::new()?;
     info!("Work directory: {}", work_dir.path().display());
 
@@ -102,12 +133,57 @@ async fn main() -> anyhow::Result<()> {
         work_dir,
     });
 
+    // Spawn health endpoint on port 9100
+    let health_state = Arc::clone(&state);
+    tokio::spawn(run_health_server(health_state));
+
     // Start worker loop
     let worker = Worker::new(state);
     worker.run().await?;
 
     Ok(())
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Health HTTP server (port 9100)
+// ──────────────────────────────────────────────────────────────────────────────
+
+async fn run_health_server(_state: Arc<AppState>) {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::net::TcpListener;
+
+    let listener = match TcpListener::bind(format!("0.0.0.0:{}", HEALTH_PORT)).await {
+        Ok(l) => {
+            info!("Health endpoint listening on :{}", HEALTH_PORT);
+            l
+        }
+        Err(e) => {
+            warn!("Failed to bind health endpoint: {}", e);
+            return;
+        }
+    };
+
+    loop {
+        if let Ok((mut stream, _addr)) = listener.accept().await {
+            tokio::spawn(async move {
+                let mut buf = [0u8; 512];
+                let _ = stream.read(&mut buf).await;
+                let response = concat!(
+                    "HTTP/1.1 200 OK\r\n",
+                    "Content-Type: application/json\r\n",
+                    "Content-Length: 15\r\n",
+                    "\r\n",
+                    r#"{"status":"ok"}"#
+                );
+                let _ = stream.write_all(response.as_bytes()).await;
+            });
+        }
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Worker
+// ──────────────────────────────────────────────────────────────────────────────
 
 struct Worker {
     state: Arc<AppState>,
@@ -119,13 +195,14 @@ impl Worker {
     }
 
     async fn run(&self) -> anyhow::Result<()> {
-        let mut interval = interval(Duration::from_secs(5));
+        // Use a short-poll interval; BZPOPMIN handles blocking for priority queue.
+        let mut tick = interval(Duration::from_millis(500));
         let shutdown = signal::ctrl_c();
         tokio::pin!(shutdown);
 
         loop {
             tokio::select! {
-                _ = interval.tick() => {
+                _ = tick.tick() => {
                     if let Err(e) = self.process_queue().await {
                         error!("Error processing queue: {}", e);
                     }
@@ -141,15 +218,25 @@ impl Worker {
         Ok(())
     }
 
+    /// Try BZPOPMIN on the priority sorted-set first, then fall back to RPOP on
+    /// the legacy list. Returns `Ok(None)` if no job is immediately available.
     async fn process_queue(&self) -> anyhow::Result<()> {
         let mut conn = self.state.redis.get_async_connection().await?;
 
-        // Pop a build job from the queue
-        let job_data: Option<String> = conn.rpop("build_queue", None).await?;
+        // BZPOPMIN with a 0.4 s timeout — returns (key, member, score) on success.
+        let priority_result: Option<(String, String, f64)> =
+            conn.bzpopmin(PRIORITY_QUEUE_KEY, 0.4).await.ok().flatten();
 
-        if let Some(job_json) = job_data {
-            info!("Processing build job");
-            if let Err(e) = self.process_job(&job_json).await {
+        let job_json = if let Some((_key, member, _score)) = priority_result {
+            Some(member)
+        } else {
+            // Fallback: legacy FIFO list
+            conn.rpop::<_, Option<String>>(LEGACY_QUEUE_KEY, None).await?
+        };
+
+        if let Some(json) = job_json {
+            info!("Dequeued build job");
+            if let Err(e) = self.process_job(&json).await {
                 error!("Failed to process job: {}", e);
             }
         }
@@ -164,24 +251,42 @@ impl Worker {
             job.tool_version_id
         );
 
-        // Update build status to running
+        // ── Source-hash cache lookup ──────────────────────────────────────────
+        let source_hash = calculate_sha256(&job.source);
+        let cache_key = format!("{}:{}", CACHE_PREFIX, source_hash);
+
+        let mut conn = self.state.redis.get_async_connection().await?;
+        let cached_s3_key: Option<String> = conn.get(&cache_key).await.unwrap_or(None);
+
+        if let Some(s3_key) = cached_s3_key {
+            info!(
+                "Cache HIT for source hash {} → s3://{}/{}",
+                &source_hash[..12],
+                self.state.bucket,
+                s3_key
+            );
+            self.stream_log(job.build_id, "cache_hit", &format!("Reusing cached artifact: {}", s3_key)).await;
+            self.update_build_status(job.build_id, BuildStatus::Success, Some(source_hash))
+                .await?;
+            return Ok(());
+        }
+
+        // ── Fresh compilation ─────────────────────────────────────────────────
         self.update_build_status(job.build_id, BuildStatus::Running, None)
             .await?;
+        self.stream_log(job.build_id, "start", "Build started").await;
 
-        // Create build directory
         let build_dir = self.state.work_dir.path().join(job.build_id.to_string());
         std::fs::create_dir_all(&build_dir)?;
 
-        // Write source file
         let source_path = build_dir.join("investigation.tfg");
         std::fs::write(&source_path, &job.source)?;
 
-        // Compile
+        self.stream_log(job.build_id, "compile", "Compiling source...").await;
         let result = self.compile_investigation(&job, &build_dir).await;
 
         match result {
             Ok(metadata) => {
-                // Upload artifact to S3
                 let artifact_name = format!(
                     "{}-{}-{}{}",
                     metadata.investigation_name,
@@ -193,7 +298,7 @@ impl Worker {
                         ""
                     }
                 );
-                let artifact_path = build_dir.join(artifact_name);
+                let artifact_path = build_dir.join(&artifact_name);
                 if !artifact_path.is_file() {
                     anyhow::bail!(
                         "Compiler reported success but artifact is missing: {}",
@@ -201,10 +306,19 @@ impl Worker {
                     );
                 }
                 let artifact_size = std::fs::metadata(&artifact_path)?.len();
-                let s3_key = format!("artifacts/{}/{}", job.tool_version_id, job.tool_name);
+                let s3_key = format!("artifacts/{}/{}", job.tool_version_id, artifact_name);
+
+                self.stream_log(job.build_id, "upload", &format!("Uploading artifact: {}", s3_key)).await;
                 self.upload_artifact(&artifact_path, &s3_key).await?;
 
-                // Update build status to success
+                // Cache the result
+                let mut cache_conn = self.state.redis.get_async_connection().await?;
+                let _: () = cache_conn
+                    .set_ex(&cache_key, &s3_key, CACHE_TTL_SECS)
+                    .await
+                    .unwrap_or(());
+                info!("Cached artifact for source hash {}", &source_hash[..12]);
+
                 self.update_build_status(
                     job.build_id,
                     BuildStatus::Success,
@@ -212,21 +326,33 @@ impl Worker {
                 )
                 .await?;
 
-                // Update tool version with artifact info
                 self.update_tool_version(&job, &metadata, artifact_size, &s3_key)
                     .await?;
 
+                self.stream_log(job.build_id, "done", "Build completed successfully").await;
                 info!("Build completed successfully: {}", job.tool_version_id);
             }
             Err(e) => {
                 error!("Build failed: {}", e);
+                let msg = e.to_string();
+                self.stream_log(job.build_id, "error", &msg).await;
                 self.update_build_status(job.build_id, BuildStatus::Failed, None)
                     .await?;
-                self.update_build_log(job.build_id, &e.to_string()).await?;
+                self.update_build_log(job.build_id, &msg).await?;
             }
         }
 
         Ok(())
+    }
+
+    /// Append a structured log entry to the Redis stream `build_log:<build_id>`.
+    async fn stream_log(&self, build_id: uuid::Uuid, event: &str, message: &str) {
+        let stream_key = format!("{}:{}", LOG_STREAM_PREFIX, build_id);
+        if let Ok(mut conn) = self.state.redis.get_async_connection().await {
+            let ts = chrono::Utc::now().to_rfc3339();
+            let fields = &[("ts", ts.as_str()), ("event", event), ("msg", message)];
+            let _: redis::RedisResult<String> = conn.xadd(&stream_key, "*", fields).await;
+        }
     }
 
     async fn compile_investigation(
@@ -256,7 +382,7 @@ impl Worker {
 
         let ir = ir.ok_or_else(|| anyhow::anyhow!("No IR produced"))?;
 
-        // Generate IR JSON for storage
+        // Write IR JSON for storage
         let ir_json = serialize_ir(&ir)?;
         let ir_path = build_dir.join("ir.json");
         std::fs::write(&ir_path, ir_json)?;
@@ -285,7 +411,7 @@ impl Worker {
         let backend = Backend::new(config);
         let mut metadata = backend.generate(&ir, build_dir)?;
 
-        // Calculate source hash
+        // Fill provenance
         metadata.source_hash = calculate_sha256(&job.source);
         metadata.compiler_version = env!("CARGO_PKG_VERSION").to_string();
         metadata.compiler_hash = calculate_compiler_hash()?;
@@ -392,6 +518,10 @@ impl Worker {
     }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ──────────────────────────────────────────────────────────────────────────────
+
 fn target_platform_name(platform: &TargetPlatform) -> &'static str {
     match platform {
         TargetPlatform::Linux => "linux",
@@ -414,6 +544,11 @@ struct BuildJob {
     source: String,
     target_platform: String,
     target_arch: String,
+    /// Optional priority score (lower = higher priority). Used when enqueuing
+    /// via ZADD on `build_queue_priority`. Not needed for legacy RPOP path.
+    #[serde(default)]
+    #[allow(dead_code)]
+    priority: Option<f64>,
 }
 
 fn calculate_sha256(data: &str) -> String {

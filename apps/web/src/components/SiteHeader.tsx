@@ -1,5 +1,5 @@
 import { NavLink, Link } from 'react-router-dom';
-import { Terminal, Download, BookOpen, Code2, FileText, Info } from 'lucide-react';
+import { Terminal, Download, BookOpen, Code2, FileText, Info, Library } from 'lucide-react';
 import clsx from 'clsx';
 
 export function SiteHeader() {
@@ -9,6 +9,7 @@ export function SiteHeader() {
     { name: 'Download', href: '/download', icon: Download },
     { name: 'Language Guide', href: '/guide', icon: BookOpen },
     { name: 'Examples', href: '/examples', icon: Code2 },
+    { name: 'Playbooks', href: '/playbooks', icon: Library },
     { name: 'Documentation', href: '/docs', icon: FileText },
     { name: 'Architecture', href: '/about', icon: Info },
   ];
