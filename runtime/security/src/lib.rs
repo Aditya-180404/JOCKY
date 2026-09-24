@@ -40,6 +40,9 @@ pub struct SecurityFinding {
     pub pid: Option<i32>,
     pub confidence: f64, // 0.0 - 1.0
     pub category: FindingCategory,
+    /// MITRE ATT&CK technique ID (e.g. "T1059.001"). Empty string when no
+    /// mapping exists for a given finding category.
+    pub mitre_attack_id: String,
 }
 
 /// Categories of security findings
@@ -70,6 +73,35 @@ impl std::fmt::Display for FindingCategory {
             FindingCategory::SuspiciousParentChild => write!(f, "Suspicious Parent-Child"),
             FindingCategory::MemoryAnomaly => write!(f, "Memory Anomaly"),
             FindingCategory::DriverAnomaly => write!(f, "Driver Anomaly"),
+        }
+    }
+}
+
+impl FindingCategory {
+    /// Returns the canonical MITRE ATT&CK technique ID for this category.
+    /// See <https://attack.mitre.org/> for technique definitions.
+    pub fn mitre_attack_id(&self) -> &'static str {
+        match self {
+            // T1059 — Command and Scripting Interpreter
+            FindingCategory::SuspiciousCommandLine => "T1059",
+            // T1055 — Process Injection (parent-child anomaly is a common precursor)
+            FindingCategory::SuspiciousParentChild => "T1055",
+            // T1036 — Masquerading / unexpected executable location
+            FindingCategory::UnexpectedLocation => "T1036",
+            // T1553 — Subvert Trust Controls (unsigned binaries bypass code-signing)
+            FindingCategory::UnsignedExecutable => "T1553",
+            // T1571 — Non-Standard Port (suspicious network port)
+            FindingCategory::SuspiciousNetwork => "T1571",
+            // T1547 — Boot or Logon Autostart Execution
+            FindingCategory::PersistenceMechanism => "T1547",
+            // T1068 — Exploitation for Privilege Escalation
+            FindingCategory::PrivilegeEscalation => "T1068",
+            // T1055.001 — Virtual Memory Anomaly
+            FindingCategory::MemoryAnomaly => "T1055.001",
+            // T1014 — Rootkit (driver anomaly)
+            FindingCategory::DriverAnomaly => "T1014",
+            // Generic suspicious process — T1057 Process Discovery
+            FindingCategory::SuspiciousProcess => "T1057",
         }
     }
 }
@@ -172,9 +204,10 @@ impl SecurityAnalyzer {
                     let child_lower = name.to_lowercase();
                     for (suspicious_parent, suspicious_child) in SUSPICIOUS_PARENT_CHILD {
                         if parent_name == *suspicious_parent && child_lower == *suspicious_child {
+                            let category = FindingCategory::SuspiciousParentChild;
                             self.findings.push(SecurityFinding {
                                 indicator: format!(
-                                    "Suspicious parent-child: {} ({}) → {} ({})",
+                                    "Suspicious parent-child: {} ({}) \u{2192} {} ({})",
                                     parent_name, ppid, name, pid
                                 ),
                                 severity: FindingSeverity::High,
@@ -188,7 +221,8 @@ impl SecurityAnalyzer {
                                 process: Some(name.to_string()),
                                 pid: Some(pid),
                                 confidence: 0.85,
-                                category: FindingCategory::SuspiciousParentChild,
+                                mitre_attack_id: category.mitre_attack_id().to_string(),
+                                category,
                             });
                         }
                     }
@@ -218,6 +252,7 @@ impl SecurityAnalyzer {
                         || path_lower.contains("\\downloads\\");
 
                     if in_temp {
+                    let category = FindingCategory::UnexpectedLocation;
                         self.findings.push(SecurityFinding {
                             indicator: format!("Process running from temp/download directory: {}", name),
                             severity: FindingSeverity::Medium,
@@ -228,7 +263,8 @@ impl SecurityAnalyzer {
                             process: Some(name.to_string()),
                             pid,
                             confidence: 0.6,
-                            category: FindingCategory::UnexpectedLocation,
+                            mitre_attack_id: category.mitre_attack_id().to_string(),
+                            category,
                         });
                     }
                 }
@@ -261,6 +297,7 @@ impl SecurityAnalyzer {
 
             for (pattern, description) in SUSPICIOUS_CMDLINE_PATTERNS {
                 if cmdline_lower.contains(*pattern) {
+                    let category = FindingCategory::SuspiciousCommandLine;
                     self.findings.push(SecurityFinding {
                         indicator: format!("Suspicious command line in {}: {}", name, description),
                         severity: FindingSeverity::High,
@@ -278,7 +315,8 @@ impl SecurityAnalyzer {
                         process: Some(name.to_string()),
                         pid,
                         confidence: 0.75,
-                        category: FindingCategory::SuspiciousCommandLine,
+                        mitre_attack_id: category.mitre_attack_id().to_string(),
+                        category,
                     });
                     break; // One finding per process per category
                 }
@@ -342,6 +380,9 @@ impl SecurityAnalyzer {
                         process: process_name.map(|s| s.to_string()),
                         pid,
                         confidence: 0.7,
+                        mitre_attack_id: FindingCategory::SuspiciousNetwork
+                            .mitre_attack_id()
+                            .to_string(),
                         category: FindingCategory::SuspiciousNetwork,
                     });
                 }
@@ -512,5 +553,55 @@ mod tests {
         analyzer.run_full_analysis(&processes, &connections);
         let summary = analyzer.summary();
         assert!(summary.total_findings >= 2);
+    }
+
+    #[test]
+    fn all_findings_carry_mitre_attack_id() {
+        let mut analyzer = SecurityAnalyzer::new("test-host");
+        let processes = vec![
+            json!({"pid": 100, "name": "winword.exe", "ppid": 1}),
+            json!({"pid": 200, "name": "cmd.exe", "ppid": 100}),
+            json!({"pid": 300, "name": "powershell.exe", "ppid": 0,
+                   "command_line": ["powershell.exe", "-EncodedCommand", "AAAA"]}),
+        ];
+        let connections = vec![json!({
+            "local_address": "10.0.0.1", "local_port": 54321,
+            "remote_address": "192.168.1.100", "remote_port": 4444,
+            "state": "ESTABLISHED", "pid": 300, "process_name": "powershell.exe"
+        })];
+        analyzer.run_full_analysis(&processes, &connections);
+        assert!(!analyzer.findings().is_empty());
+        for finding in analyzer.findings() {
+            assert!(
+                !finding.mitre_attack_id.is_empty(),
+                "Finding '{}' is missing a MITRE ATT&CK ID",
+                finding.indicator
+            );
+        }
+    }
+
+    #[test]
+    fn finding_category_mitre_ids_are_non_empty() {
+        let categories = [
+            FindingCategory::SuspiciousProcess,
+            FindingCategory::UnsignedExecutable,
+            FindingCategory::UnexpectedLocation,
+            FindingCategory::SuspiciousNetwork,
+            FindingCategory::PersistenceMechanism,
+            FindingCategory::PrivilegeEscalation,
+            FindingCategory::SuspiciousCommandLine,
+            FindingCategory::SuspiciousParentChild,
+            FindingCategory::MemoryAnomaly,
+            FindingCategory::DriverAnomaly,
+        ];
+        for cat in &categories {
+            let id = cat.mitre_attack_id();
+            assert!(!id.is_empty(), "{:?} has no MITRE ATT&CK ID", cat);
+            assert!(
+                id.starts_with('T'),
+                "{:?} MITRE ID '{}' does not start with 'T'",
+                cat, id
+            );
+        }
     }
 }

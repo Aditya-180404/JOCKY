@@ -15,9 +15,18 @@ pub enum BackendError {
     IoError(#[from] std::io::Error),
     #[error("Template error: {0}")]
     TemplateError(String),
+    #[error("LLVM lowering error: {0}")]
+    LlvmLoweringError(String),
+    #[error("LLVM verification error: {0}")]
+    LlvmVerificationError(String),
+    #[error("Target error: {0}")]
+    TargetError(String),
 }
 
 pub mod llvm;
+pub mod llvm_codegen;
+pub mod llvm_core;
+pub mod llvm_types;
 pub use llvm::LlvmBackend;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, Default)]

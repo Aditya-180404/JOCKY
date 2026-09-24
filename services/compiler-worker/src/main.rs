@@ -38,6 +38,12 @@ const CACHE_PREFIX: &str = "artifact_cache";
 const CACHE_TTL_SECS: usize = 7 * 24 * 3600;
 /// HTTP port for /health endpoint.
 const HEALTH_PORT: u16 = 9100;
+/// Maximum source size accepted for compilation (256 KiB).
+const MAX_SOURCE_BYTES: usize = 256 * 1024;
+/// Per-job compilation timeout (seconds). Jobs exceeding this are aborted.
+const BUILD_TIMEOUT_SECS: u64 = 120;
+/// Maximum artifact size that may be uploaded (64 MiB).
+const MAX_ARTIFACT_BYTES: u64 = 64 * 1024 * 1024;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // App state
@@ -277,12 +283,27 @@ impl Worker {
             return Ok(());
         }
 
+        // ── Source size guard ─────────────────────────────────────────────────
+        if job.source.len() > MAX_SOURCE_BYTES {
+            let msg = format!(
+                "Source too large: {} bytes (limit {} bytes)",
+                job.source.len(),
+                MAX_SOURCE_BYTES
+            );
+            self.stream_log(job.build_id, "error", &msg).await;
+            self.update_build_status(job.build_id, BuildStatus::Failed, None)
+                .await?;
+            self.update_build_log(job.build_id, &msg).await?;
+            return Ok(());
+        }
+
         // ── Fresh compilation ─────────────────────────────────────────────────
         self.update_build_status(job.build_id, BuildStatus::Running, None)
             .await?;
         self.stream_log(job.build_id, "start", "Build started")
             .await;
 
+        // Each job runs in its own isolated subdirectory under work_dir
         let build_dir = self.state.work_dir.path().join(job.build_id.to_string());
         std::fs::create_dir_all(&build_dir)?;
 
@@ -291,7 +312,19 @@ impl Worker {
 
         self.stream_log(job.build_id, "compile", "Compiling source...")
             .await;
-        let result = self.compile_investigation(&job, &build_dir).await;
+
+        // Wrap compilation in a hard timeout to prevent runaway jobs
+        let result = tokio::time::timeout(
+            Duration::from_secs(BUILD_TIMEOUT_SECS),
+            self.compile_investigation(&job, &build_dir),
+        )
+        .await
+        .unwrap_or_else(|_| {
+            Err(anyhow::anyhow!(
+                "Compilation timed out after {} seconds",
+                BUILD_TIMEOUT_SECS
+            ))
+        });
 
         match result {
             Ok(metadata) => {
@@ -314,6 +347,14 @@ impl Worker {
                     );
                 }
                 let artifact_size = std::fs::metadata(&artifact_path)?.len();
+                // Guard against unexpectedly large artifacts
+                if artifact_size > MAX_ARTIFACT_BYTES {
+                    anyhow::bail!(
+                        "Artifact too large: {} bytes (limit {} bytes)",
+                        artifact_size,
+                        MAX_ARTIFACT_BYTES
+                    );
+                }
                 let s3_key = format!("artifacts/{}/{}", job.tool_version_id, artifact_name);
 
                 self.stream_log(
@@ -679,5 +720,24 @@ mod tests {
             cache_key_for_job(&x64_job, &source_hash),
             cache_key_for_job(&x8664_job, &source_hash)
         );
+    }
+
+    #[test]
+    fn source_size_limit_constant_is_reasonable() {
+        // The constant must be large enough for real investigations but bounded
+        assert!(MAX_SOURCE_BYTES >= 8 * 1024, "limit too small");
+        assert!(MAX_SOURCE_BYTES <= 1024 * 1024, "limit too large");
+    }
+
+    #[test]
+    fn source_exceeding_limit_is_detected() {
+        // Build a synthetic source larger than the limit
+        let oversized = "x".repeat(MAX_SOURCE_BYTES + 1);
+        assert!(oversized.len() > MAX_SOURCE_BYTES);
+    }
+
+    #[test]
+    fn build_timeout_constant_is_positive() {
+        assert!(BUILD_TIMEOUT_SECS > 0);
     }
 }

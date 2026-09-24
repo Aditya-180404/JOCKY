@@ -31,3 +31,26 @@ Thumbs.db
 *.swo
 .vscode/
 .idea/
+
+# Compiler generated artifacts and temporary builds
+build/
+*.ll
+*.bc
+*.s
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*-linux-x64
+*-linux-arm64
+*.deb
+*.tokens
+*.ast.json
+*.hir.json
+*.mir.json
+*.manifest.json
+*.meta.json
+*_evidence.json
+*.evidence
