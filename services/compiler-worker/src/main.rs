@@ -253,7 +253,7 @@ impl Worker {
 
         // ── Source-hash cache lookup ──────────────────────────────────────────
         let source_hash = calculate_sha256(&job.source);
-        let cache_key = format!("{}:{}", CACHE_PREFIX, source_hash);
+        let cache_key = cache_key_for_job(&job, &source_hash);
 
         let mut conn = self.state.redis.get_async_connection().await?;
         let cached_s3_key: Option<String> = conn.get(&cache_key).await.unwrap_or(None);
@@ -551,6 +551,17 @@ struct BuildJob {
     priority: Option<f64>,
 }
 
+fn cache_key_for_job(job: &BuildJob, source_hash: &str) -> String {
+    format!(
+        "{}:{}:{}:{}:{}",
+        CACHE_PREFIX,
+        job.tool_version_id,
+        job.target_platform,
+        job.target_arch,
+        source_hash
+    )
+}
+
 fn calculate_sha256(data: &str) -> String {
     use sha2::{Digest, Sha256};
     let mut hasher = Sha256::new();
@@ -573,4 +584,37 @@ fn calculate_compiler_hash() -> anyhow::Result<String> {
     let mut hasher = Sha256::new();
     std::io::copy(&mut file, &mut hasher)?;
     Ok(format!("{:x}", hasher.finalize()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cache_key_distinguishes_target_configuration() {
+        let source = "investigation { collect system_info }";
+        let source_hash = calculate_sha256(source);
+
+        let linux_job = BuildJob {
+            build_id: uuid::Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap(),
+            tool_version_id: uuid::Uuid::parse_str("22222222-2222-2222-2222-222222222222").unwrap(),
+            tool_name: "tool".to_string(),
+            source: source.to_string(),
+            target_platform: "linux".to_string(),
+            target_arch: "x64".to_string(),
+            priority: None,
+        };
+
+        let windows_job = BuildJob {
+            build_id: uuid::Uuid::parse_str("33333333-3333-3333-3333-333333333333").unwrap(),
+            tool_version_id: uuid::Uuid::parse_str("44444444-4444-4444-4444-444444444444").unwrap(),
+            tool_name: "tool".to_string(),
+            source: source.to_string(),
+            target_platform: "windows".to_string(),
+            target_arch: "x64".to_string(),
+            priority: None,
+        };
+
+        assert_ne!(cache_key_for_job(&linux_job, &source_hash), cache_key_for_job(&windows_job, &source_hash));
+    }
 }
