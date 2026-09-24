@@ -252,9 +252,12 @@ impl SecurityAnalyzer {
                         || path_lower.contains("\\downloads\\");
 
                     if in_temp {
-                    let category = FindingCategory::UnexpectedLocation;
+                        let category = FindingCategory::UnexpectedLocation;
                         self.findings.push(SecurityFinding {
-                            indicator: format!("Process running from temp/download directory: {}", name),
+                            indicator: format!(
+                                "Process running from temp/download directory: {}",
+                                name
+                            ),
                             severity: FindingSeverity::Medium,
                             evidence: format!("Path: {}", path),
                             reason: "Executables running from temporary or download directories may indicate malware or unauthorized software".to_string(),
@@ -600,7 +603,8 @@ mod tests {
             assert!(
                 id.starts_with('T'),
                 "{:?} MITRE ID '{}' does not start with 'T'",
-                cat, id
+                cat,
+                id
             );
         }
     }
