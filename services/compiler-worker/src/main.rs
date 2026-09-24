@@ -552,14 +552,32 @@ struct BuildJob {
 }
 
 fn cache_key_for_job(job: &BuildJob, source_hash: &str) -> String {
+    let target_platform = normalize_target_platform(&job.target_platform);
+    let target_arch = normalize_target_arch(&job.target_arch);
+
     format!(
         "{}:{}:{}:{}:{}",
         CACHE_PREFIX,
         job.tool_version_id,
-        job.target_platform,
-        job.target_arch,
+        target_platform,
+        target_arch,
         source_hash
     )
+}
+
+fn normalize_target_platform(value: &str) -> String {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "linux" | "windows" => value.trim().to_ascii_lowercase(),
+        other => other.to_string(),
+    }
+}
+
+fn normalize_target_arch(value: &str) -> String {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "x64" | "x86_64" | "amd64" => "x64".to_string(),
+        "arm64" | "aarch64" => "arm64".to_string(),
+        other => other.to_string(),
+    }
 }
 
 fn calculate_sha256(data: &str) -> String {
@@ -616,5 +634,33 @@ mod tests {
         };
 
         assert_ne!(cache_key_for_job(&linux_job, &source_hash), cache_key_for_job(&windows_job, &source_hash));
+    }
+
+    #[test]
+    fn cache_key_normalizes_equivalent_target_aliases() {
+        let source = "investigation { collect system_info }";
+        let source_hash = calculate_sha256(source);
+
+        let x64_job = BuildJob {
+            build_id: uuid::Uuid::parse_str("55555555-5555-5555-5555-555555555555").unwrap(),
+            tool_version_id: uuid::Uuid::parse_str("66666666-6666-6666-6666-666666666666").unwrap(),
+            tool_name: "tool".to_string(),
+            source: source.to_string(),
+            target_platform: "linux".to_string(),
+            target_arch: "x64".to_string(),
+            priority: None,
+        };
+
+        let x8664_job = BuildJob {
+            build_id: uuid::Uuid::parse_str("77777777-7777-7777-7777-777777777777").unwrap(),
+            tool_version_id: uuid::Uuid::parse_str("66666666-6666-6666-6666-666666666666").unwrap(),
+            tool_name: "tool".to_string(),
+            source: source.to_string(),
+            target_platform: "linux".to_string(),
+            target_arch: "x86_64".to_string(),
+            priority: None,
+        };
+
+        assert_eq!(cache_key_for_job(&x64_job, &source_hash), cache_key_for_job(&x8664_job, &source_hash));
     }
 }
