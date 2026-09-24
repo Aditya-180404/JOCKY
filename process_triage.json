@@ -1,0 +1,4706 @@
+[
+  {
+    "architecture": "x86_64",
+    "boot_time": "2026-09-24T14:55:36Z",
+    "cpu_count": 16,
+    "hostname": "kali",
+    "kernel_version": "7.1.5+kali-amd64",
+    "locale": "en_US.UTF-8",
+    "os": "Kali GNU/Linux Rolling",
+    "os_version": "Unknown",
+    "timezone": "UTC",
+    "total_memory_bytes": 16031539200,
+    "uptime_seconds": 10528
+  },
+  {
+    "command_line": [
+      "/sbin/init",
+      "splash"
+    ],
+    "name": "systemd",
+    "pid": 1
+  },
+  {
+    "command_line": [],
+    "name": "kthreadd",
+    "pid": 2
+  },
+  {
+    "command_line": [],
+    "name": "pool_workqueue_release",
+    "pid": 3
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-rcu_gp",
+    "pid": 4
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-sync_wq",
+    "pid": 5
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-kvfree_rcu_reclaim",
+    "pid": 6
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-slub_flushwq",
+    "pid": 7
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-netns",
+    "pid": 8
+  },
+  {
+    "command_line": [],
+    "name": "kworker/0:0H-kblockd",
+    "pid": 10
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-mm_percpu_wq",
+    "pid": 13
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/0",
+    "pid": 14
+  },
+  {
+    "command_line": [],
+    "name": "rcu_preempt",
+    "pid": 15
+  },
+  {
+    "command_line": [],
+    "name": "rcu_exp_par_gp_kthread_worker/0",
+    "pid": 16
+  },
+  {
+    "command_line": [],
+    "name": "rcu_exp_gp_kthread_worker",
+    "pid": 17
+  },
+  {
+    "command_line": [],
+    "name": "migration/0",
+    "pid": 18
+  },
+  {
+    "command_line": [],
+    "name": "kprobe-optimizer",
+    "pid": 19
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/0",
+    "pid": 20
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/0",
+    "pid": 21
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/2",
+    "pid": 22
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/2",
+    "pid": 23
+  },
+  {
+    "command_line": [],
+    "name": "migration/2",
+    "pid": 24
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/2",
+    "pid": 25
+  },
+  {
+    "command_line": [],
+    "name": "kworker/2:0-events",
+    "pid": 26
+  },
+  {
+    "command_line": [],
+    "name": "kworker/2:0H-kblockd",
+    "pid": 27
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/4",
+    "pid": 28
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/4",
+    "pid": 29
+  },
+  {
+    "command_line": [],
+    "name": "migration/4",
+    "pid": 30
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/4",
+    "pid": 31
+  },
+  {
+    "command_line": [],
+    "name": "kworker/4:0H-kblockd",
+    "pid": 33
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/6",
+    "pid": 34
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/6",
+    "pid": 35
+  },
+  {
+    "command_line": [],
+    "name": "migration/6",
+    "pid": 36
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/6",
+    "pid": 37
+  },
+  {
+    "command_line": [],
+    "name": "kworker/6:0H-kblockd",
+    "pid": 39
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/8",
+    "pid": 40
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/8",
+    "pid": 41
+  },
+  {
+    "command_line": [],
+    "name": "migration/8",
+    "pid": 42
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/8",
+    "pid": 43
+  },
+  {
+    "command_line": [],
+    "name": "kworker/8:0H-kblockd",
+    "pid": 45
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/10",
+    "pid": 46
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/10",
+    "pid": 47
+  },
+  {
+    "command_line": [],
+    "name": "migration/10",
+    "pid": 48
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/10",
+    "pid": 49
+  },
+  {
+    "command_line": [],
+    "name": "kworker/10:0H-kblockd",
+    "pid": 51
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/12",
+    "pid": 52
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/12",
+    "pid": 53
+  },
+  {
+    "command_line": [],
+    "name": "migration/12",
+    "pid": 54
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/12",
+    "pid": 55
+  },
+  {
+    "command_line": [],
+    "name": "kworker/12:0H-kblockd",
+    "pid": 57
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/14",
+    "pid": 58
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/14",
+    "pid": 59
+  },
+  {
+    "command_line": [],
+    "name": "migration/14",
+    "pid": 60
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/14",
+    "pid": 61
+  },
+  {
+    "command_line": [],
+    "name": "kworker/14:0-mm_percpu_wq",
+    "pid": 62
+  },
+  {
+    "command_line": [],
+    "name": "kworker/14:0H-kblockd",
+    "pid": 63
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/1",
+    "pid": 64
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/1",
+    "pid": 65
+  },
+  {
+    "command_line": [],
+    "name": "migration/1",
+    "pid": 66
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/1",
+    "pid": 67
+  },
+  {
+    "command_line": [],
+    "name": "kworker/1:0H-kblockd",
+    "pid": 69
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/3",
+    "pid": 70
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/3",
+    "pid": 71
+  },
+  {
+    "command_line": [],
+    "name": "migration/3",
+    "pid": 72
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/3",
+    "pid": 73
+  },
+  {
+    "command_line": [],
+    "name": "kworker/3:0H-kblockd",
+    "pid": 75
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/5",
+    "pid": 76
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/5",
+    "pid": 77
+  },
+  {
+    "command_line": [],
+    "name": "migration/5",
+    "pid": 78
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/5",
+    "pid": 79
+  },
+  {
+    "command_line": [],
+    "name": "kworker/5:0H-kblockd",
+    "pid": 81
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/7",
+    "pid": 82
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/7",
+    "pid": 83
+  },
+  {
+    "command_line": [],
+    "name": "migration/7",
+    "pid": 84
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/7",
+    "pid": 85
+  },
+  {
+    "command_line": [],
+    "name": "kworker/7:0H-kblockd",
+    "pid": 87
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/9",
+    "pid": 88
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/9",
+    "pid": 89
+  },
+  {
+    "command_line": [],
+    "name": "migration/9",
+    "pid": 90
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/9",
+    "pid": 91
+  },
+  {
+    "command_line": [],
+    "name": "kworker/9:0H-kblockd",
+    "pid": 93
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/11",
+    "pid": 94
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/11",
+    "pid": 95
+  },
+  {
+    "command_line": [],
+    "name": "migration/11",
+    "pid": 96
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/11",
+    "pid": 97
+  },
+  {
+    "command_line": [],
+    "name": "kworker/11:0H-kblockd",
+    "pid": 99
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/13",
+    "pid": 100
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/13",
+    "pid": 101
+  },
+  {
+    "command_line": [],
+    "name": "migration/13",
+    "pid": 102
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/13",
+    "pid": 103
+  },
+  {
+    "command_line": [],
+    "name": "kworker/13:0H-kblockd",
+    "pid": 105
+  },
+  {
+    "command_line": [],
+    "name": "cpuhp/15",
+    "pid": 106
+  },
+  {
+    "command_line": [],
+    "name": "idle_inject/15",
+    "pid": 107
+  },
+  {
+    "command_line": [],
+    "name": "migration/15",
+    "pid": 108
+  },
+  {
+    "command_line": [],
+    "name": "ksoftirqd/15",
+    "pid": 109
+  },
+  {
+    "command_line": [],
+    "name": "kworker/15:0H-kblockd",
+    "pid": 111
+  },
+  {
+    "command_line": [],
+    "name": "kdevtmpfs",
+    "pid": 128
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-inet_frag_wq",
+    "pid": 129
+  },
+  {
+    "command_line": [],
+    "name": "rcu_tasks_kthread",
+    "pid": 130
+  },
+  {
+    "command_line": [],
+    "name": "rcu_tasks_rude_kthread",
+    "pid": 131
+  },
+  {
+    "command_line": [],
+    "name": "kauditd",
+    "pid": 132
+  },
+  {
+    "command_line": [],
+    "name": "khungtaskd",
+    "pid": 133
+  },
+  {
+    "command_line": [],
+    "name": "oom_reaper",
+    "pid": 134
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-writeback",
+    "pid": 135
+  },
+  {
+    "command_line": [],
+    "name": "kcompactd0",
+    "pid": 136
+  },
+  {
+    "command_line": [],
+    "name": "ksmd",
+    "pid": 137
+  },
+  {
+    "command_line": [],
+    "name": "khugepaged",
+    "pid": 138
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-kblockd",
+    "pid": 139
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-blkcg_punt_bio",
+    "pid": 140
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-kintegrityd",
+    "pid": 141
+  },
+  {
+    "command_line": [],
+    "name": "irq/9-acpi",
+    "pid": 143
+  },
+  {
+    "command_line": [],
+    "name": "kworker/5:1-mm_percpu_wq",
+    "pid": 146
+  },
+  {
+    "command_line": [],
+    "name": "kworker/9:1-mm_percpu_wq",
+    "pid": 148
+  },
+  {
+    "command_line": [],
+    "name": "kworker/11:1-mm_percpu_wq",
+    "pid": 149
+  },
+  {
+    "command_line": [],
+    "name": "kworker/15:1-mm_percpu_wq",
+    "pid": 151
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-tpm_dev_wq",
+    "pid": 152
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-edac-poller",
+    "pid": 153
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-devfreq_wq",
+    "pid": 154
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-quota_events_unbound",
+    "pid": 155
+  },
+  {
+    "command_line": [],
+    "name": "irq/25-AMD-Vi",
+    "pid": 156
+  },
+  {
+    "command_line": [],
+    "name": "kswapd0",
+    "pid": 158
+  },
+  {
+    "command_line": [],
+    "name": "kdamond.0",
+    "pid": 159
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-kthrotld",
+    "pid": 161
+  },
+  {
+    "command_line": [],
+    "name": "irq/32-pciehp",
+    "pid": 164
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-acpi_thermal_pm",
+    "pid": 165
+  },
+  {
+    "command_line": [],
+    "name": "kworker/8:1-mm_percpu_wq",
+    "pid": 166
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-mld",
+    "pid": 167
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-ipv6_addrconf",
+    "pid": 168
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-kstrp",
+    "pid": 169
+  },
+  {
+    "command_line": [],
+    "name": "irq/26-ACPI:Event",
+    "pid": 208
+  },
+  {
+    "command_line": [],
+    "name": "irq/27-ACPI:Event",
+    "pid": 209
+  },
+  {
+    "command_line": [],
+    "name": "irq/28-ACPI:Event",
+    "pid": 210
+  },
+  {
+    "command_line": [],
+    "name": "irq/29-ACPI:Event",
+    "pid": 211
+  },
+  {
+    "command_line": [],
+    "name": "irq/30-ACPI:Event",
+    "pid": 212
+  },
+  {
+    "command_line": [],
+    "name": "irq/31-ACPI:Event",
+    "pid": 213
+  },
+  {
+    "command_line": [],
+    "name": "watchdogd",
+    "pid": 299
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-nvme-wq",
+    "pid": 300
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-nvme-reset-wq",
+    "pid": 301
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-nvme-delete-wq",
+    "pid": 302
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-nvme-auth-wq",
+    "pid": 303
+  },
+  {
+    "command_line": [],
+    "name": "irq/67-FTCS0038:00",
+    "pid": 330
+  },
+  {
+    "command_line": [],
+    "name": "kworker/13:2-events_power_efficient",
+    "pid": 332
+  },
+  {
+    "command_line": [],
+    "name": "kworker/0:2-events_freezable",
+    "pid": 333
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-USBC000:00-con1",
+    "pid": 334
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-amdgpu-reset-dev",
+    "pid": 337
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-ttm",
+    "pid": 338
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-amdgpu_dm_hpd_rx_offload_wq",
+    "pid": 339
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-amdgpu_dm_hpd_rx_offload_wq",
+    "pid": 340
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-amdgpu_dm_hpd_rx_offload_wq",
+    "pid": 341
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-amdgpu_dm_hpd_rx_offload_wq",
+    "pid": 342
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-amdgpu_dm_hpd_rx_offload_wq",
+    "pid": 343
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-amdgpu_dm_hpd_rx_offload_wq",
+    "pid": 344
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-amdgpu_dm_hpd_rx_offload_wq",
+    "pid": 345
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-amdgpu_dm_hpd_rx_offload_wq",
+    "pid": 346
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-amdgpu_dm_hpd_rx_offload_wq",
+    "pid": 347
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-amdgpu_dm_hpd_rx_offload_wq",
+    "pid": 348
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-dm_vblank_control_workqueue",
+    "pid": 349
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-amdgpu_dm_hpd_wq",
+    "pid": 350
+  },
+  {
+    "command_line": [],
+    "name": "card0-crtc0",
+    "pid": 351
+  },
+  {
+    "command_line": [],
+    "name": "card0-crtc1",
+    "pid": 352
+  },
+  {
+    "command_line": [],
+    "name": "card0-crtc2",
+    "pid": 353
+  },
+  {
+    "command_line": [],
+    "name": "card0-crtc3",
+    "pid": 354
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-gfx_0.0.0",
+    "pid": 355
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-comp_1.0.0",
+    "pid": 356
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-comp_1.1.0",
+    "pid": 357
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-comp_1.2.0",
+    "pid": 358
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-comp_1.3.0",
+    "pid": 359
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-comp_1.0.1",
+    "pid": 360
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-comp_1.1.1",
+    "pid": 361
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-comp_1.2.1",
+    "pid": 362
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-comp_1.3.1",
+    "pid": 363
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-sdma0",
+    "pid": 364
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-vcn_unified_0",
+    "pid": 365
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-jpeg_dec",
+    "pid": 366
+  },
+  {
+    "command_line": [],
+    "name": "kworker/4:1H-kblockd",
+    "pid": 408
+  },
+  {
+    "command_line": [],
+    "name": "jbd2/nvme0n1p7-8",
+    "pid": 413
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-ext4-rsv-conversion",
+    "pid": 414
+  },
+  {
+    "command_line": [],
+    "name": "kworker/2:1H-kblockd",
+    "pid": 460
+  },
+  {
+    "command_line": [],
+    "name": "psimon",
+    "pid": 464
+  },
+  {
+    "command_line": [
+      "/usr/lib/systemd/systemd-journald"
+    ],
+    "name": "systemd-journal",
+    "pid": 474
+  },
+  {
+    "command_line": [
+      "/usr/lib/systemd/systemd-timesyncd"
+    ],
+    "name": "systemd-timesyn",
+    "pid": 503
+  },
+  {
+    "command_line": [],
+    "name": "kworker/6:1H-kblockd",
+    "pid": 509
+  },
+  {
+    "command_line": [
+      "/usr/lib/systemd/systemd-userdbd"
+    ],
+    "name": "systemd-userdbd",
+    "pid": 520
+  },
+  {
+    "command_line": [
+      "/usr/lib/systemd/systemd-udevd"
+    ],
+    "name": "systemd-udevd",
+    "pid": 522
+  },
+  {
+    "command_line": [],
+    "name": "kworker/7:1H-kblockd",
+    "pid": 523
+  },
+  {
+    "command_line": [],
+    "name": "kworker/12:1H-kblockd",
+    "pid": 524
+  },
+  {
+    "command_line": [],
+    "name": "kworker/8:1H-kblockd",
+    "pid": 527
+  },
+  {
+    "command_line": [],
+    "name": "nv_queue",
+    "pid": 536
+  },
+  {
+    "command_line": [],
+    "name": "nv_queue",
+    "pid": 537
+  },
+  {
+    "command_line": [],
+    "name": "nv_open_q",
+    "pid": 538
+  },
+  {
+    "command_line": [],
+    "name": "psimon",
+    "pid": 542
+  },
+  {
+    "command_line": [],
+    "name": "psimon",
+    "pid": 543
+  },
+  {
+    "command_line": [],
+    "name": "kworker/1:2-mm_percpu_wq",
+    "pid": 615
+  },
+  {
+    "command_line": [],
+    "name": "kworker/14:1H-kblockd",
+    "pid": 616
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-cfg80211",
+    "pid": 626
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-notifier_wq",
+    "pid": 628
+  },
+  {
+    "command_line": [],
+    "name": "irq/90-ACP_PCI_IRQ",
+    "pid": 689
+  },
+  {
+    "command_line": [
+      "/usr/sbin/haveged",
+      "--Foreground",
+      "--verbose=1"
+    ],
+    "name": "haveged",
+    "pid": 692
+  },
+  {
+    "command_line": [],
+    "name": "irq/91-rtw89_pci",
+    "pid": 694
+  },
+  {
+    "command_line": [],
+    "name": "nvidia-modeset/kthread_q",
+    "pid": 702
+  },
+  {
+    "command_line": [],
+    "name": "nvidia-modeset/deferred_close_kthread_q",
+    "pid": 703
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-rpciod",
+    "pid": 707
+  },
+  {
+    "command_line": [],
+    "name": "kworker/R-xprtiod",
+    "pid": 708
+  },
+  {
+    "command_line": [],
+    "name": "kworker/5:1H-kblockd",
+    "pid": 712
+  },
+  {
+    "command_line": [],
+    "name": "kworker/0:1H-kblockd",
+    "pid": 713
+  },
+  {
+    "command_line": [
+      "/usr/libexec/accounts-daemon"
+    ],
+    "name": "accounts-daemon",
+    "pid": 728
+  },
+  {
+    "command_line": [
+      "/usr/libexec/bluetooth/bluetoothd"
+    ],
+    "name": "bluetoothd",
+    "pid": 729
+  },
+  {
+    "command_line": [
+      "/usr/sbin/cron",
+      "-f"
+    ],
+    "name": "cron",
+    "pid": 730
+  },
+  {
+    "command_line": [
+      "/usr/bin/dbus-daemon",
+      "--system",
+      "--address=systemd:",
+      "--nofork",
+      "--nopidfile",
+      "--systemd-activation",
+      "--syslog-only"
+    ],
+    "name": "dbus-daemon",
+    "pid": 732
+  },
+  {
+    "command_line": [
+      "/usr/lib/polkit-1/polkitd",
+      "--no-debug",
+      "--log-level=notice"
+    ],
+    "name": "polkitd",
+    "pid": 737
+  },
+  {
+    "command_line": [
+      "/usr/sbin/smartd",
+      "-n"
+    ],
+    "name": "smartd",
+    "pid": 739
+  },
+  {
+    "command_line": [
+      "/usr/lib/systemd/systemd-logind"
+    ],
+    "name": "systemd-logind",
+    "pid": 744
+  },
+  {
+    "command_line": [
+      "/usr/sbin/NetworkManager",
+      "--no-daemon"
+    ],
+    "name": "NetworkManager",
+    "pid": 834
+  },
+  {
+    "command_line": [
+      "/usr/sbin/ModemManager"
+    ],
+    "name": "ModemManager",
+    "pid": 856
+  },
+  {
+    "command_line": [],
+    "name": "kworker/9:1H-kblockd",
+    "pid": 860
+  },
+  {
+    "command_line": [
+      "/usr/sbin/wpa_supplicant",
+      "-u",
+      "-s",
+      "-O",
+      "DIR=/run/wpa_supplicant GROUP=netdev"
+    ],
+    "name": "wpa_supplicant",
+    "pid": 913
+  },
+  {
+    "command_line": [
+      "/usr/sbin/apache2",
+      "-k",
+      "start",
+      "-DFOREGROUND"
+    ],
+    "name": "apache2",
+    "pid": 920
+  },
+  {
+    "command_line": [
+      "/usr/sbin/cupsd",
+      "-l"
+    ],
+    "name": "cupsd",
+    "pid": 922
+  },
+  {
+    "command_line": [
+      "/usr/sbin/lightdm"
+    ],
+    "name": "lightdm",
+    "pid": 927
+  },
+  {
+    "command_line": [
+      "/usr/bin/containerd"
+    ],
+    "name": "containerd",
+    "pid": 930
+  },
+  {
+    "command_line": [
+      "/usr/lib/xorg/Xorg",
+      ":0",
+      "-seat",
+      "seat0",
+      "-auth",
+      "/var/run/lightdm/root/:0",
+      "-nolisten",
+      "tcp",
+      "vt7",
+      "-novtswitch"
+    ],
+    "name": "Xorg",
+    "pid": 960
+  },
+  {
+    "command_line": [
+      "/usr/sbin/agetty",
+      "--noreset",
+      "--noclear",
+      "-",
+      "linux"
+    ],
+    "name": "agetty",
+    "pid": 961
+  },
+  {
+    "command_line": [
+      "/usr/sbin/apache2",
+      "-k",
+      "start",
+      "-DFOREGROUND"
+    ],
+    "name": "apache2",
+    "pid": 967
+  },
+  {
+    "command_line": [
+      "/usr/sbin/apache2",
+      "-k",
+      "start",
+      "-DFOREGROUND"
+    ],
+    "name": "apache2",
+    "pid": 968
+  },
+  {
+    "command_line": [
+      "/usr/sbin/apache2",
+      "-k",
+      "start",
+      "-DFOREGROUND"
+    ],
+    "name": "apache2",
+    "pid": 969
+  },
+  {
+    "command_line": [
+      "/usr/sbin/apache2",
+      "-k",
+      "start",
+      "-DFOREGROUND"
+    ],
+    "name": "apache2",
+    "pid": 970
+  },
+  {
+    "command_line": [
+      "/usr/sbin/apache2",
+      "-k",
+      "start",
+      "-DFOREGROUND"
+    ],
+    "name": "apache2",
+    "pid": 971
+  },
+  {
+    "command_line": [],
+    "name": "kworker/10:1H-kblockd",
+    "pid": 994
+  },
+  {
+    "command_line": [],
+    "name": "irq/94-nvidia",
+    "pid": 1007
+  },
+  {
+    "command_line": [],
+    "name": "nvidia",
+    "pid": 1008
+  },
+  {
+    "command_line": [],
+    "name": "nv_queue",
+    "pid": 1009
+  },
+  {
+    "command_line": [
+      "/usr/libexec/rtkit-daemon"
+    ],
+    "name": "rtkit-daemon",
+    "pid": 1052
+  },
+  {
+    "command_line": [],
+    "name": "krfcommd",
+    "pid": 1142
+  },
+  {
+    "command_line": [
+      "/usr/sbin/dockerd",
+      "-H",
+      "fd://",
+      "--containerd=/run/containerd/containerd.sock"
+    ],
+    "name": "dockerd",
+    "pid": 1338
+  },
+  {
+    "command_line": [
+      "/usr/local/bin/ollama",
+      "serve"
+    ],
+    "name": "ollama",
+    "pid": 1339
+  },
+  {
+    "command_line": [],
+    "name": "kworker/15:1H-kblockd",
+    "pid": 1384
+  },
+  {
+    "command_line": [],
+    "name": "kworker/11:1H-kblockd",
+    "pid": 1385
+  },
+  {
+    "command_line": [],
+    "name": "kworker/13:1H-kblockd",
+    "pid": 1702
+  },
+  {
+    "command_line": [],
+    "name": "UVM global queue",
+    "pid": 1703
+  },
+  {
+    "command_line": [],
+    "name": "UVM deferred release queue",
+    "pid": 1704
+  },
+  {
+    "command_line": [],
+    "name": "UVM Tools Event Queue",
+    "pid": 1705
+  },
+  {
+    "command_line": [
+      "lightdm",
+      "--session-child",
+      "13",
+      "24"
+    ],
+    "name": "lightdm",
+    "pid": 1835
+  },
+  {
+    "command_line": [
+      "/usr/lib/systemd/systemd",
+      "--user"
+    ],
+    "name": "systemd",
+    "pid": 1876
+  },
+  {
+    "command_line": [
+      "(sd-pam)"
+    ],
+    "name": "(sd-pam)",
+    "pid": 1878
+  },
+  {
+    "command_line": [
+      "/usr/bin/dbus-daemon",
+      "--session",
+      "--address=systemd:",
+      "--nofork",
+      "--nopidfile",
+      "--systemd-activation",
+      "--syslog-only"
+    ],
+    "name": "dbus-daemon",
+    "pid": 1898
+  },
+  {
+    "command_line": [
+      "/usr/bin/pipewire"
+    ],
+    "name": "pipewire",
+    "pid": 1899
+  },
+  {
+    "command_line": [
+      "/usr/bin/gnome-keyring-daemon",
+      "--foreground",
+      "--components=pkcs11,secrets",
+      "--control-directory=/run/user/1000/keyring"
+    ],
+    "name": "gnome-keyring-d",
+    "pid": 1901
+  },
+  {
+    "command_line": [
+      "/usr/bin/mpris-proxy"
+    ],
+    "name": "mpris-proxy",
+    "pid": 1902
+  },
+  {
+    "command_line": [
+      "/usr/bin/wireplumber"
+    ],
+    "name": "wireplumber",
+    "pid": 1903
+  },
+  {
+    "command_line": [
+      "/usr/bin/pipewire",
+      "-c",
+      "filter-chain.conf"
+    ],
+    "name": "pipewire",
+    "pid": 1905
+  },
+  {
+    "command_line": [
+      "/usr/bin/pipewire-pulse"
+    ],
+    "name": "pipewire-pulse",
+    "pid": 1907
+  },
+  {
+    "command_line": [
+      "xfce4-session"
+    ],
+    "name": "xfce4-session",
+    "pid": 1922
+  },
+  {
+    "command_line": [
+      "/usr/libexec/at-spi-bus-launcher"
+    ],
+    "name": "at-spi-bus-laun",
+    "pid": 1998
+  },
+  {
+    "command_line": [
+      "/usr/bin/dbus-daemon",
+      "--config-file=/usr/share/defaults/at-spi2/accessibility.conf",
+      "--nofork",
+      "--print-address",
+      "12",
+      "--address=unix:path=/run/user/1000/at-spi/bus_0"
+    ],
+    "name": "dbus-daemon",
+    "pid": 2005
+  },
+  {
+    "command_line": [
+      "/usr/libexec/at-spi2-registryd",
+      "--use-gnome-session"
+    ],
+    "name": "at-spi2-registr",
+    "pid": 2016
+  },
+  {
+    "command_line": [
+      "/usr/bin/ssh-agent",
+      "-s"
+    ],
+    "name": "ssh-agent",
+    "pid": 2023
+  },
+  {
+    "command_line": [
+      "/usr/bin/gpg-agent",
+      "--supervised"
+    ],
+    "name": "gpg-agent",
+    "pid": 2033
+  },
+  {
+    "command_line": [
+      "xfwm4"
+    ],
+    "name": "xfwm4",
+    "pid": 2036
+  },
+  {
+    "command_line": [
+      "/usr/libexec/gvfsd"
+    ],
+    "name": "gvfsd",
+    "pid": 2041
+  },
+  {
+    "command_line": [
+      "/usr/libexec/gvfsd-fuse",
+      "/run/user/1000/gvfs",
+      "-f"
+    ],
+    "name": "gvfsd-fuse",
+    "pid": 2047
+  },
+  {
+    "command_line": [
+      "xfsettingsd"
+    ],
+    "name": "xfsettingsd",
+    "pid": 2080
+  },
+  {
+    "command_line": [
+      "/usr/libexec/dconf-service"
+    ],
+    "name": "dconf-service",
+    "pid": 2087
+  },
+  {
+    "command_line": [
+      "xfce4-panel"
+    ],
+    "name": "xfce4-panel",
+    "pid": 2088
+  },
+  {
+    "command_line": [
+      "Thunar",
+      "--daemon"
+    ],
+    "name": "Thunar",
+    "pid": 2097
+  },
+  {
+    "command_line": [
+      "xfdesktop"
+    ],
+    "name": "xfdesktop",
+    "pid": 2104
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libwhiskermenu.so",
+      "1",
+      "16777223",
+      "whiskermenu",
+      "Whisker Menu",
+      "Show a menu to easily access installed applications"
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2109
+  },
+  {
+    "command_line": [
+      "/usr/libexec/gvfsd-metadata"
+    ],
+    "name": "gvfsd-metadata",
+    "pid": 2135
+  },
+  {
+    "command_line": [
+      "xfce4-power-manager"
+    ],
+    "name": "xfce4-power-man",
+    "pid": 2237
+  },
+  {
+    "command_line": [
+      "/usr/bin/python3",
+      "/usr/share/system-config-printer/applet.py"
+    ],
+    "name": "applet.py",
+    "pid": 2238
+  },
+  {
+    "command_line": [
+      "/usr/libexec/polkit-mate-authentication-agent-1"
+    ],
+    "name": "polkit-mate-aut",
+    "pid": 2240
+  },
+  {
+    "command_line": [
+      "xcape",
+      "-e",
+      "Super_L",
+      "Control_L",
+      "Escape"
+    ],
+    "name": "xcape",
+    "pid": 2241
+  },
+  {
+    "command_line": [
+      "/usr/libexec/geoclue-2.0/demos/agent"
+    ],
+    "name": "agent",
+    "pid": 2273
+  },
+  {
+    "command_line": [
+      "/usr/bin/python3",
+      "/usr/bin/blueman-applet"
+    ],
+    "name": "blueman-applet",
+    "pid": 2275
+  },
+  {
+    "command_line": [
+      "nm-applet"
+    ],
+    "name": "nm-applet",
+    "pid": 2276
+  },
+  {
+    "command_line": [
+      "xfce4-screensaver"
+    ],
+    "name": "xfce4-screensav",
+    "pid": 2296
+  },
+  {
+    "command_line": [
+      "xiccd"
+    ],
+    "name": "xiccd",
+    "pid": 2300
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd"
+    ],
+    "name": "xfce4-notifyd",
+    "pid": 2324
+  },
+  {
+    "command_line": [
+      "/usr/sbin/pcscd",
+      "--foreground",
+      "--auto-exit"
+    ],
+    "name": "pcscd",
+    "pid": 2325
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libscreenshooterplugin.so",
+      "26",
+      "16777229",
+      "screenshooter",
+      "Screenshot",
+      "Take screenshots of the entire screen, of the active window or of a region"
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2331
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libclipman.so",
+      "23",
+      "16777230",
+      "xfce4-clipman-plugin",
+      "Clipman",
+      "Clipboard manager"
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2338
+  },
+  {
+    "command_line": [
+      "/usr/libexec/colord"
+    ],
+    "name": "colord",
+    "pid": 2339
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libfsguard.so",
+      "24",
+      "16777231",
+      "fsguard",
+      "Free Space Checker",
+      "Monitor free disk space"
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2342
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libnetload.so",
+      "25",
+      "16777232",
+      "netload",
+      "Network Monitor",
+      "Show network traffic"
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2348
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libsystemload.so",
+      "27",
+      "16777233",
+      "systemload",
+      "System Load Monitor",
+      "Monitor CPU load, swap usage and memory footprint"
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2350
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libcpugraph.so",
+      "13",
+      "16777234",
+      "cpugraph",
+      "CPU Graph",
+      "Graphical representation of the CPU load"
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2351
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libsystray.so",
+      "14",
+      "16777235",
+      "systray",
+      "Status Tray Plugin",
+      "Provides status notifier items (application indicators) and legacy systray items"
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2358
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libgenmon.so",
+      "15",
+      "16777236",
+      "genmon",
+      "Generic Monitor",
+      "Show output of a command."
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2360
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libpulseaudio-plugin.so",
+      "16",
+      "16777237",
+      "pulseaudio",
+      "PulseAudio Plugin",
+      "Adjust the audio volume of the PulseAudio sound system"
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2361
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libnotification-plugin.so",
+      "17",
+      "16777238",
+      "notification-plugin",
+      "Notification Plugin",
+      "Notification plugin for the Xfce panel"
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2368
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libxfce4powermanager.so",
+      "18",
+      "16777239",
+      "power-manager-plugin",
+      "Power Manager Plugin",
+      "Display the battery levels of your devices and control the brightness of your display"
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2376
+  },
+  {
+    "command_line": [
+      "/usr/libexec/upowerd"
+    ],
+    "name": "upowerd",
+    "pid": 2430
+  },
+  {
+    "command_line": [
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/wrapper-2.0",
+      "/usr/lib/x86_64-linux-gnu/xfce4/panel/plugins/libactions.so",
+      "22",
+      "16777240",
+      "actions",
+      "Action Buttons",
+      "Log out, lock or other system actions"
+    ],
+    "name": "wrapper-2.0",
+    "pid": 2534
+  },
+  {
+    "command_line": [],
+    "name": "kworker/3:1H-kblockd",
+    "pid": 2750
+  },
+  {
+    "command_line": [
+      "/usr/libexec/gvfs-udisks2-volume-monitor"
+    ],
+    "name": "gvfs-udisks2-vo",
+    "pid": 2761
+  },
+  {
+    "command_line": [
+      "/usr/libexec/udisks2/udisksd"
+    ],
+    "name": "udisksd",
+    "pid": 2917
+  },
+  {
+    "command_line": [
+      "/usr/libexec/bluetooth/obexd"
+    ],
+    "name": "obexd",
+    "pid": 3195
+  },
+  {
+    "command_line": [
+      "/usr/libexec/gvfs-gphoto2-volume-monitor"
+    ],
+    "name": "gvfs-gphoto2-vo",
+    "pid": 3198
+  },
+  {
+    "command_line": [
+      "/usr/bin/python3",
+      "/usr/bin/blueman-tray"
+    ],
+    "name": "blueman-tray",
+    "pid": 3334
+  },
+  {
+    "command_line": [
+      "/usr/libexec/gvfs-mtp-volume-monitor"
+    ],
+    "name": "gvfs-mtp-volume",
+    "pid": 3362
+  },
+  {
+    "command_line": [
+      "/usr/libexec/gvfs-afc-volume-monitor"
+    ],
+    "name": "gvfs-afc-volume",
+    "pid": 3405
+  },
+  {
+    "command_line": [
+      "/usr/libexec/gvfs-goa-volume-monitor"
+    ],
+    "name": "gvfs-goa-volume",
+    "pid": 3434
+  },
+  {
+    "command_line": [
+      "/usr/libexec/gvfsd-trash",
+      "--spawner",
+      ":1.23",
+      "/org/gtk/gvfs/exec_spaw/0"
+    ],
+    "name": "gvfsd-trash",
+    "pid": 3471
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome"
+    ],
+    "name": "chrome",
+    "pid": 4040
+  },
+  {
+    "command_line": [
+      "cat"
+    ],
+    "name": "cat",
+    "pid": 4044
+  },
+  {
+    "command_line": [
+      "cat"
+    ],
+    "name": "cat",
+    "pid": 4045
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome_crashpad_handler",
+      "--monitor-self",
+      "--monitor-self-annotation=ptype=crashpad-handler",
+      "--database=/home/ghost/.config/google-chrome/Crash Reports",
+      "--metrics-dir=/home/ghost/.config/google-chrome",
+      "--url=https://clients2.google.com/cr/report",
+      "--annotation=channel=",
+      "--annotation=lsb-release=Kali GNU/Linux Rolling",
+      "--annotation=plat=Linux",
+      "--annotation=prod=Chrome_Linux",
+      "--annotation=ver=154.0.8037.57",
+      "--initial-client-fd=5",
+      "--shared-client-connection"
+    ],
+    "name": "chrome_crashpad",
+    "pid": 4047
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome_crashpad_handler",
+      "--no-periodic-tasks",
+      "--monitor-self-annotation=ptype=crashpad-handler",
+      "--database=/home/ghost/.config/google-chrome/Crash Reports",
+      "--url=https://clients2.google.com/cr/report",
+      "--annotation=channel=",
+      "--annotation=lsb-release=Kali GNU/Linux Rolling",
+      "--annotation=plat=Linux",
+      "--annotation=prod=Chrome_Linux",
+      "--annotation=ver=154.0.8037.57",
+      "--initial-client-fd=4",
+      "--shared-client-connection"
+    ],
+    "name": "chrome_crashpad",
+    "pid": 4049
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=zygote --no-zygote-sandbox --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable"
+    ],
+    "name": "chrome",
+    "pid": 4055
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=zygote --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable"
+    ],
+    "name": "chrome",
+    "pid": 4056
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=zygote --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable"
+    ],
+    "name": "chrome",
+    "pid": 4058
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=gpu-process --gpu-recent-crash-count=0 --ozone-platform=x11 --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --gpu-preferences=YAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAASAAAAAAAAAABAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAAAAAAAAEAAAAAAAAACAAAAAAAAAAMAAAAAQAAAAAAAAAAAAAACAAAAAAAAAAIAAAAAAAAAA== --shared-files --metrics-shmem-handle=4,i,17175317497438096691,4065545034936295431,262144 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190708988185955192"
+    ],
+    "name": "chrome",
+    "pid": 4105
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-GB --service-sandbox-type=none --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,5696303998474945948,16834370010328055917,524288 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190708989122997041"
+    ],
+    "name": "chrome",
+    "pid": 4107
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=utility --utility-sub-type=storage.mojom.StorageService --lang=en-GB --service-sandbox-type=utility --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,2975061272070737338,7037510515763121426,524288 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190708990060038890"
+    ],
+    "name": "chrome",
+    "pid": 4195
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --extension-process --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=7 --launch-time-ticks=67724568 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,11312927638023009749,16524086084636413706,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190708992871164437"
+    ],
+    "name": "chrome",
+    "pid": 4238
+  },
+  {
+    "command_line": [
+      "/usr/libexec/xdg-desktop-portal"
+    ],
+    "name": "xdg-desktop-por",
+    "pid": 4301
+  },
+  {
+    "command_line": [
+      "/usr/libexec/xdg-permission-store"
+    ],
+    "name": "xdg-permission-",
+    "pid": 4323
+  },
+  {
+    "command_line": [
+      "/usr/libexec/xdg-document-portal"
+    ],
+    "name": "xdg-document-po",
+    "pid": 4328
+  },
+  {
+    "command_line": [
+      "fusermount3",
+      "-o",
+      "rw,nosuid,nodev,fsname=portal,auto_unmount,subtype=portal",
+      "--",
+      "/run/user/1000/doc"
+    ],
+    "name": "fusermount3",
+    "pid": 4342
+  },
+  {
+    "command_line": [
+      "/usr/libexec/xdg-desktop-portal-gtk"
+    ],
+    "name": "xdg-desktop-por",
+    "pid": 4349
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --top-chrome-webui --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=10 --launch-time-ticks=70927518 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,3849808878865815845,7797467643361769148,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190708995682289984"
+    ],
+    "name": "chrome",
+    "pid": 4395
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --extension-process --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=13 --launch-time-ticks=71008613 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,7228384854228120677,1692195590179808625,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190708998493415531"
+    ],
+    "name": "chrome",
+    "pid": 4434
+  },
+  {
+    "command_line": [],
+    "name": "kworker/1:1H-kblockd",
+    "pid": 4448
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=utility --utility-sub-type=audio.mojom.AudioService --lang=en-GB --service-sandbox-type=none --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,15548791511946942615,16022911611063620046,524288 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709016297210662"
+    ],
+    "name": "chrome",
+    "pid": 6204
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code"
+    ],
+    "name": "code",
+    "pid": 6253
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=zygote --no-zygote-sandbox"
+    ],
+    "name": "code",
+    "pid": 6261
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=zygote"
+    ],
+    "name": "code",
+    "pid": 6262
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=zygote"
+    ],
+    "name": "code",
+    "pid": 6264
+  },
+  {
+    "command_line": [
+      "/usr/share/code/chrome_crashpad_handler",
+      "--monitor-self-annotation=ptype=crashpad-handler",
+      "--no-rate-limit",
+      "--database=/home/ghost/.config/Code/Crashpad",
+      "--url=appcenter://code?aid=fba07a4d-84bd-4fc8-a125-9640fc8ce171&uid=1b04e1bf-96a6-47a8-9de1-5e141fa7346c&iid=1b04e1bf-96a6-47a8-9de1-5e141fa7346c&sid=1b04e1bf-96a6-47a8-9de1-5e141fa7346c",
+      "--annotation=_companyName=Microsoft",
+      "--annotation=_productName=VSCode",
+      "--annotation=_version=1.139.0",
+      "--annotation=lsb-release=Kali GNU/Linux Rolling",
+      "--annotation=plat=Linux",
+      "--annotation=prod=Electron",
+      "--annotation=ver=43.6.0",
+      "--initial-client-fd=35",
+      "--shared-client-connection"
+    ],
+    "name": "chrome_crashpad",
+    "pid": 6280
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=gpu-process --ozone-platform=x11 --crashpad-handler-pid=6280 --enable-crash-reporter=407e429d-10ec-4fb3-87ee-974e5a027b74,no_channel --user-data-dir=/home/ghost/.config/Code --gpu-preferences=WAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAAQAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAACAAAAAAAAAAIAAAAAAAAAABAAAAAAAAAAgAAAAAAAAACAAAAAAAAAAIAAAAAAAAAA== --shared-files --field-trial-handle=3,i,11907482009158860170,10037776814254724107,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,GlobalShortcutsPortalPreferredTrigger,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,10391607311158088509,12827252670254619188,4 --trace-process-track-uuid=3190708988185955192"
+    ],
+    "name": "code",
+    "pid": 6310
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-GB --service-sandbox-type=none --crashpad-handler-pid=6280 --enable-crash-reporter=407e429d-10ec-4fb3-87ee-974e5a027b74,no_channel --user-data-dir=/home/ghost/.config/Code --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,11907482009158860170,10037776814254724107,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,GlobalShortcutsPortalPreferredTrigger,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,10391607311158088509,12827252670254619188,4 --trace-process-track-uuid=3190708989122997041"
+    ],
+    "name": "code",
+    "pid": 6313
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=renderer --crashpad-handler-pid=6280 --enable-crash-reporter=407e429d-10ec-4fb3-87ee-974e5a027b74,no_channel --user-data-dir=/home/ghost/.config/Code --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --app-path=/usr/share/code/resources/app --enable-sandbox --enable-blink-features=HighlightAPI --max-active-webgl-contexts=32 --ozone-platform=x11 --disable-blink-features=FontMatchingCTMigration,StandardizedBrowserZoom, --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=4 --time-ticks-at-unix-epoch=-1790261736396857 --launch-time-ticks=209060671 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,11907482009158860170,10037776814254724107,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,GlobalShortcutsPortalPreferredTrigger,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerP"
+    ],
+    "name": "code",
+    "pid": 6387
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-GB --service-sandbox-type=none --crashpad-handler-pid=6280 --enable-crash-reporter=407e429d-10ec-4fb3-87ee-974e5a027b74,no_channel --user-data-dir=/home/ghost/.config/Code --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,11907482009158860170,10037776814254724107,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,GlobalShortcutsPortalPreferredTrigger,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,10391607311158088509,12827252670254619188,4 --trace-process-track-uuid=3190708990997080739"
+    ],
+    "name": "code",
+    "pid": 6436
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-GB --service-sandbox-type=none --crashpad-handler-pid=6280 --enable-crash-reporter=407e429d-10ec-4fb3-87ee-974e5a027b74,no_channel --user-data-dir=/home/ghost/.config/Code --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,11907482009158860170,10037776814254724107,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,GlobalShortcutsPortalPreferredTrigger,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,10391607311158088509,12827252670254619188,4 --trace-process-track-uuid=3190708991934122588"
+    ],
+    "name": "code",
+    "pid": 6465
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-GB --service-sandbox-type=none --crashpad-handler-pid=6280 --enable-crash-reporter=407e429d-10ec-4fb3-87ee-974e5a027b74,no_channel --user-data-dir=/home/ghost/.config/Code --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,11907482009158860170,10037776814254724107,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,GlobalShortcutsPortalPreferredTrigger,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,10391607311158088509,12827252670254619188,4 --trace-process-track-uuid=3190708992871164437"
+    ],
+    "name": "code",
+    "pid": 6466
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-GB --service-sandbox-type=none --dns-result-order=ipv4first --experimental-network-inspection --inspect-port=0 --crashpad-handler-pid=6280 --enable-crash-reporter=407e429d-10ec-4fb3-87ee-974e5a027b74,no_channel --user-data-dir=/home/ghost/.config/Code --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,11907482009158860170,10037776814254724107,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,GlobalShortcutsPortalPreferredTrigger,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,10391607311158088509,12827252670254619188,4 --trace-process-track-uuid=3190708993808206286"
+    ],
+    "name": "code",
+    "pid": 6506
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-GB --service-sandbox-type=none --crashpad-handler-pid=6280 --enable-crash-reporter=407e429d-10ec-4fb3-87ee-974e5a027b74,no_channel --user-data-dir=/home/ghost/.config/Code --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,11907482009158860170,10037776814254724107,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,GlobalShortcutsPortalPreferredTrigger,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,10391607311158088509,12827252670254619188,4 --trace-process-track-uuid=3190708994745248135"
+    ],
+    "name": "code",
+    "pid": 6551
+  },
+  {
+    "command_line": [
+      "/usr/bin/zsh",
+      "-i"
+    ],
+    "name": "zsh",
+    "pid": 6571
+  },
+  {
+    "command_line": [
+      "/usr/share/code/resources/app/node_modules.asar.unpacked/@github/copilot-sdk-linux-x64/prebuilds/linux-x64/copilot-runtime",
+      "--headless",
+      "--no-auto-update",
+      "--log-level",
+      "info",
+      "--stdio",
+      "--no-auto-login"
+    ],
+    "name": "copilot-runtime",
+    "pid": 6669
+  },
+  {
+    "command_line": [
+      "dconf",
+      "watch",
+      "/system/proxy/"
+    ],
+    "name": "dconf",
+    "pid": 6720
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code",
+      "/home/ghost/.vscode/extensions/github.vscode-github-actions-0.32.3/dist/server-node.js",
+      "--node-ipc",
+      "--clientProcessId=6506"
+    ],
+    "name": "code",
+    "pid": 6918
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code",
+      "/usr/share/code/resources/app/extensions/json-language-features/server/dist/node/jsonServerMain",
+      "--node-ipc",
+      "--clientProcessId=6506"
+    ],
+    "name": "code",
+    "pid": 6933
+  },
+  {
+    "command_line": [
+      "bwrap",
+      "--unshare-all",
+      "--die-with-parent",
+      "--chdir",
+      "/",
+      "--ro-bind",
+      "/usr",
+      "/usr",
+      "--dev",
+      "/dev",
+      "--ro-bind-try",
+      "/etc/ld.so.cache",
+      "/etc/ld.so.cache",
+      "--ro-bind-try",
+      "/nix/store",
+      "/nix/store",
+      "--tmpfs",
+      "/tmp-home",
+      "--tmpfs",
+      "/tmp-run",
+      "--clearenv",
+      "--setenv",
+      "HOME",
+      "/tmp-home",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/tmp-run",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/run/user/1000",
+      "--symlink",
+      "/usr/lib64",
+      "/lib64",
+      "--symlink",
+      "/usr/lib",
+      "/lib",
+      "--symlink",
+      "/usr/lib32",
+      "/lib32",
+      "--seccomp",
+      "19",
+      "/usr/libexec/glycin-loaders/2+/glycin-image-rs",
+      "--dbus-fd",
+      "17"
+    ],
+    "name": "bwrap",
+    "pid": 7448
+  },
+  {
+    "command_line": [
+      "bwrap",
+      "--unshare-all",
+      "--die-with-parent",
+      "--chdir",
+      "/",
+      "--ro-bind",
+      "/usr",
+      "/usr",
+      "--dev",
+      "/dev",
+      "--ro-bind-try",
+      "/etc/ld.so.cache",
+      "/etc/ld.so.cache",
+      "--ro-bind-try",
+      "/nix/store",
+      "/nix/store",
+      "--tmpfs",
+      "/tmp-home",
+      "--tmpfs",
+      "/tmp-run",
+      "--clearenv",
+      "--setenv",
+      "HOME",
+      "/tmp-home",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/tmp-run",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/run/user/1000",
+      "--symlink",
+      "/usr/lib64",
+      "/lib64",
+      "--symlink",
+      "/usr/lib",
+      "/lib",
+      "--symlink",
+      "/usr/lib32",
+      "/lib32",
+      "--seccomp",
+      "19",
+      "/usr/libexec/glycin-loaders/2+/glycin-image-rs",
+      "--dbus-fd",
+      "17"
+    ],
+    "name": "bwrap",
+    "pid": 7450
+  },
+  {
+    "command_line": [
+      "/usr/libexec/glycin-loaders/2+/glycin-image-rs",
+      "--dbus-fd",
+      "17"
+    ],
+    "name": "glycin-image-rs",
+    "pid": 7451
+  },
+  {
+    "command_line": [
+      "/usr/bin/zsh",
+      "-i"
+    ],
+    "name": "zsh",
+    "pid": 7685
+  },
+  {
+    "command_line": [
+      "/sbin/mount.ntfs",
+      "/dev/nvme0n1p4",
+      "/run/media/ghost/New Volume",
+      "-o",
+      "rw,uhelper=udisks2,nodev,nosuid,uid=1000,gid=1000,windows_names"
+    ],
+    "name": "mount.ntfs",
+    "pid": 14911
+  },
+  {
+    "command_line": [
+      "/usr/bin/qterminal"
+    ],
+    "name": "qterminal",
+    "pid": 31631
+  },
+  {
+    "command_line": [
+      "/usr/bin/zsh"
+    ],
+    "name": "zsh",
+    "pid": 31639
+  },
+  {
+    "command_line": [
+      "bwrap",
+      "--unshare-all",
+      "--die-with-parent",
+      "--chdir",
+      "/",
+      "--ro-bind",
+      "/usr",
+      "/usr",
+      "--dev",
+      "/dev",
+      "--ro-bind-try",
+      "/etc/ld.so.cache",
+      "/etc/ld.so.cache",
+      "--ro-bind-try",
+      "/nix/store",
+      "/nix/store",
+      "--tmpfs",
+      "/tmp-home",
+      "--tmpfs",
+      "/tmp-run",
+      "--clearenv",
+      "--setenv",
+      "HOME",
+      "/tmp-home",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/tmp-run",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/run/user/1000",
+      "--symlink",
+      "/usr/lib64",
+      "/lib64",
+      "--symlink",
+      "/usr/lib",
+      "/lib",
+      "--symlink",
+      "/usr/lib32",
+      "/lib32",
+      "--seccomp",
+      "20",
+      "/usr/libexec/glycin-loaders/2+/glycin-image-rs",
+      "--dbus-fd",
+      "17"
+    ],
+    "name": "bwrap",
+    "pid": 39420
+  },
+  {
+    "command_line": [
+      "bwrap",
+      "--unshare-all",
+      "--die-with-parent",
+      "--chdir",
+      "/",
+      "--ro-bind",
+      "/usr",
+      "/usr",
+      "--dev",
+      "/dev",
+      "--ro-bind-try",
+      "/etc/ld.so.cache",
+      "/etc/ld.so.cache",
+      "--ro-bind-try",
+      "/nix/store",
+      "/nix/store",
+      "--tmpfs",
+      "/tmp-home",
+      "--tmpfs",
+      "/tmp-run",
+      "--clearenv",
+      "--setenv",
+      "HOME",
+      "/tmp-home",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/tmp-run",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/run/user/1000",
+      "--symlink",
+      "/usr/lib64",
+      "/lib64",
+      "--symlink",
+      "/usr/lib",
+      "/lib",
+      "--symlink",
+      "/usr/lib32",
+      "/lib32",
+      "--seccomp",
+      "20",
+      "/usr/libexec/glycin-loaders/2+/glycin-image-rs",
+      "--dbus-fd",
+      "17"
+    ],
+    "name": "bwrap",
+    "pid": 39428
+  },
+  {
+    "command_line": [
+      "/usr/libexec/glycin-loaders/2+/glycin-image-rs",
+      "--dbus-fd",
+      "17"
+    ],
+    "name": "glycin-image-rs",
+    "pid": 39432
+  },
+  {
+    "command_line": [
+      "bwrap",
+      "--unshare-all",
+      "--die-with-parent",
+      "--chdir",
+      "/",
+      "--ro-bind",
+      "/usr",
+      "/usr",
+      "--dev",
+      "/dev",
+      "--ro-bind-try",
+      "/etc/ld.so.cache",
+      "/etc/ld.so.cache",
+      "--ro-bind-try",
+      "/nix/store",
+      "/nix/store",
+      "--tmpfs",
+      "/tmp-home",
+      "--tmpfs",
+      "/tmp-run",
+      "--clearenv",
+      "--setenv",
+      "HOME",
+      "/tmp-home",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/tmp-run",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/run/user/1000",
+      "--symlink",
+      "/usr/lib64",
+      "/lib64",
+      "--symlink",
+      "/usr/lib",
+      "/lib",
+      "--symlink",
+      "/usr/lib32",
+      "/lib32",
+      "--seccomp",
+      "21",
+      "/usr/libexec/glycin-loaders/2+/glycin-heif",
+      "--dbus-fd",
+      "20"
+    ],
+    "name": "bwrap",
+    "pid": 39477
+  },
+  {
+    "command_line": [
+      "bwrap",
+      "--unshare-all",
+      "--die-with-parent",
+      "--chdir",
+      "/",
+      "--ro-bind",
+      "/usr",
+      "/usr",
+      "--dev",
+      "/dev",
+      "--ro-bind-try",
+      "/etc/ld.so.cache",
+      "/etc/ld.so.cache",
+      "--ro-bind-try",
+      "/nix/store",
+      "/nix/store",
+      "--tmpfs",
+      "/tmp-home",
+      "--tmpfs",
+      "/tmp-run",
+      "--clearenv",
+      "--setenv",
+      "HOME",
+      "/tmp-home",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/tmp-run",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/run/user/1000",
+      "--symlink",
+      "/usr/lib64",
+      "/lib64",
+      "--symlink",
+      "/usr/lib",
+      "/lib",
+      "--symlink",
+      "/usr/lib32",
+      "/lib32",
+      "--seccomp",
+      "21",
+      "/usr/libexec/glycin-loaders/2+/glycin-heif",
+      "--dbus-fd",
+      "20"
+    ],
+    "name": "bwrap",
+    "pid": 39478
+  },
+  {
+    "command_line": [
+      "/usr/libexec/glycin-loaders/2+/glycin-heif",
+      "--dbus-fd",
+      "20"
+    ],
+    "name": "glycin-heif",
+    "pid": 39479
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=198 --launch-time-ticks=852771888 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,11288949475256856773,11633427929863138355,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709171846157596"
+    ],
+    "name": "chrome",
+    "pid": 40302
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT"
+    ],
+    "name": "ChatGPT",
+    "pid": 41480
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/browser_crashpad_handler",
+      "--monitor-self",
+      "--monitor-self-annotation=ptype=crashpad-handler",
+      "--database=/home/ghost/.config/Codex/Crash Reports",
+      "--annotation=lsb-release=Kali GNU/Linux Rolling",
+      "--annotation=plat=Linux",
+      "--annotation=prod=Chrome_Linux",
+      "--annotation=ver=153.0.8010.53",
+      "--initial-client-fd=5",
+      "--shared-client-connection"
+    ],
+    "name": "browser_crashpa",
+    "pid": 41484
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/browser_crashpad_handler",
+      "--no-periodic-tasks",
+      "--monitor-self-annotation=ptype=crashpad-handler",
+      "--database=/home/ghost/.config/Codex/Crash Reports",
+      "--annotation=lsb-release=Kali GNU/Linux Rolling",
+      "--annotation=plat=Linux",
+      "--annotation=prod=Chrome_Linux",
+      "--annotation=ver=153.0.8010.53",
+      "--initial-client-fd=4",
+      "--shared-client-connection"
+    ],
+    "name": "browser_crashpa",
+    "pid": 41486
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT --type=zygote --no-zygote-sandbox --crashpad-handler-pid=41484 --enable-crash-reporter=, --user-data-dir=/home/ghost/.config/Codex --owl-electron-scheme-replay --change-stack-guard-on-fork=enable"
+    ],
+    "name": "ChatGPT",
+    "pid": 41490
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT --type=zygote --crashpad-handler-pid=41484 --enable-crash-reporter=, --user-data-dir=/home/ghost/.config/Codex --owl-electron-scheme-replay --change-stack-guard-on-fork=enable"
+    ],
+    "name": "ChatGPT",
+    "pid": 41491
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT --type=zygote --crashpad-handler-pid=41484 --enable-crash-reporter=, --user-data-dir=/home/ghost/.config/Codex --owl-electron-scheme-replay --change-stack-guard-on-fork=enable"
+    ],
+    "name": "ChatGPT",
+    "pid": 41493
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT --type=gpu-process --ozone-platform=x11 --crashpad-handler-pid=41484 --enable-crash-reporter=, --user-data-dir=/home/ghost/.config/Codex --change-stack-guard-on-fork=enable --gpu-preferences=YAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAASAAAAAAAAAABAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAAAAAAAAEAAAAAAAAACAAAAAAAAAAMAAAAAQAAAAAAAAAAAAAACAAAAAAAAAAIAAAAAAAAAA== --shared-files --metrics-shmem-handle=4,i,7653883123359680109,7085770910054224214,262144 --field-trial-handle=3,i,11615953220773120459,3172766527940722524,262144 --enable-features=ReportStuckThrottle --disable-features=DropInputEventsWhilePaintHolding,WebUIOmniboxAimPopup,WebUIOmniboxPopup --variations-seed-version --pseudonymization-salt-handle=7,i,1957172776159771228,2087704555137886137,4 --trace-process-track-uuid=3190708988185955192"
+    ],
+    "name": "ChatGPT",
+    "pid": 41551
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-GB --service-sandbox-type=none --owl-scoped-user-agent-additional-hosts=openai.com,chatgpt.com,chatgpt.site,chatgpt-team.site --owl-scoped-user-agent-prefix=CodexBrowser --crashpad-handler-pid=41484 --enable-crash-reporter=, --user-data-dir=/home/ghost/.config/Codex --standard-schemes=app,codex-sandbox --service-worker-schemes=codex-sandbox --secure-schemes=app,codex-sandbox --fetch-schemes=app,codex-sandbox --cors-schemes=codex-sandbox --streaming-schemes=app,codex-sandbox --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,2921895115085937969,14838649801992943951,524288 --field-trial-handle=3,i,11615953220773120459,3172766527940722524,262144 --enable-features=ReportStuckThrottle --disable-features=DropInputEventsWhilePaintHolding,WebUIOmniboxAimPopup,WebUIOmniboxPopup --variations-seed-version --pseudonymization-salt-handle=7,i,1957172776159771228,2087704555137886137,4 --trace-process-track-uuid=3190708989122997041"
+    ],
+    "name": "ChatGPT",
+    "pid": 41553
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT --type=utility --utility-sub-type=storage.mojom.StorageService --lang=en-GB --service-sandbox-type=utility --crashpad-handler-pid=41484 --enable-crash-reporter=, --user-data-dir=/home/ghost/.config/Codex --owl-electron-scheme-replay --standard-schemes=app,codex-sandbox --service-worker-schemes=codex-sandbox --secure-schemes=app,codex-sandbox --fetch-schemes=app,codex-sandbox --cors-schemes=codex-sandbox --streaming-schemes=app,codex-sandbox --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,4768771591903246536,2437416118809376021,524288 --field-trial-handle=3,i,11615953220773120459,3172766527940722524,262144 --enable-features=ReportStuckThrottle --disable-features=DropInputEventsWhilePaintHolding,WebUIOmniboxAimPopup,WebUIOmniboxPopup --variations-seed-version --pseudonymization-salt-handle=7,i,1957172776159771228,2087704555137886137,4 --trace-process-track-uuid=3190708990060038890"
+    ],
+    "name": "ChatGPT",
+    "pid": 41611
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT --type=renderer --crashpad-handler-pid=41484 --enable-crash-reporter=, --user-data-dir=/home/ghost/.config/Codex --owl-electron-scheme-replay --standard-schemes=app,codex-sandbox --service-worker-schemes=codex-sandbox --secure-schemes=app,codex-sandbox --fetch-schemes=app,codex-sandbox --cors-schemes=codex-sandbox --streaming-schemes=app,codex-sandbox --owl-scoped-user-agent-additional-hosts=openai.com,chatgpt.com,chatgpt.site,chatgpt-team.site --owl-scoped-user-agent-prefix=CodexBrowser --change-stack-guard-on-fork=enable --ozone-platform=x11 --disable-blink-features=ReplacedNormalFlowStackingInlinePaint --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=6 --launch-time-ticks=933540981 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,16709767959685510622,5677359951583725759,1572864 --field-trial-handle=3,i,11615953220773120459,3172766527940722524,262144 --enable-features=ReportStuckThrottle --disable-features=DropInputEventsWhilePaintHolding,WebUIOmniboxAimPopup,WebUIOmniboxPopup --variations-seed-version --pseudonymization-salt-handle=7,i,1957172776159771228,2087704555137886137,4 --trace-process-track-uuid=3190708991934122588"
+    ],
+    "name": "ChatGPT",
+    "pid": 41688
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT --type=renderer --crashpad-handler-pid=41484 --enable-crash-reporter=, --user-data-dir=/home/ghost/.config/Codex --owl-electron-scheme-replay --standard-schemes=app,codex-sandbox --service-worker-schemes=codex-sandbox --secure-schemes=app,codex-sandbox --fetch-schemes=app,codex-sandbox --cors-schemes=codex-sandbox --streaming-schemes=app,codex-sandbox --owl-scoped-user-agent-additional-hosts=openai.com,chatgpt.com,chatgpt.site,chatgpt-team.site --owl-scoped-user-agent-prefix=CodexBrowser --change-stack-guard-on-fork=enable --ozone-platform=x11 --disable-blink-features=ReplacedNormalFlowStackingInlinePaint --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=5 --launch-time-ticks=933543113 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,14054627800557779113,8829655933584244438,1572864 --field-trial-handle=3,i,11615953220773120459,3172766527940722524,262144 --enable-features=ReportStuckThrottle --disable-features=DropInputEventsWhilePaintHolding,WebUIOmniboxAimPopup,WebUIOmniboxPopup --variations-seed-version --pseudonymization-salt-handle=7,i,1957172776159771228,2087704555137886137,4 --trace-process-track-uuid=3190708990997080739"
+    ],
+    "name": "ChatGPT",
+    "pid": 41689
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/resources/codex",
+      "-c",
+      "features.code_mode_host=true",
+      "app-server",
+      "--analytics-default-enabled",
+      "-c",
+      "plugins.codex-app-tools@openai-bundled.mcp_servers.codex_app.enabled=true"
+    ],
+    "name": "codex",
+    "pid": 41716
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT --type=renderer --crashpad-handler-pid=41484 --enable-crash-reporter=, --user-data-dir=/home/ghost/.config/Codex --owl-electron-scheme-replay --standard-schemes=app,codex-sandbox --service-worker-schemes=codex-sandbox --secure-schemes=app,codex-sandbox --fetch-schemes=app,codex-sandbox --cors-schemes=codex-sandbox --streaming-schemes=app,codex-sandbox --owl-scoped-user-agent-additional-hosts=openai.com,chatgpt.com,chatgpt.site,chatgpt-team.site --owl-scoped-user-agent-prefix=CodexBrowser --change-stack-guard-on-fork=enable --ozone-platform=x11 --disable-blink-features=ReplacedNormalFlowStackingInlinePaint --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=10 --launch-time-ticks=950320064 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,1398997756487434517,7963049355616859712,1572864 --field-trial-handle=3,i,11615953220773120459,3172766527940722524,262144 --enable-features=ReportStuckThrottle --disable-features=DropInputEventsWhilePaintHolding,WebUIOmniboxAimPopup,WebUIOmniboxPopup --variations-seed-version --pseudonymization-salt-handle=7,i,1957172776159771228,2087704555137886137,4 --trace-process-track-uuid=3190708995682289984"
+    ],
+    "name": "ChatGPT",
+    "pid": 43095
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT --type=renderer --crashpad-handler-pid=41484 --enable-crash-reporter=, --user-data-dir=/home/ghost/.config/Codex --owl-electron-scheme-replay --standard-schemes=app,codex-sandbox --service-worker-schemes=codex-sandbox --secure-schemes=app,codex-sandbox --fetch-schemes=app,codex-sandbox --cors-schemes=codex-sandbox --streaming-schemes=app,codex-sandbox --owl-scoped-user-agent-additional-hosts=openai.com,chatgpt.com,chatgpt.site,chatgpt-team.site --owl-scoped-user-agent-prefix=CodexBrowser --change-stack-guard-on-fork=enable --ozone-platform=x11 --disable-blink-features=ReplacedNormalFlowStackingInlinePaint --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=12 --launch-time-ticks=950819767 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,918936407747374915,5788691766622546492,1572864 --field-trial-handle=3,i,11615953220773120459,3172766527940722524,262144 --enable-features=ReportStuckThrottle --disable-features=DropInputEventsWhilePaintHolding,WebUIOmniboxAimPopup,WebUIOmniboxPopup --variations-seed-version --pseudonymization-salt-handle=7,i,1957172776159771228,2087704555137886137,4 --trace-process-track-uuid=3190708997556373682"
+    ],
+    "name": "ChatGPT",
+    "pid": 43121
+  },
+  {
+    "command_line": [],
+    "name": "kworker/7:1-mm_percpu_wq",
+    "pid": 58663
+  },
+  {
+    "command_line": [],
+    "name": "kworker/4:1-events",
+    "pid": 78153
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=renderer --crashpad-handler-pid=6280 --enable-crash-reporter=407e429d-10ec-4fb3-87ee-974e5a027b74,no_channel --user-data-dir=/home/ghost/.config/Code --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --app-path=/usr/share/code/resources/app --enable-sandbox --enable-blink-features=HighlightAPI --max-active-webgl-contexts=32 --ozone-platform=x11 --disable-blink-features=FontMatchingCTMigration,StandardizedBrowserZoom, --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=11 --time-ticks-at-unix-epoch=-1790261736396857 --launch-time-ticks=4905605418 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,11907482009158860170,10037776814254724107,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,GlobalShortcutsPortalPreferredTrigger,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePe"
+    ],
+    "name": "code",
+    "pid": 99858
+  },
+  {
+    "command_line": [
+      "/usr/share/code/code --type=renderer --crashpad-handler-pid=6280 --enable-crash-reporter=407e429d-10ec-4fb3-87ee-974e5a027b74,no_channel --user-data-dir=/home/ghost/.config/Code --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --app-path=/usr/share/code/resources/app --enable-sandbox --enable-blink-features=HighlightAPI --max-active-webgl-contexts=32 --ozone-platform=x11 --disable-blink-features=FontMatchingCTMigration,StandardizedBrowserZoom, --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=13 --time-ticks-at-unix-epoch=-1790261736396857 --launch-time-ticks=4926155796 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,11907482009158860170,10037776814254724107,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,GlobalShortcutsPortalPreferredTrigger,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePe"
+    ],
+    "name": "code",
+    "pid": 100093
+  },
+  {
+    "command_line": [],
+    "name": "kworker/13:1-events",
+    "pid": 119262
+  },
+  {
+    "command_line": [],
+    "name": "kworker/6:1-mm_percpu_wq",
+    "pid": 119928
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u65:7-ttm",
+    "pid": 125327
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u64:2-events_unbound",
+    "pid": 127774
+  },
+  {
+    "command_line": [],
+    "name": "kworker/3:2-mm_percpu_wq",
+    "pid": 133824
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u64:7-comp_1.1.0",
+    "pid": 134869
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u64:12-vcn_unified_0",
+    "pid": 134873
+  },
+  {
+    "command_line": [
+      "./antigravity-ide"
+    ],
+    "name": "antigravity-ide",
+    "pid": 135054
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/antigravity-ide",
+      "--type=zygote",
+      "--no-zygote-sandbox"
+    ],
+    "name": "antigravity-ide",
+    "pid": 135057
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/antigravity-ide",
+      "--type=zygote"
+    ],
+    "name": "antigravity-ide",
+    "pid": 135058
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/antigravity-ide",
+      "--type=zygote"
+    ],
+    "name": "antigravity-ide",
+    "pid": 135060
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/chrome_crashpad_handler",
+      "--monitor-self-annotation=ptype=crashpad-handler",
+      "--no-rate-limit",
+      "--database=/home/ghost/.config/Antigravity IDE/Crashpad",
+      "--annotation=_companyName=Google",
+      "--annotation=_productName=Antigravity IDE",
+      "--annotation=_version=1.107.0",
+      "--annotation=lsb-release=Kali GNU/Linux Rolling",
+      "--annotation=plat=Linux",
+      "--annotation=prod=Electron",
+      "--annotation=ver=39.2.3",
+      "--initial-client-fd=48",
+      "--shared-client-connection"
+    ],
+    "name": "chrome_crashpad",
+    "pid": 135083
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/antigravity-ide",
+      "--type=zygote",
+      "--no-zygote-sandbox"
+    ],
+    "name": "antigravity-ide",
+    "pid": 135113
+  },
+  {
+    "command_line": [
+      "/proc/self/exe",
+      "--type=utility",
+      "--utility-sub-type=network.mojom.NetworkService",
+      "--lang=en-GB",
+      "--service-sandbox-type=none",
+      "--crashpad-handler-pid=135083",
+      "--enable-crash-reporter=76cea491-071a-4c52-9b18-4a96202d1e2c,no_channel",
+      "--user-data-dir=/home/ghost/.config/Antigravity IDE",
+      "--standard-schemes=vscode-webview,vscode-file",
+      "--enable-sandbox",
+      "--secure-schemes=vscode-webview,vscode-file",
+      "--cors-schemes=vscode-webview,vscode-file",
+      "--fetch-schemes=vscode-webview,vscode-file",
+      "--service-worker-schemes=vscode-webview",
+      "--code-cache-schemes=vscode-webview,vscode-file",
+      "--shared-files=v8_context_snapshot_data:100",
+      "--field-trial-handle=3,i,1560636369994025588,15498337602837129723,262144",
+      "--enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker",
+      "--disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation",
+      "--variations-seed-version",
+      "--trace-process-track-uuid=3190708989122997041"
+    ],
+    "name": "antigravity-ide",
+    "pid": 135120
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/antigravity-ide",
+      "--type=zygote"
+    ],
+    "name": "antigravity-ide",
+    "pid": 135191
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/resources/app/extensions/antigravity/bin/language_server_linux_x64",
+      "--csrf_token",
+      "452cf5f2-4a74-40bb-928e-bfd552bee444",
+      "--extension_server_port",
+      "45709",
+      "--extension_server_csrf_token",
+      "50faa170-7e8e-4acc-96f9-e2d4aeee3f73",
+      "--app_data_dir",
+      "antigravity-ide",
+      "--subclient_type",
+      "ide",
+      "--cloud_code_endpoint",
+      "https://cloudcode-pa.googleapis.com"
+    ],
+    "name": "language_server",
+    "pid": 135223
+  },
+  {
+    "command_line": [
+      "/proc/self/exe",
+      "--type=utility",
+      "--utility-sub-type=audio.mojom.AudioService",
+      "--lang=en-GB",
+      "--service-sandbox-type=none",
+      "--crashpad-handler-pid=135083",
+      "--enable-crash-reporter=76cea491-071a-4c52-9b18-4a96202d1e2c,no_channel",
+      "--user-data-dir=/home/ghost/.config/Antigravity IDE",
+      "--standard-schemes=vscode-webview,vscode-file",
+      "--enable-sandbox",
+      "--secure-schemes=vscode-webview,vscode-file",
+      "--cors-schemes=vscode-webview,vscode-file",
+      "--fetch-schemes=vscode-webview,vscode-file",
+      "--service-worker-schemes=vscode-webview",
+      "--code-cache-schemes=vscode-webview,vscode-file",
+      "--shared-files=v8_context_snapshot_data:100",
+      "--field-trial-handle=3,i,1560636369994025588,15498337602837129723,262144",
+      "--enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker",
+      "--disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation",
+      "--variations-seed-version",
+      "--trace-process-track-uuid=3190708990997080739"
+    ],
+    "name": "antigravity-ide",
+    "pid": 135264
+  },
+  {
+    "command_line": [
+      "npm exec chrome-devtools-mcp@latest --autoConnect --no-usage-statistics --no-performance-crux"
+    ],
+    "name": "npm exec chrome",
+    "pid": 135278
+  },
+  {
+    "command_line": [
+      "/proc/self/exe",
+      "--type=utility",
+      "--utility-sub-type=node.mojom.NodeService",
+      "--lang=en-GB",
+      "--service-sandbox-type=none",
+      "--crashpad-handler-pid=135083",
+      "--enable-crash-reporter=76cea491-071a-4c52-9b18-4a96202d1e2c,no_channel",
+      "--user-data-dir=/home/ghost/.config/Antigravity IDE",
+      "--standard-schemes=vscode-webview,vscode-file",
+      "--enable-sandbox",
+      "--secure-schemes=vscode-webview,vscode-file",
+      "--cors-schemes=vscode-webview,vscode-file",
+      "--fetch-schemes=vscode-webview,vscode-file",
+      "--service-worker-schemes=vscode-webview",
+      "--code-cache-schemes=vscode-webview,vscode-file",
+      "--shared-files=v8_context_snapshot_data:100",
+      "--field-trial-handle=3,i,1560636369994025588,15498337602837129723,262144",
+      "--enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker",
+      "--disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation",
+      "--variations-seed-version",
+      "--trace-process-track-uuid=3190708993808206286"
+    ],
+    "name": "antigravity-ide",
+    "pid": 135289
+  },
+  {
+    "command_line": [
+      "/proc/self/exe",
+      "--type=utility",
+      "--utility-sub-type=node.mojom.NodeService",
+      "--lang=en-GB",
+      "--service-sandbox-type=none",
+      "--dns-result-order=ipv4first",
+      "--experimental-network-inspection",
+      "--inspect-port=0",
+      "--crashpad-handler-pid=135083",
+      "--enable-crash-reporter=76cea491-071a-4c52-9b18-4a96202d1e2c,no_channel",
+      "--user-data-dir=/home/ghost/.config/Antigravity IDE",
+      "--standard-schemes=vscode-webview,vscode-file",
+      "--enable-sandbox",
+      "--secure-schemes=vscode-webview,vscode-file",
+      "--cors-schemes=vscode-webview,vscode-file",
+      "--fetch-schemes=vscode-webview,vscode-file",
+      "--service-worker-schemes=vscode-webview",
+      "--code-cache-schemes=vscode-webview,vscode-file",
+      "--shared-files=v8_context_snapshot_data:100",
+      "--field-trial-handle=3,i,1560636369994025588,15498337602837129723,262144",
+      "--enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker",
+      "--disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation",
+      "--variations-seed-version",
+      "--trace-process-track-uuid=3190708994745248135"
+    ],
+    "name": "antigravity-ide",
+    "pid": 135312
+  },
+  {
+    "command_line": [
+      "/proc/self/exe",
+      "--type=utility",
+      "--utility-sub-type=node.mojom.NodeService",
+      "--lang=en-GB",
+      "--service-sandbox-type=none",
+      "--crashpad-handler-pid=135083",
+      "--enable-crash-reporter=76cea491-071a-4c52-9b18-4a96202d1e2c,no_channel",
+      "--user-data-dir=/home/ghost/.config/Antigravity IDE",
+      "--standard-schemes=vscode-webview,vscode-file",
+      "--enable-sandbox",
+      "--secure-schemes=vscode-webview,vscode-file",
+      "--cors-schemes=vscode-webview,vscode-file",
+      "--fetch-schemes=vscode-webview,vscode-file",
+      "--service-worker-schemes=vscode-webview",
+      "--code-cache-schemes=vscode-webview,vscode-file",
+      "--shared-files=v8_context_snapshot_data:100",
+      "--field-trial-handle=3,i,1560636369994025588,15498337602837129723,262144",
+      "--enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker",
+      "--disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation",
+      "--variations-seed-version",
+      "--trace-process-track-uuid=3190708995682289984"
+    ],
+    "name": "antigravity-ide",
+    "pid": 135327
+  },
+  {
+    "command_line": [
+      "/proc/self/exe",
+      "--type=utility",
+      "--utility-sub-type=node.mojom.NodeService",
+      "--lang=en-GB",
+      "--service-sandbox-type=none",
+      "--crashpad-handler-pid=135083",
+      "--enable-crash-reporter=76cea491-071a-4c52-9b18-4a96202d1e2c,no_channel",
+      "--user-data-dir=/home/ghost/.config/Antigravity IDE",
+      "--standard-schemes=vscode-webview,vscode-file",
+      "--enable-sandbox",
+      "--secure-schemes=vscode-webview,vscode-file",
+      "--cors-schemes=vscode-webview,vscode-file",
+      "--fetch-schemes=vscode-webview,vscode-file",
+      "--service-worker-schemes=vscode-webview",
+      "--code-cache-schemes=vscode-webview,vscode-file",
+      "--shared-files=v8_context_snapshot_data:100",
+      "--field-trial-handle=3,i,1560636369994025588,15498337602837129723,262144",
+      "--enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker",
+      "--disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation",
+      "--variations-seed-version",
+      "--trace-process-track-uuid=3190708996619331833"
+    ],
+    "name": "antigravity-ide",
+    "pid": 135333
+  },
+  {
+    "command_line": [
+      "sh",
+      "-c",
+      "'chrome-devtools-mcp' --autoConnect --no-usage-statistics --no-performance-crux"
+    ],
+    "name": "sh",
+    "pid": 135381
+  },
+  {
+    "command_line": [
+      "chrome-devtools-mcp"
+    ],
+    "name": "chrome-devtools",
+    "pid": 135382
+  },
+  {
+    "command_line": [
+      "/usr/bin/zsh",
+      "-i"
+    ],
+    "name": "zsh",
+    "pid": 135403
+  },
+  {
+    "command_line": [
+      "/usr/bin/zsh",
+      "-i"
+    ],
+    "name": "zsh",
+    "pid": 136733
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/antigravity-ide",
+      "--max-old-space-size=3072",
+      "/home/ghost/Antigravity/resources/app/extensions/node_modules/typescript/lib/tsserver.js",
+      "--serverMode",
+      "partialSemantic",
+      "--useInferredProjectPerProjectRoot",
+      "--disableAutomaticTypingAcquisition",
+      "--cancellationPipeName",
+      "/tmp/vscode-typescript1000/44332d32e0deb748beac/tscancellation-e570b6f87491f367a538.tmp*",
+      "--locale",
+      "en",
+      "--noGetErrOnBackgroundUpdate",
+      "--canUseWatchEvents",
+      "--validateDefaultNpmLocation",
+      "--useNodeIpc"
+    ],
+    "name": "antigravity-ide",
+    "pid": 137124
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/antigravity-ide",
+      "--max-old-space-size=3072",
+      "/home/ghost/Antigravity/resources/app/extensions/node_modules/typescript/lib/tsserver.js",
+      "--useInferredProjectPerProjectRoot",
+      "--enableTelemetry",
+      "--cancellationPipeName",
+      "/tmp/vscode-typescript1000/44332d32e0deb748beac/tscancellation-faad2f8c4c5f88bb8208.tmp*",
+      "--locale",
+      "en",
+      "--noGetErrOnBackgroundUpdate",
+      "--canUseWatchEvents",
+      "--validateDefaultNpmLocation",
+      "--useNodeIpc"
+    ],
+    "name": "antigravity-ide",
+    "pid": 137125
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/antigravity-ide",
+      "/home/ghost/Antigravity/resources/app/extensions/html-language-features/server/dist/node/htmlServerMain",
+      "--node-ipc",
+      "--clientProcessId=135312"
+    ],
+    "name": "antigravity-ide",
+    "pid": 137155
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/antigravity-ide",
+      "/home/ghost/Antigravity/resources/app/extensions/markdown-language-features/dist/serverWorkerMain",
+      "--node-ipc",
+      "--clientProcessId=135312"
+    ],
+    "name": "antigravity-ide",
+    "pid": 137156
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/antigravity-ide",
+      "/home/ghost/Antigravity/resources/app/extensions/node_modules/typescript/lib/typingsInstaller.js",
+      "--globalTypingsCacheLocation",
+      "/home/ghost/.cache/typescript/5.9",
+      "--enableTelemetry",
+      "--typesMapLocation",
+      "/home/ghost/Antigravity/resources/app/extensions/node_modules/typescript/lib/typesMap.json",
+      "--validateDefaultNpmLocation"
+    ],
+    "name": "antigravity-ide",
+    "pid": 137157
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/antigravity-ide",
+      "/home/ghost/Antigravity/resources/app/extensions/json-language-features/server/dist/node/jsonServerMain",
+      "--node-ipc",
+      "--clientProcessId=135312"
+    ],
+    "name": "antigravity-ide",
+    "pid": 137179
+  },
+  {
+    "command_line": [],
+    "name": "kworker/0:1-events",
+    "pid": 138775
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/antigravity-ide",
+      "--type=zygote"
+    ],
+    "name": "antigravity-ide",
+    "pid": 139364
+  },
+  {
+    "command_line": [
+      "/home/ghost/Antigravity/resources/app/extensions/antigravity/bin/language_server_linux_x64",
+      "--enable_lsp",
+      "--csrf_token",
+      "5cfea091-5751-445e-b265-164274029964",
+      "--extension_server_port",
+      "45373",
+      "--extension_server_csrf_token",
+      "7360a010-49f7-47a2-880d-4b605a82d2ba",
+      "--https_server_port",
+      "41107",
+      "--lsp_port",
+      "42777",
+      "--workspace_id",
+      "file_home_ghost_Desktop_TRACEFORGE",
+      "--cloud_code_endpoint",
+      "https://daily-cloudcode-pa.googleapis.com",
+      "--subclient_type",
+      "ide",
+      "--app_data_dir",
+      "antigravity-ide",
+      "--parent_pipe_path",
+      "/tmp/server_6de0e14dcfbc1feb"
+    ],
+    "name": "language_server",
+    "pid": 140809
+  },
+  {
+    "command_line": [
+      "npm exec chrome-devtools-mcp@latest --autoConnect --no-usage-statistics --no-performance-crux"
+    ],
+    "name": "npm exec chrome",
+    "pid": 140836
+  },
+  {
+    "command_line": [
+      "sh",
+      "-c",
+      "'chrome-devtools-mcp' --autoConnect --no-usage-statistics --no-performance-crux"
+    ],
+    "name": "sh",
+    "pid": 140855
+  },
+  {
+    "command_line": [
+      "chrome-devtools-mcp"
+    ],
+    "name": "chrome-devtools",
+    "pid": 140856
+  },
+  {
+    "command_line": [],
+    "name": "kworker/1:1-events",
+    "pid": 141102
+  },
+  {
+    "command_line": [],
+    "name": "kworker/10:1-mm_percpu_wq",
+    "pid": 144033
+  },
+  {
+    "command_line": [],
+    "name": "kworker/12:0-mm_percpu_wq",
+    "pid": 144590
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u64:0-comp_1.0.1",
+    "pid": 150566
+  },
+  {
+    "command_line": [
+      "/usr/bin/zsh"
+    ],
+    "name": "zsh",
+    "pid": 151641
+  },
+  {
+    "command_line": [
+      "ollama",
+      "launch",
+      "claude",
+      "--model",
+      "nemotron-3-ultra:cloud"
+    ],
+    "name": "ollama",
+    "pid": 151862
+  },
+  {
+    "command_line": [
+      "/home/ghost/.local/bin/claude",
+      "--model",
+      "nemotron-3-ultra:cloud"
+    ],
+    "name": "claude",
+    "pid": 151883
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u65:5-ttm",
+    "pid": 153327
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u65:6-rtw89_tx_wq",
+    "pid": 154267
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u65:11-ttm",
+    "pid": 154529
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u65:12-ttm",
+    "pid": 154530
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u65:13-ttm",
+    "pid": 154531
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u65:14-ttm",
+    "pid": 154532
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u64:1-comp_1.1.0",
+    "pid": 155356
+  },
+  {
+    "command_line": [],
+    "name": "kworker/5:2-events",
+    "pid": 155896
+  },
+  {
+    "command_line": [],
+    "name": "kworker/15:2",
+    "pid": 158476
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=677 --launch-time-ticks=9410272238 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,6266121394103401022,11419557820961491697,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709620689203267"
+    ],
+    "name": "chrome",
+    "pid": 158758
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u65:1-ttm",
+    "pid": 159269
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=693 --launch-time-ticks=9551660593 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,4726104744207796225,8089708519990043958,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709635681872851"
+    ],
+    "name": "chrome",
+    "pid": 160992
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u64:3-comp_1.0.1",
+    "pid": 161157
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=694 --launch-time-ticks=9565351303 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,3087578044038567578,14320068579724699490,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709636618914700"
+    ],
+    "name": "chrome",
+    "pid": 161292
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=695 --launch-time-ticks=9567140516 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,829463351961794573,14340190739678854349,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709637555956549"
+    ],
+    "name": "chrome",
+    "pid": 161352
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=696 --launch-time-ticks=9583525517 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,16769597410133623589,10858781260261247194,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709638492998398"
+    ],
+    "name": "chrome",
+    "pid": 161666
+  },
+  {
+    "command_line": [],
+    "name": "kworker/12:2-events",
+    "pid": 163752
+  },
+  {
+    "command_line": [],
+    "name": "kworker/8:0-mm_percpu_wq",
+    "pid": 164517
+  },
+  {
+    "command_line": [],
+    "name": "kworker/3:0",
+    "pid": 164859
+  },
+  {
+    "command_line": [],
+    "name": "kworker/2:1-events",
+    "pid": 164904
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --top-chrome-webui --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=702 --launch-time-ticks=9868259514 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,10832081851855750264,16275688147623222923,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709644115249492"
+    ],
+    "name": "chrome",
+    "pid": 165550
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u64:4-events_unbound",
+    "pid": 165979
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=717 --launch-time-ticks=9896149201 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,14754238166061976801,7589985543291522555,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709658170877227"
+    ],
+    "name": "chrome",
+    "pid": 166050
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=720 --launch-time-ticks=9914789337 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,10332140120405856716,1160011363177533873,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709660982002774"
+    ],
+    "name": "chrome",
+    "pid": 166291
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=721 --launch-time-ticks=9919183527 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,12826356885570735787,525250550205809009,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709661919044623"
+    ],
+    "name": "chrome",
+    "pid": 166340
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT --type=renderer --crashpad-handler-pid=41484 --enable-crash-reporter=, --user-data-dir=/home/ghost/.config/Codex --owl-electron-scheme-replay --standard-schemes=app,codex-sandbox --service-worker-schemes=codex-sandbox --secure-schemes=app,codex-sandbox --fetch-schemes=app,codex-sandbox --cors-schemes=codex-sandbox --streaming-schemes=app,codex-sandbox --owl-scoped-user-agent-additional-hosts=openai.com,chatgpt.com,chatgpt.site,chatgpt-team.site --owl-scoped-user-agent-prefix=CodexBrowser --change-stack-guard-on-fork=enable --ozone-platform=x11 --disable-blink-features=ReplacedNormalFlowStackingInlinePaint --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=22 --launch-time-ticks=9953996713 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,13118131187059481995,9853457483834079059,1572864 --field-trial-handle=3,i,11615953220773120459,3172766527940722524,262144 --enable-features=ReportStuckThrottle --disable-features=DropInputEventsWhilePaintHolding,WebUIOmniboxAimPopup,WebUIOmniboxPopup --variations-seed-version --pseudonymization-salt-handle=7,i,1957172776159771228,2087704555137886137,4 --trace-process-track-uuid=3190709006926792172"
+    ],
+    "name": "ChatGPT",
+    "pid": 166797
+  },
+  {
+    "command_line": [],
+    "name": "kworker/7:0-events",
+    "pid": 166806
+  },
+  {
+    "command_line": [
+      "/usr/lib/chatgpt/ChatGPT --type=renderer --crashpad-handler-pid=41484 --enable-crash-reporter=, --user-data-dir=/home/ghost/.config/Codex --owl-electron-scheme-replay --standard-schemes=app,codex-sandbox --service-worker-schemes=codex-sandbox --secure-schemes=app,codex-sandbox --fetch-schemes=app,codex-sandbox --cors-schemes=codex-sandbox --streaming-schemes=app,codex-sandbox --owl-scoped-user-agent-additional-hosts=openai.com,chatgpt.com,chatgpt.site,chatgpt-team.site --owl-scoped-user-agent-prefix=CodexBrowser --change-stack-guard-on-fork=enable --ozone-platform=x11 --disable-blink-features=ReplacedNormalFlowStackingInlinePaint --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=23 --launch-time-ticks=9954517968 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,8570730886125289968,9166816997928339377,1572864 --field-trial-handle=3,i,11615953220773120459,3172766527940722524,262144 --enable-features=ReportStuckThrottle --disable-features=DropInputEventsWhilePaintHolding,WebUIOmniboxAimPopup,WebUIOmniboxPopup --variations-seed-version --pseudonymization-salt-handle=7,i,1957172776159771228,2087704555137886137,4 --trace-process-track-uuid=3190709007863834021"
+    ],
+    "name": "ChatGPT",
+    "pid": 166807
+  },
+  {
+    "command_line": [
+      "bwrap",
+      "--unshare-all",
+      "--die-with-parent",
+      "--chdir",
+      "/",
+      "--ro-bind",
+      "/usr",
+      "/usr",
+      "--dev",
+      "/dev",
+      "--ro-bind-try",
+      "/etc/ld.so.cache",
+      "/etc/ld.so.cache",
+      "--ro-bind-try",
+      "/nix/store",
+      "/nix/store",
+      "--tmpfs",
+      "/tmp-home",
+      "--tmpfs",
+      "/tmp-run",
+      "--clearenv",
+      "--setenv",
+      "HOME",
+      "/tmp-home",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/tmp-run",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/run/user/1000",
+      "--symlink",
+      "/usr/lib64",
+      "/lib64",
+      "--symlink",
+      "/usr/lib",
+      "/lib",
+      "--symlink",
+      "/usr/lib32",
+      "/lib32",
+      "--seccomp",
+      "35",
+      "/usr/libexec/glycin-loaders/2+/glycin-image-rs",
+      "--dbus-fd",
+      "34"
+    ],
+    "name": "bwrap",
+    "pid": 167356
+  },
+  {
+    "command_line": [
+      "bwrap",
+      "--unshare-all",
+      "--die-with-parent",
+      "--chdir",
+      "/",
+      "--ro-bind",
+      "/usr",
+      "/usr",
+      "--dev",
+      "/dev",
+      "--ro-bind-try",
+      "/etc/ld.so.cache",
+      "/etc/ld.so.cache",
+      "--ro-bind-try",
+      "/nix/store",
+      "/nix/store",
+      "--tmpfs",
+      "/tmp-home",
+      "--tmpfs",
+      "/tmp-run",
+      "--clearenv",
+      "--setenv",
+      "HOME",
+      "/tmp-home",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/tmp-run",
+      "--setenv",
+      "XDG_RUNTIME_DIR",
+      "/run/user/1000",
+      "--symlink",
+      "/usr/lib64",
+      "/lib64",
+      "--symlink",
+      "/usr/lib",
+      "/lib",
+      "--symlink",
+      "/usr/lib32",
+      "/lib32",
+      "--seccomp",
+      "35",
+      "/usr/libexec/glycin-loaders/2+/glycin-image-rs",
+      "--dbus-fd",
+      "34"
+    ],
+    "name": "bwrap",
+    "pid": 167358
+  },
+  {
+    "command_line": [
+      "/usr/libexec/glycin-loaders/2+/glycin-image-rs",
+      "--dbus-fd",
+      "34"
+    ],
+    "name": "glycin-image-rs",
+    "pid": 167359
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --extension-process --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=723 --launch-time-ticks=10011863951 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,2202043742046887577,8811849859901507462,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709663793128321"
+    ],
+    "name": "chrome",
+    "pid": 167500
+  },
+  {
+    "command_line": [],
+    "name": "kworker/9:0-events",
+    "pid": 167620
+  },
+  {
+    "command_line": [],
+    "name": "kworker/6:2-events",
+    "pid": 168481
+  },
+  {
+    "command_line": [],
+    "name": "kworker/10:2",
+    "pid": 168482
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u65:0-ttm",
+    "pid": 168702
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u65:3-ttm",
+    "pid": 168703
+  },
+  {
+    "command_line": [],
+    "name": "kworker/11:0-events",
+    "pid": 173307
+  },
+  {
+    "command_line": [],
+    "name": "kworker/14:1-events",
+    "pid": 174122
+  },
+  {
+    "command_line": [],
+    "name": "kworker/4:0-events",
+    "pid": 174133
+  },
+  {
+    "command_line": [
+      "systemd-userwork: waiting..."
+    ],
+    "name": "systemd-userwor",
+    "pid": 177240
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u64:5-events_unbound",
+    "pid": 178174
+  },
+  {
+    "command_line": [
+      "systemd-userwork: waiting..."
+    ],
+    "name": "systemd-userwor",
+    "pid": 178367
+  },
+  {
+    "command_line": [],
+    "name": "kworker/u64:6-comp_1.0.1",
+    "pid": 178718
+  },
+  {
+    "command_line": [
+      "systemd-userwork: waiting..."
+    ],
+    "name": "systemd-userwor",
+    "pid": 178905
+  },
+  {
+    "command_line": [],
+    "name": "kworker/2:2-events",
+    "pid": 178946
+  },
+  {
+    "command_line": [
+      "/opt/google/chrome/chrome --type=renderer --crashpad-handler-pid=4047 --enable-crash-reporter=5805ca47-0bed-4eb8-aa2b-f4c88949143a, --change-stack-guard-on-fork=enable --ozone-platform=x11 --lang=en-GB --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=731 --launch-time-ticks=10500003891 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,3355361677649335361,17976372062671268293,1572864 --field-trial-handle=3,i,15941466450302641596,2416086587140827622,262144 --variations-seed-version=20260923-170101.530000-production --pseudonymization-salt-handle=7,i,16458105828147140412,13689863055262842455,4 --trace-process-track-uuid=3190709671289463113"
+    ],
+    "name": "chrome",
+    "pid": 179668
+  },
+  {
+    "command_line": [],
+    "name": "kworker/4:2-events",
+    "pid": 179806
+  },
+  {
+    "command_line": [],
+    "name": "kworker/6:0-events",
+    "pid": 179921
+  },
+  {
+    "command_line": [
+      "/usr/bin/zsh",
+      "-c",
+      "source /home/ghost/.claude/shell-snapshots/snapshot-zsh-1790270810485-93gqbb.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'timeout 30 /tmp/build/process_triage-linux-x64 2>&1 || true' < /dev/null && pwd -P >| /tmp/claude-5247-cwd"
+    ],
+    "name": "zsh",
+    "pid": 179992
+  },
+  {
+    "command_line": [
+      "timeout",
+      "30",
+      "/tmp/build/process_triage-linux-x64"
+    ],
+    "name": "timeout",
+    "pid": 179994
+  },
+  {
+    "command_line": [
+      "/tmp/build/process_triage-linux-x64"
+    ],
+    "name": "process_triage-",
+    "pid": 179995
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 43761,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 43867,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 36491,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 11434,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 631,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 41107,
+    "pid": 140809,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 33109,
+    "pid": 135054,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 42777,
+    "pid": 140809,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 33985,
+    "pid": 6506,
+    "process_name": "code",
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 34261,
+    "pid": 140809,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45709,
+    "pid": 135054,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45373,
+    "pid": 135312,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "0.0.0.0",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45373,
+    "pid": 135312,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 49850,
+    "state": "Established"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 52052,
+    "pid": 6313,
+    "process_name": "code",
+    "protocol": "tcp",
+    "remote_address": "40.79.167.9",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45709,
+    "pid": 135054,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 37550,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 41107,
+    "pid": 140809,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 50762,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 11434,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 54902,
+    "state": "Established"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 40170,
+    "pid": 140809,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "34.54.84.110",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45373,
+    "pid": 135312,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 49810,
+    "state": "Established"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 47880,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "34.54.84.110",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 38078,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "64.239.123.129",
+    "remote_port": 443,
+    "state": "TimeWait"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 47702,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "tcp",
+    "remote_address": "34.17.18.17",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 43867,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 58504,
+    "state": "Established"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 40892,
+    "pid": 6313,
+    "process_name": "code",
+    "protocol": "tcp",
+    "remote_address": "20.205.69.80",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45709,
+    "pid": 135054,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 37526,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45709,
+    "pid": 135054,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 37506,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 11434,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 49758,
+    "state": "Established"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 44174,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "34.36.133.15",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 43867,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 40588,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 43867,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 40602,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 49758,
+    "pid": 151883,
+    "process_name": "claude",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 11434,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45373,
+    "pid": 135312,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 49826,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 54902,
+    "pid": 151883,
+    "process_name": "claude",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 11434,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 49810,
+    "pid": 140809,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 45373,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 49826,
+    "pid": 140809,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 45373,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 49834,
+    "pid": 140809,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 45373,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 49850,
+    "pid": 140809,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 45373,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45709,
+    "pid": 135054,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 39716,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 40588,
+    "pid": 135054,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 43867,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 40602,
+    "pid": 135120,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 43867,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 42777,
+    "pid": 140809,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 40880,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45709,
+    "pid": 135054,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 35084,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45709,
+    "pid": 135054,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 37540,
+    "state": "Established"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 43108,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "tcp",
+    "remote_address": "172.253.158.188",
+    "remote_port": 5228,
+    "state": "Established"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 48050,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "tcp",
+    "remote_address": "18.97.36.57",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 35084,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 45709,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 37506,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 45709,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 37516,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 45709,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 37526,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 45709,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 37540,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 45709,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 37550,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 45709,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 58504,
+    "pid": 135312,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 43867,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 39716,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 45709,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 40880,
+    "pid": 135312,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 42777,
+    "state": "Established"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 52010,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "tcp",
+    "remote_address": "199.232.101.91",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45709,
+    "pid": 135054,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 37516,
+    "state": "Established"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 35356,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "tcp",
+    "remote_address": "64.239.123.193",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 35360,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "tcp",
+    "remote_address": "64.239.123.193",
+    "remote_port": 443,
+    "state": "CloseWait"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 45373,
+    "pid": 135312,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 49834,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 50762,
+    "pid": 135312,
+    "process_name": "antigravity-ide",
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 41107,
+    "state": "Established"
+  },
+  {
+    "local_address": "127.0.0.1",
+    "local_port": 36491,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "127.0.0.1",
+    "remote_port": 52344,
+    "state": "TimeWait"
+  },
+  {
+    "local_address": "224.0.0.251",
+    "local_port": 5353,
+    "pid": 4040,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "224.0.0.251",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "224.0.0.251",
+    "local_port": 5353,
+    "pid": 41553,
+    "process_name": "ChatGPT",
+    "protocol": "udp",
+    "remote_address": "224.0.0.251",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "224.0.0.251",
+    "local_port": 5353,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "224.0.0.251",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "224.0.0.251",
+    "local_port": 5353,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "224.0.0.251",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 40418,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "172.20.180.218",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 68,
+    "pid": null,
+    "process_name": null,
+    "protocol": "udp",
+    "remote_address": "172.20.180.218",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "172.20.180.218",
+    "local_port": 43089,
+    "pid": 41553,
+    "process_name": "ChatGPT",
+    "protocol": "udp",
+    "remote_address": "172.20.180.218",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "::",
+    "local_port": 9876,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "::",
+    "local_port": 80,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "::1",
+    "local_port": 631,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "::",
+    "remote_port": 0,
+    "state": "Listen"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 52180,
+    "pid": 6313,
+    "process_name": "code",
+    "protocol": "tcp",
+    "remote_address": "2603:1061:14:152::1",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 43332,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "tcp",
+    "remote_address": "2606:4700:91b9:46fd:ef1b:5e7:34ae:9569",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 56728,
+    "pid": 41553,
+    "process_name": "ChatGPT",
+    "protocol": "tcp",
+    "remote_address": "2606:4700:91b1:d8b7:9a1b:82a:ccf5:ac50",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 32888,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "tcp",
+    "remote_address": "2404:6800:4003:c03::bc",
+    "remote_port": 5228,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 36476,
+    "pid": 41553,
+    "process_name": "ChatGPT",
+    "protocol": "tcp",
+    "remote_address": "2606:4700:91b1:c4f:6a1b:829:a873:e7f",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 35478,
+    "pid": 41553,
+    "process_name": "ChatGPT",
+    "protocol": "tcp",
+    "remote_address": "2404:6800:4003:c04::bc",
+    "remote_port": 5228,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 35488,
+    "pid": 41553,
+    "process_name": "ChatGPT",
+    "protocol": "tcp",
+    "remote_address": "2404:6800:4003:c04::bc",
+    "remote_port": 5228,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 35498,
+    "pid": 41553,
+    "process_name": "ChatGPT",
+    "protocol": "tcp",
+    "remote_address": "2404:6800:4003:c04::bc",
+    "remote_port": 5228,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 46114,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4841:400::",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 43000,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "tcp",
+    "remote_address": "2a04:4e42:59::347",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 53474,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4841:400::",
+    "remote_port": 443,
+    "state": "TimeWait"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 55278,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4840:400::",
+    "remote_port": 443,
+    "state": "TimeWait"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 52954,
+    "pid": 151883,
+    "process_name": "claude",
+    "protocol": "tcp",
+    "remote_address": "2607:6bc0::10",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 57354,
+    "pid": 41553,
+    "process_name": "ChatGPT",
+    "protocol": "tcp",
+    "remote_address": "2606:4700:91b1:d8b7:9a1b:5e7:ccf5:ac50",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 59050,
+    "pid": 41553,
+    "process_name": "ChatGPT",
+    "protocol": "tcp",
+    "remote_address": "2606:4700:91b1:d8b7:9a1b:5e7:ccf5:ac50",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 35974,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4842:400::",
+    "remote_port": 443,
+    "state": "TimeWait"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 35990,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4842:400::",
+    "remote_port": 443,
+    "state": "TimeWait"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 35992,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4842:400::",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 57830,
+    "pid": 41553,
+    "process_name": "ChatGPT",
+    "protocol": "tcp",
+    "remote_address": "2606:4700:91b2:7cbc:c21b:82a:5ff2:75c4",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 51370,
+    "pid": 140809,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4843:400::",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 52534,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "tcp",
+    "remote_address": "2a03:2880:f26b:1d2:face:b00c:0:167",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 53390,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4845:400::",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 53394,
+    "pid": null,
+    "process_name": null,
+    "protocol": "tcp",
+    "remote_address": "2001:4860:4845:400::",
+    "remote_port": 443,
+    "state": "TimeWait"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 50988,
+    "pid": 140809,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "2404:6800:4000:1025::5f",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 32902,
+    "pid": 41716,
+    "process_name": "codex",
+    "protocol": "tcp",
+    "remote_address": "2606:4700:91b2:7cbc:c21b:829:5ff2:75c4",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 38102,
+    "pid": 135223,
+    "process_name": "language_server",
+    "protocol": "tcp",
+    "remote_address": "2404:6800:4007:815::2001",
+    "remote_port": 443,
+    "state": "Established"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 60985,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 52830,
+    "pid": 41553,
+    "process_name": "ChatGPT",
+    "protocol": "udp",
+    "remote_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 36593,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 45949,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 41385,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 50167,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 42504,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 34705,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "2401:4900:b70e:fea4:c586:f172:e4e1:d30c",
+    "local_port": 59934,
+    "pid": 41553,
+    "process_name": "ChatGPT",
+    "protocol": "udp",
+    "remote_address": "2401:4900:b70e:fea4:c586:f172:e4e1:d30c",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 43764,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  },
+  {
+    "local_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "local_port": 35837,
+    "pid": 4107,
+    "process_name": "chrome",
+    "protocol": "udp",
+    "remote_address": "2401:4900:b6d3:d51e:c1a6:4ad2:6aec:4c7",
+    "remote_port": 0,
+    "state": "UNCONNECTED"
+  }
+]

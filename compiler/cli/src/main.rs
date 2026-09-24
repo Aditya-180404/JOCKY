@@ -729,24 +729,25 @@ fn compile(
     let mut cap_provenance = Vec::new();
     for op in &ir.operations {
         if let jockey_ir::IrOperation::Collect(c) = op {
-            let (cap_name, stmt_name) = match c.target {
-                jockey_ast::CollectTarget::Processes => ("PROCESS_READ", "collect processes"),
-                jockey_ast::CollectTarget::NetworkConnections => ("NETWORK_READ", "collect network_connections"),
-                jockey_ast::CollectTarget::Files => ("FILESYSTEM_READ", "collect files"),
-                jockey_ast::CollectTarget::Logs => ("LOG_READ", "collect logs"),
-                jockey_ast::CollectTarget::SystemInfo => ("SYSTEM_INFO_READ", "collect system_info"),
-                jockey_ast::CollectTarget::Drivers => ("DRIVER_READ", "collect drivers"),
-                jockey_ast::CollectTarget::Timeline => ("TIMELINE_READ", "collect timeline"),
-                jockey_ast::CollectTarget::MemoryRegions => ("MEMORY_READ", "collect memory_regions"),
-                jockey_ast::CollectTarget::Registry => ("REGISTRY_READ", "collect registry"),
-                jockey_ast::CollectTarget::Artifacts => ("ARTIFACT_CARVE", "collect artifacts"),
+            let (cap_name, stmt_name) = match c.operation.as_str() {
+                "system.info" => ("SYSTEM_INFO_READ", "collect system_info"),
+                "process.enumerate" => ("PROCESS_READ", "collect processes"),
+                "network.connections" => ("NETWORK_READ", "collect network_connections"),
+                "filesystem.enumerate" => ("FILESYSTEM_READ", "collect files"),
+                "logs.collect" => ("LOG_READ", "collect logs"),
+                "drivers.enumerate" => ("DRIVER_READ", "collect drivers"),
+                "timeline.build" => ("TIMELINE_READ", "collect timeline"),
+                "memory.regions" => ("MEMORY_READ", "collect memory_regions"),
+                "registry.enumerate" => ("REGISTRY_READ", "collect registry"),
+                "artifacts.carve" => ("ARTIFACT_CARVE", "collect artifacts"),
+                _ => continue,
             };
             cap_provenance.push(serde_json::json!({
                 "capability": cap_name,
                 "source_statement": stmt_name,
                 "span": c.span.to_string(),
             }));
-            if c.options.hash_algorithm.is_some() {
+            if c.options.get("hash").is_some() {
                 cap_provenance.push(serde_json::json!({
                     "capability": "FILE_HASH",
                     "source_statement": format!("{}: hash requested", stmt_name),
