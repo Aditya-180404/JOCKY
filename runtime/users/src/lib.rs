@@ -122,7 +122,7 @@ impl UsersResult {
 #[cfg(target_os = "linux")]
 pub fn enumerate_users() -> Result<UsersResult> {
     use std::fs;
-    use users::{get_user_by_uid, get_group_by_gid, UserExt, GroupExt};
+    use users::{get_group_by_gid, get_user_by_uid};
 
     let mut result = UsersResult::new();
 

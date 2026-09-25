@@ -35,7 +35,7 @@ pub enum LogonType {
     CachedInteractive = 11,
     CachedRemoteInteractive = 12,
     CachedUnlock = 13,
-    Unknown(u32),
+    Unknown,
 }
 
 /// Logon event
@@ -178,7 +178,7 @@ pub struct AuthPolicy {
 }
 
 /// Type of authentication policy
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AuthPolicyType {
     // Password policy
     MinPasswordLength,
@@ -492,9 +492,10 @@ pub fn collect_linux_logon_events() -> Result<LogonEventsResult> {
 
 /// Parse syslog timestamp (e.g., "Sep 25 10:30:45")
 fn parse_syslog_timestamp(ts: &str) -> DateTime<Utc> {
+    use chrono::Datelike;
+
     let now = Utc::now();
     let year = now.year();
-    // This is a simplified parser
     DateTime::parse_from_str(&format!("{} {} {}", year, ts, now.offset()), "%Y %b %d %H:%M:%S %z")
         .map(|dt| dt.with_timezone(&Utc))
         .unwrap_or_else(|_| Utc::now())
@@ -531,9 +532,10 @@ fn collect_linux_credential_artifacts(result: &mut CredentialArtifactsResult) ->
     ];
 
     for (path, artifact_type, risk_level) in artifacts_to_check {
-        if let Ok(metadata) = fs::metadata(path) {
+        let path_buf = std::path::Path::new(path);
+        if let Ok(metadata) = fs::metadata(path_buf) {
             let sha256 = if metadata.is_file() {
-                Some(compute_file_hash(path)?)
+                Some(compute_file_hash(path_buf)?)
             } else {
                 None
             };
@@ -557,7 +559,7 @@ fn collect_linux_credential_artifacts(result: &mut CredentialArtifactsResult) ->
         for entry in home_dirs.flatten() {
             let ssh_dir = entry.path().join(".ssh");
             if ssh_dir.exists() {
-                for key_file in fs::read_dir(&ssh_dir).unwrap_or_default().flatten() {
+                for key_file in fs::read_dir(&ssh_dir).into_iter().flatten().flatten() {
                     let path = key_file.path();
                     let name = path.file_name().unwrap().to_string_lossy();
                     if name.ends_with(".pub") {
@@ -586,7 +588,7 @@ fn collect_linux_credential_artifacts(result: &mut CredentialArtifactsResult) ->
     // Check root SSH keys
     let root_ssh = std::path::Path::new("/root/.ssh");
     if root_ssh.exists() {
-        for key_file in fs::read_dir(root_ssh).unwrap_or_default().flatten() {
+        for key_file in fs::read_dir(root_ssh).into_iter().flatten().flatten() {
             let path = key_file.path();
             let name = path.file_name().unwrap().to_string_lossy();
             if name == "id_rsa" || name == "id_ed25519" || name == "id_ecdsa" || name == "id_dsa" {

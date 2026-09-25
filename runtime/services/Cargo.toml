@@ -13,12 +13,11 @@ thiserror = { workspace = true }
 anyhow = { workspace = true }
 chrono = { workspace = true }
 whoami = "1.6.1"
+sha2 = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 procfs = "0.15"
 libc = "0.2"
-dbus = "0.9"
-sd_bus = "0.3"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winreg = "0.10"

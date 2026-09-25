@@ -23,6 +23,9 @@ jockey-runtime-registry = { path = "registry" }
 jockey-runtime-artifacts = { path = "artifacts" }
 jockey-runtime-correlation = { path = "correlation" }
 jockey-runtime-security = { path = "security" }
+jockey-runtime-services = { path = "services" }
+jockey-runtime-users = { path = "users" }
+jockey-runtime-auth = { path = "auth" }
 jockey-runtime-capabilities = { path = "capabilities" }
 serde = { workspace = true }
 serde_json = { workspace = true }

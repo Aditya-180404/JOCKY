@@ -211,7 +211,7 @@ pub struct SystemdUnitInfo {
     /// Enabled state
     pub enabled: bool,
     /// Static state
-    pub static: bool,
+    pub r#static: bool,
 }
 
 /// Systemd unit type
@@ -567,7 +567,7 @@ pub fn enumerate_systemd_units() -> Result<Vec<SystemdUnitInfo>> {
 
 /// Parse a systemd unit file
 #[cfg(target_os = "linux")]
-fn parse_systemd_unit_file(path: &Path) -> Result<SystemdUnitInfo> {
+fn parse_systemd_unit_file(path: &std::path::Path) -> Result<SystemdUnitInfo> {
     use std::fs;
 
     let content = fs::read_to_string(path)?;
@@ -617,7 +617,7 @@ fn parse_systemd_unit_file(path: &Path) -> Result<SystemdUnitInfo> {
         restart_sec: None,
         timer_properties: None,
         enabled: false,
-        static: false,
+        r#static: false,
     };
 
     let mut current_section = String::new();

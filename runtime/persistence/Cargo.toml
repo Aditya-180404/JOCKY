@@ -19,7 +19,7 @@ dirs = "5.0"
 [target.'cfg(target_os = "linux")'.dependencies]
 procfs = "0.15"
 libc = "0.2"
-users = { version = "0.11", features = ["os-ext"] }
+users = "0.11"
 cron = "0.4"
 
 [target.'cfg(target_os = "windows")'.dependencies]

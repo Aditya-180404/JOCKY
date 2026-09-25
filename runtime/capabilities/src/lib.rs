@@ -9,7 +9,7 @@
 //! - MITRE ATT&CK technique mappings
 
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::sync::OnceLock;
 
 /// Unique identifier for a capability
@@ -113,10 +113,34 @@ impl Capability {
     }
 }
 
+/// An authoritative runtime binding for a capability.
+///
+/// This is the single source of truth for runtime reachability. The capability registry may
+/// declare many capabilities, but only entries present here are genuinely runtime-backed.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RuntimeCapabilityBinding {
+    pub capability_id: &'static str,
+    pub runtime_module: &'static str,
+    pub runtime_handler: &'static str,
+    pub abi_symbol: Option<&'static str>,
+    pub platform: Platform,
+    pub privilege: PrivilegeLevel,
+    pub evidence_contract: &'static str,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CapabilityTruthStatus {
+    DeclaredOnly,
+    RuntimeBound,
+    PlatformSpecific,
+    Unknown,
+}
+
 /// The global capability registry
 pub struct CapabilityRegistry {
     capabilities: HashMap<String, Capability>,
     by_category: HashMap<CapabilityCategory, Vec<String>>,
+    runtime_dispatch: HashMap<String, RuntimeCapabilityBinding>,
 }
 
 impl CapabilityRegistry {
@@ -124,9 +148,245 @@ impl CapabilityRegistry {
         let mut registry = Self {
             capabilities: HashMap::new(),
             by_category: HashMap::new(),
+            runtime_dispatch: HashMap::new(),
         };
         registry.register_all();
+        registry.build_runtime_dispatch_map();
         registry
+    }
+
+    fn build_runtime_dispatch_map(&mut self) {
+        let bindings = [
+            RuntimeCapabilityBinding {
+                capability_id: "system.info.basic",
+                runtime_module: "jockey_runtime_system",
+                runtime_handler: "collect_system_info",
+                abi_symbol: Some("jockey_rt_collect_system"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "system_info",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "system.info.detailed",
+                runtime_module: "jockey_runtime_system",
+                runtime_handler: "collect_system_info_detailed",
+                abi_symbol: Some("jockey_rt_collect_system"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "system_info_detailed",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "process.enumerate",
+                runtime_module: "jockey_runtime_process",
+                runtime_handler: "enumerate_processes",
+                abi_symbol: Some("jockey_rt_collect_processes"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "process_inventory",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "process.tree",
+                runtime_module: "jockey_runtime_process",
+                runtime_handler: "collect_process_tree",
+                abi_symbol: Some("jockey_rt_collect_processes"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "process_tree",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "process.modules",
+                runtime_module: "jockey_runtime_process",
+                runtime_handler: "collect_process_modules",
+                abi_symbol: Some("jockey_rt_collect_processes"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "process_modules",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "process.memory",
+                runtime_module: "jockey_runtime_memory",
+                runtime_handler: "enumerate_memory_regions",
+                abi_symbol: Some("jockey_rt_collect_memory_regions"),
+                platform: Platform::Linux,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "memory_regions",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "process.deleted_exe",
+                runtime_module: "jockey_runtime_process",
+                runtime_handler: "detect_deleted_executables",
+                abi_symbol: Some("jockey_rt_collect_processes"),
+                platform: Platform::Linux,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "deleted_executables",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "user.enumerate",
+                runtime_module: "jockey_runtime_users",
+                runtime_handler: "enumerate_users",
+                abi_symbol: None,
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "user_inventory",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "auth.logon_events",
+                runtime_module: "jockey_runtime_auth",
+                runtime_handler: "collect_logon_events",
+                abi_symbol: None,
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::Admin,
+                evidence_contract: "logon_events",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "auth.credential_artifacts",
+                runtime_module: "jockey_runtime_auth",
+                runtime_handler: "collect_credential_artifacts",
+                abi_symbol: None,
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::Admin,
+                evidence_contract: "credential_artifacts",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "auth.policy",
+                runtime_module: "jockey_runtime_auth",
+                runtime_handler: "collect_auth_policy",
+                abi_symbol: None,
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "auth_policy",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "service.enumerate",
+                runtime_module: "jockey_runtime_services",
+                runtime_handler: "enumerate_services",
+                abi_symbol: None,
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "service_inventory",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "service.drivers",
+                runtime_module: "jockey_runtime_services",
+                runtime_handler: "enumerate_drivers",
+                abi_symbol: Some("jockey_rt_collect_drivers"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "driver_inventory",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "service.systemd",
+                runtime_module: "jockey_runtime_services",
+                runtime_handler: "enumerate_systemd_units",
+                abi_symbol: None,
+                platform: Platform::Linux,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "systemd_units",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "network.connections",
+                runtime_module: "jockey_runtime_network",
+                runtime_handler: "enumerate_connections",
+                abi_symbol: Some("jockey_rt_collect_network"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "network_connections",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "filesystem.enumerate",
+                runtime_module: "jockey_runtime_filesystem",
+                runtime_handler: "enumerate_files",
+                abi_symbol: Some("jockey_rt_collect_files"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "filesystem_inventory",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "artifact.shell_history",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "carve_shell_history",
+                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                platform: Platform::Linux,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "artifact_inventory",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "persistence.autostart",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "collect_autostart_entries",
+                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "autostart_entries",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "security.audit_policy",
+                runtime_module: "jockey_runtime_security",
+                runtime_handler: "collect_audit_policy",
+                abi_symbol: None,
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::Admin,
+                evidence_contract: "audit_policy",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "security.firewall",
+                runtime_module: "jockey_runtime_security",
+                runtime_handler: "collect_firewall_rules",
+                abi_symbol: None,
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::Admin,
+                evidence_contract: "firewall_rules",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "security.av_status",
+                runtime_module: "jockey_runtime_security",
+                runtime_handler: "detect_av_edr",
+                abi_symbol: None,
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "av_edr_status",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "security.app_control",
+                runtime_module: "jockey_runtime_security",
+                runtime_handler: "collect_app_control",
+                abi_symbol: None,
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::Admin,
+                evidence_contract: "app_control",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "kernel.modules",
+                runtime_module: "jockey_runtime_registry",
+                runtime_handler: "enumerate_modules",
+                abi_symbol: None,
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "kernel_modules",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "evidence.sha256",
+                runtime_module: "jockey_runtime_evidence",
+                runtime_handler: "hash_sha256",
+                abi_symbol: None,
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "evidence_hash",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "evidence.merkle",
+                runtime_module: "jockey_runtime_evidence",
+                runtime_handler: "build_merkle_tree",
+                abi_symbol: None,
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "merkle_tree",
+            },
+        ];
+
+        for binding in bindings {
+            self.runtime_dispatch.insert(binding.capability_id.to_string(), binding);
+        }
     }
 
     fn register_named_capabilities(
@@ -1537,54 +1797,26 @@ impl CapabilityRegistry {
         self.capabilities.values().filter(|c| c.is_implemented).collect()
     }
 
-    /// Check whether a capability's collector is actually backed by a runtime implementation.
+    /// Return the authoritative runtime binding for a capability, if one exists.
+    pub fn runtime_binding_for(&self, capability_id: &str) -> Option<&RuntimeCapabilityBinding> {
+        self.runtime_dispatch.get(capability_id)
+    }
+
+    /// Check whether a capability is backed by a runtime implementation.
     pub fn runtime_capability_exists(&self, capability_id: &str) -> bool {
-        let Some(capability) = self.capabilities.get(capability_id) else {
-            return false;
+        self.runtime_dispatch.contains_key(capability_id)
+    }
+
+    /// Return the truth status of a capability without conflating declaration with runtime reachability.
+    pub fn capability_truth_status(&self, capability_id: &str) -> CapabilityTruthStatus {
+        let Some(_) = self.capabilities.get(capability_id) else {
+            return CapabilityTruthStatus::Unknown;
         };
-        if !capability.is_implemented {
-            return false;
+        if self.runtime_dispatch.contains_key(capability_id) {
+            CapabilityTruthStatus::RuntimeBound
+        } else {
+            CapabilityTruthStatus::DeclaredOnly
         }
-
-        static IMPLEMENTED_COLLECTORS: OnceLock<HashSet<&'static str>> = OnceLock::new();
-        let collectors = IMPLEMENTED_COLLECTORS.get_or_init(|| {
-            let mut set = HashSet::new();
-            for collector in [
-                "collect_system_info",
-                "collect_system_info_detailed",
-                "collect_system_users",
-                "enumerate_processes",
-                "collect_process_tree",
-                "collect_process_modules",
-                "enumerate_memory_regions",
-                "collect_process_handles",
-                "detect_deleted_executables",
-                "enumerate_users",
-                "collect_logon_events",
-                "collect_credential_artifacts",
-                "collect_auth_policy",
-                "enumerate_services",
-                "enumerate_systemd_units",
-                "enumerate_drivers",
-                "enumerate_connections",
-                "collect_logs",
-                "hash_sha256",
-                "build_merkle_tree",
-                "carve_shell_history",
-                "collect_autostart_entries",
-                "collect_audit_policy",
-                "collect_firewall_rules",
-                "detect_av_edr",
-                "collect_app_control",
-                "analyze_shell_scripts",
-                "enumerate_modules",
-            ] {
-                set.insert(collector);
-            }
-            set
-        });
-
-        collectors.contains(capability.collector_function.as_str())
     }
 
     /// Invoke the runtime-backed collector contract for a capability.
@@ -1594,22 +1826,20 @@ impl CapabilityRegistry {
             .get(capability_id)
             .ok_or_else(|| format!("Capability '{}' not found in registry", capability_id))?;
 
-        if !capability.is_implemented {
-            return Err(format!("Capability '{}' is declared but not implemented", capability_id));
-        }
-
-        if !self.runtime_capability_exists(capability_id) {
-            return Err(format!(
-                "Capability '{}' collector '{}' is not backed by a runtime implementation",
-                capability_id,
-                capability.collector_function
-            ));
-        }
+        let binding = self
+            .runtime_dispatch
+            .get(capability_id)
+            .ok_or_else(|| format!("Capability '{}' is declared but not runtime-bound", capability_id))?;
 
         Ok(serde_json::json!({
             "id": capability.id,
             "name": capability.name,
-            "collector_function": capability.collector_function,
+            "collector_function": binding.runtime_handler,
+            "runtime_module": binding.runtime_module,
+            "abi_symbol": binding.abi_symbol,
+            "platform": format!("{:?}", binding.platform),
+            "privilege": format!("{:?}", binding.privilege),
+            "evidence_contract": binding.evidence_contract,
             "status": "runtime-backed"
         }))
     }
@@ -1777,7 +2007,6 @@ mod tests {
         let reg = registry();
 
         assert!(reg.runtime_capability_exists("system.info.detailed"));
-        assert!(reg.runtime_capability_exists("system.info.users"));
         assert!(reg.runtime_capability_exists("user.enumerate"));
         assert!(reg.runtime_capability_exists("auth.logon_events"));
         assert!(reg.runtime_capability_exists("auth.credential_artifacts"));
@@ -1789,5 +2018,18 @@ mod tests {
         assert!(result.is_ok(), "user.enumerate should resolve to a runtime-backed collector");
         let payload = result.unwrap();
         assert_eq!(payload["status"], "runtime-backed");
+        assert_eq!(payload["runtime_module"], "jockey_runtime_users");
+    }
+
+    #[test]
+    fn test_authoritative_runtime_dispatch_map() {
+        let reg = registry();
+
+        let binding = reg.runtime_binding_for("user.enumerate").expect("user.enumerate should resolve through the authoritative map");
+        assert_eq!(binding.runtime_module, "jockey_runtime_users");
+        assert_eq!(binding.runtime_handler, "enumerate_users");
+        assert_eq!(reg.capability_truth_status("user.enumerate"), CapabilityTruthStatus::RuntimeBound);
+        assert_eq!(reg.capability_truth_status("persistence.wmi"), CapabilityTruthStatus::DeclaredOnly);
+        assert!(!reg.runtime_capability_exists("persistence.wmi"));
     }
 }
