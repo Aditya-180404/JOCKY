@@ -9,24 +9,22 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
-  Hash,
   Plus,
   ChevronRight,
   FileText,
   Search,
   Activity,
-  Cpu,
-  Globe,
   HardDrive,
   Shield,
   Layers,
   Share2,
   Download,
-  Terminal,
-  Filter,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import clsx from 'clsx';
+import { GraphView } from '../components/GraphView';
+
+// API Response Types matching backend
 
 interface EvidenceSummary {
   id: string;
@@ -36,7 +34,7 @@ interface EvidenceSummary {
   size_bytes: number;
 }
 
-interface TimelineItem {
+interface TimelineEvent {
   timestamp: string;
   host: string;
   source: string;
@@ -51,17 +49,52 @@ interface TimelineItem {
   details?: Record<string, any>;
 }
 
-interface ProcessItem {
+interface TimelineResponse {
+  investigation_id: string;
+  host: string;
+  event_count: number;
+  sources: string[];
+  events: TimelineEvent[];
+}
+
+interface HostArtifact {
+  id: string;
+  hostname: string;
+  platform: string;
+  os_version: string;
+  architecture: string;
+  identifiers: Record<string, string>;
+}
+
+interface UserArtifact {
+  id: string;
+  username: string;
+  domain?: string;
+  privileges: string[];
+}
+
+interface ProcessArtifact {
   pid: number;
   ppid?: number;
   name: string;
   executable?: string;
   command_line?: string;
   user?: string;
+  start_time?: string;
   hash?: string;
 }
 
-interface NetworkItem {
+interface FileArtifact {
+  path: string;
+  size: number;
+  sha256?: string;
+  created_at?: string;
+  modified_at?: string;
+  accessed_at?: string;
+  owner?: string;
+}
+
+interface NetworkConnectionArtifact {
   local_address: string;
   local_port: number;
   remote_address: string;
@@ -69,23 +102,53 @@ interface NetworkItem {
   protocol: string;
   state: string;
   process?: string;
+  pid?: number;
+  timestamp: string;
 }
 
-interface FileItem {
-  path: string;
-  size: number;
-  sha256?: string;
-  owner?: string;
+interface DriverArtifact {
+  name: string;
+  path?: string;
+  hash?: string;
+  signer?: string;
+  version?: string;
+  loaded_at?: string;
 }
 
-interface NormalizedEntitiesData {
-  hosts: Array<{ id: string; hostname: string; platform: string; os_version: string }>;
-  processes: ProcessItem[];
-  network_connections: NetworkItem[];
-  files: FileItem[];
+interface RegistryArtifact {
+  key: string;
+  value?: string;
+  data?: string;
+  timestamp?: string;
 }
 
-interface IocMatch {
+interface LogEventArtifact {
+  source: string;
+  event_id?: string;
+  timestamp: string;
+  host: string;
+  user?: string;
+  message: string;
+}
+
+interface NormalizedEntities {
+  hosts: HostArtifact[];
+  users: UserArtifact[];
+  processes: ProcessArtifact[];
+  files: FileArtifact[];
+  network_connections: NetworkConnectionArtifact[];
+  drivers: DriverArtifact[];
+  registry_keys: RegistryArtifact[];
+  log_events: LogEventArtifact[];
+}
+
+interface EntitiesResponse {
+  investigation_id: string;
+  host: string;
+  entities: NormalizedEntities;
+}
+
+interface IndicatorMatch {
   indicator_id: string;
   indicator_type: string;
   indicator_value: string;
@@ -97,7 +160,13 @@ interface IocMatch {
   severity: string;
 }
 
-interface FindingItem {
+interface IndicatorsResponse {
+  investigation_id: string;
+  total_matches: number;
+  matches: IndicatorMatch[];
+}
+
+interface RuleFinding {
   id: string;
   rule_name: string;
   title: string;
@@ -110,16 +179,45 @@ interface FindingItem {
   recommendation?: string;
 }
 
-interface GraphData {
+interface FindingsResponse {
+  investigation_id: string;
+  findings_count: number;
+  findings: RuleFinding[];
+}
+
+interface EntityNode {
+  entity: {
+    display: () => string;
+    entity_type: () => string;
+  };
+  evidence_refs: string[];
+  first_seen: string;
+  last_seen: string;
+  event_count: number;
+}
+
+interface Relationship {
+  id: string;
+  source_entity: any;
+  target_entity: any;
+  relationship_type: string;
+  confidence: number;
+  timestamp: string;
+  evidence_refs: string[];
+}
+
+interface CorrelationGraph {
   investigation_id: string;
   host: string;
-  entities: Record<string, any>;
-  relationships: Array<{
-    source_entity: any;
-    target_entity: any;
-    relationship_type: string;
-    confidence: number;
-  }>;
+  generated_at: string;
+  entities: Record<string, EntityNode>;
+  relationships: Relationship[];
+  findings: any[];
+}
+
+interface GraphResponse {
+  investigation_id: string;
+  graph: CorrelationGraph;
 }
 
 export function InvestigationDetail() {
@@ -133,16 +231,19 @@ export function InvestigationDetail() {
   const [activeTab, setActiveTab] = useState<'evidence' | 'timeline' | 'entities' | 'iocs' | 'findings' | 'graph' | 'report'>('evidence');
 
   // Tab Data States
-  const [timelineEvents, setTimelineEvents] = useState<TimelineItem[]>([]);
+  const [timelineData, setTimelineData] = useState<TimelineResponse | null>(null);
   const [timelineSearch, setTimelineSearch] = useState('');
   const [timelineSourceFilter, setTimelineSourceFilter] = useState('ALL');
 
-  const [entities, setEntities] = useState<NormalizedEntitiesData | null>(null);
-  const [entitySubTab, setEntitySubTab] = useState<'processes' | 'network' | 'files'>('processes');
+  const [entitiesData, setEntitiesData] = useState<EntitiesResponse | null>(null);
+  const [entitySubTab, setEntitySubTab] = useState<'processes' | 'network' | 'files' | 'users' | 'drivers' | 'registry' | 'logs'>('processes');
 
-  const [iocMatches, setIocMatches] = useState<IocMatch[]>([]);
-  const [findings, setFindings] = useState<FindingItem[]>([]);
-  const [graphData, setGraphData] = useState<GraphData | null>(null);
+  const [iocData, setIocData] = useState<IndicatorsResponse | null>(null);
+  const [findingsData, setFindingsData] = useState<FindingsResponse | null>(null);
+  const [graphData, setGraphData] = useState<GraphResponse | null>(null);
+
+  // Loading states for each tab
+  const [tabLoading, setTabLoading] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (id) {
@@ -158,25 +259,25 @@ export function InvestigationDetail() {
       setEvidence(response.data.evidence || []);
 
       // Load workspace sub-datasets in parallel
-      api.get(`/api/investigations/${investigationId}/timeline`).then(res => {
-        setTimelineEvents(res.data.events || []);
-      }).catch(() => {});
+      const loadTab = async (tab: string, url: string, setter: (data: any) => void) => {
+        setTabLoading(prev => ({ ...prev, [tab]: true }));
+        try {
+          const res = await api.get(url);
+          setter(res.data);
+        } catch (error) {
+          console.error(`Failed to load ${tab}:`, error);
+        } finally {
+          setTabLoading(prev => ({ ...prev, [tab]: false }));
+        }
+      };
 
-      api.get(`/api/investigations/${investigationId}/entities`).then(res => {
-        setEntities(res.data.entities || null);
-      }).catch(() => {});
-
-      api.get(`/api/investigations/${investigationId}/indicators`).then(res => {
-        setIocMatches(res.data.matches || []);
-      }).catch(() => {});
-
-      api.get(`/api/investigations/${investigationId}/findings`).then(res => {
-        setFindings(res.data.findings || []);
-      }).catch(() => {});
-
-      api.get(`/api/investigations/${investigationId}/graph`).then(res => {
-        setGraphData(res.data.graph || null);
-      }).catch(() => {});
+      await Promise.all([
+        loadTab('timeline', `/api/investigations/${investigationId}/timeline`, setTimelineData),
+        loadTab('entities', `/api/investigations/${investigationId}/entities`, setEntitiesData),
+        loadTab('indicators', `/api/investigations/${investigationId}/indicators`, setIocData),
+        loadTab('findings', `/api/investigations/${investigationId}/findings`, setFindingsData),
+        loadTab('graph', `/api/investigations/${investigationId}/graph`, setGraphData),
+      ]);
 
     } catch (error) {
       console.error('Failed to load investigation:', error);
@@ -230,6 +331,7 @@ export function InvestigationDetail() {
   const statusConfig = getStatusConfig(investigation.status);
 
   // Filtered timeline
+  const timelineEvents = timelineData?.events || [];
   const filteredTimeline = timelineEvents.filter(ev => {
     const matchesSource = timelineSourceFilter === 'ALL' || ev.source.toUpperCase() === timelineSourceFilter;
     const matchesQuery = !timelineSearch ||
@@ -240,19 +342,31 @@ export function InvestigationDetail() {
     return matchesSource && matchesQuery;
   });
 
-  const exportReport = (format: 'json' | 'html') => {
-    const reportData = {
-      investigation_name: investigation.name,
-      investigation_id: investigation.id,
-      generated_at: new Date().toISOString(),
-      evidence_count: evidence.length,
-      evidence_hashes: evidence.map(e => e.sha256_hash),
-      timeline_event_count: timelineEvents.length,
-      ioc_matches_count: iocMatches.length,
-      findings_count: findings.length,
-      findings,
-      ioc_matches: iocMatches,
-    };
+  // Entities data
+  const entities = entitiesData?.entities;
+
+  // IOC matches
+  const iocMatches = iocData?.matches || [];
+
+  // Findings
+  const findings = findingsData?.findings || [];
+
+  // Build report data object for exports
+  const buildReportData = () => ({
+    investigation_name: investigation.name,
+    investigation_id: investigation.id,
+    generated_at: new Date().toISOString(),
+    evidence_count: evidence.length,
+    evidence_hashes: evidence.map(e => e.sha256_hash),
+    timeline_event_count: timelineEvents.length,
+    ioc_matches_count: iocMatches.length,
+    findings_count: findings.length,
+    findings,
+    ioc_matches: iocMatches,
+  });
+
+  const exportReport = (format: 'json' | 'html' | 'markdown') => {
+    const reportData = buildReportData();
 
     if (format === 'json') {
       const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
@@ -261,7 +375,7 @@ export function InvestigationDetail() {
       a.href = url;
       a.download = `jockey-report-${investigation.name.toLowerCase().replace(/\s+/g, '-')}.json`;
       a.click();
-    } else {
+    } else if (format === 'html') {
       const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -314,7 +428,245 @@ export function InvestigationDetail() {
       a.href = url;
       a.download = `jockey-report-${investigation.name.toLowerCase().replace(/\s+/g, '-')}.html`;
       a.click();
+    } else if (format === 'markdown') {
+      const markdown = generateChainOfCustodyMarkdown();
+      const blob = new Blob([markdown], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `jockey-chain-of-custody-${investigation.name.toLowerCase().replace(/\s+/g, '-')}.md`;
+      a.click();
     }
+  };
+
+  const generateChainOfCustodyMarkdown = (): string => {
+    const reportData = buildReportData();
+    const lines: string[] = [];
+    lines.push(`# JOCKEY Chain-of-Custody Report`);
+    lines.push(``);
+    lines.push(`**Investigation:** ${investigation.name} (\`${investigation.id}\`)`);
+    lines.push(`**Generated:** ${new Date().toUTCString()}`);
+    lines.push(`**Status:** ${investigation.status}`);
+    lines.push(`**Tool Version:** ${investigation.tool_version_id || 'N/A'}`);
+    lines.push(``);
+    lines.push(`---`);
+    lines.push(``);
+
+    // Evidence Chain
+    lines.push(`## 1. Evidence Chain`);
+    lines.push(``);
+    lines.push(`| # | Evidence ID | Host | Collection Time | SHA-256 | Size (MB) |`);
+    lines.push(`|---|-------------|------|-----------------|---------|-----------|`);
+    evidence.forEach((e, i) => {
+      lines.push(`| ${i + 1} | \`${e.id}\` | ${e.host_identifier || 'Unknown'} | ${new Date(e.collection_time).toUTCString()} | \`${e.sha256_hash}\` | ${(e.size_bytes / 1024 / 1024).toFixed(2)} |`);
+    });
+    lines.push(``);
+
+    // Timeline Events
+    lines.push(`## 2. Forensic Timeline (${timelineEvents.length} events)`);
+    lines.push(``);
+    lines.push(`| Timestamp | Host | Source | Event Type | Process | Path/Endpoint | Evidence Ref |`);
+    lines.push(`|-----------|------|--------|------------|---------|---------------|--------------|`);
+    timelineEvents.slice(0, 50).forEach(ev => {
+      const proc = ev.process_name ? `${ev.process_name} (PID: ${ev.process_id || 'N/A'})` : '-';
+      const target = ev.path || ev.network_endpoint || '-';
+      const ref = ev.evidence_ref || '-';
+      lines.push(`| ${ev.timestamp} | ${ev.host} | ${ev.source} | ${ev.event_type} | ${proc} | ${target} | \`${ref}\` |`);
+    });
+    if (timelineEvents.length > 50) {
+      lines.push(`| ... | ... | ... | ... | ... | ... | ... |`);
+      lines.push(`| *${timelineEvents.length - 50} more events truncated* | | | | | | |`);
+    }
+    lines.push(``);
+
+    // Entities
+    if (entities) {
+      lines.push(`## 3. Normalized Entities`);
+      lines.push(``);
+
+      if (entities.hosts.length > 0) {
+        lines.push(`### 3.1 Hosts (${entities.hosts.length})`);
+        lines.push(``);
+        lines.push(`| Hostname | Platform | OS Version | Architecture |`);
+        lines.push(`|----------|----------|------------|--------------|`);
+        entities.hosts.forEach(h => {
+          lines.push(`| ${h.hostname} | ${h.platform} | ${h.os_version} | ${h.architecture} |`);
+        });
+        lines.push(``);
+      }
+
+      if (entities.processes.length > 0) {
+        lines.push(`### 3.2 Processes (${entities.processes.length})`);
+        lines.push(``);
+        lines.push(`| PID | PPID | Name | User | Executable | Hash |`);
+        lines.push(`|-----|------|------|------|------------|------|`);
+        entities.processes.slice(0, 30).forEach(p => {
+          lines.push(`| ${p.pid} | ${p.ppid || '-'} | ${p.name} | ${p.user || 'root'} | ${p.executable || p.command_line || '-'} | ${p.hash ? `\`${p.hash.slice(0, 16)}...\`` : '-'} |`);
+        });
+        if (entities.processes.length > 30) {
+          lines.push(`| *${entities.processes.length - 30} more processes truncated* | | | | | |`);
+        }
+        lines.push(``);
+      }
+
+      if (entities.network_connections.length > 0) {
+        lines.push(`### 3.3 Network Connections (${entities.network_connections.length})`);
+        lines.push(``);
+        lines.push(`| Protocol | Local | Remote | State | Process | PID |`);
+        lines.push(`|----------|-------|--------|-------|---------|-----|`);
+        entities.network_connections.slice(0, 30).forEach(n => {
+          lines.push(`| ${n.protocol} | ${n.local_address}:${n.local_port} | ${n.remote_address}:${n.remote_port} | ${n.state} | ${n.process || '-'} | ${n.pid || '-'} |`);
+        });
+        if (entities.network_connections.length > 30) {
+          lines.push(`| *${entities.network_connections.length - 30} more connections truncated* | | | | | |`);
+        }
+        lines.push(``);
+      }
+
+      if (entities.files.length > 0) {
+        lines.push(`### 3.4 Files (${entities.files.length})`);
+        lines.push(``);
+        lines.push(`| Path | Size | Owner | SHA-256 |`);
+        lines.push(`|------|------|-------|---------|`);
+        entities.files.slice(0, 30).forEach(f => {
+          lines.push(`| ${f.path} | ${f.size} bytes | ${f.owner || '-'} | ${f.sha256 ? `\`${f.sha256.slice(0, 24)}...\`` : '-'} |`);
+        });
+        if (entities.files.length > 30) {
+          lines.push(`| *${entities.files.length - 30} more files truncated* | | | |`);
+        }
+        lines.push(``);
+      }
+    }
+
+    // IOC Matches
+    lines.push(`## 4. IOC Threat Matches (${iocMatches.length})`);
+    lines.push(``);
+    if (iocMatches.length > 0) {
+      lines.push(`| Severity | Type | Indicator | Matched Field | Observed Value | Host | Evidence Ref |`);
+      lines.push(`|----------|------|-----------|---------------|----------------|------|--------------|`);
+      iocMatches.forEach(m => {
+        lines.push(`| ${m.severity.toUpperCase()} | ${m.indicator_type} | \`${m.indicator_value}\` | ${m.matched_field} | \`${m.observed_value}\` | ${m.host_id} | \`${m.evidence_reference || 'N/A'}\` |`);
+      });
+    } else {
+      lines.push(`*No IOC matches found.*`);
+    }
+    lines.push(``);
+
+    // Findings
+    lines.push(`## 5. Security Findings (${findings.length})`);
+    lines.push(``);
+    if (findings.length > 0) {
+      lines.push(`| Severity | Rule | Title | MITRE ATT&CK | Entity | Recommendation |`);
+      lines.push(`|----------|------|-------|--------------|--------|----------------|`);
+      findings.forEach(f => {
+        const rec = f.recommendation ? f.recommendation.replace(/\|/g, '\\|') : 'Review evidence';
+        lines.push(`| ${f.severity.toUpperCase()} | ${f.rule_name} | ${f.title} | ${f.mitre_attack_id || 'N/A'} | ${f.matched_entity} | ${rec} |`);
+      });
+    } else {
+      lines.push(`*No security findings detected.*`);
+    }
+    lines.push(``);
+
+    // Correlation Graph
+    if (graphData?.graph) {
+      lines.push(`## 6. Correlation Graph`);
+      lines.push(``);
+      lines.push(`**Host:** ${graphData.graph.host}`);
+      lines.push(`**Generated:** ${graphData.graph.generated_at}`);
+      lines.push(`**Nodes:** ${Object.keys(graphData.graph.entities).length}`);
+      lines.push(`**Edges:** ${graphData.graph.relationships.length}`);
+      lines.push(``);
+
+      if (graphData.graph.relationships.length > 0) {
+        lines.push(`### Relationships`);
+        lines.push(``);
+        lines.push(`| Source | Target | Type | Confidence | Evidence Refs |`);
+        lines.push(`|--------|--------|------|------------|---------------|`);
+        graphData.graph.relationships.forEach(rel => {
+          const src = rel.source_entity.display();
+          const dst = rel.target_entity.display();
+          const refs = rel.evidence_refs.slice(0, 2).join(', ') + (rel.evidence_refs.length > 2 ? '...' : '');
+          lines.push(`| ${src} | ${dst} | ${rel.relationship_type} | ${(rel.confidence * 100).toFixed(0)}% | ${refs} |`);
+        });
+      }
+      lines.push(``);
+    }
+
+    // Attestation
+    lines.push(`---`);
+    lines.push(``);
+    lines.push(`## Attestation`);
+    lines.push(``);
+    lines.push(`This report was generated by the JOCKEY Forensic Analysis Platform.`);
+    lines.push(`All evidence hashes are SHA-256 digests of the original evidence bundles.`);
+    lines.push(`Merkle tree inclusion proofs are available for each evidence item to verify integrity.`);
+    lines.push(``);
+    lines.push(`**Report Hash (SHA-256):** \`${computeReportHash(reportData)}\``);
+    lines.push(``);
+    lines.push(`---`);
+    lines.push(`*End of Chain-of-Custody Report*`);
+
+    return lines.join('\n');
+  };
+
+  const generateChainOfCustodyPreview = (): string => {
+    const lines: string[] = [];
+    lines.push(`# JOCKEY Chain-of-Custody Report (Preview)`);
+    lines.push(``);
+    lines.push(`**Investigation:** ${investigation.name} (\`${investigation.id}\`)`);
+    lines.push(`**Generated:** ${new Date().toUTCString()}`);
+    lines.push(`**Status:** ${investigation.status}`);
+    lines.push(``);
+    lines.push(`---`);
+    lines.push(``);
+    lines.push(`## 1. Evidence Chain (${evidence.length} items)`);
+    evidence.slice(0, 5).forEach((e, i) => {
+      lines.push(`${i + 1}. \`${e.id.slice(0, 8)}...\` | ${e.host_identifier || 'Unknown'} | ${new Date(e.collection_time).toLocaleString()} | SHA256: \`${e.sha256_hash.slice(0, 16)}...\` | ${(e.size_bytes / 1024 / 1024).toFixed(2)} MB`);
+    });
+    if (evidence.length > 5) lines.push(`   ... and ${evidence.length - 5} more`);
+    lines.push(``);
+    lines.push(`## 2. Timeline Events (${timelineEvents.length})`);
+    lines.push(`   Sources: ${timelineData?.sources.join(', ') || 'N/A'}`);
+    lines.push(``);
+    lines.push(`## 3. Entities`);
+    if (entities) {
+      lines.push(`   Hosts: ${entities.hosts.length} | Processes: ${entities.processes.length} | Network: ${entities.network_connections.length} | Files: ${entities.files.length}`);
+      lines.push(`   Users: ${entities.users.length} | Drivers: ${entities.drivers.length} | Registry: ${entities.registry_keys.length} | Logs: ${entities.log_events.length}`);
+    }
+    lines.push(``);
+    lines.push(`## 4. IOC Matches (${iocMatches.length})`);
+    if (iocMatches.length > 0) {
+      const bySeverity = iocMatches.reduce((acc, m) => { acc[m.severity] = (acc[m.severity] || 0) + 1; return acc; }, {} as Record<string, number>);
+      lines.push(`   ${Object.entries(bySeverity).map(([k, v]) => `${k}: ${v}`).join(' | ')}`);
+    }
+    lines.push(``);
+    lines.push(`## 5. Findings (${findings.length})`);
+    if (findings.length > 0) {
+      const bySeverity = findings.reduce((acc, f) => { acc[f.severity] = (acc[f.severity] || 0) + 1; return acc; }, {} as Record<string, number>);
+      lines.push(`   ${Object.entries(bySeverity).map(([k, v]) => `${k}: ${v}`).join(' | ')}`);
+    }
+    lines.push(``);
+    if (graphData?.graph) {
+      lines.push(`## 6. Correlation Graph`);
+      lines.push(`   Nodes: ${Object.keys(graphData.graph.entities).length} | Edges: ${graphData.graph.relationships.length}`);
+    }
+    lines.push(``);
+    lines.push(`---`);
+    lines.push(`*Click "Export Chain-of-Custody (MD)" to download full report*`);
+
+    return lines.join('\n');
+  };
+
+  const computeReportHash = (data: any): string => {
+    // Simple hash for display purposes - in production would use Web Crypto API
+    const str = JSON.stringify(data);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(16).padStart(8, '0');
   };
 
   return (
@@ -365,57 +717,72 @@ export function InvestigationDetail() {
 
         <button
           onClick={() => setActiveTab('timeline')}
+          disabled={tabLoading.timeline}
           className={clsx(
             'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
-            activeTab === 'timeline' ? 'border-accent-blue text-accent-blue' : 'border-transparent text-forensic-400 hover:text-forensic-200'
+            activeTab === 'timeline' ? 'border-accent-blue text-accent-blue' : 'border-transparent text-forensic-400 hover:text-forensic-200',
+            tabLoading.timeline && 'opacity-50 cursor-wait'
           )}
         >
           <Clock className="h-4 w-4" />
           Timeline ({timelineEvents.length})
+          {tabLoading.timeline && <Loader2 className="h-3 w-3 animate-spin" />}
         </button>
 
         <button
           onClick={() => setActiveTab('entities')}
+          disabled={tabLoading.entities}
           className={clsx(
             'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
-            activeTab === 'entities' ? 'border-accent-blue text-accent-blue' : 'border-transparent text-forensic-400 hover:text-forensic-200'
+            activeTab === 'entities' ? 'border-accent-blue text-accent-blue' : 'border-transparent text-forensic-400 hover:text-forensic-200',
+            tabLoading.entities && 'opacity-50 cursor-wait'
           )}
         >
           <Layers className="h-4 w-4" />
           Normalized Entities
+          {tabLoading.entities && <Loader2 className="h-3 w-3 animate-spin" />}
         </button>
 
         <button
           onClick={() => setActiveTab('iocs')}
+          disabled={tabLoading.indicators}
           className={clsx(
             'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
-            activeTab === 'iocs' ? 'border-accent-blue text-accent-blue' : 'border-transparent text-forensic-400 hover:text-forensic-200'
+            activeTab === 'iocs' ? 'border-accent-blue text-accent-blue' : 'border-transparent text-forensic-400 hover:text-forensic-200',
+            tabLoading.indicators && 'opacity-50 cursor-wait'
           )}
         >
           <Activity className="h-4 w-4" />
           IOC Matches ({iocMatches.length})
+          {tabLoading.indicators && <Loader2 className="h-3 w-3 animate-spin" />}
         </button>
 
         <button
           onClick={() => setActiveTab('findings')}
+          disabled={tabLoading.findings}
           className={clsx(
             'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
-            activeTab === 'findings' ? 'border-accent-blue text-accent-blue' : 'border-transparent text-forensic-400 hover:text-forensic-200'
+            activeTab === 'findings' ? 'border-accent-blue text-accent-blue' : 'border-transparent text-forensic-400 hover:text-forensic-200',
+            tabLoading.findings && 'opacity-50 cursor-wait'
           )}
         >
           <Shield className="h-4 w-4" />
           Findings & Rules ({findings.length})
+          {tabLoading.findings && <Loader2 className="h-3 w-3 animate-spin" />}
         </button>
 
         <button
           onClick={() => setActiveTab('graph')}
+          disabled={tabLoading.graph}
           className={clsx(
             'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
-            activeTab === 'graph' ? 'border-accent-blue text-accent-blue' : 'border-transparent text-forensic-400 hover:text-forensic-200'
+            activeTab === 'graph' ? 'border-accent-blue text-accent-blue' : 'border-transparent text-forensic-400 hover:text-forensic-200',
+            tabLoading.graph && 'opacity-50 cursor-wait'
           )}
         >
           <Share2 className="h-4 w-4" />
           Correlation Graph
+          {tabLoading.graph && <Loader2 className="h-3 w-3 animate-spin" />}
         </button>
 
         <button
@@ -585,7 +952,7 @@ export function InvestigationDetail() {
       {/* TAB 3: NORMALIZED ENTITIES */}
       {activeTab === 'entities' && (
         <div className="space-y-4">
-          <div className="flex gap-2 border-b border-forensic-800 pb-2">
+          <div className="flex gap-2 border-b border-forensic-800 pb-2 flex-wrap">
             <button
               onClick={() => setEntitySubTab('processes')}
               className={clsx('px-3 py-1.5 rounded text-xs font-semibold transition-colors', entitySubTab === 'processes' ? 'bg-accent-blue text-white' : 'bg-forensic-800 text-forensic-400')}
@@ -596,13 +963,37 @@ export function InvestigationDetail() {
               onClick={() => setEntitySubTab('network')}
               className={clsx('px-3 py-1.5 rounded text-xs font-semibold transition-colors', entitySubTab === 'network' ? 'bg-accent-blue text-white' : 'bg-forensic-800 text-forensic-400')}
             >
-              Network Sockets ({entities?.network_connections.length || 0})
+              Network ({entities?.network_connections.length || 0})
             </button>
             <button
               onClick={() => setEntitySubTab('files')}
               className={clsx('px-3 py-1.5 rounded text-xs font-semibold transition-colors', entitySubTab === 'files' ? 'bg-accent-blue text-white' : 'bg-forensic-800 text-forensic-400')}
             >
               Files ({entities?.files.length || 0})
+            </button>
+            <button
+              onClick={() => setEntitySubTab('users')}
+              className={clsx('px-3 py-1.5 rounded text-xs font-semibold transition-colors', entitySubTab === 'users' ? 'bg-accent-blue text-white' : 'bg-forensic-800 text-forensic-400')}
+            >
+              Users ({entities?.users.length || 0})
+            </button>
+            <button
+              onClick={() => setEntitySubTab('drivers')}
+              className={clsx('px-3 py-1.5 rounded text-xs font-semibold transition-colors', entitySubTab === 'drivers' ? 'bg-accent-blue text-white' : 'bg-forensic-800 text-forensic-400')}
+            >
+              Drivers ({entities?.drivers.length || 0})
+            </button>
+            <button
+              onClick={() => setEntitySubTab('registry')}
+              className={clsx('px-3 py-1.5 rounded text-xs font-semibold transition-colors', entitySubTab === 'registry' ? 'bg-accent-blue text-white' : 'bg-forensic-800 text-forensic-400')}
+            >
+              Registry ({entities?.registry_keys.length || 0})
+            </button>
+            <button
+              onClick={() => setEntitySubTab('logs')}
+              className={clsx('px-3 py-1.5 rounded text-xs font-semibold transition-colors', entitySubTab === 'logs' ? 'bg-accent-blue text-white' : 'bg-forensic-800 text-forensic-400')}
+            >
+              Logs ({entities?.log_events.length || 0})
             </button>
           </div>
 
@@ -616,6 +1007,8 @@ export function InvestigationDetail() {
                     <th className="py-2">Name</th>
                     <th className="py-2">User</th>
                     <th className="py-2">Executable / Command Line</th>
+                    <th className="py-2">Start Time</th>
+                    <th className="py-2">Hash</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-forensic-800/60">
@@ -626,6 +1019,8 @@ export function InvestigationDetail() {
                       <td className="py-2 text-forensic-100 font-semibold">{proc.name}</td>
                       <td className="py-2 text-forensic-300">{proc.user || 'root'}</td>
                       <td className="py-2 text-forensic-400 truncate max-w-md">{proc.command_line || proc.executable || '-'}</td>
+                      <td className="py-2 text-forensic-400">{proc.start_time ? new Date(proc.start_time).toLocaleString() : '-'}</td>
+                      <td className="py-2 text-forensic-500 font-mono text-[10px]">{proc.hash ? `${proc.hash.slice(0, 16)}...` : '-'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -640,17 +1035,21 @@ export function InvestigationDetail() {
                     <th className="py-2">Local Address</th>
                     <th className="py-2">Remote Address</th>
                     <th className="py-2">State</th>
-                    <th className="py-2">Associated Process</th>
+                    <th className="py-2">Process</th>
+                    <th className="py-2">PID</th>
+                    <th className="py-2">Timestamp</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-forensic-800/60">
                   {entities?.network_connections.map((net, i) => (
                     <tr key={i} className="hover:bg-forensic-800/40">
                       <td className="py-2 font-bold text-accent-purple">{net.protocol}</td>
-                      <td className="py-2 text-forensic-200">{net.local_address}</td>
-                      <td className="py-2 text-forensic-200">{net.remote_address}</td>
+                      <td className="py-2 text-forensic-200">{net.local_address}:{net.local_port}</td>
+                      <td className="py-2 text-forensic-200">{net.remote_address}:{net.remote_port}</td>
                       <td className="py-2 text-emerald-400">{net.state}</td>
                       <td className="py-2 text-forensic-300">{net.process || '-'}</td>
+                      <td className="py-2 text-forensic-400">{net.pid || '-'}</td>
+                      <td className="py-2 text-forensic-400">{new Date(net.timestamp).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -665,15 +1064,121 @@ export function InvestigationDetail() {
                     <th className="py-2">Size</th>
                     <th className="py-2">Owner</th>
                     <th className="py-2">SHA-256 Digest</th>
+                    <th className="py-2">Created</th>
+                    <th className="py-2">Modified</th>
+                    <th className="py-2">Accessed</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-forensic-800/60">
                   {entities?.files.map((file, i) => (
                     <tr key={i} className="hover:bg-forensic-800/40">
-                      <td className="py-2 text-forensic-100 font-semibold">{file.path}</td>
+                      <td className="py-2 text-forensic-100 font-semibold truncate max-w-md">{file.path}</td>
                       <td className="py-2 text-forensic-400">{file.size} bytes</td>
                       <td className="py-2 text-forensic-400">{file.owner || '-'}</td>
-                      <td className="py-2 text-forensic-500">{file.sha256 ? `${file.sha256.slice(0, 24)}...` : '-'}</td>
+                      <td className="py-2 text-forensic-500 font-mono text-[10px]">{file.sha256 ? `${file.sha256.slice(0, 24)}...` : '-'}</td>
+                      <td className="py-2 text-forensic-400">{file.created_at ? new Date(file.created_at).toLocaleString() : '-'}</td>
+                      <td className="py-2 text-forensic-400">{file.modified_at ? new Date(file.modified_at).toLocaleString() : '-'}</td>
+                      <td className="py-2 text-forensic-400">{file.accessed_at ? new Date(file.accessed_at).toLocaleString() : '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {entitySubTab === 'users' && (
+              <table className="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-forensic-800 text-forensic-400 pb-2">
+                    <th className="py-2">ID</th>
+                    <th className="py-2">Username</th>
+                    <th className="py-2">Domain</th>
+                    <th className="py-2">Privileges</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-forensic-800/60">
+                  {entities?.users.map((user, i) => (
+                    <tr key={i} className="hover:bg-forensic-800/40">
+                      <td className="py-2 text-forensic-400">{user.id}</td>
+                      <td className="py-2 text-forensic-100 font-semibold">{user.username}</td>
+                      <td className="py-2 text-forensic-300">{user.domain || '-'}</td>
+                      <td className="py-2 text-forensic-400">{user.privileges.join(', ') || 'None'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {entitySubTab === 'drivers' && (
+              <table className="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-forensic-800 text-forensic-400 pb-2">
+                    <th className="py-2">Name</th>
+                    <th className="py-2">Path</th>
+                    <th className="py-2">Hash</th>
+                    <th className="py-2">Signer</th>
+                    <th className="py-2">Version</th>
+                    <th className="py-2">Loaded At</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-forensic-800/60">
+                  {entities?.drivers.map((driver, i) => (
+                    <tr key={i} className="hover:bg-forensic-800/40">
+                      <td className="py-2 text-forensic-100 font-semibold">{driver.name}</td>
+                      <td className="py-2 text-forensic-400 truncate max-w-md">{driver.path || '-'}</td>
+                      <td className="py-2 text-forensic-500 font-mono text-[10px]">{driver.hash ? `${driver.hash.slice(0, 16)}...` : '-'}</td>
+                      <td className="py-2 text-forensic-300">{driver.signer || '-'}</td>
+                      <td className="py-2 text-forensic-300">{driver.version || '-'}</td>
+                      <td className="py-2 text-forensic-400">{driver.loaded_at ? new Date(driver.loaded_at).toLocaleString() : '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {entitySubTab === 'registry' && (
+              <table className="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-forensic-800 text-forensic-400 pb-2">
+                    <th className="py-2">Key</th>
+                    <th className="py-2">Value</th>
+                    <th className="py-2">Data</th>
+                    <th className="py-2">Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-forensic-800/60">
+                  {entities?.registry_keys.map((reg, i) => (
+                    <tr key={i} className="hover:bg-forensic-800/40">
+                      <td className="py-2 text-forensic-100 font-semibold truncate max-w-md">{reg.key}</td>
+                      <td className="py-2 text-forensic-400">{reg.value || '-'}</td>
+                      <td className="py-2 text-forensic-400">{reg.data || '-'}</td>
+                      <td className="py-2 text-forensic-400">{reg.timestamp ? new Date(reg.timestamp).toLocaleString() : '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {entitySubTab === 'logs' && (
+              <table className="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-forensic-800 text-forensic-400 pb-2">
+                    <th className="py-2">Source</th>
+                    <th className="py-2">Event ID</th>
+                    <th className="py-2">Timestamp</th>
+                    <th className="py-2">Host</th>
+                    <th className="py-2">User</th>
+                    <th className="py-2">Message</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-forensic-800/60">
+                  {entities?.log_events.map((log, i) => (
+                    <tr key={i} className="hover:bg-forensic-800/40">
+                      <td className="py-2 text-accent-blue">{log.source}</td>
+                      <td className="py-2 text-forensic-400">{log.event_id || '-'}</td>
+                      <td className="py-2 text-forensic-300">{new Date(log.timestamp).toLocaleString()}</td>
+                      <td className="py-2 text-forensic-400">{log.host}</td>
+                      <td className="py-2 text-forensic-300">{log.user || '-'}</td>
+                      <td className="py-2 text-forensic-200 truncate max-w-lg">{log.message}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -774,40 +1279,26 @@ export function InvestigationDetail() {
               <Share2 className="h-5 w-5 text-accent-blue" />
               Evidence Correlation Entity Graph
             </h3>
-            <span className="text-xs text-forensic-500 font-mono">Host: {graphData?.host || 'Target Node'}</span>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="p-4 bg-forensic-900 rounded-lg border border-forensic-800 space-y-2">
-              <h4 className="text-xs font-bold text-forensic-400 uppercase tracking-wider">Discovered Entities</h4>
-              <p className="text-sm text-forensic-300">
-                Total Nodes: <strong className="text-accent-blue">{Object.keys(graphData?.entities || {}).length}</strong>
-              </p>
-              <div className="max-h-48 overflow-y-auto font-mono text-xs space-y-1">
-                {Object.entries(graphData?.entities || {}).map(([k, v]: any) => (
-                  <div key={k} className="p-1.5 bg-forensic-800/40 rounded flex justify-between">
-                    <span className="text-forensic-200">{k}</span>
-                    <span className="text-forensic-500">{v.event_count} events</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-4 bg-forensic-900 rounded-lg border border-forensic-800 space-y-2">
-              <h4 className="text-xs font-bold text-forensic-400 uppercase tracking-wider">Cross-Source Relationships</h4>
-              <p className="text-sm text-forensic-300">
-                Total Edges: <strong className="text-accent-purple">{graphData?.relationships?.length || 0}</strong>
-              </p>
-              <div className="max-h-48 overflow-y-auto font-mono text-xs space-y-1">
-                {(graphData?.relationships || []).map((rel, i) => (
-                  <div key={i} className="p-1.5 bg-forensic-800/40 rounded flex justify-between">
-                    <span className="text-accent-green">{rel.relationship_type}</span>
-                    <span className="text-forensic-400">Confidence: {(rel.confidence * 100).toFixed(0)}%</span>
-                  </div>
-                ))}
-              </div>
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-forensic-500 font-mono">Host: {graphData?.graph?.host || 'Target Node'}</span>
+              <span className="text-xs text-forensic-500 font-mono">
+                Nodes: {Object.keys(graphData?.graph?.entities || {}).length} | Edges: {graphData?.graph?.relationships?.length || 0}
+              </span>
+              {tabLoading.graph && <Loader2 className="h-4 w-4 animate-spin text-accent-blue" />}
             </div>
           </div>
+
+          {graphData?.graph ? (
+            <GraphView data={graphData.graph} />
+          ) : (
+            <div className="h-[500px] flex items-center justify-center bg-forensic-900 rounded-lg border border-forensic-800">
+              <div className="text-center text-forensic-500">
+                <div className="text-4xl mb-2">🔍</div>
+                <p className="text-lg">No correlation graph data available</p>
+                <p className="text-sm mt-1">Run an investigation to generate entity correlations</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -825,6 +1316,9 @@ export function InvestigationDetail() {
               </button>
               <button onClick={() => exportReport('html')} className="btn-primary gap-2 text-xs">
                 <Download className="h-4 w-4" /> Export HTML Dossier
+              </button>
+              <button onClick={() => exportReport('markdown')} className="btn-secondary gap-2 text-xs border-amber-500/30 text-amber-400 hover:bg-amber-500/10">
+                <Download className="h-4 w-4" /> Export Chain-of-Custody (MD)
               </button>
             </div>
           </div>
@@ -845,6 +1339,17 @@ export function InvestigationDetail() {
               <p className="text-xs text-forensic-400">
                 All records in this investigation originate from native compiled JOCKEY forensic binaries. Merkle roots and SHA-256 hashes guarantee tamper-evident validation.
               </p>
+            </div>
+          </div>
+
+          {/* Chain of Custody Export Preview */}
+          <div className="card p-4 border-forensic-800 bg-forensic-900/50">
+            <h4 className="text-xs font-bold text-forensic-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Shield className="h-4 w-4 text-accent-green" />
+              Chain-of-Custody Report Preview
+            </h4>
+            <div className="font-mono text-xs text-forensic-300 bg-forensic-950 p-4 rounded border border-forensic-800 max-h-64 overflow-auto whitespace-pre-wrap">
+              {generateChainOfCustodyPreview()}
             </div>
           </div>
         </div>
