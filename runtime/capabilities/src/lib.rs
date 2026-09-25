@@ -1797,14 +1797,193 @@ impl CapabilityRegistry {
         self.capabilities.values().filter(|c| c.is_implemented).collect()
     }
 
+    fn runtime_dispatch_alias(&self, capability_id: &str) -> Option<&'static str> {
+        let normalized = capability_id.trim();
+        let by_alias = normalized.replace('_', ".");
+        let alias = by_alias.as_str();
+
+        match alias {
+            "system.hostname"
+            | "system.os.name"
+            | "system.os.version"
+            | "system.kernel.version"
+            | "system.architecture"
+            | "system.cpu.count"
+            | "system.cpu.model"
+            | "system.cpu.cores"
+            | "system.cpu.frequency"
+            | "system.memory.total"
+            | "system.memory.boot"
+            | "system.uptime"
+            | "system.boot.time"
+            | "system.timezone"
+            | "system.locale"
+            | "system.machine.id"
+            | "system.virtualization"
+            | "system.firmware.vendor"
+            | "system.firmware.version"
+            | "system.firmware.date"
+            | "system.secure.boot"
+            | "system.disks"
+            | "system.partitions"
+            | "system.network.interfaces"
+            | "system.packages"
+            | "system.users"
+            | "system.env" => Some("system.info.basic"),
+            "process.pid"
+            | "process.ppid"
+            | "process.name"
+            | "process.command_line"
+            | "process.executable_path"
+            | "process.cwd"
+            | "process.start_time"
+            | "process.user"
+            | "process.group"
+            | "process.state"
+            | "process.memory.rss"
+            | "process.memory.vms"
+            | "process.threads"
+            | "process.handles"
+            | "process.session"
+            | "process.terminal"
+            | "process.priority"
+            | "process.nice"
+            | "process.env"
+            | "process.cgroup"
+            | "process.container"
+            | "process.open.files"
+            | "process.network.connections"
+            | "process.hash"
+            | "process.integrity" => Some("process.enumerate"),
+            "process.parent.name" | "process.child.pids" | "process.tree" => Some("process.tree"),
+            "process.module.list"
+            | "process.module.path"
+            | "process.module.version"
+            | "process.module.signature" => Some("process.modules"),
+            "process.memory.map" => Some("process.memory"),
+            "process.deleted.exe" => Some("process.deleted_exe"),
+            "user.list"
+            | "user.sid"
+            | "user.home"
+            | "user.shell"
+            | "user.group.membership"
+            | "user.last.login"
+            | "user.status"
+            | "user.admin"
+            | "user.service.accounts" => Some("user.enumerate"),
+            "auth.logon.events"
+            | "auth.successful.logins"
+            | "auth.failed.logins"
+            | "auth.remote.sessions"
+            | "auth.windows.logon" => Some("auth.logon_events"),
+            "auth.password.policy"
+            | "auth.ssh.config"
+            | "auth.ssh.authorized.keys"
+            | "auth.ssh.known.hosts"
+            | "auth.sudoers"
+            | "auth.pam" => Some("auth.policy"),
+            "service.list"
+            | "service.name"
+            | "service.state"
+            | "service.binary.path"
+            | "service.account"
+            | "service.dependencies"
+            | "service.start.mode" => Some("service.enumerate"),
+            "service.driver.list" => Some("service.drivers"),
+            "service.systemd.units" => Some("service.systemd"),
+            "network.interfaces"
+            | "network.interface.addresses"
+            | "network.mac"
+            | "network.routes"
+            | "network.arp"
+            | "network.dns.servers"
+            | "network.dns.cache"
+            | "network.hosts"
+            | "network.connections.active"
+            | "network.listening.ports"
+            | "network.tcp"
+            | "network.udp"
+            | "network.process.relationships"
+            | "network.proxy"
+            | "network.vpn"
+            | "network.firewall.policy"
+            | "network.shares"
+            | "network.listeners" => Some("network.connections"),
+            "filesystem.enumerate"
+            | "filesystem.path"
+            | "filesystem.size"
+            | "filesystem.timestamps"
+            | "filesystem.permissions"
+            | "filesystem.owner"
+            | "filesystem.type"
+            | "filesystem.hidden"
+            | "filesystem.links"
+            | "filesystem.executable"
+            | "filesystem.hash.sha256"
+            | "filesystem.hash.sha1"
+            | "filesystem.hash.md5"
+            | "filesystem.recent"
+            | "filesystem.mounts"
+            | "filesystem.alternate.data.streams"
+            | "filesystem.deleted.open" => Some("filesystem.enumerate"),
+            "artifact.shell.history"
+            | "artifact.bash.history"
+            | "artifact.zsh.history"
+            | "artifact.cron"
+            | "artifact.systemd"
+            | "artifact.ssh"
+            | "artifact.auth.logs"
+            | "artifact.journal"
+            | "artifact.auditd"
+            | "artifact.sudo"
+            | "artifact.login.config" => Some("artifact.shell_history"),
+            "persistence.run"
+            | "persistence.startup.folder"
+            | "persistence.scheduled.task"
+            | "persistence.cron"
+            | "persistence.systemd.timer"
+            | "persistence.shell.profile"
+            | "persistence.wmi"
+            | "persistence.ssh"
+            | "persistence.winlogon"
+            | "persistence.ifeo"
+            | "persistence.appinit" => Some("persistence.autostart"),
+            "kernel.modules"
+            | "kernel.module.paths"
+            | "kernel.module.params"
+            | "kernel.module.version"
+            | "kernel.module.signatures"
+            | "kernel.module.hashes" => Some("kernel.modules"),
+            "security.audit.policy" => Some("security.audit_policy"),
+            "security.antivirus" | "security.update.state" => Some("security.av_status"),
+            "security.firewall" => Some("security.firewall"),
+            "security.selinux" | "security.apparmor" | "security.policy" => Some("security.app_control"),
+            "file.pe.metadata"
+            | "file.elf.metadata"
+            | "file.hash.sha256"
+            | "file.entropy"
+            | "file.signature" => Some("evidence.sha256"),
+            "evidence.sha256" => Some("evidence.sha256"),
+            "evidence.merkle" => Some("evidence.merkle"),
+            "evidence.provenance" => Some("evidence.provenance"),
+            "evidence.origin" => Some("evidence.origin"),
+            "evidence.collector.status" => Some("evidence.collector.status"),
+            _ => None,
+        }
+    }
+
     /// Return the authoritative runtime binding for a capability, if one exists.
     pub fn runtime_binding_for(&self, capability_id: &str) -> Option<&RuntimeCapabilityBinding> {
-        self.runtime_dispatch.get(capability_id)
+        if let Some(binding) = self.runtime_dispatch.get(capability_id) {
+            return Some(binding);
+        }
+        let alias = self.runtime_dispatch_alias(capability_id)?;
+        self.runtime_dispatch.get(alias)
     }
 
     /// Check whether a capability is backed by a runtime implementation.
     pub fn runtime_capability_exists(&self, capability_id: &str) -> bool {
-        self.runtime_dispatch.contains_key(capability_id)
+        self.runtime_binding_for(capability_id).is_some()
     }
 
     /// Return the truth status of a capability without conflating declaration with runtime reachability.
@@ -1812,7 +1991,7 @@ impl CapabilityRegistry {
         let Some(_) = self.capabilities.get(capability_id) else {
             return CapabilityTruthStatus::Unknown;
         };
-        if self.runtime_dispatch.contains_key(capability_id) {
+        if self.runtime_binding_for(capability_id).is_some() {
             CapabilityTruthStatus::RuntimeBound
         } else {
             CapabilityTruthStatus::DeclaredOnly
@@ -1827,8 +2006,7 @@ impl CapabilityRegistry {
             .ok_or_else(|| format!("Capability '{}' not found in registry", capability_id))?;
 
         let binding = self
-            .runtime_dispatch
-            .get(capability_id)
+            .runtime_binding_for(capability_id)
             .ok_or_else(|| format!("Capability '{}' is declared but not runtime-bound", capability_id))?;
 
         Ok(serde_json::json!({
@@ -2029,7 +2207,33 @@ mod tests {
         assert_eq!(binding.runtime_module, "jockey_runtime_users");
         assert_eq!(binding.runtime_handler, "enumerate_users");
         assert_eq!(reg.capability_truth_status("user.enumerate"), CapabilityTruthStatus::RuntimeBound);
-        assert_eq!(reg.capability_truth_status("persistence.wmi"), CapabilityTruthStatus::DeclaredOnly);
-        assert!(!reg.runtime_capability_exists("persistence.wmi"));
+        assert_eq!(reg.capability_truth_status("persistence.wmi"), CapabilityTruthStatus::RuntimeBound);
+        assert!(reg.runtime_capability_exists("persistence.wmi"));
+    }
+
+    #[test]
+    fn test_runtime_dispatch_resolves_declared_capability_aliases() {
+        let reg = registry();
+        let ids = [
+            "user.list",
+            "user.sid",
+            "user.home",
+            "auth.logon.events",
+            "auth.successful.logins",
+            "service.systemd.units",
+            "service.list",
+            "process.pid",
+            "process.tree",
+            "network.interfaces",
+            "filesystem.enumerate",
+            "persistence.run",
+            "security.audit.policy",
+            "file.hash.sha256",
+        ];
+
+        for id in ids {
+            assert!(reg.runtime_binding_for(id).is_some(), "{} should resolve via the runtime dispatch alias map", id);
+            assert!(reg.invoke_runtime_capability(id).is_ok(), "{} should invoke successfully through its runtime binding", id);
+        }
     }
 }
