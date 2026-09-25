@@ -475,6 +475,220 @@ pub struct SecuritySummary {
     pub categories: Vec<String>,
 }
 
+pub fn collect_audit_policy() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut results = Vec::new();
+    let paths = [
+        "/etc/audit/auditd.conf",
+        "/etc/audit/rules.d",
+        "/etc/security/limits.conf",
+        "/etc/sudoers",
+        "/etc/pam.d",
+    ];
+
+    for path in paths {
+        let p = std::path::Path::new(path);
+        if !p.exists() {
+            continue;
+        }
+
+        let content = std::fs::read_to_string(p).unwrap_or_default();
+        let suspicious = content.lines().any(|line| {
+            let l = line.to_lowercase();
+            l.contains("audit") || l.contains("pam") || l.contains("sudo")
+        });
+        results.push(serde_json::json!({
+            "collector": "audit_policy",
+            "path": path,
+            "available": true,
+            "suspicious": suspicious,
+            "sample_lines": content.lines().take(20).collect::<Vec<_>>(),
+        }));
+    }
+
+    if results.is_empty() {
+        results.push(serde_json::json!({
+            "collector": "audit_policy",
+            "status": "not_available",
+        }));
+    }
+
+    Ok(results)
+}
+
+pub fn collect_firewall_rules() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut results = Vec::new();
+    let commands: &[(&str, &[&str])] = &[
+        ("iptables", &["iptables", "-S"]),
+        ("nft", &["nft", "list", "ruleset"]),
+        ("ufw", &["ufw", "status", "verbose"]),
+    ];
+
+    for (cmd, args) in commands {
+        let output = std::process::Command::new(*cmd).args(*args).output();
+        let Ok(out) = output else {
+            continue;
+        };
+        let stdout = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        if stdout.is_empty() {
+            continue;
+        }
+        results.push(serde_json::json!({
+            "collector": "firewall",
+            "engine": cmd,
+            "output": stdout
+                .lines()
+                .take(50)
+                .collect::<Vec<_>>(),
+            "status": "present",
+        }));
+    }
+
+    if results.is_empty() {
+        results.push(serde_json::json!({
+            "collector": "firewall",
+            "status": "not_available",
+        }));
+    }
+
+    Ok(results)
+}
+
+pub fn detect_av_edr() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut results = Vec::new();
+    let candidates = [
+        "/usr/bin/clamd",
+        "/usr/sbin/clamd",
+        "/opt/osquery/bin/osqueryd",
+        "/var/osquery/osqueryd",
+        "/usr/bin/osqueryd",
+        "/etc/falcon-sensor",
+        "/etc/wazuh-agent",
+        "/usr/sbin/rkhunter",
+        "/usr/bin/aide",
+    ];
+
+    for path in candidates {
+        let p = std::path::Path::new(path);
+        if p.exists() {
+            results.push(serde_json::json!({
+                "collector": "av_edr",
+                "product": p.file_name().unwrap_or_default().to_string_lossy(),
+                "path": path,
+                "status": "present",
+            }));
+        }
+    }
+
+    if results.is_empty() {
+        results.push(serde_json::json!({
+            "collector": "av_edr",
+            "status": "not_detected",
+        }));
+    }
+
+    Ok(results)
+}
+
+pub fn collect_app_control() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut results = Vec::new();
+    let sources = [
+        "/sys/fs/selinux/enforce",
+        "/etc/selinux/config",
+        "/sys/module/apparmor/parameters/enabled",
+        "/sys/kernel/security/apparmor/profiles",
+        "/etc/apparmor.d",
+    ];
+
+    for path in sources {
+        let p = std::path::Path::new(path);
+        if !p.exists() {
+            continue;
+        }
+        let content = std::fs::read_to_string(p).unwrap_or_default();
+        results.push(serde_json::json!({
+            "collector": "app_control",
+            "path": path,
+            "value": if content.trim().is_empty() { "present" } else { content.trim() },
+        }));
+    }
+
+    if results.is_empty() {
+        results.push(serde_json::json!({
+            "collector": "app_control",
+            "status": "not_available",
+        }));
+    }
+
+    Ok(results)
+}
+
+pub fn analyze_shell_scripts(search_path: &str) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = std::path::Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "shell_scripts",
+            "status": "path_not_found",
+            "path": search_path,
+        })]);
+    }
+
+    let mut results = Vec::new();
+    let suspicious_patterns = [
+        "curl ",
+        "wget ",
+        "base64",
+        "nc ",
+        "/dev/tcp",
+        "chmod +x",
+        "python -c",
+        "bash -i",
+        "powershell -enc",
+    ];
+
+    fn scan_script(path: &std::path::Path, suspicious_patterns: &[&str], results: &mut Vec<serde_json::Value>) {
+        let content = std::fs::read_to_string(path).unwrap_or_default();
+        let matches: Vec<&str> = suspicious_patterns
+            .iter()
+            .copied()
+            .filter(|pattern| content.to_lowercase().contains(*pattern))
+            .collect();
+
+        if !matches.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "shell_scripts",
+                "path": path.display().to_string(),
+                "matches": matches,
+                "suspicious": true,
+            }));
+        }
+    }
+
+    if path.is_file() {
+        scan_script(path, &suspicious_patterns, &mut results);
+    } else if path.is_dir() {
+        for entry in std::fs::read_dir(path)? {
+            let entry = entry?;
+            let p = entry.path();
+            if p.is_file() {
+                let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("");
+                if matches!(ext, "sh" | "bash" | "zsh" | "ksh" | "bashrc" | "profile") {
+                    scan_script(&p, &suspicious_patterns, &mut results);
+                }
+            }
+        }
+    }
+
+    if results.is_empty() {
+        results.push(serde_json::json!({
+            "collector": "shell_scripts",
+            "status": "no_suspicious_scripts",
+            "path": search_path,
+        }));
+    }
+
+    Ok(results)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -607,5 +821,23 @@ mod tests {
                 id
             );
         }
+    }
+
+    #[test]
+    fn test_collect_audit_policy_and_app_control() {
+        let result = collect_audit_policy();
+        assert!(result.is_ok(), "audit policy collection should work on Linux");
+
+        let app = collect_app_control();
+        assert!(app.is_ok(), "app control collection should work on Linux");
+    }
+
+    #[test]
+    fn test_collect_firewall_rules_and_security_inventory() {
+        let firewall = collect_firewall_rules();
+        assert!(firewall.is_ok(), "firewall collection should return a result");
+
+        let edr = detect_av_edr();
+        assert!(edr.is_ok(), "AV/EDR inventory should return a result");
     }
 }

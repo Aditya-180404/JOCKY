@@ -320,7 +320,7 @@ fn carve_recycle_bin(
 }
 
 /// Collect shell history files (Linux/macOS: ~/.bash_history, ~/.zsh_history, etc.)
-fn carve_shell_history(
+pub fn carve_shell_history(
     search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     let history_files = [
@@ -401,6 +401,105 @@ fn carve_shell_history(
             }
         }
     }
+    Ok(results)
+}
+
+pub fn collect_autostart_entries(
+    search_path: Option<&str>,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut results = Vec::new();
+
+    let mut candidate_paths: Vec<std::path::PathBuf> = Vec::new();
+    if let Some(path) = search_path {
+        let p = std::path::Path::new(path);
+        if p.exists() {
+            candidate_paths.push(p.to_path_buf());
+        }
+    }
+
+    let system_paths = [
+        "/etc/profile",
+        "/etc/bash.bashrc",
+        "/etc/zshrc",
+        "/etc/rc.local",
+        "/etc/crontab",
+        "/etc/cron.d",
+        "/etc/systemd/system",
+    ];
+    for path in system_paths {
+        let p = std::path::Path::new(path);
+        if p.exists() {
+            candidate_paths.push(p.to_path_buf());
+        }
+    }
+
+    if candidate_paths.is_empty() {
+        return Ok(vec![serde_json::json!({
+            "collector": "autostart",
+            "status": "no_paths_found",
+            "search_path": search_path,
+        })]);
+    }
+
+    let suspicious_patterns = [
+        "curl ",
+        "wget ",
+        "bash -i",
+        "nc ",
+        "/dev/tcp",
+        "python -c",
+        "base64",
+        "chmod +x",
+    ];
+
+    for path in candidate_paths {
+        if path.is_dir() {
+            for entry in std::fs::read_dir(&path).unwrap_or_else(|_| std::fs::read_dir("/").unwrap()) {
+                let Some(entry) = entry.ok() else { continue };
+                let p = entry.path();
+                if p.is_file() {
+                    let content = std::fs::read_to_string(&p).unwrap_or_default();
+                    let suspicious = content.lines().any(|line| {
+                        let lower = line.to_lowercase();
+                        suspicious_patterns.iter().any(|pattern| lower.contains(pattern))
+                    });
+                    results.push(serde_json::json!({
+                        "collector": "autostart",
+                        "artifact_type": "autostart_entry",
+                        "path": p.display().to_string(),
+                        "suspicious": suspicious,
+                        "content_sample": content.lines().take(20).collect::<Vec<_>>(),
+                    }));
+                }
+            }
+            continue;
+        }
+
+        if !path.is_file() {
+            continue;
+        }
+
+        let content = std::fs::read_to_string(&path).unwrap_or_default();
+        let suspicious = content.lines().any(|line| {
+            let lower = line.to_lowercase();
+            suspicious_patterns.iter().any(|pattern| lower.contains(pattern))
+        });
+        results.push(serde_json::json!({
+            "collector": "autostart",
+            "artifact_type": "autostart_entry",
+            "path": path.display().to_string(),
+            "suspicious": suspicious,
+            "content_sample": content.lines().take(20).collect::<Vec<_>>(),
+        }));
+    }
+
+    if results.is_empty() {
+        results.push(serde_json::json!({
+            "collector": "autostart",
+            "status": "no_entries",
+        }));
+    }
+
     Ok(results)
 }
 
@@ -607,8 +706,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_collect_autostart_entries_reads_real_paths() {
+        let tmp = std::env::temp_dir().join("jockey-autostart-tests");
+        let _ = std::fs::create_dir_all(&tmp);
+        let startup = tmp.join(".bashrc");
+        std::fs::write(&startup, "export PATH=$PATH:/tmp\n").unwrap();
+
+        let result = collect_autostart_entries(Some(tmp.to_str().unwrap()));
+        assert!(result.is_ok(), "autostart collection should succeed");
+        let records = result.unwrap();
+        assert!(!records.is_empty());
+    }
+
+    #[test]
     fn test_carve_artifacts_all() {
-        // Should return without panicking even with no files
         let result = carve_artifacts("all", "/nonexistent");
         assert!(result.is_ok());
     }
@@ -636,7 +747,6 @@ mod tests {
         let result = carve_artifacts("cron", "/etc/cron.d");
         assert!(result.is_ok());
         let entries = result.unwrap();
-        // Each entry should have artifact_type field
         for e in &entries {
             if let Some(t) = e.get("artifact_type") {
                 assert_eq!(t, "cron");
@@ -658,3 +768,4 @@ mod tests {
         assert!(!is_suspicious_prefetch("notepad"));
     }
 }
+

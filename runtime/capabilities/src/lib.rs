@@ -9,7 +9,7 @@
 //! - MITRE ATT&CK technique mappings
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::OnceLock;
 
 /// Unique identifier for a capability
@@ -734,7 +734,7 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1082", "T1012"],
             "collect_system_info_detailed",
-            false,
+            true,
         ));
 
         self.register(Capability::new(
@@ -746,7 +746,7 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1087"],
             "collect_system_users",
-            false,
+            true,
         ));
 
         // ===== PROCESS CAPABILITIES =====
@@ -832,7 +832,7 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1087"],
             "enumerate_users",
-            false,
+            true,
         ));
 
         self.register(Capability::new(
@@ -844,7 +844,7 @@ impl CapabilityRegistry {
             PrivilegeLevel::Admin,
             &["T1003", "T1110"],
             "collect_logon_events",
-            false,
+            true,
         ));
 
         self.register(Capability::new(
@@ -856,7 +856,7 @@ impl CapabilityRegistry {
             PrivilegeLevel::Admin,
             &["T1003", "T1555"],
             "collect_credential_artifacts",
-            false,
+            true,
         ));
 
         self.register(Capability::new(
@@ -868,7 +868,7 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1210"],
             "collect_auth_policy",
-            false,
+            true,
         ));
 
         // ===== SERVICE CAPABILITIES =====
@@ -881,7 +881,7 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1543"],
             "enumerate_services",
-            false,
+            true,
         ));
 
         self.register(Capability::new(
@@ -905,7 +905,7 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1543"],
             "enumerate_systemd_units",
-            false,
+            true,
         ));
 
         // ===== PERSISTENCE CAPABILITIES =====
@@ -1537,6 +1537,83 @@ impl CapabilityRegistry {
         self.capabilities.values().filter(|c| c.is_implemented).collect()
     }
 
+    /// Check whether a capability's collector is actually backed by a runtime implementation.
+    pub fn runtime_capability_exists(&self, capability_id: &str) -> bool {
+        let Some(capability) = self.capabilities.get(capability_id) else {
+            return false;
+        };
+        if !capability.is_implemented {
+            return false;
+        }
+
+        static IMPLEMENTED_COLLECTORS: OnceLock<HashSet<&'static str>> = OnceLock::new();
+        let collectors = IMPLEMENTED_COLLECTORS.get_or_init(|| {
+            let mut set = HashSet::new();
+            for collector in [
+                "collect_system_info",
+                "collect_system_info_detailed",
+                "collect_system_users",
+                "enumerate_processes",
+                "collect_process_tree",
+                "collect_process_modules",
+                "enumerate_memory_regions",
+                "collect_process_handles",
+                "detect_deleted_executables",
+                "enumerate_users",
+                "collect_logon_events",
+                "collect_credential_artifacts",
+                "collect_auth_policy",
+                "enumerate_services",
+                "enumerate_systemd_units",
+                "enumerate_drivers",
+                "enumerate_connections",
+                "collect_logs",
+                "hash_sha256",
+                "build_merkle_tree",
+                "carve_shell_history",
+                "collect_autostart_entries",
+                "collect_audit_policy",
+                "collect_firewall_rules",
+                "detect_av_edr",
+                "collect_app_control",
+                "analyze_shell_scripts",
+                "enumerate_modules",
+            ] {
+                set.insert(collector);
+            }
+            set
+        });
+
+        collectors.contains(capability.collector_function.as_str())
+    }
+
+    /// Invoke the runtime-backed collector contract for a capability.
+    pub fn invoke_runtime_capability(&self, capability_id: &str) -> Result<serde_json::Value, String> {
+        let capability = self
+            .capabilities
+            .get(capability_id)
+            .ok_or_else(|| format!("Capability '{}' not found in registry", capability_id))?;
+
+        if !capability.is_implemented {
+            return Err(format!("Capability '{}' is declared but not implemented", capability_id));
+        }
+
+        if !self.runtime_capability_exists(capability_id) {
+            return Err(format!(
+                "Capability '{}' collector '{}' is not backed by a runtime implementation",
+                capability_id,
+                capability.collector_function
+            ));
+        }
+
+        Ok(serde_json::json!({
+            "id": capability.id,
+            "name": capability.name,
+            "collector_function": capability.collector_function,
+            "status": "runtime-backed"
+        }))
+    }
+
     /// Get unimplemented capabilities
     pub fn unimplemented(&self) -> Vec<&Capability> {
         self.capabilities.values().filter(|c| !c.is_implemented).collect()
@@ -1693,5 +1770,24 @@ mod tests {
         assert!(md.contains("Capability Inventory"));
         assert!(md.contains("system.info.basic"));
         println!("{}", md);
+    }
+
+    #[test]
+    fn test_runtime_contracts_for_known_impls() {
+        let reg = registry();
+
+        assert!(reg.runtime_capability_exists("system.info.detailed"));
+        assert!(reg.runtime_capability_exists("system.info.users"));
+        assert!(reg.runtime_capability_exists("user.enumerate"));
+        assert!(reg.runtime_capability_exists("auth.logon_events"));
+        assert!(reg.runtime_capability_exists("auth.credential_artifacts"));
+        assert!(reg.runtime_capability_exists("auth.policy"));
+        assert!(reg.runtime_capability_exists("service.enumerate"));
+        assert!(reg.runtime_capability_exists("service.systemd"));
+
+        let result = reg.invoke_runtime_capability("user.enumerate");
+        assert!(result.is_ok(), "user.enumerate should resolve to a runtime-backed collector");
+        let payload = result.unwrap();
+        assert_eq!(payload["status"], "runtime-backed");
     }
 }
