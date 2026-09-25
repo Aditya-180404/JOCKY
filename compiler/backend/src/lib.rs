@@ -23,10 +23,15 @@ pub enum BackendError {
     TargetError(String),
 }
 
+#[cfg(feature = "llvm")]
 pub mod llvm;
+#[cfg(feature = "llvm")]
 pub mod llvm_codegen;
+#[cfg(feature = "llvm")]
 pub mod llvm_core;
+#[cfg(feature = "llvm")]
 pub mod llvm_types;
+#[cfg(feature = "llvm")]
 pub use llvm::LlvmBackend;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, Default)]
@@ -202,8 +207,18 @@ impl Backend {
         mir: &jockey_mir::MirProgram,
         output_dir: &Path,
     ) -> Result<ArtifactMetadata, BackendError> {
-        let llvm_backend = LlvmBackend::new(self.config.clone());
-        llvm_backend.compile(mir, output_dir)
+        #[cfg(feature = "llvm")]
+        {
+            let llvm_backend = LlvmBackend::new(self.config.clone());
+            llvm_backend.compile(mir, output_dir)
+        }
+        #[cfg(not(feature = "llvm"))]
+        {
+            let _ = (mir, output_dir);
+            Err(BackendError::CodeGenError(
+                "LLVM backend not available. Build with the 'llvm' feature or use the Rust backend.".to_string(),
+            ))
+        }
     }
 
     pub fn generate(
@@ -213,11 +228,21 @@ impl Backend {
     ) -> Result<ArtifactMetadata, BackendError> {
         match self.kind {
             BackendKind::Llvm => {
-                let hir: jockey_hir::HirInvestigation = ir.into();
-                let mir =
-                    jockey_mir::MirLowering::lower(&hir).map_err(BackendError::CodeGenError)?;
-                let llvm_backend = LlvmBackend::new(self.config.clone());
-                llvm_backend.compile(&mir, output_dir)
+                #[cfg(feature = "llvm")]
+                {
+                    let hir: jockey_hir::HirInvestigation = ir.into();
+                    let mir =
+                        jockey_mir::MirLowering::lower(&hir).map_err(BackendError::CodeGenError)?;
+                    let llvm_backend = LlvmBackend::new(self.config.clone());
+                    llvm_backend.compile(&mir, output_dir)
+                }
+                #[cfg(not(feature = "llvm"))]
+                {
+                    let _ = (ir, output_dir);
+                    Err(BackendError::CodeGenError(
+                        "LLVM backend not available. Build with the 'llvm' feature or use the Rust backend.".to_string(),
+                    ))
+                }
             }
             BackendKind::Rust => self.generate_rust(ir, output_dir),
         }

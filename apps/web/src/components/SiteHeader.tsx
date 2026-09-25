@@ -1,5 +1,5 @@
 import { NavLink, Link } from 'react-router-dom';
-import { Terminal, Download, BookOpen, Code2, FileText, Info, Library } from 'lucide-react';
+import { Terminal, Download, BookOpen, Code2, FileText, Library } from 'lucide-react';
 import clsx from 'clsx';
 
 export function SiteHeader() {
@@ -11,7 +11,6 @@ export function SiteHeader() {
     { name: 'Examples', href: '/examples', icon: Code2 },
     { name: 'Playbooks', href: '/playbooks', icon: Library },
     { name: 'Documentation', href: '/docs', icon: FileText },
-    { name: 'Architecture', href: '/about', icon: Info },
   ];
 
   return (
@@ -24,7 +23,7 @@ export function SiteHeader() {
           </div>
           <div className="flex items-center gap-2">
             <span className="font-mono font-bold text-sm tracking-wider text-slate-100">
-              JOCKY
+              jockey
             </span>
             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
               v0.1.0

@@ -18,7 +18,11 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = { workspace = true }
 thiserror = { workspace = true }
-llvm-sys = { version = "211.1.0", features = ["prefer-dynamic"] }
+llvm-sys = { version = "211.1.0", features = ["prefer-dynamic"], optional = true }
+
+[features]
+default = ["llvm"]
+llvm = ["llvm-sys"]
 
 [dev-dependencies]
 jockey-lexer = { path = "../lexer" }

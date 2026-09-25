@@ -8,7 +8,7 @@ import {
   Terminal,
   Copy,
   Check,
-  AlertCircle,
+  Info,
 } from 'lucide-react';
 
 interface PackageInfo {
@@ -67,11 +67,11 @@ export function DownloadPage() {
           </div>
 
           <h1 className="text-3xl font-bold font-mono text-white tracking-tight">
-            JOCKY Compiler & Toolchain Downloads
+            jockey Compiler & Toolchain Downloads
           </h1>
 
           <p className="mt-2 text-sm text-slate-400 max-w-3xl leading-relaxed">
-            Download the standalone native JOCKY compiler for offline incident response and forensic triage.
+            Download the standalone native jockey compiler for offline incident response and forensic triage.
             All binaries are standalone, statically linked, and verified with canonical SHA-256 digests.
           </p>
         </div>
@@ -139,14 +139,14 @@ export function DownloadPage() {
         {/* Linux Target Status */}
         <div className="p-5 rounded border border-slate-800 bg-[#0e1422] mb-12">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+            <Info className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
             <div>
               <h3 className="text-sm font-bold text-white font-mono mb-1">
                 Linux x86_64 & ARM64 Binaries
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                No Linux package is currently published by the downloads API. On Linux systems, JOCKY can be
-                built directly from source:
+                Linux binaries are built from source for optimal compatibility with the target system's libc and kernel.
+                Build the native release binary on your Linux host:
               </p>
               <pre className="mt-3 p-3 rounded bg-[#090d15] border border-slate-800 font-mono text-xs text-slate-300">
 {`# Clone and build native release binary on Linux
@@ -155,6 +155,10 @@ cd jockey
 cargo build --release -p jockey-cli
 ./target/release/jockey --version`}
               </pre>
+              <p className="mt-3 text-xs text-slate-400">
+                For cross-compilation to Linux ARM64, install the target and use: <br />
+                <code className="font-mono bg-[#090d15] px-1 rounded">rustup target add aarch64-unknown-linux-gnu</code> then <code className="font-mono bg-[#090d15] px-1 rounded">cargo build --release --target aarch64-unknown-linux-gnu -p jockey-cli</code>
+              </p>
             </div>
           </div>
         </div>

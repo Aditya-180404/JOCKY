@@ -2,11 +2,36 @@
   "investigation_name": "basic_system_triage",
   "tool_name": "jockey-tool",
   "tool_version": "0.1.0",
-  "host_identifier": "DESKTOP-9C230F9",
-  "collection_time": "2026-09-23T08:36:07.370103Z",
-  "evidence_hash": "6ac32859e84870e29624e3c721717823867e6cd01e95412862a3a0f43b728a6a",
-  "evidence_size": 304252,
-  "merkle_root": null,
+  "host_identifier": "kali",
+  "collection_time": "2026-09-25T07:34:10.335762698Z",
+  "evidence_hash": "cc5b7390ee043fbe6360c104928301b31edadf85d5a11a191ce47961b3dd849f",
+  "evidence_size": 486534,
+  "merkle_root": "4aa23a2569502644889e4a61096a399741efd18b40565beed3ddb12ab6eb353c",
   "merkle_proof": null,
-  "blockchain_anchor": null
+  "blockchain_anchor": null,
+  "evidence_origin": "REAL",
+  "overall_status": "SUCCESS",
+  "collector_results": [
+    {
+      "collector": "system_info",
+      "status": "SUCCESS",
+      "records_count": 1,
+      "error": null,
+      "warning": null,
+      "timestamp": "2026-09-25T07:34:10.259503696Z"
+    },
+    {
+      "collector": "processes",
+      "status": "SUCCESS",
+      "records_count": 450,
+      "error": null,
+      "warning": null,
+      "timestamp": "2026-09-25T07:34:10.333697991Z"
+    }
+  ],
+  "compiler_version": "0.1.0",
+  "source_hash": null,
+  "artifact_hash": null,
+  "collection_started_at": "2026-09-25T07:34:10.259325508Z",
+  "collection_finished_at": "2026-09-25T07:34:10.335763018Z"
 }

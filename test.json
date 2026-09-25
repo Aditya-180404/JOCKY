@@ -1,0 +1,15 @@
+[
+  {
+    "architecture": "x86_64",
+    "boot_time": "2026-09-25T06:24:24Z",
+    "cpu_count": 16,
+    "hostname": "kali",
+    "kernel_version": "7.1.5+kali-amd64",
+    "locale": "en_US.UTF-8",
+    "os": "Kali GNU/Linux Rolling",
+    "os_version": "Unknown",
+    "timezone": "UTC",
+    "total_memory_bytes": 16031539200,
+    "uptime_seconds": 4595
+  }
+]

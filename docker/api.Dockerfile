@@ -1,4 +1,4 @@
-# Backend API Dockerfile
+# API Dockerfile - jockey compiler API
 FROM rust:latest AS builder
 
 WORKDIR /app
@@ -9,19 +9,19 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Use rust backend instead of LLVM for Docker builds
+ENV JOCKEY_BACKEND=rust
+
 # Copy workspace Cargo.toml and source
 COPY Cargo.toml Cargo.lock ./
 COPY apps/api ./apps/api
 COPY compiler ./compiler
 COPY runtime ./runtime
-COPY packages/shared-types ./packages/shared-types
 COPY services/compiler-worker ./services/compiler-worker
-COPY migrations ./migrations
+COPY packages/shared-types ./packages/shared-types
 
 # Build the API
-ARG DATABASE_URL=postgres://traceforge:traceforge_dev@host.docker.internal:5433/traceforge
-ENV DATABASE_URL=${DATABASE_URL}
-RUN cargo build --release --bin traceforge-api
+RUN cargo build --release --bin jockey-api
 
 # Runtime stage
 FROM debian:trixie-slim
@@ -33,8 +33,8 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/traceforge-api /usr/local/bin/traceforge-api
+COPY --from=builder /app/target/release/jockey-api /usr/local/bin/jockey-api
 
 EXPOSE 8080
 
-CMD ["traceforge-api"]
+CMD ["jockey-api"]

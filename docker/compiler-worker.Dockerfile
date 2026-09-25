@@ -1,4 +1,4 @@
-# Compiler Worker Dockerfile
+# Compiler Worker Dockerfile - jockey compiler worker
 FROM rust:latest AS builder
 
 WORKDIR /app
@@ -14,14 +14,13 @@ RUN apt-get update && apt-get install -y \
 
 # Copy workspace Cargo.toml and source
 COPY Cargo.toml Cargo.lock ./
-COPY apps/api ./apps/api
 COPY compiler ./compiler
 COPY runtime ./runtime
 COPY packages/shared-types ./packages/shared-types
 COPY services/compiler-worker ./services/compiler-worker
 
 # Build the compiler worker
-RUN cargo build --release --bin traceforge-compiler-worker
+RUN cargo build --release --bin jockey-compiler-worker
 
 # Runtime stage
 FROM debian:trixie-slim
@@ -36,6 +35,6 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/traceforge-compiler-worker /usr/local/bin/traceforge-compiler-worker
+COPY --from=builder /app/target/release/jockey-compiler-worker /usr/local/bin/jockey-compiler-worker
 
-CMD ["traceforge-compiler-worker"]
+CMD ["jockey-compiler-worker"]

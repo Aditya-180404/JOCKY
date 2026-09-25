@@ -12,22 +12,6 @@ jobs:
   rust:
     name: Rust checks
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgres://jockey:jockey_dev@localhost:5432/jockey
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: jockey
-          POSTGRES_USER: jockey
-          POSTGRES_PASSWORD: jockey_dev
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U jockey -d jockey"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - name: Install LLVM 21 toolchain
@@ -40,8 +24,6 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-      - name: Apply database schema
-        run: psql "$DATABASE_URL" -f migrations/20240101000000_initial_schema.sql
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --all-targets --all-features -- -D warnings
       - run: cargo test --workspace --all-features

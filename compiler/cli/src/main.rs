@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 #[command(
     name = "jockey",
     version,
-    about = "JOCKY Forensic Investigation Compiler"
+    about = "jockey Forensic Investigation Compiler"
 )]
 struct Cli {
     #[command(subcommand)]
@@ -1745,13 +1745,9 @@ fn launch_ide(port: u16) -> anyhow::Result<()> {
     println!("============================================================");
     println!("  jockey Forensic Programming Environment");
     println!("============================================================");
-    println!("  Opening Web & Desktop Forensic IDE...");
+    println!("  Opening Web IDE...");
     println!("  Local Web URL: http://localhost:{}", port);
     println!("  API Engine:    http://localhost:8080");
-    println!(
-        "  Runtime Host:  Local Windows Host ({})",
-        whoami::devicename()
-    );
     println!("============================================================");
 
     #[cfg(target_os = "windows")]

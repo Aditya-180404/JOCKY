@@ -175,7 +175,8 @@ The SHA-256 digest is calculated over the canonical byte stream.`,
 - Defensive and read-only collection operations only
 - No arbitrary shell, PowerShell, or Python execution
 - No persistence, evasion, AV/EDR bypass mechanisms
-- Sandboxed remote execution service for web users`,
+- No kernel modification or driver loading
+- Compiled binaries are single-shot with zero persistence footprint`,
   },
 ];
 

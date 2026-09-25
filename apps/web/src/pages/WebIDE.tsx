@@ -623,55 +623,37 @@ export function WebIDE() {
   };
 
   const handleRunExecution = async () => {
-    if (selectedTarget !== 'sandbox') {
-      setStatusMessage('Execution unavailable for this target in the Web IDE. Use the local compiler.');
+    if (selectedTarget !== 'linux-x64') {
+      setStatusMessage('Hosted compilation produces Linux x86_64 artifacts. Download the local compiler for Windows builds.');
       setBottomPanelTab('problems');
       setShowBottomPanel(true);
-      setExecutionResult(null);
       return;
     }
     setIsRunning(true);
-    setStatusMessage('Executing forensic investigation...');
+    setStatusMessage('Compiling Linux x86_64 artifact...');
     setBottomPanelTab('output');
     setShowBottomPanel(true);
     try {
-      const res = await api.post('/api/compiler/execute', {
+      const res = await api.post('/api/compiler/compile', {
         source,
         target: selectedTarget,
+      }, {
+        responseType: 'blob',
       });
-      const data: ExecutionResult = res.data;
-      setExecutionResult(data);
-      setDiagnostics((data as any).diagnostics || []);
-      setRequiredCapabilities([]);
-
-      if (data.success) {
-        setStatusMessage(
-          `✓ Execution finished in ${data.execution_time_ms}ms (SHA-256: ${data.sha256.slice(0, 10)}...)`
-        );
-        if (data.evidence_items && data.evidence_items.length > 0) {
-          setSelectedEvidenceItem(data.evidence_items[0]);
-        }
-      } else {
-        setStatusMessage('Execution failed');
-        setBottomPanelTab('problems');
-      }
+      const disposition = res.headers['content-disposition'] || '';
+      const filename = disposition.match(/filename="?([^";]+)"?/)?.[1] || 'jockey-investigation-linux-x64';
+      const url = URL.createObjectURL(res.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+      setExecutionResult(null);
+      setStatusMessage(`Compiled ${filename}. Run it locally to collect real evidence.`);
     } catch (err: any) {
-      setStatusMessage('Execution request error');
-      setExecutionResult({
-        success: false,
-        investigation_name: 'unknown',
-        execution_target: selectedTarget,
-        execution_time_ms: 0,
-        collectors_executed: [],
-        evidence_count: 0,
-        sha256: '',
-        integrity: 'ERROR',
-        evidence_items: [],
-        output_log: [
-          'ERROR: Failed to contact jockey execution runtime.',
-          err.response?.data?.message || err.message || 'Unknown network error',
-        ],
-      });
+      setStatusMessage('Compilation request failed');
+      setDiagnostics([{ severity: 'error', message: err.response?.data?.message || 'Unable to compile this source.', line: 1, column: 1 }]);
+      setBottomPanelTab('problems');
     } finally {
       setIsRunning(false);
     }

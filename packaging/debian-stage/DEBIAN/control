@@ -1,9 +1,9 @@
-Package: traceforge
+Package: jockey
 Version: 0.1.0
 Section: utils
 Priority: optional
 Architecture: amd64
-Maintainer: TraceForge Team <traceforge@example.invalid>
-Description: TraceForge forensic programming CLI
- TraceForge compiles structured forensic investigation programs and verifies evidence integrity.
+Maintainer: jockey Team <jockey@example.invalid>
+Description: jockey forensic programming CLI
+ jockey compiles structured forensic investigation programs and verifies evidence integrity.
 Depends: libc6

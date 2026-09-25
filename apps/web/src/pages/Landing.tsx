@@ -8,9 +8,9 @@ import {
   Code2,
   ShieldCheck,
   Cpu,
-  Layers,
   Lock,
   ArrowRight,
+  FileText,
 } from 'lucide-react';
 
 export function Landing() {
@@ -27,7 +27,7 @@ export function Landing() {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-mono leading-tight">
-            JOCKY
+            jockey
           </h1>
 
           <p className="mt-3 text-xl sm:text-2xl font-semibold text-slate-200">
@@ -35,8 +35,8 @@ export function Landing() {
           </p>
 
           <p className="mt-4 text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            JOCKY is a domain-specific forensic programming language and platform for building,
-            executing, and managing computer and network investigations.
+            jockey is a domain-specific forensic programming language and standalone compiler for building,
+            executing, and verifying computer and network investigations.
           </p>
 
           {/* Primary Action Buttons */}
@@ -109,20 +109,20 @@ export function Landing() {
               </pre>
             </div>
 
-            {/* Right: Local vs Cloud Model */}
+            {/* Right: Execution Model */}
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-2">Two Complementary Execution Models</h2>
+                <h2 className="text-xl font-bold text-white mb-2">Local-First Execution Model</h2>
                 <p className="text-sm text-slate-400 leading-relaxed">
-                  JOCKY is architected to operate both as an offline, zero-dependency local forensic compiler
-                  and as an integrated web investigation workspace.
+                  jockey is an offline-first forensic compiler. Write .tfg source, compile to a standalone native binary,
+                  execute on the target host, and verify evidence integrity with SHA-256.
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div className="p-3.5 rounded border border-slate-800 bg-[#111827]">
                   <div className="flex items-center gap-2 font-mono text-xs font-semibold text-blue-400 mb-1">
-                    <span>1. LOCAL STANDALONE COMPILER</span>
+                    <span>LOCAL STANDALONE COMPILER</span>
                   </div>
                   <p className="text-xs text-slate-300 font-mono">
                     Write .tfg → jockey compile → Standalone executable → Execute on target host → SHA-256 sidecar
@@ -134,13 +134,13 @@ export function Landing() {
 
                 <div className="p-3.5 rounded border border-slate-800 bg-[#111827]">
                   <div className="flex items-center gap-2 font-mono text-xs font-semibold text-emerald-400 mb-1">
-                    <span>2. WEB WORKSPACE & INVESTIGATION PLATFORM</span>
+                    <span>WEB IDE FOR AUTHORING & VALIDATION</span>
                   </div>
                   <p className="text-xs text-slate-300 font-mono">
-                    Web IDE → AST/IR Diagnostics → Sandbox Execution → Verifiable Evidence Envelope
+                    Browser-based authoring with Monaco editor, live compiler diagnostics, and artifact download
                   </p>
                   <p className="text-xs text-slate-400 mt-1">
-                    Browser-based authoring with syntax highlighting, compiler diagnostics, and integrity verification.
+                    Compile in the browser, download the native binary, run locally. No sandbox execution.
                   </p>
                 </div>
               </div>
@@ -185,8 +185,8 @@ export function Landing() {
               <Play className="h-5 w-5 text-blue-400 mb-3" />
               <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Web IDE</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Integrated browser developer environment with Monaco editor, syntax highlighting, live compiler
-                diagnostics, and real sandboxed execution.
+                Browser-based authoring with Monaco editor, live compiler diagnostics, and native artifact download.
+                Write, validate, and compile investigations directly in the browser.
               </p>
             </div>
 
@@ -200,13 +200,13 @@ export function Landing() {
               </p>
             </div>
 
-            {/* 5. Investigation Platform */}
+            {/* 5. Report Generation */}
             <div className="p-5 rounded border border-slate-800 bg-[#111827]">
-              <Layers className="h-5 w-5 text-blue-400 mb-3" />
-              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Investigation Platform</h3>
+              <FileText className="h-5 w-5 text-blue-400 mb-3" />
+              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Report Generation</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Organize tools, investigation runs, host targets, evidence files, findings, and forensic reports
-                with complete audit logging.
+                Generate forensic reports in HTML, Markdown, JSON, or terminal format from verified evidence bundles.
+                Built-in suspicious finding detection and chain of custody documentation.
               </p>
             </div>
 
@@ -227,7 +227,7 @@ export function Landing() {
       <section className="py-14 border-b border-slate-800 bg-[#090d15]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h2 className="text-xl font-bold text-white font-mono">Architecture Status & Roadmap</h2>
+            <h2 className="text-xl font-bold text-white font-mono">Compiler Status & Roadmap</h2>
             <p className="text-xs text-slate-400 mt-1">
               Transparent disclosure of current production components versus roadmap expansion.
             </p>
@@ -243,7 +243,7 @@ export function Landing() {
                 </span>
               </div>
               <ul className="space-y-1.5 text-slate-400">
-                <li>✓ JOCKY DSL Parser, AST, Semantic Analyzer & IR</li>
+                <li>✓ jockey DSL Parser, AST, Semantic Analyzer & IR</li>
                 <li>✓ Linux standalone executable code generation and runtime collectors</li>
                 <li>• Windows target and native collectors are currently stubs</li>
                 <li>✓ CLI Toolchain (`check`, `compile`, `run`, `verify`, `fmt`, `hash`)</li>
@@ -255,33 +255,33 @@ export function Landing() {
             {/* In Development */}
             <div className="p-4 rounded border border-slate-800 bg-[#0e1422]">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-white">Platform Expansion</span>
+                <span className="font-semibold text-white">Compiler Enhancements</span>
                 <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
                   IN DEVELOPMENT
                 </span>
               </div>
               <ul className="space-y-1.5 text-slate-400">
-                <li>• Forensic Tool Repository Publishing & Versioning</li>
-                <li>• Multi-Tenancy Organization Workspaces & RBAC</li>
-                <li>• Asynchronous Worker Queue for Distributed Compilation</li>
-                <li>• S3/MinIO Object Storage for Long-Term Evidence Retention</li>
-                <li>• Automated CI/CD Cross-Compilation Pipeline</li>
+                <li>• Windows native collectors (processes, registry, artifacts, ETW)</li>
+                <li>• Linux ARM64 native compilation target</li>
+                <li>• LLVM/Inkwell Direct Codegen (replacing Rust backend)</li>
+                <li>• Cross-compilation from Linux to Windows via MinGW in CI</li>
+                <li>• Additional report formats (CSV, Sigma rules export)</li>
               </ul>
             </div>
 
             {/* Planned */}
             <div className="p-4 rounded border border-slate-800 bg-[#0e1422]">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-white">Enterprise & Multi-Host</span>
+                <span className="font-semibold text-white">Ecosystem & Integrations</span>
                 <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
                   PLANNED
                 </span>
               </div>
               <ul className="space-y-1.5 text-slate-400">
-                <li>• Centralized Multi-Host Fleet Dispatch & Heartbeats</li>
                 <li>• Signed Cryptographic Tool Packages & Verifiable Attestations</li>
-                <li>• Enterprise Gateway Architecture with Mutual TLS</li>
                 <li>• Automated Forensic Timeline Reconstruction</li>
+                <li>• IDE Language Server Protocol (LSP) Support</li>
+                <li>• Package Manager for Shared Investigation Modules</li>
               </ul>
             </div>
 
@@ -296,7 +296,6 @@ export function Landing() {
               <ul className="space-y-1.5 text-slate-400">
                 <li>• Immutable Public Blockchain Anchoring (Ethereum/Polygon)</li>
                 <li>• Zero-Knowledge Proofs for Redacted Evidence Verification</li>
-                <li>• LLVM/Inkwell Direct JIT Forensic Compilation</li>
                 <li>• Advanced Memory Forensics & Anomaly Heuristics</li>
               </ul>
             </div>

@@ -1,107 +1,19 @@
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: jockey
-      POSTGRES_USER: jockey
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jockey_dev}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5433:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U jockey -d jockey"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  # Redis for caching and job queues
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  # MinIO for object storage (S3-compatible)
-  minio:
-    image: quay.io/minio/minio:latest
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-jockey}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-jockey_dev}
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-
-  # Backend API (Rust/Axum)
+  # Backend API (Rust/Axum) - jockey compiler API
   api:
     build:
       context: .
       dockerfile: docker/api.Dockerfile
-      extra_hosts:
-        - "host.docker.internal:host-gateway"
     environment:
-      DATABASE_URL: postgres://jockey:jockey_dev@postgres:5432/jockey
-      REDIS_URL: redis://redis:6379
-      MINIO_ENDPOINT: http://minio:9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-jockey}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-jockey_dev}
-      MINIO_BUCKET: jockey-artifacts
-      JWT_SECRET: ${JWT_SECRET:-dev_secret_change_in_production}
       RUST_LOG: info
     ports:
       - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    volumes:
-      - ./apps/api:/app/apps/api
-      - ./compiler:/app/compiler
-      - ./runtime:/app/runtime
-      - ./packages/shared-types:/app/packages/shared-types
-
-  # Compiler Worker (Rust)
-  compiler-worker:
-    build:
-      context: .
-      dockerfile: docker/compiler-worker.Dockerfile
-    environment:
-      REDIS_URL: redis://redis:6379
-      MINIO_ENDPOINT: http://minio:9000
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-jockey}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-jockey_dev}
-      MINIO_BUCKET: jockey-artifacts
-      DATABASE_URL: postgres://jockey:jockey_dev@postgres:5432/jockey
-      RUST_LOG: info
-    depends_on:
-      redis:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./compiler:/app/compiler
-      - ./runtime:/app/runtime
-      - ./packages/shared-types:/app/packages/shared-types
+    # Optional: mount source for development
+    # volumes:
+    #   - ./apps/api:/app/apps/api
+    #   - ./compiler:/app/compiler
+    #   - ./runtime:/app/runtime
+    #   - ./packages/shared-types:/app/packages/shared-types
 
   # Frontend (React + Vite)
   web:
@@ -114,11 +26,7 @@ services:
       - "3000:3000"
     depends_on:
       - api
-    volumes:
-      - ./apps/web:/app/apps/web
-      - ./packages/shared-types:/app/packages/shared-types
-
-volumes:
-  postgres_data:
-  redis_data:
-  minio_data:
+    # Optional: mount source for development
+    # volumes:
+    #   - ./apps/web:/app/apps/web
+    #   - ./packages/shared-types:/app/packages/shared-types
