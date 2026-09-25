@@ -382,3 +382,170 @@ fn error_response(status: StatusCode, error: &str, message: &str) -> Response {
     )
         .into_response()
 }
+
+
+/// Helper: Fetch all evidence records associated with an investigation
+async fn fetch_investigation_records(
+    state: &AppState,
+    investigation_id: Uuid,
+    org_id: Uuid,
+) -> (String, Vec<serde_json::Value>) {
+    let evidence_rows = sqlx::query_as::<_, EvidenceRow>(
+        r#"
+        SELECT e.id, e.investigation_id, e.tool_version_id, e.host_identifier, e.collection_time, e.sha256_hash, e.size_bytes, e.storage_path, e.metadata, e.merkle_proof, e.created_at
+        FROM evidence e
+        JOIN investigations i ON e.investigation_id = i.id
+        WHERE e.investigation_id = $1 AND i.organization_id = $2
+        ORDER BY e.collection_time DESC
+        "#,
+    )
+    .bind(investigation_id)
+    .bind(org_id)
+    .fetch_all(&state.db)
+    .await
+    .unwrap_or_default();
+
+    let mut records = Vec::new();
+    let mut default_host = "target-host".to_string();
+
+    for row in evidence_rows {
+        if let Some(h) = row.host_identifier {
+            default_host = h;
+        }
+        if let Ok(obj) = state.s3.get_object().bucket(&state.bucket).key(&row.storage_path).send().await {
+            if let Ok(body) = obj.body.collect().await {
+                let bytes = body.into_bytes();
+                if let Ok(bundle) = serde_json::from_slice::<jockey_runtime_evidence::EvidenceBundle>(&bytes) {
+                    for r in bundle.records {
+                        records.push(r.payload);
+                    }
+                } else if let Ok(val) = serde_json::from_slice::<serde_json::Value>(&bytes) {
+                    if let Some(arr) = val.as_array() {
+                        for item in arr {
+                            records.push(item.clone());
+                        }
+                    } else {
+                        records.push(val);
+                    }
+                }
+            }
+        }
+    }
+    (default_host, records)
+}
+
+/// GET /api/investigations/:id/timeline - Chronological normalized timeline of forensic events
+pub async fn get_investigation_timeline(
+    State(state): State<Arc<AppState>>,
+    Extension(auth): Extension<AuthUser>,
+    Path(id): Path<Uuid>,
+) -> impl IntoResponse {
+    let (default_host, records) = fetch_investigation_records(&state, id, auth.organization_id).await;
+    let mut timeline = jockey_runtime_timeline::build_timeline(&records, &default_host, None);
+    timeline.sort();
+
+    Json(serde_json::json!({
+        "investigation_id": id,
+        "host": timeline.host,
+        "event_count": timeline.event_count,
+        "sources": timeline.sources,
+        "events": timeline.events,
+    }))
+    .into_response()
+}
+
+/// GET /api/investigations/:id/entities - Canonical normalized forensic entities (Section 11)
+pub async fn get_investigation_entities(
+    State(state): State<Arc<AppState>>,
+    Extension(auth): Extension<AuthUser>,
+    Path(id): Path<Uuid>,
+) -> impl IntoResponse {
+    let (default_host, records) = fetch_investigation_records(&state, id, auth.organization_id).await;
+    let entities = jockey_runtime_correlation::entities::NormalizedEntities::from_records(&records, &default_host);
+
+    Json(serde_json::json!({
+        "investigation_id": id,
+        "host": default_host,
+        "entities": entities,
+    }))
+    .into_response()
+}
+
+/// GET /api/investigations/:id/indicators - Scans evidence against IOC database
+pub async fn get_investigation_iocs(
+    State(state): State<Arc<AppState>>,
+    Extension(auth): Extension<AuthUser>,
+    Path(id): Path<Uuid>,
+) -> impl IntoResponse {
+    let (default_host, records) = fetch_investigation_records(&state, id, auth.organization_id).await;
+    let entities = jockey_runtime_correlation::entities::NormalizedEntities::from_records(&records, &default_host);
+    let timeline = jockey_runtime_timeline::build_timeline(&records, &default_host, None);
+
+    let mut engine = jockey_runtime_correlation::ioc::IocEngine::new();
+    // Default seed indicators for standard investigations
+    engine.add_indicator(jockey_runtime_correlation::ioc::Indicator::new(
+        "ioc-default-powershell",
+        jockey_runtime_correlation::ioc::IndicatorType::ProcessName,
+        "powershell",
+        jockey_runtime_correlation::ioc::MatchType::Contains,
+        "medium",
+    ));
+    engine.add_indicator(jockey_runtime_correlation::ioc::Indicator::new(
+        "ioc-default-netcat",
+        jockey_runtime_correlation::ioc::IndicatorType::ProcessName,
+        "nc",
+        jockey_runtime_correlation::ioc::MatchType::Contains,
+        "high",
+    ));
+
+    let entity_matches = engine.scan_entities(&entities, &default_host);
+    let timeline_matches = engine.scan_timeline(&timeline.events);
+    let mut all_matches = entity_matches;
+    all_matches.extend(timeline_matches);
+
+    Json(serde_json::json!({
+        "investigation_id": id,
+        "total_matches": all_matches.len(),
+        "matches": all_matches,
+    }))
+    .into_response()
+}
+
+/// GET /api/investigations/:id/findings - Evaluates JOCKEY rules and returns evidence-backed findings
+pub async fn get_investigation_findings(
+    State(state): State<Arc<AppState>>,
+    Extension(auth): Extension<AuthUser>,
+    Path(id): Path<Uuid>,
+) -> impl IntoResponse {
+    let (default_host, records) = fetch_investigation_records(&state, id, auth.organization_id).await;
+    let entities = jockey_runtime_correlation::entities::NormalizedEntities::from_records(&records, &default_host);
+    let timeline = jockey_runtime_timeline::build_timeline(&records, &default_host, None);
+
+    let rule_engine = jockey_runtime_correlation::rules::RuleEngine::new();
+    let mut findings = rule_engine.evaluate_entities(&entities);
+    findings.extend(rule_engine.evaluate_timeline(&timeline.events));
+
+    Json(serde_json::json!({
+        "investigation_id": id,
+        "findings_count": findings.len(),
+        "findings": findings,
+    }))
+    .into_response()
+}
+
+/// GET /api/investigations/:id/graph - Correlation entity graph
+pub async fn get_investigation_graph(
+    State(state): State<Arc<AppState>>,
+    Extension(auth): Extension<AuthUser>,
+    Path(id): Path<Uuid>,
+) -> impl IntoResponse {
+    let (default_host, records) = fetch_investigation_records(&state, id, auth.organization_id).await;
+    let mut engine = jockey_runtime_correlation::CorrelationEngine::new(id.to_string(), default_host);
+    engine.ingest_records(&records, &engine.graph().host.clone());
+
+    Json(serde_json::json!({
+        "investigation_id": id,
+        "graph": engine.into_graph(),
+    }))
+    .into_response()
+}

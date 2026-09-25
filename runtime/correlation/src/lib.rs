@@ -13,6 +13,18 @@ use uuid::Uuid;
 use jockey_runtime_evidence::EvidenceCollector;
 use jockey_runtime_timeline::{ForensicTimeline, TimelineEvent};
 
+pub mod entities;
+pub mod ioc;
+pub mod rules;
+
+pub use entities::{
+    DriverArtifact, FileArtifact, HostArtifact, LogEventArtifact, NetworkConnectionArtifact,
+    NormalizedEntities, ProcessArtifact, RegistryArtifact, UserArtifact,
+};
+pub use ioc::{Indicator, IndicatorMatch, IndicatorType, IocEngine, MatchType};
+pub use rules::{JockeyRule, RuleCondition, RuleEngine, RuleFinding, RuleSeverity};
+
+
 /// Represents a forensic entity that can be correlated across sources
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Entity {
@@ -267,21 +279,15 @@ impl CorrelationEngine {
         }
     }
 
-    /// Ingest evidence records and build correlations
-    pub fn ingest(
-        &mut self,
-        collector: &EvidenceCollector,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let records = collector.records();
-        let host = collector.host_identifier().to_string();
-
+    /// Ingest evidence records directly and build correlations
+    pub fn ingest_records(&mut self, records: &[serde_json::Value], host: &str) {
         // First pass: build timeline
         self.timeline = Some(jockey_runtime_timeline::build_timeline(
-            records, &host, None,
+            records, host, None,
         ));
 
         // Second pass: extract entities and build indices
-        self.extract_entities(records, &host);
+        self.extract_entities(records, host);
 
         // Third pass: correlate relationships
         self.correlate_process_tree();
@@ -291,8 +297,23 @@ impl CorrelationEngine {
 
         // Fourth pass: generate findings
         self.generate_findings();
+    }
 
+    /// Ingest evidence records from collector and build correlations
+    pub fn ingest(
+        &mut self,
+        collector: &EvidenceCollector,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let records = collector.records();
+        let host = collector.host_identifier().to_string();
+        self.ingest_records(records, &host);
         Ok(())
+    }
+
+
+
+    pub fn into_graph(self) -> CorrelationGraph {
+        self.graph
     }
 
     fn extract_entities(&mut self, records: &[serde_json::Value], host: &str) {

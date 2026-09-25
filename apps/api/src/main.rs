@@ -32,7 +32,9 @@ use compiler_service::{
 };
 use evidence::{get_evidence, upload_evidence, verify_evidence};
 use investigations::{
-    create_investigation, get_investigation, list_investigations, run_investigation,
+    create_investigation, get_investigation, get_investigation_entities,
+    get_investigation_findings, get_investigation_graph, get_investigation_iocs,
+    get_investigation_timeline, list_investigations, run_investigation,
 };
 use middleware::auth_middleware;
 pub(crate) use middleware::AuthUser;
@@ -163,6 +165,11 @@ async fn main() -> anyhow::Result<()> {
         )
         .route("/api/investigations/:id", get(get_investigation))
         .route("/api/investigations/:id/run", post(run_investigation))
+        .route("/api/investigations/:id/timeline", get(get_investigation_timeline))
+        .route("/api/investigations/:id/entities", get(get_investigation_entities))
+        .route("/api/investigations/:id/indicators", get(get_investigation_iocs))
+        .route("/api/investigations/:id/findings", get(get_investigation_findings))
+        .route("/api/investigations/:id/graph", get(get_investigation_graph))
         // Evidence routes
         .route("/api/evidence", post(upload_evidence))
         .route("/api/evidence/:id", get(get_evidence))
