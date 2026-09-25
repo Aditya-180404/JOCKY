@@ -539,6 +539,68 @@ impl ProgrammaticLlvmCodegen {
                         );
                         store_local(builder_ref, &local_allocas, *dest, res)?;
                     }
+                    MirInstruction::CollectProcessTree { dest, ctx: ev_ctx } => {
+                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_process_tree"];
+                        let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
+                        let mut args = [ctx_ptr];
+                        let c_call_name = CString::new("collect_proc_tree_res").unwrap();
+                        let res = LLVMBuildCall2(
+                            builder_ref,
+                            fn_ty,
+                            fn_val,
+                            args.as_mut_ptr(),
+                            1,
+                            c_call_name.as_ptr(),
+                        );
+                        store_local(builder_ref, &local_allocas, *dest, res)?;
+                    }
+                    MirInstruction::CollectProcessModules { dest, ctx: ev_ctx, pid } => {
+                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_process_modules"];
+                        let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
+                        let pid_val = LLVMConstInt(i32_ty, *pid as u64, 1);
+                        let mut args = [ctx_ptr, pid_val];
+                        let c_call_name = CString::new("collect_proc_mod_res").unwrap();
+                        let res = LLVMBuildCall2(
+                            builder_ref,
+                            fn_ty,
+                            fn_val,
+                            args.as_mut_ptr(),
+                            2,
+                            c_call_name.as_ptr(),
+                        );
+                        store_local(builder_ref, &local_allocas, *dest, res)?;
+                    }
+                    MirInstruction::CollectProcessHandles { dest, ctx: ev_ctx, pid } => {
+                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_process_handles"];
+                        let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
+                        let pid_val = LLVMConstInt(i32_ty, *pid as u64, 1);
+                        let mut args = [ctx_ptr, pid_val];
+                        let c_call_name = CString::new("collect_proc_handles_res").unwrap();
+                        let res = LLVMBuildCall2(
+                            builder_ref,
+                            fn_ty,
+                            fn_val,
+                            args.as_mut_ptr(),
+                            2,
+                            c_call_name.as_ptr(),
+                        );
+                        store_local(builder_ref, &local_allocas, *dest, res)?;
+                    }
+                    MirInstruction::CollectDeletedExecutables { dest, ctx: ev_ctx } => {
+                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_deleted_executables"];
+                        let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
+                        let mut args = [ctx_ptr];
+                        let c_call_name = CString::new("collect_del_exec_res").unwrap();
+                        let res = LLVMBuildCall2(
+                            builder_ref,
+                            fn_ty,
+                            fn_val,
+                            args.as_mut_ptr(),
+                            1,
+                            c_call_name.as_ptr(),
+                        );
+                        store_local(builder_ref, &local_allocas, *dest, res)?;
+                    }
                     MirInstruction::CollectNetwork { dest, ctx: ev_ctx } => {
                         let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_network"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;

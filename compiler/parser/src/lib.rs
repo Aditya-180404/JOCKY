@@ -150,6 +150,10 @@ impl Parser {
         match kind {
             TokenKind::Identifier(name) => Some(name.clone()),
             TokenKind::Processes => Some("processes".to_string()),
+            TokenKind::ProcessTree => Some("process_tree".to_string()),
+            TokenKind::ProcessModules => Some("process_modules".to_string()),
+            TokenKind::ProcessHandles => Some("process_handles".to_string()),
+            TokenKind::DeletedExecutables => Some("deleted_executables".to_string()),
             TokenKind::SystemInfo => Some("system_info".to_string()),
             TokenKind::NetworkConnections => Some("network_connections".to_string()),
             TokenKind::Files => Some("files".to_string()),
@@ -289,6 +293,32 @@ impl Parser {
             TokenKind::Processes => {
                 self.advance();
                 Ok(CollectTarget::Processes)
+            }
+            TokenKind::ProcessTree => {
+                self.advance();
+                Ok(CollectTarget::ProcessTree)
+            }
+            TokenKind::ProcessModules => {
+                self.advance();
+                let pid = if self.check(TokenKind::Integer(0)) {
+                    self.consume_integer("expected process ID")? as i32
+                } else {
+                    0
+                };
+                Ok(CollectTarget::ProcessModules { pid })
+            }
+            TokenKind::ProcessHandles => {
+                self.advance();
+                let pid = if self.check(TokenKind::Integer(0)) {
+                    self.consume_integer("expected process ID")? as i32
+                } else {
+                    0
+                };
+                Ok(CollectTarget::ProcessHandles { pid })
+            }
+            TokenKind::DeletedExecutables => {
+                self.advance();
+                Ok(CollectTarget::DeletedExecutables)
             }
             TokenKind::NetworkConnections => {
                 self.advance();
@@ -1096,6 +1126,20 @@ impl Parser {
                 ));
                 Err(self.diagnostics.clone())
             }
+        }
+    }
+
+    fn consume_integer(&mut self, message: &str) -> Result<i64, Vec<Diagnostic>> {
+        let token = self.current_token().clone();
+        if let TokenKind::Integer(n) = token.kind {
+            self.advance();
+            Ok(n)
+        } else {
+            self.add_diagnostic(Diagnostic::error(
+                format!("{} at {}", message, token.span),
+                token.span,
+            ));
+            Err(self.diagnostics.clone())
         }
     }
 

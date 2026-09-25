@@ -1,0 +1,2957 @@
+{
+  "app.browser": {
+    "category": "ApplicationArtifact",
+    "collector_function": "carve_browser_artifacts",
+    "description": "Collect browser artifacts: history, downloads, cookies, cache, extensions, login data, bookmarks",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1555"
+    ],
+    "name": "Browser Artifacts",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "app.browser.cookies": {
+    "category": "ApplicationArtifact",
+    "collector_function": "carve_browser_artifacts",
+    "description": "Collect cookie metadata while avoiding secret exfiltration.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1555"
+    ],
+    "name": "Browser Cookies",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "app.browser.downloads": {
+    "category": "ApplicationArtifact",
+    "collector_function": "carve_browser_artifacts",
+    "description": "Collect browser download metadata without tokenizing secrets.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1555"
+    ],
+    "name": "Browser Downloads",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "app.browser.extensions": {
+    "category": "ApplicationArtifact",
+    "collector_function": "carve_browser_artifacts",
+    "description": "Collect browser extension metadata without exposing secrets.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1555"
+    ],
+    "name": "Browser Extensions",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "app.browser.history": {
+    "category": "ApplicationArtifact",
+    "collector_function": "carve_browser_artifacts",
+    "description": "Collect browser history metadata and recent URL access indicators.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1555"
+    ],
+    "name": "Browser History",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "app.browser.inventory": {
+    "category": "ApplicationArtifact",
+    "collector_function": "carve_browser_artifacts",
+    "description": "Collect browser installation and profile inventory metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1555"
+    ],
+    "name": "Browser Inventory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "app.email": {
+    "category": "ApplicationArtifact",
+    "collector_function": "carve_email_artifacts",
+    "description": "Collect email client artifacts: Outlook OST/PST, Thunderbird profiles, mail indexes",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1114"
+    ],
+    "name": "Email Client Artifacts",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "app.office": {
+    "category": "ApplicationArtifact",
+    "collector_function": "carve_office_artifacts",
+    "description": "Collect Microsoft Office artifacts: recent files, trusted locations, macros, document metadata",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1137"
+    ],
+    "name": "Office Artifacts",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "artifact.amcache": {
+    "category": "WindowsArtifact",
+    "collector_function": "carve_amcache",
+    "description": "Parse Amcache registry hive: file execution history, SHA-1 hashes, publisher info, file paths",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Amcache.hve",
+    "platforms": "Windows",
+    "privilege": "Admin"
+  },
+  "artifact.auditd": {
+    "category": "LinuxArtifact",
+    "collector_function": "collect_logs",
+    "description": "Collect auditd configuration and log source inventory.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "Auditd Inventory",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.auth.logs": {
+    "category": "LinuxArtifact",
+    "collector_function": "collect_logs",
+    "description": "Collect authentication and authorization log inventory.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1110"
+    ],
+    "name": "Auth Logs",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.bash.history": {
+    "category": "LinuxArtifact",
+    "collector_function": "carve_shell_history",
+    "description": "Collect shell command history for current users.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1552"
+    ],
+    "name": "Bash History",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.container": {
+    "category": "LinuxArtifact",
+    "collector_function": "carve_container_artifacts",
+    "description": "Detect container runtime artifacts: Docker, containerd, podman images, containers, volumes, networks",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1610"
+    ],
+    "name": "Container Artifacts",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.cron": {
+    "category": "LinuxArtifact",
+    "collector_function": "carve_cron_entries",
+    "description": "Parse system and user crontabs: schedule, command, user, environment",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1053"
+    ],
+    "name": "Cron Jobs",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.etw": {
+    "category": "WindowsArtifact",
+    "collector_function": "collect_etw_logs",
+    "description": "Collect Windows Event Tracing for Windows logs",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "ETW Logs",
+    "platforms": "Windows",
+    "privilege": "Admin"
+  },
+  "artifact.event.logs": {
+    "category": "WindowsArtifact",
+    "collector_function": "carve_prefetch",
+    "description": "Collect Windows event log metadata for authentication and process activity.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "Event Logs",
+    "platforms": "Windows",
+    "privilege": "Admin"
+  },
+  "artifact.journal": {
+    "category": "LinuxArtifact",
+    "collector_function": "collect_logs",
+    "description": "Collect journald metadata and log source inventory.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "Journal Inventory",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.jump.lists": {
+    "category": "WindowsArtifact",
+    "collector_function": "carve_jumplists",
+    "description": "Collect Jump List metadata for recent file usage history.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Jump Lists",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "artifact.jumplists": {
+    "category": "WindowsArtifact",
+    "collector_function": "carve_jumplists",
+    "description": "Parse Jump List files: recent files, application destinations, timestamps",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Jump Lists",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "artifact.lnk": {
+    "category": "WindowsArtifact",
+    "collector_function": "carve_lnk_files",
+    "description": "Parse Windows LNK files: target path, arguments, working directory, timestamps, MAC address, volume info",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "LNK Shortcut Files",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "artifact.login.config": {
+    "category": "LinuxArtifact",
+    "collector_function": "collect_logs",
+    "description": "Collect login policy and login shell configuration metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1078"
+    ],
+    "name": "Login Configuration",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.prefetch": {
+    "category": "WindowsArtifact",
+    "collector_function": "carve_prefetch",
+    "description": "Parse Windows Prefetch files: executable name, run count, last run times, volumes, files accessed",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Prefetch Files",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "artifact.recent.files": {
+    "category": "WindowsArtifact",
+    "collector_function": "carve_lnk_files",
+    "description": "Collect recent document metadata from Windows user artifacts.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1070"
+    ],
+    "name": "Recent Files",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "artifact.recycle.bin": {
+    "category": "WindowsArtifact",
+    "collector_function": "carve_recycle_bin",
+    "description": "Collect Recycle Bin metadata for deleted file evidence.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1070"
+    ],
+    "name": "Recycle Bin Inventory",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "artifact.recycle_bin": {
+    "category": "WindowsArtifact",
+    "collector_function": "carve_recycle_bin",
+    "description": "Parse Recycle Bin entries: original path, deletion time, file size, SID of deleter",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1070"
+    ],
+    "name": "Recycle Bin",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "artifact.shell.history": {
+    "category": "LinuxArtifact",
+    "collector_function": "carve_shell_history",
+    "description": "Collect shell history data and commands from user profiles.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1552"
+    ],
+    "name": "Shell History",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.shell_history": {
+    "category": "LinuxArtifact",
+    "collector_function": "carve_shell_history",
+    "description": "Collect shell history files: bash_history, zsh_history, fish_history with command timestamps",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1552"
+    ],
+    "name": "Shell History",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.shellbags": {
+    "category": "WindowsArtifact",
+    "collector_function": "carve_shellbags",
+    "description": "Parse Shellbag registry keys: folder paths, view settings, timestamps indicating folder access",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "Shellbags",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "artifact.srum": {
+    "category": "WindowsArtifact",
+    "collector_function": "carve_srum",
+    "description": "Parse System Resource Usage Monitor: application resource usage, network data, energy usage",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "SRUM Database",
+    "platforms": "Windows",
+    "privilege": "Admin"
+  },
+  "artifact.ssh": {
+    "category": "LinuxArtifact",
+    "collector_function": "carve_ssh_config",
+    "description": "Collect SSH config, known_hosts, and related metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1552"
+    ],
+    "name": "SSH Artifacts",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.ssh_config": {
+    "category": "LinuxArtifact",
+    "collector_function": "carve_ssh_config",
+    "description": "Parse SSH client/server configs: authorized_keys, known_hosts, config files, agent sockets",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1552"
+    ],
+    "name": "SSH Configuration",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.sudo": {
+    "category": "LinuxArtifact",
+    "collector_function": "collect_logs",
+    "description": "Collect sudo authority and command logging metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1548"
+    ],
+    "name": "Sudo Logs",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.systemd": {
+    "category": "LinuxArtifact",
+    "collector_function": "carve_systemd_units",
+    "description": "Parse systemd unit files: service, timer, socket, path units with full configuration",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1543"
+    ],
+    "name": "Systemd Units",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "artifact.zsh.history": {
+    "category": "LinuxArtifact",
+    "collector_function": "carve_shell_history",
+    "description": "Collect zsh command history when present.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1552"
+    ],
+    "name": "Zsh History",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "auth.credential_artifacts": {
+    "category": "Authentication",
+    "collector_function": "collect_credential_artifacts",
+    "description": "Detect credential-related artifacts: LSASS dump indicators, SAM/NTDS access, keychain access, SSH keys, credential manager entries",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1003",
+      "T1555"
+    ],
+    "name": "Credential Artifacts",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "auth.failed.logins": {
+    "category": "Authentication",
+    "collector_function": "collect_logon_events",
+    "description": "Collect failed sign-in activity and lockout evidence.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1110"
+    ],
+    "name": "Failed Logins",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "auth.logon.events": {
+    "category": "Authentication",
+    "collector_function": "collect_logon_events",
+    "description": "Collect authentication events with metadata and timestamps.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1110"
+    ],
+    "name": "Logon Events",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "auth.logon_events": {
+    "category": "Authentication",
+    "collector_function": "collect_logon_events",
+    "description": "Collect authentication events: successful/failed logons, logon types, source IP, logon time, account used (Windows Security Event Log, Linux auth.log)",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1003",
+      "T1110"
+    ],
+    "name": "Logon Events",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "auth.pam": {
+    "category": "Authentication",
+    "collector_function": "collect_auth_policy",
+    "description": "Read PAM configuration metadata for authentication flows.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1556"
+    ],
+    "name": "PAM Configuration",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "auth.password.policy": {
+    "category": "Authentication",
+    "collector_function": "collect_auth_policy",
+    "description": "Collect local password and account policy metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1204"
+    ],
+    "name": "Password Policy",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "auth.policy": {
+    "category": "Authentication",
+    "collector_function": "collect_auth_policy",
+    "description": "Collect authentication policies: password policy, lockout policy, Kerberos config, sudoers, PAM config",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1210"
+    ],
+    "name": "Authentication Policy",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "auth.remote.sessions": {
+    "category": "Authentication",
+    "collector_function": "collect_logon_events",
+    "description": "Inventory remote access sessions when available.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1021"
+    ],
+    "name": "Remote Sessions",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "auth.ssh.authorized.keys": {
+    "category": "Authentication",
+    "collector_function": "collect_auth_policy",
+    "description": "Collect SSH authorized key metadata without exposing secrets.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1552"
+    ],
+    "name": "Authorized Keys",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "auth.ssh.config": {
+    "category": "Authentication",
+    "collector_function": "collect_auth_policy",
+    "description": "Collect SSH configuration and host metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1552"
+    ],
+    "name": "SSH Configuration",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "auth.ssh.known.hosts": {
+    "category": "Authentication",
+    "collector_function": "collect_auth_policy",
+    "description": "Collect SSH known-host metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1552"
+    ],
+    "name": "Known Hosts",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "auth.successful.logins": {
+    "category": "Authentication",
+    "collector_function": "collect_logon_events",
+    "description": "Capture successful sign-in records.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1110"
+    ],
+    "name": "Successful Logins",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "auth.sudoers": {
+    "category": "Authentication",
+    "collector_function": "collect_auth_policy",
+    "description": "Collect sudoers configuration and delegation metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1548"
+    ],
+    "name": "Sudoers",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "auth.windows.logon": {
+    "category": "Authentication",
+    "collector_function": "collect_windows_logon_events",
+    "description": "Collect Windows logon metadata via native event sources.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1110"
+    ],
+    "name": "Windows Logons",
+    "platforms": "Windows",
+    "privilege": "Admin"
+  },
+  "backdoor.binary_anomalies": {
+    "category": "BackdoorRootkit",
+    "collector_function": "detect_binary_anomalies",
+    "description": "Detect binary anomalies: unsigned binaries, packing, entropy anomalies, timestamp anomalies, import anomalies",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1027",
+      "T1036"
+    ],
+    "name": "Binary Anomalies",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "backdoor.rootkit_indicators": {
+    "category": "BackdoorRootkit",
+    "collector_function": "detect_rootkit_indicators",
+    "description": "Detect rootkit indicators: hidden processes, hidden files, hidden ports, SSDT hooks, IDT hooks, DKOM",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Rootkit Indicators",
+    "platforms": "Both",
+    "privilege": "Kernel"
+  },
+  "evidence.blockchain_anchor": {
+    "category": "EvidenceIntegrity",
+    "collector_function": "anchor_to_blockchain",
+    "description": "Anchor Merkle root to blockchain for timestamping (Bitcoin OP_RETURN, Ethereum, etc.)",
+    "is_implemented": false,
+    "mitre_attack_ids": [],
+    "name": "Blockchain Anchoring",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "evidence.chain_of_custody": {
+    "category": "EvidenceIntegrity",
+    "collector_function": "generate_chain_of_custody",
+    "description": "Generate chain of custody records: collector, timestamp, hash, custody transfers",
+    "is_implemented": false,
+    "mitre_attack_ids": [],
+    "name": "Chain of Custody",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "evidence.collector.status": {
+    "category": "EvidenceIntegrity",
+    "collector_function": "hash_sha256",
+    "description": "Capture collector success, partial, failed, and unsupported state.",
+    "is_implemented": true,
+    "mitre_attack_ids": [],
+    "name": "Collector Status",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "evidence.merkle": {
+    "category": "EvidenceIntegrity",
+    "collector_function": "build_merkle_tree",
+    "description": "Build Merkle tree over evidence items for tamper-evident integrity",
+    "is_implemented": true,
+    "mitre_attack_ids": [],
+    "name": "Merkle Tree Construction",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "evidence.origin": {
+    "category": "EvidenceIntegrity",
+    "collector_function": "hash_sha256",
+    "description": "Track whether evidence is real, simulated, imported, or derived.",
+    "is_implemented": true,
+    "mitre_attack_ids": [],
+    "name": "Evidence Origin",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "evidence.provenance": {
+    "category": "EvidenceIntegrity",
+    "collector_function": "hash_sha256",
+    "description": "Capture operator, host, source, and collection provenance.",
+    "is_implemented": true,
+    "mitre_attack_ids": [],
+    "name": "Provenance Metadata",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "evidence.sha256": {
+    "category": "EvidenceIntegrity",
+    "collector_function": "hash_sha256",
+    "description": "Compute SHA-256 hashes of collected evidence items",
+    "is_implemented": true,
+    "mitre_attack_ids": [],
+    "name": "SHA-256 Hashing",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "file.code_signature": {
+    "category": "FileBinaryMetadata",
+    "collector_function": "verify_code_signature",
+    "description": "Verify code signatures: Authenticode (Windows), signed ELF (Linux), certificate chain, revocation status",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1553"
+    ],
+    "name": "Code Signature Verification",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "file.elf.metadata": {
+    "category": "FileBinaryMetadata",
+    "collector_function": "parse_elf_metadata",
+    "description": "Read ELF header and section metadata from Linux binaries.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1027"
+    ],
+    "name": "ELF Metadata",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "file.elf_metadata": {
+    "category": "FileBinaryMetadata",
+    "collector_function": "parse_elf_metadata",
+    "description": "Parse ELF headers: sections, symbols, dynamic entries, notes, build ID, interpreter",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1027"
+    ],
+    "name": "ELF Metadata",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "file.entropy": {
+    "category": "FileBinaryMetadata",
+    "collector_function": "analyze_file_entropy",
+    "description": "Calculate Shannon entropy per file/section for packing/encryption detection",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1027"
+    ],
+    "name": "File Entropy Analysis",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "file.hash.sha256": {
+    "category": "FileBinaryMetadata",
+    "collector_function": "hash_sha256",
+    "description": "Compute SHA-256 for executable evidence files.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1027"
+    ],
+    "name": "PE/ELF SHA-256",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "file.pe.metadata": {
+    "category": "FileBinaryMetadata",
+    "collector_function": "parse_pe_metadata",
+    "description": "Read PE file headers and section metadata from Windows binaries.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1027"
+    ],
+    "name": "PE Metadata",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "file.pe_metadata": {
+    "category": "FileBinaryMetadata",
+    "collector_function": "parse_pe_metadata",
+    "description": "Parse PE headers: imports, exports, sections, resources, certificates, debug info, rich header",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1027"
+    ],
+    "name": "PE Metadata",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "file.signature": {
+    "category": "FileBinaryMetadata",
+    "collector_function": "verify_code_signature",
+    "description": "Collect code-signing metadata and certificate state.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1553"
+    ],
+    "name": "Signature Metadata",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.alternate.data.streams": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Identify alternate data streams on supported filesystems.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1564"
+    ],
+    "name": "ADS Metadata",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "filesystem.alternate_data_streams": {
+    "category": "Filesystem",
+    "collector_function": "detect_alternate_data_streams",
+    "description": "Detect NTFS alternate data streams on Windows files",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1564"
+    ],
+    "name": "Alternate Data Streams",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "filesystem.deleted.open": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Identify file handles to deleted content when exposed by the OS.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "Deleted-But-Open Files",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "filesystem.enumerate": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Enumerate files with metadata: path, size, timestamps (MACB), permissions, owner, hash (SHA-256/SHA-1/MD5), MIME type",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "Filesystem Enumeration",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.executable": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Flag executable and script file entries.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1036"
+    ],
+    "name": "Executable Detection",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.hash.md5": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Compute MD5 values for legacy sample matching and triage.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1027"
+    ],
+    "name": "MD5 Hashes",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.hash.sha1": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Compute legacy SHA-1 hashes where required for correlation.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1027"
+    ],
+    "name": "SHA-1 Hashes",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.hash.sha256": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Compute SHA-256 hashes for files and evidence items.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1027"
+    ],
+    "name": "SHA-256 Hashes",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.hidden": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Capture hidden and dot-prefixed entries.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "Hidden Files",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.links": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Enumerate symlinks and link targets.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "Symlinks",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.mounts": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_mounts",
+    "description": "Enumerate mounted filesystems: device, mount point, type, options, labels",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "Mount Points",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.owner": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Collect user and group ownership metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "Ownership",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.path": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Collect file and directory paths for forensic review.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "File Paths",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.permissions": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Collect permission bits and ownership metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "Permissions",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.recent": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Collect recently modified and created artifacts.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "Recent Files",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.size": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Collect file size metadata for suspicious or large artifacts.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "File Sizes",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.timestamps": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Collect creation, modification, and access timestamps.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "File Timestamps",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "filesystem.type": {
+    "category": "Filesystem",
+    "collector_function": "enumerate_files",
+    "description": "Identify file and directory types for triage.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "File Type",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "kernel.boot_config": {
+    "category": "KernelDriver",
+    "collector_function": "collect_boot_config",
+    "description": "Collect boot parameters: kernel cmdline, bootloader config, initramfs, secure boot status",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1542"
+    ],
+    "name": "Boot Configuration",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "kernel.module.hashes": {
+    "category": "KernelDriver",
+    "collector_function": "enumerate_modules",
+    "description": "Capture module file hashes for integrity review.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Kernel Hashes",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "kernel.module.params": {
+    "category": "KernelDriver",
+    "collector_function": "enumerate_modules",
+    "description": "Collect module parameters and configuration values.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Module Parameters",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "kernel.module.paths": {
+    "category": "KernelDriver",
+    "collector_function": "enumerate_modules",
+    "description": "Capture kernel module file paths and dependencies.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Module Paths",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "kernel.module.signatures": {
+    "category": "KernelDriver",
+    "collector_function": "enumerate_modules",
+    "description": "Collect signature state when available from the platform.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Module Signatures",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "kernel.module.version": {
+    "category": "KernelDriver",
+    "collector_function": "enumerate_modules",
+    "description": "Collect loaded module version information.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Module Versions",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "kernel.modules": {
+    "category": "KernelDriver",
+    "collector_function": "enumerate_modules",
+    "description": "Enumerate loaded kernel modules: name, size, dependencies, state, path, signature, load address",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Kernel Modules",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "kernel.syscalls": {
+    "category": "KernelDriver",
+    "collector_function": "inspect_syscall_table",
+    "description": "Inspect system call table for hooking/modification (requires kernel access)",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "System Call Table",
+    "platforms": "Linux",
+    "privilege": "Kernel"
+  },
+  "network.arp": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect neighbor cache metadata and link-layer mappings.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "ARP Table",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.arp_table": {
+    "category": "Network",
+    "collector_function": "collect_arp_table",
+    "description": "Collect ARP table (IPv4) or neighbor table (IPv6): IP, MAC, interface, state",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "ARP/Neighbor Table",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.connections": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Enumerate active TCP/UDP connections: protocol, local/remote address/port, state, PID, process name",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1049"
+    ],
+    "name": "Network Connections",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.connections.active": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Enumerate active TCP and UDP connections.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1049"
+    ],
+    "name": "Active Connections",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.dns.cache": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect cached DNS entries when available on the host.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "DNS Cache",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.dns.servers": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect configured DNS server settings.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "DNS Servers",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.dns_cache": {
+    "category": "Network",
+    "collector_function": "collect_dns_cache",
+    "description": "Collect DNS resolver cache entries: domain, IP, TTL, record type",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "DNS Cache",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "network.firewall": {
+    "category": "Network",
+    "collector_function": "collect_firewall_rules",
+    "description": "Collect firewall configuration: rules, profiles, logging settings, allowed/blocked applications",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "Firewall Rules",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "network.firewall.policy": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect firewall configuration and rule metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "Firewall Policy",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "network.hosts": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect hosts file entries and custom name resolution metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "Hosts File",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.interface.addresses": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect IPv4 and IPv6 addresses for active interfaces.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "Interface Addresses",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.interfaces": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect network interfaces and basic metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "Interface Inventory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.listeners": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Identify unexpected listening services and unusual binds.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1049"
+    ],
+    "name": "Suspicious Listeners",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.listening.ports": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Enumerate local listening sockets and bound addresses.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1049"
+    ],
+    "name": "Listening Ports",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.listening_ports": {
+    "category": "Network",
+    "collector_function": "enumerate_listening_ports",
+    "description": "Enumerate listening ports with associated process, binding address, and protocol",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1049"
+    ],
+    "name": "Listening Ports",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.mac": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect interface MAC addresses and driver metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "MAC Addresses",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.process.relationships": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Map socket ownership to associated processes.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1049"
+    ],
+    "name": "Process Relationships",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.proxy": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect proxy configuration metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "Proxy Configuration",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.routes": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect IPv4 and IPv6 routes and gateway metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "Route Table",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.routing_table": {
+    "category": "Network",
+    "collector_function": "collect_routing_table",
+    "description": "Collect routing table: destination, gateway, interface, metric, protocol",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "Routing Table",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.shares": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect SMB or remote share metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1021"
+    ],
+    "name": "Network Shares",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.tcp": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect TCP state, endpoints, and process ownership metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1049"
+    ],
+    "name": "TCP Connections",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.udp": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect UDP sockets and endpoint metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1049"
+    ],
+    "name": "UDP Connections",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "network.vpn": {
+    "category": "Network",
+    "collector_function": "enumerate_connections",
+    "description": "Collect VPN configuration and tunnel metadata when available.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1016"
+    ],
+    "name": "VPN Metadata",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "persistence.appinit": {
+    "category": "Persistence",
+    "collector_function": "collect_autostart_entries",
+    "description": "Collect AppInit DLL persistence metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1546"
+    ],
+    "name": "AppInit",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "persistence.autostart": {
+    "category": "Persistence",
+    "collector_function": "collect_autostart_entries",
+    "description": "Collect autostart entries: Run/RunOnce keys, startup folder, scheduled tasks, services, WMI subscriptions, login items, systemd timers, cron",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1547"
+    ],
+    "name": "Autostart Entries",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "persistence.cron": {
+    "category": "Persistence",
+    "collector_function": "collect_autostart_entries",
+    "description": "Enumerate cron and crontab persistence artifacts.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1053"
+    ],
+    "name": "Cron Entries",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "persistence.ifeo": {
+    "category": "Persistence",
+    "collector_function": "collect_autostart_entries",
+    "description": "Collect Image File Execution Options persistence metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1546"
+    ],
+    "name": "IFEO",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "persistence.run": {
+    "category": "Persistence",
+    "collector_function": "collect_autostart_entries",
+    "description": "Collect Run and RunOnce registry persistence locations.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1547"
+    ],
+    "name": "Run Keys",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "persistence.scheduled.task": {
+    "category": "Persistence",
+    "collector_function": "collect_autostart_entries",
+    "description": "Enumerate scheduled tasks and task actions.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1053"
+    ],
+    "name": "Scheduled Tasks",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "persistence.scheduled_tasks": {
+    "category": "Persistence",
+    "collector_function": "enumerate_scheduled_tasks",
+    "description": "Enumerate scheduled tasks/cron jobs: task name, trigger, action, command, run as user, status, history",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1053"
+    ],
+    "name": "Scheduled Tasks",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "persistence.shell.profile": {
+    "category": "Persistence",
+    "collector_function": "collect_autostart_entries",
+    "description": "Collect shell profile and login script persistence metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1547"
+    ],
+    "name": "Shell Profiles",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "persistence.ssh": {
+    "category": "Persistence",
+    "collector_function": "collect_autostart_entries",
+    "description": "Collect SSH configuration and key-based persistence metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1098"
+    ],
+    "name": "SSH Persistence",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "persistence.startup.folder": {
+    "category": "Persistence",
+    "collector_function": "collect_autostart_entries",
+    "description": "Enumerate startup directory persistence entries.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1547"
+    ],
+    "name": "Startup Folder",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "persistence.systemd.timer": {
+    "category": "Persistence",
+    "collector_function": "collect_autostart_entries",
+    "description": "Enumerate systemd timer persistence entries.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1053"
+    ],
+    "name": "Systemd Timers",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "persistence.winlogon": {
+    "category": "Persistence",
+    "collector_function": "collect_autostart_entries",
+    "description": "Collect Winlogon startup configuration metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1547"
+    ],
+    "name": "Winlogon",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "persistence.wmi": {
+    "category": "Persistence",
+    "collector_function": "enumerate_wmi_subscriptions",
+    "description": "Enumerate WMI event consumers, filters, and bindings used for persistence",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1546"
+    ],
+    "name": "WMI Event Subscriptions",
+    "platforms": "Windows",
+    "privilege": "Admin"
+  },
+  "process.cgroup": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Capture cgroup and container metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "CGroup",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.child.pids": {
+    "category": "Process",
+    "collector_function": "collect_process_tree",
+    "description": "Resolve child process identifiers for process tree extraction.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Child PIDs",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.command_line": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect full command lines for process inspection.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Command Line",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.container": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Demonstrate container membership when present.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Container ID",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.cwd": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect the process working directory when permitted.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Working Directory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.deleted.exe": {
+    "category": "Process",
+    "collector_function": "detect_deleted_executables",
+    "description": "Detect deleted-on-disk executables still mapped or running.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1036"
+    ],
+    "name": "Deleted Executable",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "process.deleted_exe": {
+    "category": "Process",
+    "collector_function": "detect_deleted_executables",
+    "description": "Detect processes whose executable file has been deleted from disk but process is still running",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1036"
+    ],
+    "name": "Deleted Executable Detection",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "process.enumerate": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Enumerate all processes with: PID, PPID, name, command line, executable path, start time, user, state, memory usage, CPU usage, open files, network connections, SHA-256 hash of executable",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Process Enumeration",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.env": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Capture the process environment block where permitted.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Environment",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.executable_path": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Capture the resolved executable path for each process.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Executable Path",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.group": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect primary group metadata for processes.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Process Group",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.handles": {
+    "category": "Process",
+    "collector_function": "collect_process_handles",
+    "description": "Enumerate open file handles, sockets, registry keys (Windows), and other kernel objects per process",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Process Open Handles",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "process.hash": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect the SHA-256 hash of a process executable when available.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1027"
+    ],
+    "name": "Executable Hash",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.integrity": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Capture process integrity metadata when exposed by the platform.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Integrity Level",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.memory": {
+    "category": "Process",
+    "collector_function": "enumerate_memory_regions",
+    "description": "Enumerate memory regions per process: mappings, permissions, RSS, anonymous/executable flags for shellcode detection",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1055"
+    ],
+    "name": "Process Memory Regions",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "process.memory.map": {
+    "category": "Process",
+    "collector_function": "enumerate_memory_regions",
+    "description": "Enumerate memory mappings and executable memory regions.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1055"
+    ],
+    "name": "Memory Regions",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "process.memory.rss": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Capture resident set size to identify heavy or suspicious processes.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "RSS Memory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.memory.vms": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Capture virtual memory usage for process triage.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Virtual Memory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.module.list": {
+    "category": "Process",
+    "collector_function": "collect_process_modules",
+    "description": "Enumerate DLL or shared library modules loaded by a process.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Loaded Modules",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.module.path": {
+    "category": "Process",
+    "collector_function": "collect_process_modules",
+    "description": "Capture module path metadata for loaded libraries.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Module Paths",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.module.signature": {
+    "category": "Process",
+    "collector_function": "collect_process_modules",
+    "description": "Capture signing state when available for libraries.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Module Signatures",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.module.version": {
+    "category": "Process",
+    "collector_function": "collect_process_modules",
+    "description": "Collect library version metadata for modules.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Module Versions",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.modules": {
+    "category": "Process",
+    "collector_function": "collect_process_modules",
+    "description": "Enumerate loaded modules (DLLs on Windows, shared libraries on Linux) per process with paths, versions, and signatures",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057",
+      "T1014"
+    ],
+    "name": "Process Modules/DLLs",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.name": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect the executable name for each process.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Process Name",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.network.connections": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Associate network connections with the owning process.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1049"
+    ],
+    "name": "Process Network",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.nice": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect the nice value and scheduling context.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Nice Value",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.open.files": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect file handle metadata and open file paths for each process.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Open Files",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.parent.name": {
+    "category": "Process",
+    "collector_function": "collect_process_tree",
+    "description": "Resolve parent process names for ancestry analysis.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Parent Name",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.pid": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect the process identifier for each running process.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Process ID",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.ppid": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect parent process identifiers to construct ancestry.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Parent PID",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.priority": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect scheduler priority metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Priority",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.session": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect the session identifier for system and user sessions.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Session ID",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.start_time": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect process creation time for timeline correlation.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Start Time",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.state": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect the process life-cycle state.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Process State",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.terminal": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect terminal and tty metadata when available.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Terminal",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.threads": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect the process thread count.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Thread Count",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.tree": {
+    "category": "Process",
+    "collector_function": "collect_process_tree",
+    "description": "Build process tree with parent-child relationships, process ancestry, session/terminal info, and cgroup/container detection",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Process Tree & Relationships",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "process.user": {
+    "category": "Process",
+    "collector_function": "enumerate_processes",
+    "description": "Collect the owning user for each process.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1057"
+    ],
+    "name": "Process User",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "script.bash.metadata": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_shell_scripts",
+    "description": "Capture bash script metadata and file attributes.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1059.004"
+    ],
+    "name": "Bash Metadata",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "script.cmd.metadata": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_powershell_scripts",
+    "description": "Collect batch or cmd script metadata and execution patterns.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1059.003"
+    ],
+    "name": "CMD Metadata",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "script.environment.indicators": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_powershell_scripts",
+    "description": "Extract environment variable references and startup patterns.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1059"
+    ],
+    "name": "Environment Indicators",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "script.execution": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_python_scripts",
+    "description": "Extract command execution indicators from scripts.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1059"
+    ],
+    "name": "Execution Indicators",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "script.file.indicators": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_python_scripts",
+    "description": "Extract filesystem and registry path indicators from scripts.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1059"
+    ],
+    "name": "File Path Indicators",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "script.ip.indicators": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_shell_scripts",
+    "description": "Extract IP address indicators from scripts.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1059"
+    ],
+    "name": "IP Indicators",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "script.javascript.metadata": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_python_scripts",
+    "description": "Capture JavaScript file metadata and entry points.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1059.007"
+    ],
+    "name": "JavaScript Metadata",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "script.obfuscation": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_shell_scripts",
+    "description": "Flag encoded and obfuscated command patterns in scripts.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1059"
+    ],
+    "name": "Obfuscation Indicators",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "script.persistence": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_powershell_scripts",
+    "description": "Flag startup or persistence patterns within scripts.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1547"
+    ],
+    "name": "Persistence Indicators",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "script.powershell": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_powershell_scripts",
+    "description": "Analyze PowerShell scripts: encoded commands, obfuscation, suspicious APIs, AMSI bypass, script block logging",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1059.001"
+    ],
+    "name": "PowerShell Script Analysis",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "script.powershell.metadata": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_powershell_scripts",
+    "description": "Capture PowerShell script file metadata and interpreter usage.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1059.001"
+    ],
+    "name": "PowerShell Metadata",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "script.python": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_python_scripts",
+    "description": "Analyze Python scripts: obfuscation, suspicious imports, encoded payloads, C2 patterns",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1059.006"
+    ],
+    "name": "Python Script Analysis",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "script.python.metadata": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_python_scripts",
+    "description": "Capture Python script metadata and import usage.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1059.006"
+    ],
+    "name": "Python Metadata",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "script.shell": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_shell_scripts",
+    "description": "Analyze shell scripts: obfuscation, suspicious commands, embedded payloads, reverse shells",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1059.004"
+    ],
+    "name": "Shell Script Analysis",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "script.url.indicators": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_powershell_scripts",
+    "description": "Extract URL-like indicators from scripts for triage.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1059"
+    ],
+    "name": "URL Indicators",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "script.wmi": {
+    "category": "MaliciousScript",
+    "collector_function": "analyze_wmi_scripts",
+    "description": "Analyze WMI queries and VBScript: suspicious queries, consumer bindings, encoded scripts",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1059.005"
+    ],
+    "name": "WMI/VBScript Analysis",
+    "platforms": "Windows",
+    "privilege": "User"
+  },
+  "security.antivirus": {
+    "category": "SecurityConfig",
+    "collector_function": "detect_av_edr",
+    "description": "Inventory security products and signatures when available.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "AV Inventory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "security.app_control": {
+    "category": "SecurityConfig",
+    "collector_function": "collect_app_control",
+    "description": "Collect AppLocker, WDAC, SELinux, AppArmor policies and enforcement status",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "Application Control",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "security.apparmor": {
+    "category": "SecurityConfig",
+    "collector_function": "collect_app_control",
+    "description": "Collect AppArmor policy metadata when available.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "AppArmor State",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "security.audit.policy": {
+    "category": "SecurityConfig",
+    "collector_function": "collect_audit_policy",
+    "description": "Collect audit policy metadata and log configuration.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "Audit Policy",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "security.audit_policy": {
+    "category": "SecurityConfig",
+    "collector_function": "collect_audit_policy",
+    "description": "Collect audit policy configuration: audit rules, flags, log retention, auditd config",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "Audit Policy",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "security.av_status": {
+    "category": "SecurityConfig",
+    "collector_function": "detect_av_edr",
+    "description": "Detect AV/EDR products: running processes, services, drivers, signature versions, exclusions",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "Antivirus/EDR Status",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "security.firewall": {
+    "category": "SecurityConfig",
+    "collector_function": "collect_firewall_rules",
+    "description": "Collect local firewall configuration and rule state.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "Firewall State",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "security.policy": {
+    "category": "SecurityConfig",
+    "collector_function": "collect_app_control",
+    "description": "Collect application control and local policy metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "Security Policy",
+    "platforms": "Both",
+    "privilege": "Admin"
+  },
+  "security.selinux": {
+    "category": "SecurityConfig",
+    "collector_function": "collect_app_control",
+    "description": "Collect SELinux enforcement metadata when available.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "SELinux State",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "security.update.state": {
+    "category": "SecurityConfig",
+    "collector_function": "detect_av_edr",
+    "description": "Collect general update and patch status metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1562"
+    ],
+    "name": "Update State",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "service.account": {
+    "category": "Service",
+    "collector_function": "enumerate_services",
+    "description": "Collect the account used to run each service.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1543"
+    ],
+    "name": "Service Account",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "service.binary.path": {
+    "category": "Service",
+    "collector_function": "enumerate_services",
+    "description": "Capture the executable path used by each service.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1543"
+    ],
+    "name": "Service Binary",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "service.dependencies": {
+    "category": "Service",
+    "collector_function": "enumerate_services",
+    "description": "Collect dependent service chains and startup order.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1543"
+    ],
+    "name": "Service Dependencies",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "service.driver.list": {
+    "category": "Service",
+    "collector_function": "enumerate_drivers",
+    "description": "Enumerate kernel drivers and installed driver metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Driver Inventory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "service.drivers": {
+    "category": "Service",
+    "collector_function": "enumerate_drivers",
+    "description": "Enumerate kernel drivers: name, path, status, start type, image hash, signature status, BYOVD vulnerability indicators",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1014"
+    ],
+    "name": "Kernel Drivers",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "service.enumerate": {
+    "category": "Service",
+    "collector_function": "enumerate_services",
+    "description": "Enumerate all services: name, display name, status, startup type, binary path, service account, dependencies, description",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1543"
+    ],
+    "name": "Service Enumeration",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "service.list": {
+    "category": "Service",
+    "collector_function": "enumerate_services",
+    "description": "Enumerate installed services and runtime state.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1543"
+    ],
+    "name": "Service Inventory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "service.name": {
+    "category": "Service",
+    "collector_function": "enumerate_services",
+    "description": "Collect the service name and display name metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1543"
+    ],
+    "name": "Service Name",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "service.start.mode": {
+    "category": "Service",
+    "collector_function": "enumerate_services",
+    "description": "Collect start-mode classifications and service triggers.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1543"
+    ],
+    "name": "Service Start Mode",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "service.state": {
+    "category": "Service",
+    "collector_function": "enumerate_services",
+    "description": "Collect the current start state of each service.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1543"
+    ],
+    "name": "Service State",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "service.systemd": {
+    "category": "Service",
+    "collector_function": "enumerate_systemd_units",
+    "description": "Enumerate systemd units: service, timer, socket, path, mount units with full configuration and drop-in files",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1543"
+    ],
+    "name": "Systemd Units",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "service.systemd.units": {
+    "category": "Service",
+    "collector_function": "enumerate_systemd_units",
+    "description": "Enumerate systemd unit inventory and metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1543"
+    ],
+    "name": "Systemd Units",
+    "platforms": "Linux",
+    "privilege": "User"
+  },
+  "system.architecture": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect processor architecture metadata and word-size details.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Architecture",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.boot.time": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect the system boot timestamp for timeline reconstruction.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Boot Time",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.cpu.cores": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect logical CPU core and thread counts.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "CPU Cores",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.cpu.count": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Read the total logical CPU count and parallelism metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "CPU Count",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.cpu.frequency": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect CPU clock frequency metadata when available.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "CPU Frequency",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.cpu.model": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect detailed CPU model information.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "CPU Model",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.disks": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Enumerate disks and drive metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Disk Inventory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.environment": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Capture environment variable values for host investigation context.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Environment Variables",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.firmware.vendor": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect firmware vendor and version metadata when available.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Firmware Vendor",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.firmware.version": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Read firmware version metadata for forensic context.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Firmware Version",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.groups": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect local group inventory and group membership metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1087"
+    ],
+    "name": "System Groups",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.hostname": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect the current system hostname for host correlation and triage.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Hostname",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.info.basic": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect basic system information: hostname, OS, kernel version, architecture, CPU count, memory, boot time, uptime, timezone, locale",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "System Basic Info",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.info.detailed": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info_detailed",
+    "description": "Extended system information: machine ID, system paths, disk/partition layout, detailed CPU info, virtualization detection, firmware/BIOS info, installed software/packages",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1082",
+      "T1012"
+    ],
+    "name": "System Detailed Info",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.info.users": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_users",
+    "description": "Enumerate local users and groups with details: UID/GID, home directory, shell, last login, password status, group memberships",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1087"
+    ],
+    "name": "System Users & Groups",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.kernel.version": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect kernel version and release information.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Kernel Version",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.locale": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Capture configured locale and environment defaults.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Locale",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.machine.id": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect machine or host identifiers when available.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Machine ID",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.memory.boot": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect memory and system resource information for triage.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Boot Memory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.memory.total": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Measure total physical memory in bytes.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Total Memory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.mounts": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Enumerate mount points and filesystem type metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1083"
+    ],
+    "name": "Mount Inventory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.network.interfaces": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Enumerate active interfaces and associated addressing metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Network Interfaces",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.os.name": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Enumerate the operating system name and release metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "OS Name",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.os.version": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Enumerate the OS version and build metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "OS Version",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.packages": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect installed package metadata across supported package managers.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Package Inventory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.partitions": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Enumerate mounted partitions and filesystem layout.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Partition Inventory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.paths": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Capture canonical system path configuration.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "System Paths",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.secure.boot": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect Secure Boot status when exposed by the platform.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Secure Boot",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.software.inventory": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "List installed software and package metadata from the OS package manager.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Software Inventory",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.timezone": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect timezone and locale information for host context.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Timezone",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.uptime": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Capture system uptime in seconds.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Uptime",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.users": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Collect local user inventory and account metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1087"
+    ],
+    "name": "System Users",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "system.virtualization": {
+    "category": "SystemInfo",
+    "collector_function": "collect_system_info",
+    "description": "Detect whether the system is virtualized or running in a container.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1082"
+    ],
+    "name": "Virtualization",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "user.admin": {
+    "category": "User",
+    "collector_function": "enumerate_users",
+    "description": "Identify administrator or elevated accounts.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1078"
+    ],
+    "name": "Privileged Users",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "user.enumerate": {
+    "category": "User",
+    "collector_function": "enumerate_users",
+    "description": "Enumerate all local and domain users with attributes: SID/UID, status, last logon, password age, group memberships",
+    "is_implemented": false,
+    "mitre_attack_ids": [
+      "T1087"
+    ],
+    "name": "User Enumeration",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "user.group.membership": {
+    "category": "User",
+    "collector_function": "enumerate_users",
+    "description": "Collect group memberships for each user.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1087"
+    ],
+    "name": "Group Membership",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "user.home": {
+    "category": "User",
+    "collector_function": "enumerate_users",
+    "description": "Enumerate user home directory metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1087"
+    ],
+    "name": "Home Directories",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "user.last.login": {
+    "category": "User",
+    "collector_function": "enumerate_users",
+    "description": "Collect last login metadata when available.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1087"
+    ],
+    "name": "Last Login",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "user.list": {
+    "category": "User",
+    "collector_function": "enumerate_users",
+    "description": "Enumerate local account inventory and base metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1087"
+    ],
+    "name": "User List",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "user.service.accounts": {
+    "category": "User",
+    "collector_function": "enumerate_users",
+    "description": "Enumerate service and non-human accounts.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1078"
+    ],
+    "name": "Service Accounts",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "user.shell": {
+    "category": "User",
+    "collector_function": "enumerate_users",
+    "description": "Collect login shell configuration for each account.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1087"
+    ],
+    "name": "User Shell",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "user.sid": {
+    "category": "User",
+    "collector_function": "enumerate_users",
+    "description": "Capture user IDs, SIDs, and account identity metadata.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1087"
+    ],
+    "name": "User IDs",
+    "platforms": "Both",
+    "privilege": "User"
+  },
+  "user.status": {
+    "category": "User",
+    "collector_function": "enumerate_users",
+    "description": "Collect account disabled, locked, and status flags.",
+    "is_implemented": true,
+    "mitre_attack_ids": [
+      "T1087"
+    ],
+    "name": "Account Status",
+    "platforms": "Both",
+    "privilege": "User"
+  }
+}

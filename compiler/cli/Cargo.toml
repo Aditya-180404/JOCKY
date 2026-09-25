@@ -20,6 +20,7 @@ jockey-hir = { path = "../hir" }
 jockey-mir = { path = "../mir" }
 jockey-backend = { path = "../backend" }
 jockey-runtime = { path = "../../runtime" }
+jockey-runtime-capabilities = { path = "../../runtime/capabilities" }
 anyhow = { workspace = true }
 clap = { workspace = true }
 serde = { workspace = true }

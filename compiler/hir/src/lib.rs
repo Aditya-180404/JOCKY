@@ -99,6 +99,20 @@ pub enum HirOperation {
         format: String,
         span: Span,
     },
+    CollectProcessTree {
+        span: Span,
+    },
+    CollectProcessModules {
+        pid: i32,
+        span: Span,
+    },
+    CollectProcessHandles {
+        pid: i32,
+        span: Span,
+    },
+    CollectDeletedExecutables {
+        span: Span,
+    },
     Filter {
         condition: serde_json::Value,
         span: Span,
@@ -357,6 +371,18 @@ impl HirLowering {
                     hash_algorithm: hash_algo,
                     span,
                 })
+            }
+            CollectTarget::ProcessTree => {
+                Ok(HirOperation::CollectProcessTree { span })
+            }
+            CollectTarget::ProcessModules { pid } => {
+                Ok(HirOperation::CollectProcessModules { pid: *pid, span })
+            }
+            CollectTarget::ProcessHandles { pid } => {
+                Ok(HirOperation::CollectProcessHandles { pid: *pid, span })
+            }
+            CollectTarget::DeletedExecutables => {
+                Ok(HirOperation::CollectDeletedExecutables { span })
             }
             CollectTarget::NetworkConnections => {
                 Ok(HirOperation::CollectNetworkConnections { span })

@@ -21,6 +21,30 @@ pub struct ProcessInfo {
     pub open_files: Vec<String>,
     pub network_connections: Vec<ProcessNetworkConnection>,
     pub sha256: Option<String>,
+    // Extended fields
+    pub session_id: Option<u32>,
+    pub terminal: Option<String>,
+    pub cgroup: Option<String>,
+    pub container_id: Option<String>,
+    pub integrity_level: Option<String>,
+    pub parent_name: Option<String>,
+    pub child_pids: Vec<i32>,
+    pub modules: Vec<ProcessModule>,
+    pub deleted_executable: bool,
+    pub command_line_full: Option<String>,
+    pub environment: Vec<String>,
+    pub working_directory: Option<String>,
+    pub priority: Option<i32>,
+    pub nice: Option<i32>,
+    pub threads: Option<u32>,
+    pub handles: Option<u32>,
+    pub gdi_handles: Option<u32>,
+    pub user_handles: Option<u32>,
+    pub io_read_bytes: Option<u64>,
+    pub io_write_bytes: Option<u64>,
+    pub io_other_bytes: Option<u64>,
+    pub page_faults: Option<u64>,
+    pub context_switches: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -33,6 +57,25 @@ pub struct ProcessNetworkConnection {
     pub state: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProcessModule {
+    pub name: String,
+    pub path: String,
+    pub base_address: String,
+    pub size_bytes: u64,
+    pub version: Option<String>,
+    pub description: Option<String>,
+    pub company: Option<String>,
+    pub signed: Option<bool>,
+    pub signature_date: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProcessTreeNode {
+    pub process: ProcessInfo,
+    pub children: Vec<ProcessTreeNode>,
+}
+
 pub fn enumerate_processes(
     fields: &[String],
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
@@ -42,6 +85,9 @@ pub fn enumerate_processes(
         let mut results = Vec::new();
 
         let boot_time_sec = procfs::boot_time_secs().ok();
+        let mut pid_to_info: std::collections::HashMap<i32, ProcessInfo> = std::collections::HashMap::new();
+
+        // First pass: collect all processes
         for proc_res in procs {
             let Ok(proc) = proc_res else { continue };
             let mut info = ProcessInfo {
@@ -83,10 +129,39 @@ pub fn enumerate_processes(
                 state: proc.stat().ok().map(|s| format!("{:?}", s.state)),
                 memory_rss_bytes: proc.stat().ok().map(|s| s.rss * procfs::page_size() as u64),
                 memory_vms_bytes: proc.stat().ok().map(|s| s.vsize),
-                cpu_percent: None, // Would need sampling over time
+                cpu_percent: None,
                 open_files: Vec::new(),
                 network_connections: Vec::new(),
                 sha256: None,
+                session_id: proc.stat().ok().map(|s| s.session as u32),
+                terminal: proc.stat().ok().and_then(|s| {
+                    if s.tty_nr != 0 {
+                        Some(format!("pts/{}", s.tty_nr & 0xFF))
+                    } else {
+                        None
+                    }
+                }),
+                cgroup: fs::read_to_string(format!("/proc/{}/cgroup", proc.pid())).ok().map(|s| s.trim().to_string()),
+                container_id: detect_container_id(proc.pid()),
+                integrity_level: None,
+                parent_name: None,
+                child_pids: Vec::new(),
+                modules: collect_modules_linux(proc.pid()),
+                deleted_executable: is_executable_deleted(proc.pid()),
+                command_line_full: proc.cmdline().ok().map(|cmd| cmd.join(" ")),
+                environment: collect_environment_linux(proc.pid()),
+                working_directory: proc.cwd().ok().map(|p| p.to_string_lossy().to_string()),
+                priority: proc.stat().ok().map(|s| s.priority as i32),
+                nice: proc.stat().ok().map(|s| s.nice as i32),
+                threads: proc.stat().ok().map(|s| s.num_threads as u32),
+                handles: None,
+                gdi_handles: None,
+                user_handles: None,
+                io_read_bytes: proc.io().ok().map(|io| io.rchar),
+                io_write_bytes: proc.io().ok().map(|io| io.wchar),
+                io_other_bytes: proc.io().ok().map(|io| io.syscr + io.syscw),
+                page_faults: proc.stat().ok().map(|s| s.minflt as u64 + s.majflt as u64),
+                context_switches: None,
             };
 
             // Collect open files
@@ -107,12 +182,43 @@ pub fn enumerate_processes(
                 }
             }
 
-            // Filter fields if specified
+            pid_to_info.insert(info.pid, info);
+        }
+
+        // Second pass: build parent-child relationships
+        let mut parent_to_children: std::collections::HashMap<i32, Vec<i32>> = std::collections::HashMap::new();
+        for info in pid_to_info.values() {
+            if let Some(ppid) = info.ppid {
+                parent_to_children.entry(ppid).or_default().push(info.pid);
+            }
+        }
+
+        // Add parent names and child PIDs
+        // First collect parent names to avoid borrow issues
+        let mut parent_names: std::collections::HashMap<i32, String> = std::collections::HashMap::new();
+        for info in pid_to_info.values() {
+            if let Some(ppid) = info.ppid {
+                if let Some(parent) = pid_to_info.get(&ppid) {
+                    parent_names.insert(info.pid, parent.name.clone());
+                }
+            }
+        }
+        for info in pid_to_info.values_mut() {
+            if let Some(parent_name) = parent_names.get(&info.pid) {
+                info.parent_name = Some(parent_name.clone());
+            }
+            if let Some(children) = parent_to_children.get(&info.pid) {
+                info.child_pids = children.clone();
+            }
+        }
+
+        // Convert to results
+        for info in pid_to_info.values() {
             let value = if fields.is_empty() {
                 serde_json::to_value(info)?
             } else {
                 let mut map = serde_json::Map::new();
-                let full = serde_json::to_value(&info)?;
+                let full = serde_json::to_value(info)?;
                 if let serde_json::Value::Object(obj) = full {
                     for field in fields {
                         if let Some(val) = obj.get(field) {
@@ -122,7 +228,6 @@ pub fn enumerate_processes(
                 }
                 serde_json::Value::Object(map)
             };
-
             results.push(value);
         }
 
@@ -140,7 +245,7 @@ pub fn enumerate_processes(
             .args([
                 "-NoProfile",
                 "-Command",
-                r#"Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,Name,ExecutablePath,CommandLine,WorkingSetSize,VirtualSize,CreationDate | ForEach-Object { [PSCustomObject]@{ ProcessId=$_.ProcessId; ParentProcessId=$_.ParentProcessId; Name=$_.Name; ExecutablePath=$_.ExecutablePath; CommandLine=$_.CommandLine; WorkingSetSize=$_.WorkingSetSize; VirtualSize=$_.VirtualSize; CreationDate=if($_.CreationDate){$_.CreationDate.ToUniversalTime().ToString('o')}else{$null} } } | ConvertTo-Json -Compress"#,
+                r#"Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,Name,ExecutablePath,CommandLine,WorkingSetSize,VirtualSize,CreationDate,SessionId,Priority,HandleCount,ThreadCount,PageFaults,ReadOperationCount,WriteOperationCount,OtherOperationCount | ForEach-Object { [PSCustomObject]@{ ProcessId=$_.ProcessId; ParentProcessId=$_.ParentProcessId; Name=$_.Name; ExecutablePath=$_.ExecutablePath; CommandLine=$_.CommandLine; WorkingSetSize=$_.WorkingSetSize; VirtualSize=$_.VirtualSize; CreationDate=if($_.CreationDate){$_.CreationDate.ToUniversalTime().ToString('o')}else{$null}; SessionId=$_.SessionId; Priority=$_.Priority; HandleCount=$_.HandleCount; ThreadCount=$_.ThreadCount; PageFaults=$_.PageFaults; ReadOperationCount=$_.ReadOperationCount; WriteOperationCount=$_.WriteOperationCount; OtherOperationCount=$_.OtherOperationCount } } | ConvertTo-Json -Compress"#,
             ])
             .output();
 
@@ -152,6 +257,8 @@ pub fn enumerate_processes(
                     serde_json::Value::Object(_) => vec![val],
                     _ => vec![],
                 };
+
+                let mut pid_to_info: std::collections::HashMap<i32, ProcessInfo> = std::collections::HashMap::new();
 
                 for item in items {
                     let pid = item.get("ProcessId").and_then(|v| v.as_i64()).unwrap_or(0) as i32;
@@ -184,6 +291,14 @@ pub fn enumerate_processes(
                         .and_then(|v| v.as_str())
                         .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
                         .map(|dt| dt.with_timezone(&chrono::Utc));
+                    let session_id = item.get("SessionId").and_then(|v| v.as_u64()).map(|v| v as u32);
+                    let priority = item.get("Priority").and_then(|v| v.as_i64()).map(|v| v as i32);
+                    let handles = item.get("HandleCount").and_then(|v| v.as_u64()).map(|v| v as u32);
+                    let threads = item.get("ThreadCount").and_then(|v| v.as_u64()).map(|v| v as u32);
+                    let page_faults = item.get("PageFaults").and_then(|v| v.as_u64());
+                    let io_read = item.get("ReadOperationCount").and_then(|v| v.as_u64());
+                    let io_write = item.get("WriteOperationCount").and_then(|v| v.as_u64());
+                    let io_other = item.get("OtherOperationCount").and_then(|v| v.as_u64());
 
                     let mut sha256 = None;
                     if fields.iter().any(|f| f == "hash.sha256" || f == "sha256") {
@@ -217,13 +332,61 @@ pub fn enumerate_processes(
                         open_files: Vec::new(),
                         network_connections: Vec::new(),
                         sha256,
+                        session_id,
+                        terminal: None,
+                        cgroup: None,
+                        container_id: None,
+                        integrity_level: get_integrity_level(pid),
+                        parent_name: None,
+                        child_pids: Vec::new(),
+                        modules: collect_modules_windows(pid),
+                        deleted_executable: false, // Harder to detect on Windows
+                        command_line_full: Some(cmdline_str.to_string()),
+                        environment: collect_environment_windows(pid),
+                        working_directory: get_working_directory_windows(pid),
+                        priority,
+                        nice: None,
+                        threads,
+                        handles: Some(handles.unwrap_or(0)),
+                        gdi_handles: None,
+                        user_handles: None,
+                        io_read_bytes: io_read,
+                        io_write_bytes: io_write,
+                        io_other_bytes: io_other,
+                        page_faults,
+                        context_switches: None,
                     };
 
+                    pid_to_info.insert(pid, info);
+                }
+
+                // Build parent-child relationships
+                let mut parent_to_children: std::collections::HashMap<i32, Vec<i32>> = std::collections::HashMap::new();
+                for info in pid_to_info.values() {
+                    if let Some(ppid) = info.ppid {
+                        parent_to_children.entry(ppid).or_default().push(info.pid);
+                    }
+                }
+
+                // Add parent names and child PIDs
+                for info in pid_to_info.values_mut() {
+                    if let Some(ppid) = info.ppid {
+                        if let Some(parent) = pid_to_info.get(&ppid) {
+                            info.parent_name = Some(parent.name.clone());
+                        }
+                    }
+                    if let Some(children) = parent_to_children.get(&info.pid) {
+                        info.child_pids = children.clone();
+                    }
+                }
+
+                // Convert to results
+                for info in pid_to_info.values() {
                     let val = if fields.is_empty() {
-                        serde_json::to_value(&info)?
+                        serde_json::to_value(info)?
                     } else {
                         let mut map = serde_json::Map::new();
-                        let full = serde_json::to_value(&info)?;
+                        let full = serde_json::to_value(info)?;
                         if let serde_json::Value::Object(obj) = full {
                             for field in fields {
                                 if let Some(v) = obj.get(field) {
@@ -233,7 +396,6 @@ pub fn enumerate_processes(
                         }
                         serde_json::Value::Object(map)
                     };
-
                     results.push(val);
                 }
                 if !results.is_empty() {
@@ -272,6 +434,29 @@ pub fn enumerate_processes(
                         open_files: Vec::new(),
                         network_connections: Vec::new(),
                         sha256: None,
+                        session_id: None,
+                        terminal: None,
+                        cgroup: None,
+                        container_id: None,
+                        integrity_level: None,
+                        parent_name: None,
+                        child_pids: Vec::new(),
+                        modules: Vec::new(),
+                        deleted_executable: false,
+                        command_line_full: None,
+                        environment: Vec::new(),
+                        working_directory: None,
+                        priority: None,
+                        nice: None,
+                        threads: None,
+                        handles: None,
+                        gdi_handles: None,
+                        user_handles: None,
+                        io_read_bytes: None,
+                        io_write_bytes: None,
+                        io_other_bytes: None,
+                        page_faults: None,
+                        context_switches: None,
                     };
                     let val = if fields.is_empty() {
                         serde_json::to_value(&info)?
@@ -299,6 +484,232 @@ pub fn enumerate_processes(
     {
         Ok(Vec::new())
     }
+}
+
+/// Build process tree from flat process list
+pub fn build_process_tree(processes: &[ProcessInfo]) -> Vec<ProcessTreeNode> {
+    let mut pid_to_node: std::collections::HashMap<i32, ProcessTreeNode> = std::collections::HashMap::new();
+    let mut children_map: std::collections::HashMap<i32, Vec<i32>> = std::collections::HashMap::new();
+    let mut root_pids = Vec::new();
+
+    // Create nodes for all processes
+    for proc in processes {
+        pid_to_node.insert(proc.pid, ProcessTreeNode {
+            process: proc.clone(),
+            children: Vec::new(),
+        });
+    }
+
+    // Build parent-child relationships
+    for proc in processes {
+        if let Some(ppid) = proc.ppid {
+            children_map.entry(ppid).or_default().push(proc.pid);
+        } else {
+            root_pids.push(proc.pid);
+        }
+    }
+
+    // Build tree by attaching children to parents
+    // Collect children first to avoid borrow issues
+    let mut children_to_move: Vec<(i32, ProcessTreeNode)> = Vec::new();
+    for (ppid, child_pids) in children_map {
+        for child_pid in child_pids {
+            if let Some(child) = pid_to_node.remove(&child_pid) {
+                children_to_move.push((ppid, child));
+            }
+        }
+    }
+    // Now attach children to parents
+    for (ppid, child) in children_to_move {
+        if let Some(parent) = pid_to_node.get_mut(&ppid) {
+            parent.children.push(child);
+        }
+    }
+
+    // Collect roots
+    root_pids.into_iter()
+        .filter_map(|pid| pid_to_node.remove(&pid))
+        .collect()
+}
+
+/// Collect loaded modules (DLLs/shared libraries) for a process - Linux
+#[cfg(target_os = "linux")]
+fn collect_modules_linux(pid: i32) -> Vec<ProcessModule> {
+    use std::fs;
+    let mut modules = Vec::new();
+
+    if let Ok(maps) = fs::read_to_string(format!("/proc/{}/maps", pid)) {
+        for line in maps.lines() {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() >= 6 {
+                let path = parts[5].to_string();
+                if path.starts_with('/') || path.starts_with('[') {
+                    let addr_parts: Vec<&str> = parts[0].split('-').collect();
+                    if addr_parts.len() == 2 {
+                        let perms = parts[1];
+                        // Only include executable mappings (likely code)
+                        if perms.contains('x') {
+                            modules.push(ProcessModule {
+                                name: path.split('/').last().unwrap_or(&path).to_string(),
+                                path: path.clone(),
+                                base_address: addr_parts[0].to_string(),
+                                size_bytes: u64::from_str_radix(addr_parts[1], 16).unwrap_or(0) - u64::from_str_radix(addr_parts[0], 16).unwrap_or(0),
+                                version: None,
+                                description: None,
+                                company: None,
+                                signed: None,
+                                signature_date: None,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    modules
+}
+
+/// Collect loaded modules (DLLs) for a process - Windows
+#[cfg(target_os = "windows")]
+fn collect_modules_windows(pid: i32) -> Vec<ProcessModule> {
+    use std::process::Command;
+    let mut modules = Vec::new();
+
+    let output = Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-Command",
+            &format!(
+                r#"Get-Process -Id {} | Select-Object -ExpandProperty Modules | ForEach-Object {{ [PSCustomObject]@{ ModuleName=$_.ModuleName; FileName=$_.FileName; BaseAddress=$_.BaseAddress.ToString('X'); ModuleMemorySize=$_.ModuleMemorySize; FileVersionInfo=if($_.FileVersionInfo){{@{FileVersion=$_.FileVersionInfo.FileVersion; FileDescription=$_.FileVersionInfo.FileDescription; CompanyName=$_.FileVersionInfo.CompanyName}} else {{$null}} }} }} | ConvertTo-Json -Compress"#,
+                pid
+            ),
+        ])
+        .output();
+
+    if let Ok(output) = output {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&stdout) {
+            let items: Vec<serde_json::Value> = match val {
+                serde_json::Value::Array(arr) => arr,
+                serde_json::Value::Object(_) => vec![val],
+                _ => vec![],
+            };
+            for item in items {
+                let fvi = item.get("FileVersionInfo");
+                modules.push(ProcessModule {
+                    name: item.get("ModuleName").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                    path: item.get("FileName").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                    base_address: item.get("BaseAddress").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                    size_bytes: item.get("ModuleMemorySize").and_then(|v| v.as_u64()).unwrap_or(0),
+                    version: fvi.and_then(|v| v.get("FileVersion")).and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    description: fvi.and_then(|v| v.get("FileDescription")).and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    company: fvi.and_then(|v| v.get("CompanyName")).and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    signed: None, // Would need authenticode verification
+                    signature_date: None,
+                });
+            }
+        }
+    }
+    modules
+}
+
+/// Check if process executable has been deleted (Linux)
+#[cfg(target_os = "linux")]
+fn is_executable_deleted(pid: i32) -> bool {
+    use std::fs;
+    // Check if /proc/<pid>/exe is a broken symlink
+    if let Ok(target) = fs::read_link(format!("/proc/{}/exe", pid)) {
+        let target_str = target.to_string_lossy();
+        // If the target contains "(deleted)" or the file doesn't exist
+        target_str.contains(" (deleted)") || !target.exists()
+    } else {
+        false
+    }
+}
+
+/// Get process integrity level (Windows)
+#[cfg(target_os = "windows")]
+fn get_integrity_level(pid: i32) -> Option<String> {
+    use std::process::Command;
+    let output = Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-Command",
+            &format!(
+                r#"(Get-Process -Id {}).IntegrityLevel"#, pid
+            ),
+        ])
+        .output();
+
+    if let Ok(output) = output {
+        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if !stdout.is_empty() && stdout != " " {
+            return Some(stdout);
+        }
+    }
+    None
+}
+
+/// Collect environment variables for a process - Linux
+#[cfg(target_os = "linux")]
+fn collect_environment_linux(pid: i32) -> Vec<String> {
+    use std::fs;
+    if let Ok(content) = fs::read_to_string(format!("/proc/{}/environ", pid)) {
+        content.split('\0').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect()
+    } else {
+        Vec::new()
+    }
+}
+
+/// Collect environment variables for a process - Windows
+#[cfg(target_os = "windows")]
+fn collect_environment_windows(pid: i32) -> Vec<String> {
+    // Would require WMI or process hacking - returning empty for now
+    Vec::new()
+}
+
+/// Get working directory for a process - Windows
+#[cfg(target_os = "windows")]
+fn get_working_directory_windows(pid: i32) -> Option<String> {
+    use std::process::Command;
+    let output = Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-Command",
+            &format!(
+                r#"(Get-CimInstance Win32_Process -Filter "ProcessId={}" | Select-Object ExecutablePath).ExecutablePath | Split-Path"#, pid
+            ),
+        ])
+        .output();
+
+    if let Ok(output) = output {
+        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if !stdout.is_empty() {
+            return Some(stdout);
+        }
+    }
+    None
+}
+
+/// Detect container ID for a process (Linux)
+#[cfg(target_os = "linux")]
+fn detect_container_id(pid: i32) -> Option<String> {
+    use std::fs;
+    if let Ok(cgroup) = fs::read_to_string(format!("/proc/{}/cgroup", pid)) {
+        // Look for container IDs in cgroup path
+        for line in cgroup.lines() {
+            if line.contains("docker") || line.contains("containerd") || line.contains("kubepods") {
+                // Extract container ID from path like /docker/abc123... or /kubepods/.../abc123...
+                let parts: Vec<&str> = line.split('/').collect();
+                for part in parts {
+                    if part.len() >= 12 && part.chars().all(|c| c.is_ascii_hexdigit()) {
+                        return Some(part.to_string());
+                    }
+                }
+            }
+        }
+    }
+    None
 }
 
 #[cfg(target_os = "linux")]
@@ -349,4 +760,56 @@ fn calculate_file_sha256(path: &str) -> Result<String, Box<dyn std::error::Error
     }
     let result = hasher.finalize();
     Ok(format!("{:x}", result))
+}
+
+/// Collector functions matching capability registry
+pub fn collect_process_tree() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let processes = enumerate_processes(&[])?;
+    let process_infos: Vec<ProcessInfo> = processes.iter()
+        .filter_map(|v| serde_json::from_value(v.clone()).ok())
+        .collect();
+    let tree = build_process_tree(&process_infos);
+    Ok(serde_json::to_value(tree)?.as_array().unwrap_or(&Vec::new()).to_vec())
+}
+
+pub fn collect_process_modules(pid: Option<i32>) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    #[cfg(target_os = "linux")]
+    {
+        if let Some(pid) = pid {
+            let modules = collect_modules_linux(pid);
+            Ok(modules.into_iter().map(serde_json::to_value).collect::<Result<Vec<_>, _>>()?)
+        } else {
+            Ok(Vec::new())
+        }
+    }
+    #[cfg(target_os = "windows")]
+    {
+        if let Some(pid) = pid {
+            let modules = collect_modules_windows(pid);
+            Ok(modules.into_iter().map(serde_json::to_value).collect::<Result<Vec<_>, _>>()?)
+        } else {
+            Ok(Vec::new())
+        }
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "windows")))]
+    {
+        Ok(Vec::new())
+    }
+}
+
+pub fn detect_deleted_executables() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    #[cfg(target_os = "linux")]
+    {
+        let processes = enumerate_processes(&[])?;
+        let deleted: Vec<_> = processes.into_iter()
+            .filter_map(|v| serde_json::from_value::<ProcessInfo>(v).ok())
+            .filter(|p| p.deleted_executable)
+            .map(|p| serde_json::to_value(p).unwrap())
+            .collect();
+        Ok(deleted)
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        Ok(Vec::new())
+    }
 }

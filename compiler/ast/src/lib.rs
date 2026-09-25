@@ -65,6 +65,10 @@ pub enum TokenKind {
     Hash,
     SystemInfo,
     Processes,
+    ProcessTree,
+    ProcessModules,
+    ProcessHandles,
+    DeletedExecutables,
     NetworkConnections,
     Files,
     Logs,
@@ -280,6 +284,10 @@ impl Stmt {
 pub enum CollectTarget {
     SystemInfo,
     Processes,
+    ProcessTree,
+    ProcessModules { pid: i32 },
+    ProcessHandles { pid: i32 },
+    DeletedExecutables,
     NetworkConnections,
     Files { path: String },
     Logs { source: String },
@@ -375,6 +383,10 @@ impl Diagnostic {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Capability {
     ProcessRead,
+    ProcessTree,
+    ProcessModules,
+    ProcessHandles,
+    DeletedExecutables,
     NetworkRead,
     FilesystemRead,
     LogRead,
@@ -391,6 +403,10 @@ impl Capability {
     pub fn as_str(&self) -> &'static str {
         match self {
             Capability::ProcessRead => "PROCESS_READ",
+            Capability::ProcessTree => "PROCESS_TREE",
+            Capability::ProcessModules => "PROCESS_MODULES",
+            Capability::ProcessHandles => "PROCESS_HANDLES",
+            Capability::DeletedExecutables => "DELETED_EXECUTABLES",
             Capability::NetworkRead => "NETWORK_READ",
             Capability::FilesystemRead => "FILESYSTEM_READ",
             Capability::LogRead => "LOG_READ",
@@ -411,6 +427,10 @@ impl std::str::FromStr for Capability {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "PROCESS_READ" => Ok(Capability::ProcessRead),
+            "PROCESS_TREE" => Ok(Capability::ProcessTree),
+            "PROCESS_MODULES" => Ok(Capability::ProcessModules),
+            "PROCESS_HANDLES" => Ok(Capability::ProcessHandles),
+            "DELETED_EXECUTABLES" => Ok(Capability::DeletedExecutables),
             "NETWORK_READ" => Ok(Capability::NetworkRead),
             "FILESYSTEM_READ" => Ok(Capability::FilesystemRead),
             "LOG_READ" => Ok(Capability::LogRead),

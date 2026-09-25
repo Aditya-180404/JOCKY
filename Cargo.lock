@@ -2102,6 +2102,7 @@ dependencies = [
  "jockey-mir",
  "jockey-parser",
  "jockey-runtime",
+ "jockey-runtime-capabilities",
  "jockey-semantic",
  "serde",
  "serde_json",
@@ -2196,6 +2197,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "jockey-runtime-artifacts",
+ "jockey-runtime-capabilities",
  "jockey-runtime-correlation",
  "jockey-runtime-drivers",
  "jockey-runtime-evidence",
@@ -2223,6 +2225,16 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.9",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "jockey-runtime-capabilities"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
  "thiserror 1.0.69",
 ]
 

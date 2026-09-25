@@ -7,6 +7,7 @@
 //! code generator and the native runtime static library across platforms.
 
 pub use jockey_runtime_artifacts as artifacts;
+pub use jockey_runtime_capabilities as capabilities;
 pub use jockey_runtime_correlation as correlation;
 pub use jockey_runtime_drivers as drivers;
 pub use jockey_runtime_evidence::*;

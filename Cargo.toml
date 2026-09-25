@@ -24,6 +24,7 @@ members = [
     "runtime/registry",
     "runtime/artifacts",
     "runtime/correlation",
+    "runtime/capabilities",
     "apps/api",
     "services/compiler-worker",
     "packages/shared-types",

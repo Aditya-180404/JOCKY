@@ -382,6 +382,10 @@ fn test_instruction_enum_exhaustive_match() {
             MirInstruction::EvidenceExport { .. } => {}
             MirInstruction::CollectSystemInfo { .. } => {}
             MirInstruction::CollectProcesses { .. } => {}
+            MirInstruction::CollectProcessTree { .. } => {}
+            MirInstruction::CollectProcessModules { .. } => {}
+            MirInstruction::CollectProcessHandles { .. } => {}
+            MirInstruction::CollectDeletedExecutables { .. } => {}
             MirInstruction::CollectNetwork { .. } => {}
             MirInstruction::CollectFiles { .. } => {}
             MirInstruction::CollectLogs { .. } => {}

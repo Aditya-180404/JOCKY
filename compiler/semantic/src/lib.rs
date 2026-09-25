@@ -253,6 +253,46 @@ impl SemanticAnalyzer {
                     span,
                 })])
             }
+            CollectTarget::ProcessTree => {
+                self.required_capabilities.insert(Capability::ProcessTree);
+                Ok(vec![IrOperation::Collect(IrCollectOperation {
+                    operation: "process.tree".to_string(),
+                    fields: options.fields.clone(),
+                    options: self.convert_collect_options(options)?,
+                    span,
+                })])
+            }
+            CollectTarget::ProcessModules { pid } => {
+                self.required_capabilities.insert(Capability::ProcessModules);
+                let mut opts = self.convert_collect_options(options)?;
+                opts.insert("pid".to_string(), serde_json::Value::Number((*pid).into()));
+                Ok(vec![IrOperation::Collect(IrCollectOperation {
+                    operation: "process.modules".to_string(),
+                    fields: options.fields.clone(),
+                    options: opts,
+                    span,
+                })])
+            }
+            CollectTarget::ProcessHandles { pid } => {
+                self.required_capabilities.insert(Capability::ProcessHandles);
+                let mut opts = self.convert_collect_options(options)?;
+                opts.insert("pid".to_string(), serde_json::Value::Number((*pid).into()));
+                Ok(vec![IrOperation::Collect(IrCollectOperation {
+                    operation: "process.handles".to_string(),
+                    fields: options.fields.clone(),
+                    options: opts,
+                    span,
+                })])
+            }
+            CollectTarget::DeletedExecutables => {
+                self.required_capabilities.insert(Capability::DeletedExecutables);
+                Ok(vec![IrOperation::Collect(IrCollectOperation {
+                    operation: "process.deleted_executables".to_string(),
+                    fields: options.fields.clone(),
+                    options: self.convert_collect_options(options)?,
+                    span,
+                })])
+            }
             CollectTarget::NetworkConnections => {
                 self.required_capabilities.insert(Capability::NetworkRead);
                 Ok(vec![IrOperation::Collect(IrCollectOperation {
@@ -448,6 +488,18 @@ impl SemanticAnalyzer {
                     if options.hash_algorithm.is_some() {
                         self.required_capabilities.insert(Capability::FileHash);
                     }
+                }
+                CollectTarget::ProcessTree => {
+                    self.required_capabilities.insert(Capability::ProcessTree);
+                }
+                CollectTarget::ProcessModules { .. } => {
+                    self.required_capabilities.insert(Capability::ProcessModules);
+                }
+                CollectTarget::ProcessHandles { .. } => {
+                    self.required_capabilities.insert(Capability::ProcessHandles);
+                }
+                CollectTarget::DeletedExecutables => {
+                    self.required_capabilities.insert(Capability::DeletedExecutables);
                 }
                 CollectTarget::NetworkConnections => {
                     self.required_capabilities.insert(Capability::NetworkRead);
@@ -647,6 +699,10 @@ impl SemanticAnalyzer {
                 let target_str = match target {
                     CollectTarget::SystemInfo => "system_info",
                     CollectTarget::Processes => "processes",
+                    CollectTarget::ProcessTree => "process_tree",
+                    CollectTarget::ProcessModules { .. } => "process_modules",
+                    CollectTarget::ProcessHandles { .. } => "process_handles",
+                    CollectTarget::DeletedExecutables => "deleted_executables",
                     CollectTarget::NetworkConnections => "network_connections",
                     CollectTarget::Files { .. } => "files",
                     CollectTarget::Logs { .. } => "logs",

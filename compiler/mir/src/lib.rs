@@ -148,6 +148,24 @@ pub enum MirInstruction {
         fields_json: String,
         hash_algo: Option<String>,
     },
+    CollectProcessTree {
+        dest: LocalId,
+        ctx: LocalId,
+    },
+    CollectProcessModules {
+        dest: LocalId,
+        ctx: LocalId,
+        pid: i32,
+    },
+    CollectProcessHandles {
+        dest: LocalId,
+        ctx: LocalId,
+        pid: i32,
+    },
+    CollectDeletedExecutables {
+        dest: LocalId,
+        ctx: LocalId,
+    },
     CollectNetwork {
         dest: LocalId,
         ctx: LocalId,
@@ -436,6 +454,22 @@ impl MirLowering {
                     dest: res_id,
                     ctx,
                 });
+            }
+            HirOperation::CollectProcessTree { .. } => {
+                self.instructions
+                    .push(MirInstruction::CollectProcessTree { dest: res_id, ctx });
+            }
+            HirOperation::CollectProcessModules { pid, .. } => {
+                self.instructions
+                    .push(MirInstruction::CollectProcessModules { dest: res_id, ctx, pid: *pid });
+            }
+            HirOperation::CollectProcessHandles { pid, .. } => {
+                self.instructions
+                    .push(MirInstruction::CollectProcessHandles { dest: res_id, ctx, pid: *pid });
+            }
+            HirOperation::CollectDeletedExecutables { .. } => {
+                self.instructions
+                    .push(MirInstruction::CollectDeletedExecutables { dest: res_id, ctx });
             }
             HirOperation::Filter { condition, .. } => {
                 self.instructions.push(MirInstruction::EvidenceAddFilter {

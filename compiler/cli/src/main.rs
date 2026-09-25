@@ -6,6 +6,7 @@ use jockey_ir::{BuildConfig, TargetArch, TargetPlatform};
 use jockey_lexer::Lexer;
 use jockey_parser::Parser as TfParser;
 use jockey_runtime::{verify_evidence, verify_evidence_deep, VerificationStatus};
+use jockey_runtime_capabilities::CapabilityRegistry;
 use jockey_semantic::SemanticAnalyzer;
 use std::path::{Path, PathBuf};
 
@@ -164,6 +165,11 @@ enum Commands {
         #[command(subcommand)]
         command: TargetCommands,
     },
+    /// List all forensic capabilities
+    Capabilities {
+        #[command(subcommand)]
+        command: CapabilityCommands,
+    },
     /// Log in to the JOCKY tool repository
     Login {
         /// User email
@@ -225,6 +231,37 @@ enum Commands {
 enum TargetCommands {
     /// List supported platform and architecture combinations
     List,
+}
+
+#[derive(Subcommand)]
+enum CapabilityCommands {
+    /// List all capabilities
+    List {
+        /// Filter by category (process, system_info, network, etc.)
+        #[arg(long)]
+        category: Option<String>,
+        /// Filter by platform (linux, windows, both)
+        #[arg(long)]
+        platform: Option<String>,
+        /// Show only implemented capabilities
+        #[arg(long)]
+        implemented: bool,
+        /// Output format (table, json, markdown)
+        #[arg(long, default_value = "table")]
+        format: String,
+    },
+    /// Export capability inventory to JSON
+    ExportJson {
+        /// Output file path
+        #[arg(short, long)]
+        output: PathBuf,
+    },
+    /// Export capability inventory to Markdown
+    ExportMarkdown {
+        /// Output file path
+        #[arg(short, long)]
+        output: PathBuf,
+    },
 }
 
 #[derive(Subcommand)]
@@ -315,6 +352,16 @@ fn main() -> anyhow::Result<()> {
         Commands::Target {
             command: TargetCommands::List,
         } => list_targets(),
+        Commands::Capabilities { command } => match command {
+            CapabilityCommands::List {
+                category,
+                platform,
+                implemented,
+                format,
+            } => list_capabilities(category, platform, implemented, &format),
+            CapabilityCommands::ExportJson { output } => export_capabilities_json(&output),
+            CapabilityCommands::ExportMarkdown { output } => export_capabilities_markdown(&output),
+        },
         Commands::Login {
             email,
             password,
@@ -472,6 +519,83 @@ fn fmt(file: &Path, write: bool) -> anyhow::Result<()> {
 fn list_targets() -> anyhow::Result<()> {
     println!("linux x64");
     println!("windows x64");
+    Ok(())
+}
+
+fn list_capabilities(
+    category_filter: Option<String>,
+    platform_filter: Option<String>,
+    implemented_only: bool,
+    format: &str,
+) -> anyhow::Result<()> {
+    let registry = CapabilityRegistry::new();
+    let mut caps: Vec<_> = registry.all().collect();
+
+    if let Some(cat_str) = category_filter {
+        let cat = cat_str.to_lowercase();
+        caps.retain(|c| {
+            let c_cat = format!("{:?}", c.category).to_lowercase();
+            c_cat == cat || c_cat.contains(&cat)
+        });
+    }
+
+    if let Some(plat_str) = platform_filter {
+        let plat = plat_str.to_lowercase();
+        caps.retain(|c| {
+            let c_plat = format!("{:?}", c.platforms).to_lowercase();
+            c_plat == plat || c_plat.contains(&plat)
+        });
+    }
+
+    if implemented_only {
+        caps.retain(|c| c.is_implemented);
+    }
+
+    match format.to_lowercase().as_str() {
+        "json" => {
+            println!("{}", serde_json::to_string_pretty(&caps)?);
+        }
+        "markdown" => {
+            println!("{}", registry.to_markdown());
+        }
+        _ => {
+            // Table format
+            println!(
+                "{:<30} {:<12} {:<10} {:<8} {:<12} {}",
+                "ID", "CATEGORY", "PLATFORM", "PRIV", "MITRE", "NAME"
+            );
+            println!("{}", "-".repeat(120));
+            for cap in caps {
+                let mitre = cap.mitre_attack_ids.join(",");
+                println!(
+                    "{:<30} {:<12} {:<10} {:<8} {:<12} {}",
+                    cap.id,
+                    format!("{:?}", cap.category),
+                    format!("{:?}", cap.platforms),
+                    format!("{:?}", cap.privilege),
+                    if mitre.is_empty() { "none".to_string() } else { mitre },
+                    cap.name
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
+fn export_capabilities_json(output: &Path) -> anyhow::Result<()> {
+    let registry = CapabilityRegistry::new();
+    let json = registry.to_json();
+    let json_str = serde_json::to_string_pretty(&json)?;
+    std::fs::write(output, json_str)?;
+    println!("Exported capability inventory to {}", output.display());
+    Ok(())
+}
+
+fn export_capabilities_markdown(output: &Path) -> anyhow::Result<()> {
+    let registry = CapabilityRegistry::new();
+    let markdown = registry.to_markdown();
+    std::fs::write(output, markdown)?;
+    println!("Exported capability inventory to {}", output.display());
     Ok(())
 }
 
