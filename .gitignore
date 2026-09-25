@@ -48,3 +48,8 @@ packages/release-*/
 # Sidecar metadata and generated evidence outputs
 *.meta.json
 *_evidence.json
+
+
+docs/
+**/prompt.md
+**/task.md
