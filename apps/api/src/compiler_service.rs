@@ -96,6 +96,10 @@ pub struct EvidenceItemResponse {
     pub collector: String,
     pub timestamp: String,
     pub source: String,
+    /// Evidence provenance label:
+    /// - `"REAL"`             = live-collected from the host running the API server
+    /// - `"COLLECTOR_FAILED"` = collector returned an error; data field contains the error message
+    pub origin: String,
     pub data: serde_json::Value,
     pub sha256: String,
     pub integrity: String,
@@ -351,6 +355,26 @@ pub async fn execute_handler(
         ir.name
     ));
 
+    // Build a properly-labelled evidence item from live-collected data.
+    // origin must be one of: "REAL", "COLLECTOR_FAILED"
+    let make_item = |collector: &str, source: &str, origin: &str, data: serde_json::Value| -> EvidenceItemResponse {
+        let item_json = serde_json::to_vec(&data).unwrap_or_default();
+        let mut h = Sha256::new();
+        h.update(&item_json);
+        let item_hash = format!("{:x}", h.finalize());
+        let integrity = if origin == "COLLECTOR_FAILED" { "N/A".to_string() } else { "VALID".to_string() };
+        EvidenceItemResponse {
+            id: format!("evi-{}-{}", collector.replace('.', "-"), uuid::Uuid::new_v4().simple()),
+            collector: collector.to_string(),
+            timestamp: chrono::Utc::now().to_rfc3339(),
+            source: source.to_string(),
+            origin: origin.to_string(),
+            data,
+            sha256: item_hash,
+            integrity,
+        }
+    };
+
     let mut collectors_executed = Vec::new();
     let mut evidence_items = Vec::new();
     let mut aggregated_evidence = Vec::new();
@@ -362,40 +386,22 @@ pub async fn execute_handler(
                     log.push("Running collector: system_info".to_string());
                     collectors_executed.push("system_info".to_string());
 
-                    let sys_data = match jockey_runtime_system::collect_system_info() {
-                        Ok(info) => serde_json::to_value(&info).unwrap_or(serde_json::json!({
-                            "hostname": "sandbox-jockey-node",
-                            "os": "Linux 6.6.0-sandbox",
-                            "arch": "x86_64",
-                            "cpu_count": 8,
-                            "total_memory": 16777216,
-                        })),
-                        Err(_) => serde_json::json!({
-                            "hostname": "sandbox-jockey-node",
-                            "os": "Linux 6.6.0-sandbox",
-                            "arch": "x86_64",
-                            "cpu_count": 8,
-                            "total_memory": 16777216,
-                        }),
+                    let (sys_data, origin) = match jockey_runtime_system::collect_system_info() {
+                        Ok(info) => (
+                            serde_json::to_value(&info).unwrap_or_else(|e| serde_json::json!({"error": e.to_string()})),
+                            "REAL",
+                        ),
+                        Err(e) => (
+                            serde_json::json!({"error": e.to_string(), "collector": "system_info"}),
+                            "COLLECTOR_FAILED",
+                        ),
                     };
 
-                    let item_json = serde_json::to_vec(&sys_data).unwrap_or_default();
-                    let mut h = Sha256::new();
-                    h.update(&item_json);
-                    let item_hash = format!("{:x}", h.finalize());
-
-                    let item = EvidenceItemResponse {
-                        id: format!("evi-sys-{}", uuid::Uuid::new_v4().simple()),
-                        collector: "system_info".to_string(),
-                        timestamp: chrono::Utc::now().to_rfc3339(),
-                        source: "/proc/sys (sandboxed)".to_string(),
-                        data: sys_data.clone(),
-                        sha256: item_hash,
-                        integrity: "VALID".to_string(),
-                    };
+                    let item = make_item("system_info", "/proc/sys", origin, sys_data.clone());
                     evidence_items.push(item);
                     aggregated_evidence.push(serde_json::json!({
                         "collector": "system_info",
+                        "origin": origin,
                         "options": c.options,
                         "data": sys_data
                     }));
@@ -404,51 +410,21 @@ pub async fn execute_handler(
                     log.push("Running collector: processes".to_string());
                     collectors_executed.push("processes".to_string());
 
-                    let proc_data = match jockey_runtime_process::enumerate_processes(&c.fields)
-                    {
+                    let (proc_data, origin) = match jockey_runtime_process::enumerate_processes(&c.fields) {
                         Ok(mut procs) => {
                             if procs.len() > 25 {
                                 procs.truncate(25);
                             }
-                            serde_json::to_value(&procs).unwrap_or_else(|_| serde_json::json!([]))
+                            (serde_json::to_value(&procs).unwrap_or_else(|_| serde_json::json!([])), "REAL")
                         }
-                        Err(_) => serde_json::json!([
-                            {
-                                "pid": 1,
-                                "name": "systemd",
-                                "path": "/sbin/init",
-                                "user": "root",
-                                "ppid": 0,
-                                "sha256": "8a3f898a83d3e69bb0d8108be6886e0dfd6cfb33e2ddfa77ee95180fbe937b42"
-                            },
-                            {
-                                "pid": 284,
-                                "name": "jockey-agent",
-                                "path": "/usr/local/bin/jockey-agent",
-                                "user": "jockey",
-                                "ppid": 1,
-                                "sha256": "4b971ca60773d2b270a4173873426e952670eef80133cfa5d9eb7efb5e5a2db3"
-                            }
-                        ]),
+                        Err(e) => (serde_json::json!({"error": e.to_string(), "collector": "processes"}), "COLLECTOR_FAILED"),
                     };
 
-                    let item_json = serde_json::to_vec(&proc_data).unwrap_or_default();
-                    let mut h = Sha256::new();
-                    h.update(&item_json);
-                    let item_hash = format!("{:x}", h.finalize());
-
-                    let item = EvidenceItemResponse {
-                        id: format!("evi-proc-{}", uuid::Uuid::new_v4().simple()),
-                        collector: "processes".to_string(),
-                        timestamp: chrono::Utc::now().to_rfc3339(),
-                        source: "/proc/[pid] (sandboxed)".to_string(),
-                        data: proc_data.clone(),
-                        sha256: item_hash,
-                        integrity: "VALID".to_string(),
-                    };
+                    let item = make_item("processes", "/proc/[pid]", origin, proc_data.clone());
                     evidence_items.push(item);
                     aggregated_evidence.push(serde_json::json!({
                         "collector": "processes",
+                        "origin": origin,
                         "options": c.options,
                         "data": proc_data
                     }));
@@ -457,48 +433,21 @@ pub async fn execute_handler(
                     log.push("Running collector: network_connections".to_string());
                     collectors_executed.push("network_connections".to_string());
 
-                    let net_data = match jockey_runtime_network::enumerate_connections() {
+                    let (net_data, origin) = match jockey_runtime_network::enumerate_connections() {
                         Ok(mut conns) => {
                             if conns.len() > 20 {
                                 conns.truncate(20);
                             }
-                            serde_json::to_value(&conns).unwrap_or_else(|_| serde_json::json!([]))
+                            (serde_json::to_value(&conns).unwrap_or_else(|_| serde_json::json!([])), "REAL")
                         }
-                        Err(_) => serde_json::json!([
-                            {
-                                "protocol": "TCP",
-                                "local_address": "127.0.0.1:8080",
-                                "remote_address": "0.0.0.0:0",
-                                "state": "LISTEN",
-                                "pid": 1204
-                            },
-                            {
-                                "protocol": "TCP",
-                                "local_address": "127.0.0.1:5432",
-                                "remote_address": "0.0.0.0:0",
-                                "state": "LISTEN",
-                                "pid": 892
-                            }
-                        ]),
+                        Err(e) => (serde_json::json!({"error": e.to_string(), "collector": "network_connections"}), "COLLECTOR_FAILED"),
                     };
 
-                    let item_json = serde_json::to_vec(&net_data).unwrap_or_default();
-                    let mut h = Sha256::new();
-                    h.update(&item_json);
-                    let item_hash = format!("{:x}", h.finalize());
-
-                    let item = EvidenceItemResponse {
-                        id: format!("evi-net-{}", uuid::Uuid::new_v4().simple()),
-                        collector: "network_connections".to_string(),
-                        timestamp: chrono::Utc::now().to_rfc3339(),
-                        source: "socket table (sandboxed)".to_string(),
-                        data: net_data.clone(),
-                        sha256: item_hash,
-                        integrity: "VALID".to_string(),
-                    };
+                    let item = make_item("network_connections", "/proc/net/tcp", origin, net_data.clone());
                     evidence_items.push(item);
                     aggregated_evidence.push(serde_json::json!({
                         "collector": "network_connections",
+                        "origin": origin,
                         "options": c.options,
                         "data": net_data
                     }));
@@ -507,32 +456,22 @@ pub async fn execute_handler(
                     log.push("Running collector: filesystem".to_string());
                     collectors_executed.push("filesystem".to_string());
 
-                    let fs_data = serde_json::json!({
-                        "path": "/etc",
-                        "files_scanned": 142,
-                        "metadata": [
-                            { "path": "/etc/passwd", "size": 2841, "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865" },
-                            { "path": "/etc/hosts", "size": 395, "sha256": "127b3fa6992d9f8e4344585c57b7fbf9d3d3a43657b988f615f8a002706e2cb9" }
-                        ]
-                    });
+                    // Collect real filesystem metadata from the paths specified in the IR.
+                    // The scan root defaults to "/etc" if no path is provided.
+                    let scan_root = c.options.get("path")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("/etc");
 
-                    let item_json = serde_json::to_vec(&fs_data).unwrap_or_default();
-                    let mut h = Sha256::new();
-                    h.update(&item_json);
-                    let item_hash = format!("{:x}", h.finalize());
-
-                    let item = EvidenceItemResponse {
-                        id: format!("evi-fs-{}", uuid::Uuid::new_v4().simple()),
-                        collector: "filesystem".to_string(),
-                        timestamp: chrono::Utc::now().to_rfc3339(),
-                        source: "/etc metadata (sandboxed)".to_string(),
-                        data: fs_data.clone(),
-                        sha256: item_hash,
-                        integrity: "VALID".to_string(),
+                    let (fs_data, origin) = match jockey_runtime_filesystem::enumerate_files(scan_root, false, "sha256") {
+                        Ok(entries) => (serde_json::to_value(&entries).unwrap_or_else(|_| serde_json::json!([])), "REAL"),
+                        Err(e) => (serde_json::json!({"error": e.to_string(), "collector": "filesystem", "scan_root": scan_root}), "COLLECTOR_FAILED"),
                     };
+
+                    let item = make_item("filesystem", scan_root, origin, fs_data.clone());
                     evidence_items.push(item);
                     aggregated_evidence.push(serde_json::json!({
                         "collector": "filesystem",
+                        "origin": origin,
                         "options": c.options,
                         "data": fs_data
                     }));
@@ -541,29 +480,19 @@ pub async fn execute_handler(
                     log.push("Running collector: logs".to_string());
                     collectors_executed.push("logs".to_string());
 
-                    let log_data = serde_json::json!({
-                        "log_source": "system",
-                        "entries_collected": 10,
-                        "status": "normal"
-                    });
-
-                    let item_json = serde_json::to_vec(&log_data).unwrap_or_default();
-                    let mut h = Sha256::new();
-                    h.update(&item_json);
-                    let item_hash = format!("{:x}", h.finalize());
-
-                    let item = EvidenceItemResponse {
-                        id: format!("evi-log-{}", uuid::Uuid::new_v4().simple()),
-                        collector: "logs".to_string(),
-                        timestamp: chrono::Utc::now().to_rfc3339(),
-                        source: "system logs (sandboxed)".to_string(),
-                        data: log_data.clone(),
-                        sha256: item_hash,
-                        integrity: "VALID".to_string(),
+                    let log_source = c.options.get("source")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("system");
+                    let (log_data, origin) = match jockey_runtime_logs::collect_logs(log_source) {
+                        Ok(entries) => (serde_json::to_value(&entries).unwrap_or_else(|_| serde_json::json!([])), "REAL"),
+                        Err(e) => (serde_json::json!({"error": e.to_string(), "collector": "logs", "source": log_source}), "COLLECTOR_FAILED"),
                     };
+
+                    let item = make_item("logs", "system journal / syslog", origin, log_data.clone());
                     evidence_items.push(item);
                     aggregated_evidence.push(serde_json::json!({
                         "collector": "logs",
+                        "origin": origin,
                         "options": c.options,
                         "data": log_data
                     }));
@@ -572,34 +501,35 @@ pub async fn execute_handler(
                     log.push("Running collector: security_analysis".to_string());
                     collectors_executed.push("security_analysis".to_string());
 
-                    let analyzer =
-                        jockey_runtime_security::SecurityAnalyzer::new("sandbox-host");
+                    let hostname = jockey_runtime_system::collect_system_info()
+                        .ok().and_then(|s| s.get("hostname").and_then(|h| h.as_str()).map(|s| s.to_string()))
+                        .unwrap_or_else(|| "sandbox-host".to_string());
+                    let analyzer = jockey_runtime_security::SecurityAnalyzer::new(&hostname);
                     let summary = analyzer.summary();
                     let sec_data = serde_json::to_value(&summary).unwrap_or_default();
 
-                    let item_json = serde_json::to_vec(&sec_data).unwrap_or_default();
-                    let mut h = Sha256::new();
-                    h.update(&item_json);
-                    let item_hash = format!("{:x}", h.finalize());
-
-                    let item = EvidenceItemResponse {
-                        id: format!("evi-sec-{}", uuid::Uuid::new_v4().simple()),
-                        collector: "security_analysis".to_string(),
-                        timestamp: chrono::Utc::now().to_rfc3339(),
-                        source: "heuristic security engine".to_string(),
-                        data: sec_data.clone(),
-                        sha256: item_hash,
-                        integrity: "VALID".to_string(),
-                    };
+                    let item = make_item("security_analysis", "heuristic security engine", "REAL", sec_data.clone());
                     evidence_items.push(item);
                     aggregated_evidence.push(serde_json::json!({
                         "collector": "security_analysis",
+                        "origin": "REAL",
                         "data": sec_data
                     }));
                 }
                 other => {
-                    log.push(format!("Running collector: {}", other));
+                    log.push(format!("Collector '{}' is not registered in this execution context.", other));
                     collectors_executed.push(other.to_string());
+                    let err_data = serde_json::json!({
+                        "error": format!("Collector '{}' is not available in the API sandbox execution context. Use a native compiled binary for full collector support.", other),
+                        "collector": other
+                    });
+                    let item = make_item(other, "N/A", "COLLECTOR_FAILED", err_data.clone());
+                    evidence_items.push(item);
+                    aggregated_evidence.push(serde_json::json!({
+                        "collector": other,
+                        "origin": "COLLECTOR_FAILED",
+                        "data": err_data
+                    }));
                 }
             }
         }
@@ -610,12 +540,15 @@ pub async fn execute_handler(
     overall_hasher.update(&bundle_bytes);
     let overall_sha256 = format!("{:x}", overall_hasher.finalize());
 
+    let real_count = evidence_items.iter().filter(|e| e.origin == "REAL").count();
+    let failed_count = evidence_items.iter().filter(|e| e.origin == "COLLECTOR_FAILED").count();
     log.push(format!(
-        "Finalized {} evidence items.",
-        evidence_items.len()
+        "Finalized {} evidence items ({} REAL, {} COLLECTOR_FAILED).",
+        evidence_items.len(), real_count, failed_count
     ));
     log.push(format!("SHA-256 Checksum: {}", overall_sha256));
-    log.push("Integrity status: VALID (Cryptographically verified)".to_string());
+    let integrity_status = if failed_count == 0 { "VALID" } else { "PARTIAL" };
+    log.push(format!("Integrity status: {} (Cryptographically verified)", integrity_status));
 
     Ok(Json(ExecuteResponse {
         success: true,
@@ -625,7 +558,7 @@ pub async fn execute_handler(
         collectors_executed,
         evidence_count: evidence_items.len(),
         sha256: overall_sha256,
-        integrity: "VALID".to_string(),
+        integrity: integrity_status.to_string(),
         evidence_items,
         diagnostics: all_diags,
         output_log: log,

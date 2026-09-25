@@ -1,10 +1,10 @@
-use std::collections::HashSet;
 use jockey_backend::llvm::LlvmBackend;
 use jockey_ir::BuildConfig;
 use jockey_mir::{
     MirBasicBlock, MirCompareOp, MirFunction, MirInstruction, MirLocal, MirProgram, MirProvenance,
     MirTerminator, MirType,
 };
+use std::collections::HashSet;
 
 /// Verifies that every MIR instruction variant — including the three new
 /// collectors (MemoryRegions, Registry, Artifacts) — produces valid LLVM IR.

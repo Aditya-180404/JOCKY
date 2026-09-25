@@ -4,12 +4,12 @@
 //! These tests drive the **full** compilation stack at the IR-generation level
 //! without the runtime linker step, making them fast and suitable for CI.
 
-use std::process::Command;
 use jockey_backend::llvm::LlvmBackend;
 use jockey_ir::BuildConfig;
 use jockey_lexer::Lexer;
 use jockey_parser::Parser;
 use jockey_semantic::SemanticAnalyzer;
+use std::process::Command;
 
 /// Run the full compiler stack from source text, stopping just before the
 /// linker, and return the LLVM IR string.

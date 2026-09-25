@@ -1,7 +1,5 @@
 //! jockey Semantic Analysis - Type checking and validation
 
-use std::collections::HashSet;
-use thiserror::Error;
 use jockey_ast::{
     Capability, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr, HashAlgorithm,
     Investigation, PipelineStage, Span, Stmt,
@@ -11,6 +9,8 @@ use jockey_ir::{
     IrFilterOperation, IrInvestigation, IrLimitOperation, IrMetadataOperation, IrOperation,
     IrPipelineStage, IrWhereOperation,
 };
+use std::collections::HashSet;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum SemanticError {

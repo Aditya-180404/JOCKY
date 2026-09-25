@@ -1,9 +1,9 @@
 //! jockey Backend - Code generation for target platforms
 
+use jockey_ir::{ArtifactMetadata, BuildConfig, IrInvestigation, TargetArch, TargetPlatform};
 use sha2::Digest;
 use std::path::Path;
 use thiserror::Error;
-use jockey_ir::{ArtifactMetadata, BuildConfig, IrInvestigation, TargetArch, TargetPlatform};
 
 #[derive(Debug, Error)]
 pub enum BackendError {
@@ -732,10 +732,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
         ))
     }
 
-    fn generate_limit(
-        &self,
-        limit: &jockey_ir::IrLimitOperation,
-    ) -> Result<String, BackendError> {
+    fn generate_limit(&self, limit: &jockey_ir::IrLimitOperation) -> Result<String, BackendError> {
         let json_str = serde_json::to_string(&limit.count).unwrap_or_default();
         Ok(format!(
             "    evidence.set_limit(serde_json::from_str({:?}).unwrap_or_default());\n",
@@ -920,9 +917,9 @@ impl TargetSpec {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashSet;
     use jockey_ast::{Capability, Span};
     use jockey_ir::{IrInvestigation, TargetArch, TargetPlatform};
+    use std::collections::HashSet;
 
     #[test]
     fn test_backend_generates_rust_code() {

@@ -54,6 +54,7 @@ interface EvidenceItem {
   collector: string;
   timestamp: string;
   source: string;
+  origin?: string;
   data: any;
   sha256: string;
   integrity: string;
@@ -1108,6 +1109,7 @@ export function WebIDE() {
                             <thead>
                               <tr className="border-b border-slate-800 text-slate-400 text-[11px]">
                                 <th className="py-1 px-2">Collector</th>
+                                <th className="py-1 px-2">Origin</th>
                                 <th className="py-1 px-2">Timestamp (UTC)</th>
                                 <th className="py-1 px-2">Source</th>
                                 <th className="py-1 px-2">SHA-256 Digest</th>
@@ -1122,6 +1124,19 @@ export function WebIDE() {
                                   className="border-b border-slate-800/60 hover:bg-slate-800/50 cursor-pointer"
                                 >
                                   <td className="py-1.5 px-2 text-blue-400 font-semibold">{item.collector}</td>
+                                  <td className="py-1.5 px-2">
+                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono border ${
+                                      item.origin === 'REAL'
+                                        ? 'bg-blue-950 text-blue-300 border-blue-700'
+                                        : item.origin === 'COLLECTOR_FAILED'
+                                        ? 'bg-rose-950 text-rose-300 border-rose-700'
+                                        : item.origin === 'SIMULATED'
+                                        ? 'bg-amber-950 text-amber-300 border-amber-700'
+                                        : 'bg-emerald-950 text-emerald-300 border-emerald-700'
+                                    }`}>
+                                      {item.origin || 'REAL'}
+                                    </span>
+                                  </td>
                                   <td className="py-1.5 px-2 text-slate-300">{item.timestamp}</td>
                                   <td className="py-1.5 px-2 text-slate-400">{item.source}</td>
                                   <td className="py-1.5 px-2 text-slate-400">{item.sha256 ? item.sha256.slice(0, 16) + '...' : '-'}</td>

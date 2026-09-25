@@ -1,8 +1,8 @@
 //! jockey IR - Intermediate Representation
 
+use jockey_ast::{Capability, Span};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use jockey_ast::{Capability, Span};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IrInvestigation {

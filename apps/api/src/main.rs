@@ -59,9 +59,8 @@ async fn main() -> anyhow::Result<()> {
     info!("Starting jockey API");
 
     // Load configuration - default PostgreSQL port 5433 for local docker container mapping
-    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
-        "postgres://jockey:jockey_dev@localhost:5433/jockey".to_string()
-    });
+    let database_url = std::env::var("DATABASE_URL")
+        .unwrap_or_else(|_| "postgres://jockey:jockey_dev@localhost:5433/jockey".to_string());
     let redis_url =
         std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".to_string());
     let minio_endpoint =

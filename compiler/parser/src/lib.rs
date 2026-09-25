@@ -1,12 +1,12 @@
 //! jockey Parser - Parses tokens into AST
 
-use std::vec;
-use thiserror::Error;
 use jockey_ast::{
     BinaryOp, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr, HashAlgorithm,
     Investigation, PipelineStage, Span, Stmt, Token, TokenKind, UnaryOp,
 };
 use jockey_lexer::LexerError;
+use std::vec;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ParseError {

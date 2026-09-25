@@ -33,8 +33,7 @@ investigation "native_semantic_triage" {
 }
 "#;
 
-    let temp_dir =
-        std::env::temp_dir().join(format!("jockey_native_test_{}", std::process::id()));
+    let temp_dir = std::env::temp_dir().join(format!("jockey_native_test_{}", std::process::id()));
     let _ = fs::remove_dir_all(&temp_dir);
     fs::create_dir_all(&temp_dir).expect("Failed to create temp test directory");
 
@@ -110,10 +109,14 @@ investigation "native_semantic_triage" {
 
     // Check system_info evidence record
     let has_system_info = records.iter().any(|r| {
+        // Direct system_info keys (pre-timeline)
         r.get("source").and_then(|s| s.as_str()) == Some("system_info")
             || r.get("hostname").is_some()
             || r.get("os").is_some()
             || r.get("event_type").and_then(|t| t.as_str()) == Some("system_info")
+            // After timeline normalization, system_info appears with source="system"
+            || r.get("source").and_then(|s| s.as_str()) == Some("system")
+            || r.get("event_type").and_then(|t| t.as_str()) == Some("system_info_collected")
     });
     assert!(
         has_system_info,
@@ -123,9 +126,11 @@ investigation "native_semantic_triage" {
     // Check processes evidence record
     let has_processes = records.iter().any(|r| {
         r.get("source").and_then(|s| s.as_str()) == Some("processes")
+            || r.get("source").and_then(|s| s.as_str()) == Some("process")
             || r.get("process_name").is_some()
             || r.get("pid").is_some()
             || r.get("name").is_some()
+            || r.get("event_type").and_then(|t| t.as_str()) == Some("process_observed")
     });
     assert!(
         has_processes,
@@ -139,6 +144,7 @@ investigation "native_semantic_triage" {
             || r.get("local_address").is_some()
             || r.get("protocol").is_some()
             || r.get("family").is_some()
+            || r.get("event_type").and_then(|t| t.as_str()).map(|t| t.starts_with("connection_")).unwrap_or(false)
     });
     assert!(
         has_network,
@@ -148,8 +154,10 @@ investigation "native_semantic_triage" {
     // Check files evidence record
     let has_files = records.iter().any(|r| {
         r.get("source").and_then(|s| s.as_str()) == Some("files")
+            || r.get("source").and_then(|s| s.as_str()) == Some("filesystem")
             || r.get("path").is_some()
             || r.get("file_path").is_some()
+            || r.get("event_type").and_then(|t| t.as_str()) == Some("file_observed")
     });
     assert!(
         has_files,

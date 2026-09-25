@@ -1,11 +1,11 @@
-use std::collections::HashSet;
-use std::process::Command;
 use jockey_backend::llvm::LlvmBackend;
 use jockey_ir::BuildConfig;
 use jockey_mir::{
     MirBasicBlock, MirFunction, MirInstruction, MirLocal, MirProgram, MirProvenance, MirTerminator,
     MirType,
 };
+use std::collections::HashSet;
+use std::process::Command;
 
 #[test]
 fn test_llvm_golden_process_triage_ir() {

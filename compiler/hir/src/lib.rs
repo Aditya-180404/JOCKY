@@ -3,13 +3,13 @@
 //! HIR captures semantic meaning, resolved capabilities, evidence requirements,
 //! and provenance, separating syntax structure from semantic operations.
 
-use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
-use std::collections::HashSet;
 use jockey_ast::{
     BinaryOp, Capability, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr,
     HashAlgorithm, Investigation, PipelineStage, Span, Stmt,
 };
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::collections::HashSet;
 
 /// High-Level Intermediate Representation of a jockey Investigation
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -89,6 +89,14 @@ pub enum HirOperation {
     CollectArtifacts {
         artifact_type: String,
         path: String,
+        span: Span,
+    },
+    CollectTimeline {
+        sources: Vec<String>,
+        span: Span,
+    },
+    CollectEvidence {
+        format: String,
         span: Span,
     },
     Filter {
@@ -391,9 +399,14 @@ impl HirLowering {
                 path: path.clone(),
                 span,
             }),
-            CollectTarget::Evidence { .. } | CollectTarget::Timeline { .. } => {
-                Ok(HirOperation::CollectSystemInfo { span })
-            }
+            CollectTarget::Timeline { sources } => Ok(HirOperation::CollectTimeline {
+                sources: sources.clone(),
+                span,
+            }),
+            CollectTarget::Evidence { format } => Ok(HirOperation::CollectEvidence {
+                format: format.clone(),
+                span,
+            }),
         }
     }
 
@@ -626,6 +639,34 @@ impl From<&jockey_ir::IrInvestigation> for HirInvestigation {
                         operations.push(HirOperation::CollectArtifacts {
                             artifact_type,
                             path,
+                            span: c.span,
+                        });
+                    }
+                    "timeline.build" | "timeline" => {
+                        let sources = c
+                            .options
+                            .get("sources")
+                            .and_then(|v| v.as_array())
+                            .map(|arr| {
+                                arr.iter()
+                                    .filter_map(|item| item.as_str().map(|s| s.to_string()))
+                                    .collect()
+                            })
+                            .unwrap_or_default();
+                        operations.push(HirOperation::CollectTimeline {
+                            sources,
+                            span: c.span,
+                        });
+                    }
+                    "evidence" => {
+                        let format = c
+                            .options
+                            .get("format")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("json")
+                            .to_string();
+                        operations.push(HirOperation::CollectEvidence {
+                            format,
                             span: c.span,
                         });
                     }

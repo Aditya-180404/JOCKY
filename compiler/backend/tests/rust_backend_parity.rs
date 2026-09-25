@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use jockey_ast::Capability;
 use jockey_backend::llvm::LlvmBackend;
 use jockey_backend::{Backend, BackendKind};
@@ -6,6 +5,7 @@ use jockey_ir::{BuildConfig, IrInvestigation};
 use jockey_lexer::Lexer;
 use jockey_parser::Parser;
 use jockey_semantic::SemanticAnalyzer;
+use std::collections::HashSet;
 
 fn parse_to_ir(source: &str, test_name: &str) -> IrInvestigation {
     let mut lexer = Lexer::new(source);

@@ -4,9 +4,9 @@
 //! optimizes via LLVM passes, and links against the native jockey runtime staticlib
 //! using `clang` to produce platform-native ELF and PE executables.
 
-use std::path::{Path, PathBuf};
 use jockey_ir::{ArtifactMetadata, BuildConfig, TargetArch, TargetPlatform};
 use jockey_mir::MirProgram;
+use std::path::{Path, PathBuf};
 
 /// LLVM backend configuration and compilation driver
 pub struct LlvmBackend {
@@ -157,12 +157,39 @@ impl LlvmBackend {
         Ok(metadata)
     }
 
-    fn ensure_runtime_lib(&self, platform: TargetPlatform) -> Result<PathBuf, crate::BackendError> {
+    fn find_workspace_root() -> PathBuf {
+        if let Ok(dir) = std::env::var("JOCKEY_WORKSPACE_ROOT") {
+            let p = PathBuf::from(dir);
+            if p.exists() {
+                return p;
+            }
+        }
         let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let workspace_root = manifest_dir
+        if manifest_dir.exists() {
+            if let Some(parent) = manifest_dir.parent().and_then(|p| p.parent()) {
+                if parent.join("Cargo.toml").exists() {
+                    return parent.to_path_buf();
+                }
+            }
+        }
+        let mut curr = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+        loop {
+            if curr.join("Cargo.toml").exists() && curr.join("compiler").exists() {
+                return curr;
+            }
+            if !curr.pop() {
+                break;
+            }
+        }
+        manifest_dir
             .parent()
             .and_then(|p| p.parent())
-            .unwrap_or(&manifest_dir);
+            .unwrap_or(&manifest_dir)
+            .to_path_buf()
+    }
+
+    fn ensure_runtime_lib(&self, platform: TargetPlatform) -> Result<PathBuf, crate::BackendError> {
+        let workspace_root = Self::find_workspace_root();
 
         let (target_arg, rel_path) = match platform {
             TargetPlatform::Linux => (
@@ -187,12 +214,23 @@ impl LlvmBackend {
         }
 
         // Build runtime static library on demand
-        let mut cmd = std::process::Command::new("cargo");
+        let cargo_bin = std::env::var("CARGO").unwrap_or_else(|_| {
+            let home_cargo = std::env::var("HOME")
+                .map(|h| PathBuf::from(h).join(".cargo/bin/cargo"))
+                .ok();
+            if let Some(hc) = home_cargo {
+                if hc.exists() {
+                    return hc.to_string_lossy().to_string();
+                }
+            }
+            "cargo".to_string()
+        });
+        let mut cmd = std::process::Command::new(cargo_bin);
         cmd.args(["build", "-p", "jockey-runtime", "--release"]);
         if let Some(target) = target_arg {
             cmd.args(["--target", target]);
         }
-        cmd.current_dir(workspace_root);
+        cmd.current_dir(&workspace_root);
 
         let status = cmd.status().map_err(|e| {
             crate::BackendError::CompilationError(format!(
@@ -230,11 +268,11 @@ impl LlvmBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashSet;
     use jockey_mir::{
         MirBasicBlock, MirFunction, MirInstruction, MirLocal, MirProgram, MirProvenance,
         MirTerminator, MirType,
     };
+    use std::collections::HashSet;
 
     #[test]
     fn test_llvm_ir_generation_validity() {

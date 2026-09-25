@@ -1,13 +1,13 @@
 //! jockey CLI - Command-line interface for the jockey compiler
 
 use clap::{Parser, Subcommand};
-use std::path::{Path, PathBuf};
 use jockey_backend::{Backend, BackendKind};
 use jockey_ir::{BuildConfig, TargetArch, TargetPlatform};
 use jockey_lexer::Lexer;
 use jockey_parser::Parser as TfParser;
 use jockey_runtime::{verify_evidence, verify_evidence_deep, VerificationStatus};
 use jockey_semantic::SemanticAnalyzer;
+use std::path::{Path, PathBuf};
 
 #[derive(Parser)]
 #[command(

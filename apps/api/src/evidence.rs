@@ -341,12 +341,19 @@ pub async fn verify_evidence(
         }
     };
 
-    // Calculate hash
+    // Calculate hash of raw stored payload
     let mut hasher = Sha256::new();
     hasher.update(&data);
     let calculated_hash = format!("{:x}", hasher.finalize());
 
-    let is_valid = calculated_hash == evidence.sha256_hash;
+    let raw_hash_matches = calculated_hash == evidence.sha256_hash;
+
+    // Check if the stored artifact is a canonical EvidenceBundle
+    let bundle_verification = serde_json::from_slice::<jockey_runtime_evidence::EvidenceBundle>(&data)
+        .ok()
+        .map(|bundle| bundle.verify());
+
+    let is_valid = raw_hash_matches && bundle_verification.as_ref().map_or(true, |b| b.valid);
 
     // Log verification
     log_audit(
@@ -360,13 +367,28 @@ pub async fn verify_evidence(
     )
     .await;
 
-    Json(serde_json::json!({
+    let mut response_payload = serde_json::json!({
         "valid": is_valid,
         "expected_hash": evidence.sha256_hash,
         "calculated_hash": calculated_hash,
-        "size_bytes": data.len()
-    }))
-    .into_response()
+        "size_bytes": data.len(),
+    });
+
+    if let Some(b) = bundle_verification {
+        response_payload["bundle_verification"] = serde_json::json!({
+            "status": b.status,
+            "merkle_root_matches": b.merkle_root_matches,
+            "sha256_matches": b.sha256_matches,
+            "manifest_valid": b.manifest_valid,
+            "total_records": b.total_records,
+            "verified_records": b.verified_records,
+            "expected_merkle_root": b.expected_merkle_root,
+            "recomputed_merkle_root": b.recomputed_merkle_root,
+            "failure_reason": b.failure_reason,
+        });
+    }
+
+    Json(response_payload).into_response()
 }
 
 async fn log_audit(

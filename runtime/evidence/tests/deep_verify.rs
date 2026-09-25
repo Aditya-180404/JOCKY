@@ -1,7 +1,7 @@
+use jockey_runtime_evidence::{verify_evidence_deep, EvidenceCollector, VerificationStatus};
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
-use jockey_runtime_evidence::{verify_evidence_deep, EvidenceCollector, VerificationStatus};
 
 fn temp_path(name: &str) -> PathBuf {
     let nonce = SystemTime::now()

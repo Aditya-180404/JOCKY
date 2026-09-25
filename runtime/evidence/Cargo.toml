@@ -24,3 +24,4 @@ anyhow = { workspace = true }
 chrono = { workspace = true }
 sha2 = { workspace = true }
 whoami = "1.5"
+uuid = { workspace = true }

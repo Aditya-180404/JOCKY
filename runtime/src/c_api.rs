@@ -3,9 +3,9 @@
 //! Provides `extern "C"` endpoints called directly by the LLVM IR generated
 //! by the jockey compiler.
 
+use jockey_runtime_evidence::EvidenceCollector;
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int, c_void};
-use jockey_runtime_evidence::EvidenceCollector;
 
 /// Context wrapper holding the collector
 pub struct RuntimeContext {
@@ -15,9 +15,7 @@ pub struct RuntimeContext {
 #[no_mangle]
 /// # Safety
 /// Caller must ensure `investigation_name` is either a valid UTF-8 C string pointer or null.
-pub unsafe extern "C" fn jockey_rt_evidence_init(
-    investigation_name: *const c_char,
-) -> *mut c_void {
+pub unsafe extern "C" fn jockey_rt_evidence_init(investigation_name: *const c_char) -> *mut c_void {
     let name_str = if investigation_name.is_null() {
         "investigation".to_string()
     } else {
@@ -194,10 +192,7 @@ pub unsafe extern "C" fn jockey_rt_collect_memory_regions(
     match ctx.collector.collect_memory_regions(pid_filter) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!(
-                "[jockey Runtime] Memory regions collection error: {}",
-                e
-            );
+            eprintln!("[jockey Runtime] Memory regions collection error: {}", e);
             -1
         }
     }
@@ -392,9 +387,7 @@ pub unsafe extern "C" fn jockey_rt_evidence_generate_timeline(ctx_ptr: *mut c_vo
     let mut timeline_records = Vec::with_capacity(records.len());
     for (i, rec) in records.iter().enumerate() {
         let ref_str = format!("ref-{}", i + 1);
-        if let Some(event) =
-            jockey_runtime_timeline::normalize_record(rec, &host, Some(&ref_str))
-        {
+        if let Some(event) = jockey_runtime_timeline::normalize_record(rec, &host, Some(&ref_str)) {
             if let Ok(v) = serde_json::to_value(&event) {
                 timeline_records.push(v);
                 continue;

@@ -4,11 +4,11 @@
 //! explicit instructions, temporaries/locals, typed values, and terminators.
 //! MIR bridges the gap between high-level forensic intent and low-level LLVM codegen.
 
+use jockey_ast::Capability;
+use jockey_hir::{HirExpr, HirInvestigation, HirOperation, HirPipelineStage};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
-use jockey_ast::Capability;
-use jockey_hir::{HirExpr, HirInvestigation, HirOperation, HirPipelineStage};
 
 pub type LocalId = usize;
 pub type BasicBlockId = usize;
@@ -423,6 +423,18 @@ impl MirLowering {
                     ctx,
                     artifact_type: artifact_type.clone(),
                     path: path.clone(),
+                });
+            }
+            HirOperation::CollectTimeline { .. } => {
+                self.instructions.push(MirInstruction::EvidenceGenerateTimeline {
+                    dest: res_id,
+                    ctx,
+                });
+            }
+            HirOperation::CollectEvidence { .. } => {
+                self.instructions.push(MirInstruction::CollectSystemInfo {
+                    dest: res_id,
+                    ctx,
                 });
             }
             HirOperation::Filter { condition, .. } => {

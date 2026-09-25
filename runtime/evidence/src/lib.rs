@@ -7,6 +7,46 @@ use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 
+pub mod bundle;
+pub use bundle::{
+    BundleVerificationResult, EvidenceBundle, EvidenceManifest, EvidenceProvenance, EvidenceRecord,
+};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum CollectionStatus {
+    Success,
+    Partial,
+    Failed,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum EvidenceOrigin {
+    Real,
+    Simulated,
+    Imported,
+    Derived,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CollectorResult {
+    pub collector: String,
+    pub status: CollectionStatus,
+    pub records_count: usize,
+    pub error: Option<String>,
+    pub warning: Option<String>,
+    pub timestamp: DateTime<Utc>,
+}
+
+fn default_evidence_origin() -> EvidenceOrigin {
+    EvidenceOrigin::Real
+}
+
+fn default_collection_status() -> CollectionStatus {
+    CollectionStatus::Success
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EvidenceMetadata {
     pub investigation_name: String,
@@ -19,6 +59,17 @@ pub struct EvidenceMetadata {
     pub merkle_root: Option<String>,
     pub merkle_proof: Option<Vec<MerkleProofNode>>,
     pub blockchain_anchor: Option<BlockchainAnchor>,
+    #[serde(default = "default_evidence_origin")]
+    pub evidence_origin: EvidenceOrigin,
+    #[serde(default = "default_collection_status")]
+    pub overall_status: CollectionStatus,
+    #[serde(default)]
+    pub collector_results: Vec<CollectorResult>,
+    pub compiler_version: Option<String>,
+    pub source_hash: Option<String>,
+    pub artifact_hash: Option<String>,
+    pub collection_started_at: Option<DateTime<Utc>>,
+    pub collection_finished_at: Option<DateTime<Utc>>,
 }
 
 /// A single node in a Merkle inclusion proof path
@@ -87,6 +138,9 @@ pub struct EvidenceCollector {
     where_conditions: Vec<serde_json::Value>,
     limit: Option<usize>,
     metadata: HashMap<String, serde_json::Value>,
+    collector_results: Vec<CollectorResult>,
+    evidence_origin: EvidenceOrigin,
+    started_at: DateTime<Utc>,
 }
 
 impl EvidenceCollector {
@@ -103,32 +157,110 @@ impl EvidenceCollector {
             where_conditions: Vec::new(),
             limit: None,
             metadata: HashMap::new(),
+            collector_results: Vec::new(),
+            evidence_origin: EvidenceOrigin::Real,
+            started_at: Utc::now(),
+        }
+    }
+
+    pub fn set_evidence_origin(&mut self, origin: EvidenceOrigin) {
+        self.evidence_origin = origin;
+    }
+
+    pub fn record_collector_result(
+        &mut self,
+        collector: &str,
+        status: CollectionStatus,
+        records_count: usize,
+        error: Option<String>,
+        warning: Option<String>,
+    ) {
+        self.collector_results.push(CollectorResult {
+            collector: collector.to_string(),
+            status,
+            records_count,
+            error,
+            warning,
+            timestamp: Utc::now(),
+        });
+    }
+
+    pub fn collector_results(&self) -> &[CollectorResult] {
+        &self.collector_results
+    }
+
+    pub fn started_at(&self) -> DateTime<Utc> {
+        self.started_at
+    }
+
+    pub fn overall_status(&self) -> CollectionStatus {
+        if self.collector_results.is_empty() {
+            return CollectionStatus::Success;
+        }
+        let has_success = self.collector_results.iter().any(|r| r.status == CollectionStatus::Success);
+        let has_failure = self.collector_results.iter().any(|r| r.status == CollectionStatus::Failed);
+        let has_partial = self.collector_results.iter().any(|r| r.status == CollectionStatus::Partial);
+        if has_failure && !has_success {
+            CollectionStatus::Failed
+        } else if has_failure || has_partial {
+            CollectionStatus::Partial
+        } else {
+            CollectionStatus::Success
         }
     }
 
     pub fn collect_system_info(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let info = jockey_runtime_system::collect_system_info()?;
-        self.data.push(info);
-        Ok(())
+        match jockey_runtime_system::collect_system_info() {
+            Ok(info) => {
+                self.data.push(info);
+                self.record_collector_result("system_info", CollectionStatus::Success, 1, None, None);
+                Ok(())
+            }
+            Err(e) => {
+                let err_str = e.to_string();
+                self.record_collector_result("system_info", CollectionStatus::Failed, 0, Some(err_str), None);
+                Err(e)
+            }
+        }
     }
 
     pub fn collect_processes(
         &mut self,
         fields: Vec<String>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let processes = jockey_runtime_process::enumerate_processes(&fields)?;
-        for proc in processes {
-            self.data.push(proc);
+        match jockey_runtime_process::enumerate_processes(&fields) {
+            Ok(processes) => {
+                let count = processes.len();
+                for proc in processes {
+                    self.data.push(proc);
+                }
+                self.record_collector_result("processes", CollectionStatus::Success, count, None, None);
+                Ok(())
+            }
+            Err(e) => {
+                let err_str = e.to_string();
+                self.record_collector_result("processes", CollectionStatus::Failed, 0, Some(err_str), None);
+                Err(e)
+            }
         }
-        Ok(())
     }
 
     pub fn collect_network_connections(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let connections = jockey_runtime_network::enumerate_connections()?;
-        for conn in connections {
-            self.data.push(conn);
+        match jockey_runtime_network::enumerate_connections() {
+            Ok(connections) => {
+                let count = connections.len();
+                for conn in connections {
+                    self.data.push(conn);
+                }
+                self.record_collector_result("network", CollectionStatus::Success, count, None, None);
+                Ok(())
+            }
+            Err(e) => {
+                let err_str = e.to_string();
+                self.record_collector_result("network", CollectionStatus::Failed, 0, Some(err_str), None);
+                Err(e)
+            }
         }
-        Ok(())
     }
 
     pub fn collect_files(
@@ -137,38 +269,78 @@ impl EvidenceCollector {
         recursive: bool,
         hash: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let files = jockey_runtime_filesystem::enumerate_files(path, recursive, hash)?;
-        for file in files {
-            self.data.push(file);
+        match jockey_runtime_filesystem::enumerate_files(path, recursive, hash) {
+            Ok(files) => {
+                let count = files.len();
+                for file in files {
+                    self.data.push(file);
+                }
+                self.record_collector_result("files", CollectionStatus::Success, count, None, None);
+                Ok(())
+            }
+            Err(e) => {
+                let err_str = e.to_string();
+                self.record_collector_result("files", CollectionStatus::Failed, 0, Some(err_str), None);
+                Err(e)
+            }
         }
-        Ok(())
     }
 
     pub fn collect_logs(&mut self, source: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let logs = jockey_runtime_logs::collect_logs(source)?;
-        for log in logs {
-            self.data.push(log);
+        match jockey_runtime_logs::collect_logs(source) {
+            Ok(logs) => {
+                let count = logs.len();
+                for log in logs {
+                    self.data.push(log);
+                }
+                self.record_collector_result("logs", CollectionStatus::Success, count, None, None);
+                Ok(())
+            }
+            Err(e) => {
+                let err_str = e.to_string();
+                self.record_collector_result("logs", CollectionStatus::Failed, 0, Some(err_str), None);
+                Err(e)
+            }
         }
-        Ok(())
     }
 
     pub fn collect_drivers(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let drivers = jockey_runtime_drivers::enumerate_drivers()?;
-        for d in drivers {
-            self.data.push(d);
+        match jockey_runtime_drivers::enumerate_drivers() {
+            Ok(drivers) => {
+                let count = drivers.len();
+                for d in drivers {
+                    self.data.push(d);
+                }
+                self.record_collector_result("drivers", CollectionStatus::Success, count, None, None);
+                Ok(())
+            }
+            Err(e) => {
+                let err_str = e.to_string();
+                self.record_collector_result("drivers", CollectionStatus::Failed, 0, Some(err_str), None);
+                Err(e)
+            }
         }
-        Ok(())
     }
 
     pub fn collect_memory_regions(
         &mut self,
         pid_filter: Option<i32>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let regions = jockey_runtime_memory::enumerate_memory_regions(pid_filter)?;
-        for region in regions {
-            self.data.push(region);
+        match jockey_runtime_memory::enumerate_memory_regions(pid_filter) {
+            Ok(regions) => {
+                let count = regions.len();
+                for region in regions {
+                    self.data.push(region);
+                }
+                self.record_collector_result("memory_regions", CollectionStatus::Success, count, None, None);
+                Ok(())
+            }
+            Err(e) => {
+                let err_str = e.to_string();
+                self.record_collector_result("memory_regions", CollectionStatus::Failed, 0, Some(err_str), None);
+                Err(e)
+            }
         }
-        Ok(())
     }
 
     pub fn collect_registry(
@@ -176,11 +348,21 @@ impl EvidenceCollector {
         hive: &str,
         key_path: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let entries = jockey_runtime_registry::enumerate_registry(hive, key_path)?;
-        for entry in entries {
-            self.data.push(entry);
+        match jockey_runtime_registry::enumerate_registry(hive, key_path) {
+            Ok(entries) => {
+                let count = entries.len();
+                for entry in entries {
+                    self.data.push(entry);
+                }
+                self.record_collector_result("registry", CollectionStatus::Success, count, None, None);
+                Ok(())
+            }
+            Err(e) => {
+                let err_str = e.to_string();
+                self.record_collector_result("registry", CollectionStatus::Failed, 0, Some(err_str), None);
+                Err(e)
+            }
         }
-        Ok(())
     }
 
     pub fn collect_artifacts(
@@ -188,11 +370,21 @@ impl EvidenceCollector {
         artifact_type: &str,
         search_path: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let artifacts = jockey_runtime_artifacts::carve_artifacts(artifact_type, search_path)?;
-        for artifact in artifacts {
-            self.data.push(artifact);
+        match jockey_runtime_artifacts::carve_artifacts(artifact_type, search_path) {
+            Ok(artifacts) => {
+                let count = artifacts.len();
+                for artifact in artifacts {
+                    self.data.push(artifact);
+                }
+                self.record_collector_result("artifacts", CollectionStatus::Success, count, None, None);
+                Ok(())
+            }
+            Err(e) => {
+                let err_str = e.to_string();
+                self.record_collector_result("artifacts", CollectionStatus::Failed, 0, Some(err_str), None);
+                Err(e)
+            }
         }
-        Ok(())
     }
 
     pub fn generate_timeline(&mut self) -> Result<(), Box<dyn std::error::Error>> {
@@ -288,6 +480,57 @@ impl EvidenceCollector {
         Ok(hash_str)
     }
 
+    /// Construct a canonical EvidenceBundle representation of the gathered evidence.
+    pub fn to_bundle(&self) -> EvidenceBundle {
+        let records: Vec<EvidenceRecord> = self
+            .data
+            .iter()
+            .enumerate()
+            .map(|(i, item)| {
+                let source = item
+                    .get("source")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("collector");
+                let record_type = item
+                    .get("event_type")
+                    .or_else(|| item.get("collector"))
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("record");
+                let provenance = EvidenceProvenance::new(
+                    self.evidence_origin,
+                    &self.host_identifier,
+                    record_type,
+                    &self.tool_version,
+                    "native",
+                );
+                EvidenceRecord::new(
+                    Some(format!("rec-{:04}-{}", i, uuid::Uuid::new_v4().simple())),
+                    &self.host_identifier,
+                    Some(Utc::now()),
+                    source,
+                    record_type,
+                    record_type,
+                    item.clone(),
+                    provenance,
+                )
+            })
+            .collect();
+
+        EvidenceBundle::from_records(
+            &self.investigation_name,
+            &self.host_identifier,
+            "native",
+            &self.tool_version,
+            "0.1.0",
+            self.started_at,
+            Utc::now(),
+            self.collector_results.clone(),
+            None,
+            None,
+            records,
+        )
+    }
+
     pub fn finalize(&mut self) -> Result<EvidenceMetadata, Box<dyn std::error::Error>> {
         // Apply filters
         self.apply_filters()?;
@@ -332,6 +575,7 @@ impl EvidenceCollector {
         file.write_all(&evidence_json)?;
 
         // Create metadata
+        let overall_status = self.overall_status();
         let metadata = EvidenceMetadata {
             investigation_name: self.investigation_name.clone(),
             tool_name: self.tool_name.clone(),
@@ -341,14 +585,28 @@ impl EvidenceCollector {
             evidence_hash,
             evidence_size,
             merkle_root,
-            merkle_proof: None, // Full per-leaf proof can be generated via generate_merkle_proof()
+            merkle_proof: None,
             blockchain_anchor: None,
+            evidence_origin: self.evidence_origin,
+            overall_status,
+            collector_results: self.collector_results.clone(),
+            compiler_version: Some("0.1.0".to_string()),
+            source_hash: None,
+            artifact_hash: None,
+            collection_started_at: Some(self.started_at),
+            collection_finished_at: Some(Utc::now()),
         };
 
         // Write metadata sidecar
         let meta_path = format!("{}.meta.json", self.output_path);
         let meta_json = serde_json::to_vec_pretty(&metadata)?;
         fs::write(meta_path, meta_json)?;
+
+        // Write canonical EvidenceBundle
+        let bundle = self.to_bundle();
+        let bundle_path = format!("{}.bundle.json", self.output_path);
+        let bundle_json = serde_json::to_vec_pretty(&bundle)?;
+        fs::write(&bundle_path, bundle_json)?;
 
         println!("Evidence written to: {}", self.output_path);
         println!("SHA-256: {}", metadata.evidence_hash);
@@ -487,7 +745,7 @@ pub fn analyze_evidence(evidence: &[serde_json::Value]) -> Vec<SecurityFinding> 
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct EvidenceManifest {
+pub struct BlockchainAnchorRecord {
     pub hash: String,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub source: String,
@@ -522,7 +780,7 @@ impl DevelopmentBlockchainAdapter {
 
 impl BlockchainAdapter for DevelopmentBlockchainAdapter {
     fn anchor(&self, hash: &str, source: &str) -> Result<String, Box<dyn std::error::Error>> {
-        let manifest = EvidenceManifest {
+        let manifest = BlockchainAnchorRecord {
             hash: hash.to_string(),
             created_at: chrono::Utc::now(),
             source: source.to_string(),
@@ -531,7 +789,7 @@ impl BlockchainAdapter for DevelopmentBlockchainAdapter {
         let tx_id = format!("dev-{}", &hash[..slice_len]);
         let existing = if self.manifest_path.exists() {
             let bytes = std::fs::read(&self.manifest_path)?;
-            let mut items: Vec<EvidenceManifest> =
+            let mut items: Vec<BlockchainAnchorRecord> =
                 serde_json::from_slice(&bytes).unwrap_or_default();
             items.push(manifest.clone());
             items
@@ -550,7 +808,7 @@ impl BlockchainAdapter for DevelopmentBlockchainAdapter {
             return Ok(false);
         }
         let bytes = std::fs::read(&self.manifest_path)?;
-        let items: Vec<EvidenceManifest> = serde_json::from_slice(&bytes).unwrap_or_default();
+        let items: Vec<BlockchainAnchorRecord> = serde_json::from_slice(&bytes).unwrap_or_default();
         let slice_len = std::cmp::min(12, hash.len());
         let expected_prefix = format!("dev-{}", &hash[..slice_len]);
         Ok(items.iter().any(|entry| entry.hash == hash) && transaction_id == expected_prefix)

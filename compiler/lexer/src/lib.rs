@@ -1,7 +1,7 @@
 //! jockey Lexer - Tokenizes jockey source code
 
-use thiserror::Error;
 use jockey_ast::{Span, Token, TokenKind};
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum LexerError {

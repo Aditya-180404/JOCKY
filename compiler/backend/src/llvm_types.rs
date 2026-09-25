@@ -3,9 +3,9 @@
 //! Provides authoritative translation of `MirType` and external C ABI function
 //! prototypes to `LLVMTypeRef`.
 
+use jockey_mir::MirType;
 use llvm_sys::core::*;
 use llvm_sys::prelude::*;
-use jockey_mir::MirType;
 
 /// Translate a `MirType` into its corresponding `LLVMTypeRef`.
 ///

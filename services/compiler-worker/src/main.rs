@@ -73,9 +73,8 @@ async fn main() -> anyhow::Result<()> {
     // Load configuration
     let redis_url =
         std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".to_string());
-    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
-        "postgres://jockey:jockey_dev@localhost:5432/jockey".to_string()
-    });
+    let database_url = std::env::var("DATABASE_URL")
+        .unwrap_or_else(|_| "postgres://jockey:jockey_dev@localhost:5432/jockey".to_string());
     let minio_endpoint =
         std::env::var("MINIO_ENDPOINT").unwrap_or_else(|_| "http://localhost:9000".to_string());
     let minio_access_key =

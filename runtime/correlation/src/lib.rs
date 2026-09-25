@@ -60,7 +60,10 @@ impl Entity {
             Entity::Driver { name } => format!("driver:{}", name),
             Entity::RegistryKey { hive, path } => format!("reg:{}@{}", hive, path),
             Entity::MemoryRegion { base, size } => format!("mem:0x{:x}+{}", base, size),
-            Entity::Artifact { artifact_type, path } => format!("artifact:{}:{}", artifact_type, path),
+            Entity::Artifact {
+                artifact_type,
+                path,
+            } => format!("artifact:{}:{}", artifact_type, path),
             Entity::LogEvent { source, .. } => format!("log:{}", source),
         }
     }
@@ -265,12 +268,17 @@ impl CorrelationEngine {
     }
 
     /// Ingest evidence records and build correlations
-    pub fn ingest(&mut self, collector: &EvidenceCollector) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn ingest(
+        &mut self,
+        collector: &EvidenceCollector,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let records = collector.records();
         let host = collector.host_identifier().to_string();
 
         // First pass: build timeline
-        self.timeline = Some(jockey_runtime_timeline::build_timeline(records, &host, None));
+        self.timeline = Some(jockey_runtime_timeline::build_timeline(
+            records, &host, None,
+        ));
 
         // Second pass: extract entities and build indices
         self.extract_entities(records, &host);
@@ -297,7 +305,11 @@ impl CorrelationEngine {
 
             // Extract timestamp
             let timestamp = [
-                "timestamp", "start_time", "created_at", "time", "event_time",
+                "timestamp",
+                "start_time",
+                "created_at",
+                "time",
+                "event_time",
             ]
             .iter()
             .find_map(|field| {
@@ -315,75 +327,147 @@ impl CorrelationEngine {
                 let ppid = obj.get("ppid").and_then(|v| v.as_i64()).map(|v| v as i32);
                 let cmdline = obj.get("command_line").and_then(|v| {
                     if let Some(arr) = v.as_array() {
-                        Some(arr.iter().filter_map(|e| e.as_str()).collect::<Vec<_>>().join(" "))
+                        Some(
+                            arr.iter()
+                                .filter_map(|e| e.as_str())
+                                .collect::<Vec<_>>()
+                                .join(" "),
+                        )
                     } else {
                         v.as_str().map(|s| s.to_string())
                     }
                 });
-                let exe_path = obj.get("executable_path").or_else(|| obj.get("path")).and_then(|v| v.as_str()).map(|s| s.to_string());
-                let user = obj.get("username").or_else(|| obj.get("user")).or_else(|| obj.get("owner")).and_then(|v| v.as_str()).map(|s| s.to_string());
+                let exe_path = obj
+                    .get("executable_path")
+                    .or_else(|| obj.get("path"))
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                let user = obj
+                    .get("username")
+                    .or_else(|| obj.get("user"))
+                    .or_else(|| obj.get("owner"))
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
 
-                let entity = Entity::Process { pid, name: name.to_string() };
-                self.graph.add_entity(entity.clone(), evidence_ref.clone(), timestamp);
-
-                self.process_tree.insert(pid, ProcessNode {
+                let entity = Entity::Process {
                     pid,
-                    ppid,
                     name: name.to_string(),
-                    _command_line: cmdline,
-                    executable_path: exe_path,
-                    _user: user,
-                    start_time: Some(timestamp),
-                    evidence_ref: evidence_ref.clone(),
-                });
+                };
+                self.graph
+                    .add_entity(entity.clone(), evidence_ref.clone(), timestamp);
+
+                self.process_tree.insert(
+                    pid,
+                    ProcessNode {
+                        pid,
+                        ppid,
+                        name: name.to_string(),
+                        _command_line: cmdline,
+                        executable_path: exe_path,
+                        _user: user,
+                        start_time: Some(timestamp),
+                        evidence_ref: evidence_ref.clone(),
+                    },
+                );
             }
 
             // File entity
             if let Some(path) = obj.get("path").and_then(|v| v.as_str()) {
-                let hash = obj.get("sha256").or_else(|| obj.get("hash")).and_then(|v| v.as_str()).map(|s| s.to_string());
-                let entity = Entity::File { path: path.to_string(), hash: hash.clone() };
-                self.graph.add_entity(entity, evidence_ref.clone(), timestamp);
+                let hash = obj
+                    .get("sha256")
+                    .or_else(|| obj.get("hash"))
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                let entity = Entity::File {
+                    path: path.to_string(),
+                    hash: hash.clone(),
+                };
+                self.graph
+                    .add_entity(entity, evidence_ref.clone(), timestamp);
 
                 if let Some(h) = hash {
-                    self.file_by_hash.entry(h).or_default().push(evidence_ref.clone());
+                    self.file_by_hash
+                        .entry(h)
+                        .or_default()
+                        .push(evidence_ref.clone());
                 }
             }
 
             // Network entity
             if let (Some(local), Some(remote)) = (
-                obj.get("local_address").or_else(|| obj.get("local_addr")).and_then(|v| v.as_str()),
-                obj.get("remote_address").or_else(|| obj.get("remote_addr")).and_then(|v| v.as_str()),
+                obj.get("local_address")
+                    .or_else(|| obj.get("local_addr"))
+                    .and_then(|v| v.as_str()),
+                obj.get("remote_address")
+                    .or_else(|| obj.get("remote_addr"))
+                    .and_then(|v| v.as_str()),
             ) {
-                let local_port = obj.get("local_port").and_then(|v| v.as_u64()).map(|p| format!(":{}", p)).unwrap_or_default();
-                let remote_port = obj.get("remote_port").and_then(|v| v.as_u64()).map(|p| format!(":{}", p)).unwrap_or_default();
+                let local_port = obj
+                    .get("local_port")
+                    .and_then(|v| v.as_u64())
+                    .map(|p| format!(":{}", p))
+                    .unwrap_or_default();
+                let remote_port = obj
+                    .get("remote_port")
+                    .and_then(|v| v.as_u64())
+                    .map(|p| format!(":{}", p))
+                    .unwrap_or_default();
                 let local = format!("{}{}", local, local_port);
                 let remote = format!("{}{}", remote, remote_port);
 
-                let entity = Entity::NetworkConnection { local: local.clone(), remote: remote.clone() };
-                self.graph.add_entity(entity, evidence_ref.clone(), timestamp);
+                let entity = Entity::NetworkConnection {
+                    local: local.clone(),
+                    remote: remote.clone(),
+                };
+                self.graph
+                    .add_entity(entity, evidence_ref.clone(), timestamp);
 
-                self.network_by_endpoint.entry(remote.clone()).or_default().push(evidence_ref.clone());
+                self.network_by_endpoint
+                    .entry(remote.clone())
+                    .or_default()
+                    .push(evidence_ref.clone());
             }
 
             // User entity
-            if let Some(user) = obj.get("username").or_else(|| obj.get("user")).or_else(|| obj.get("owner")).and_then(|v| v.as_str()) {
-                let entity = Entity::User { name: user.to_string() };
-                self.graph.add_entity(entity, evidence_ref.clone(), timestamp);
+            if let Some(user) = obj
+                .get("username")
+                .or_else(|| obj.get("user"))
+                .or_else(|| obj.get("owner"))
+                .and_then(|v| v.as_str())
+            {
+                let entity = Entity::User {
+                    name: user.to_string(),
+                };
+                self.graph
+                    .add_entity(entity, evidence_ref.clone(), timestamp);
             }
 
             // Host entity
             if let Some(hostname) = obj.get("hostname").and_then(|v| v.as_str()) {
-                let entity = Entity::Host { name: hostname.to_string() };
-                self.graph.add_entity(entity, evidence_ref.clone(), timestamp);
+                let entity = Entity::Host {
+                    name: hostname.to_string(),
+                };
+                self.graph
+                    .add_entity(entity, evidence_ref.clone(), timestamp);
             } else {
-                let entity = Entity::Host { name: host.to_string() };
-                self.graph.add_entity(entity, evidence_ref.clone(), timestamp);
+                let entity = Entity::Host {
+                    name: host.to_string(),
+                };
+                self.graph
+                    .add_entity(entity, evidence_ref.clone(), timestamp);
             }
 
             // Driver entity
-            if let Some(driver_name) = obj.get("module_name").or_else(|| obj.get("driver_name")).and_then(|v| v.as_str()) {
-                let entity = Entity::Driver { name: driver_name.to_string() };
-                self.graph.add_entity(entity, evidence_ref.clone(), timestamp);
+            if let Some(driver_name) = obj
+                .get("module_name")
+                .or_else(|| obj.get("driver_name"))
+                .and_then(|v| v.as_str())
+            {
+                let entity = Entity::Driver {
+                    name: driver_name.to_string(),
+                };
+                self.graph
+                    .add_entity(entity, evidence_ref.clone(), timestamp);
             }
 
             // Registry entity
@@ -391,8 +475,12 @@ impl CorrelationEngine {
                 obj.get("hive").and_then(|v| v.as_str()),
                 obj.get("key_path").and_then(|v| v.as_str()),
             ) {
-                let entity = Entity::RegistryKey { hive: hive.to_string(), path: key_path.to_string() };
-                self.graph.add_entity(entity, evidence_ref.clone(), timestamp);
+                let entity = Entity::RegistryKey {
+                    hive: hive.to_string(),
+                    path: key_path.to_string(),
+                };
+                self.graph
+                    .add_entity(entity, evidence_ref.clone(), timestamp);
             }
 
             // Memory region entity
@@ -400,8 +488,12 @@ impl CorrelationEngine {
                 obj.get("start_address").and_then(|v| v.as_u64()),
                 obj.get("end_address").and_then(|v| v.as_u64()),
             ) {
-                let entity = Entity::MemoryRegion { base, size: size.saturating_sub(base) };
-                self.graph.add_entity(entity, evidence_ref.clone(), timestamp);
+                let entity = Entity::MemoryRegion {
+                    base,
+                    size: size.saturating_sub(base),
+                };
+                self.graph
+                    .add_entity(entity, evidence_ref.clone(), timestamp);
             }
 
             // Artifact entity
@@ -409,15 +501,26 @@ impl CorrelationEngine {
                 obj.get("artifact_type").and_then(|v| v.as_str()),
                 obj.get("path").and_then(|v| v.as_str()),
             ) {
-                let entity = Entity::Artifact { artifact_type: artifact_type.to_string(), path: path.to_string() };
-                self.graph.add_entity(entity, evidence_ref.clone(), timestamp);
+                let entity = Entity::Artifact {
+                    artifact_type: artifact_type.to_string(),
+                    path: path.to_string(),
+                };
+                self.graph
+                    .add_entity(entity, evidence_ref.clone(), timestamp);
             }
 
             // Log event entity
             if let Some(message) = obj.get("message").and_then(|v| v.as_str()) {
-                let source = obj.get("source").and_then(|v| v.as_str()).unwrap_or("unknown");
-                let entity = Entity::LogEvent { source: source.to_string(), message: message.to_string() };
-                self.graph.add_entity(entity, evidence_ref.clone(), timestamp);
+                let source = obj
+                    .get("source")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("unknown");
+                let entity = Entity::LogEvent {
+                    source: source.to_string(),
+                    message: message.to_string(),
+                };
+                self.graph
+                    .add_entity(entity, evidence_ref.clone(), timestamp);
             }
         }
     }
@@ -429,21 +532,36 @@ impl CorrelationEngine {
             if let Some(node) = self.process_tree.get(&pid) {
                 if let Some(ppid) = node.ppid {
                     if let Some(parent) = self.process_tree.get(&ppid) {
-                        let child_entity = Entity::Process { pid: node.pid, name: node.name.clone() };
-                        let parent_entity = Entity::Process { pid: parent.pid, name: parent.name.clone() };
+                        let child_entity = Entity::Process {
+                            pid: node.pid,
+                            name: node.name.clone(),
+                        };
+                        let parent_entity = Entity::Process {
+                            pid: parent.pid,
+                            name: parent.name.clone(),
+                        };
 
                         self.graph.add_relationship(Relationship {
                             id: Uuid::new_v4().to_string(),
                             source_entity: parent_entity.clone(),
                             target_entity: child_entity.clone(),
                             relationship_type: RelationshipType::ParentOf,
-                            evidence_refs: vec![parent.evidence_ref.clone(), node.evidence_ref.clone()],
+                            evidence_refs: vec![
+                                parent.evidence_ref.clone(),
+                                node.evidence_ref.clone(),
+                            ],
                             confidence: 0.95,
                             timestamp: node.start_time.unwrap_or_else(Utc::now),
                             details: {
                                 let mut m = serde_json::Map::new();
-                                m.insert("parent_pid".to_string(), serde_json::Value::Number(parent.pid.into()));
-                                m.insert("child_pid".to_string(), serde_json::Value::Number(node.pid.into()));
+                                m.insert(
+                                    "parent_pid".to_string(),
+                                    serde_json::Value::Number(parent.pid.into()),
+                                );
+                                m.insert(
+                                    "child_pid".to_string(),
+                                    serde_json::Value::Number(node.pid.into()),
+                                );
                                 m
                             },
                         });
@@ -453,13 +571,22 @@ impl CorrelationEngine {
                             source_entity: child_entity,
                             target_entity: parent_entity,
                             relationship_type: RelationshipType::ChildOf,
-                            evidence_refs: vec![node.evidence_ref.clone(), parent.evidence_ref.clone()],
+                            evidence_refs: vec![
+                                node.evidence_ref.clone(),
+                                parent.evidence_ref.clone(),
+                            ],
                             confidence: 0.95,
                             timestamp: node.start_time.unwrap_or_else(Utc::now),
                             details: {
                                 let mut m = serde_json::Map::new();
-                                m.insert("parent_pid".to_string(), serde_json::Value::Number(parent.pid.into()));
-                                m.insert("child_pid".to_string(), serde_json::Value::Number(node.pid.into()));
+                                m.insert(
+                                    "parent_pid".to_string(),
+                                    serde_json::Value::Number(parent.pid.into()),
+                                );
+                                m.insert(
+                                    "child_pid".to_string(),
+                                    serde_json::Value::Number(node.pid.into()),
+                                );
                                 m
                             },
                         });
@@ -471,8 +598,14 @@ impl CorrelationEngine {
         // Executable -> Process relationships
         for node in self.process_tree.values() {
             if let Some(exe_path) = &node.executable_path {
-                let file_entity = Entity::File { path: exe_path.clone(), hash: None };
-                let proc_entity = Entity::Process { pid: node.pid, name: node.name.clone() };
+                let file_entity = Entity::File {
+                    path: exe_path.clone(),
+                    hash: None,
+                };
+                let proc_entity = Entity::Process {
+                    pid: node.pid,
+                    name: node.name.clone(),
+                };
 
                 self.graph.add_relationship(Relationship {
                     id: Uuid::new_v4().to_string(),
@@ -496,7 +629,7 @@ impl CorrelationEngine {
                 // We'd need actual file records to link them properly
                 // For now, create a MATCHED relationship between evidence references
                 for i in 0..refs.len() {
-                    for _j in i+1..refs.len() {
+                    for _j in i + 1..refs.len() {
                         // This is a simplified correlation - in practice you'd link actual file entities
                     }
                 }
@@ -538,11 +671,18 @@ impl CorrelationEngine {
                         let e2 = window[1];
 
                         let time_diff = (e2.timestamp - e1.timestamp).num_seconds();
-                        if time_diff >= 0 && time_diff <= 300 { // Within 5 minutes
+                        if time_diff >= 0 && time_diff <= 300 {
+                            // Within 5 minutes
                             let rel_type = infer_relationship_type(e1, e2);
                             if let Some(rt) = rel_type {
-                                let src = Entity::Process { pid: e1.process_id.unwrap_or(0) as i32, name: e1.process_name.clone().unwrap_or_default() };
-                                let dst = Entity::Process { pid: e2.process_id.unwrap_or(0) as i32, name: e2.process_name.clone().unwrap_or_default() };
+                                let src = Entity::Process {
+                                    pid: e1.process_id.unwrap_or(0) as i32,
+                                    name: e1.process_name.clone().unwrap_or_default(),
+                                };
+                                let dst = Entity::Process {
+                                    pid: e2.process_id.unwrap_or(0) as i32,
+                                    name: e2.process_name.clone().unwrap_or_default(),
+                                };
 
                                 if src != dst {
                                     self.graph.add_relationship(Relationship {
@@ -550,14 +690,26 @@ impl CorrelationEngine {
                                         source_entity: src,
                                         target_entity: dst,
                                         relationship_type: rt,
-                                        evidence_refs: vec![e1.evidence_ref.clone().unwrap_or_default(), e2.evidence_ref.clone().unwrap_or_default()],
+                                        evidence_refs: vec![
+                                            e1.evidence_ref.clone().unwrap_or_default(),
+                                            e2.evidence_ref.clone().unwrap_or_default(),
+                                        ],
                                         confidence: 0.7,
                                         timestamp: e1.timestamp,
                                         details: {
                                             let mut m = serde_json::Map::new();
-                                            m.insert("time_delta_seconds".to_string(), serde_json::Value::Number(time_diff.into()));
-                                            m.insert("source_event_type".to_string(), serde_json::Value::String(e1.event_type.clone()));
-                                            m.insert("target_event_type".to_string(), serde_json::Value::String(e2.event_type.clone()));
+                                            m.insert(
+                                                "time_delta_seconds".to_string(),
+                                                serde_json::Value::Number(time_diff.into()),
+                                            );
+                                            m.insert(
+                                                "source_event_type".to_string(),
+                                                serde_json::Value::String(e1.event_type.clone()),
+                                            );
+                                            m.insert(
+                                                "target_event_type".to_string(),
+                                                serde_json::Value::String(e2.event_type.clone()),
+                                            );
                                             m
                                         },
                                     });
@@ -588,23 +740,29 @@ impl CorrelationEngine {
                     // Office app spawning shell
                     let is_suspicious = matches!(
                         (parent_lower.as_str(), child_lower.as_str()),
-                        ("winword.exe", "cmd.exe") |
-                        ("winword.exe", "powershell.exe") |
-                        ("excel.exe", "cmd.exe") |
-                        ("excel.exe", "powershell.exe") |
-                        ("outlook.exe", "cmd.exe") |
-                        ("outlook.exe", "powershell.exe") |
-                        ("svchost.exe", "cmd.exe") |
-                        ("services.exe", "cmd.exe") |
-                        ("explorer.exe", "mshta.exe") |
-                        ("wmiprvse.exe", "powershell.exe") |
-                        ("w3wp.exe", "cmd.exe") |
-                        ("w3wp.exe", "powershell.exe")
+                        ("winword.exe", "cmd.exe")
+                            | ("winword.exe", "powershell.exe")
+                            | ("excel.exe", "cmd.exe")
+                            | ("excel.exe", "powershell.exe")
+                            | ("outlook.exe", "cmd.exe")
+                            | ("outlook.exe", "powershell.exe")
+                            | ("svchost.exe", "cmd.exe")
+                            | ("services.exe", "cmd.exe")
+                            | ("explorer.exe", "mshta.exe")
+                            | ("wmiprvse.exe", "powershell.exe")
+                            | ("w3wp.exe", "cmd.exe")
+                            | ("w3wp.exe", "powershell.exe")
                     );
 
                     if is_suspicious {
-                        let parent_entity = Entity::Process { pid: parent.pid, name: parent.name.clone() };
-                        let child_entity = Entity::Process { pid: node.pid, name: node.name.clone() };
+                        let parent_entity = Entity::Process {
+                            pid: parent.pid,
+                            name: parent.name.clone(),
+                        };
+                        let child_entity = Entity::Process {
+                            pid: node.pid,
+                            name: node.name.clone(),
+                        };
 
                         self.graph.add_finding(CorrelationFinding {
                             id: Uuid::new_v4().to_string(),
@@ -643,10 +801,15 @@ impl CorrelationEngine {
                     if let Some(endpoint) = &event.network_endpoint {
                         if let Some(port_str) = endpoint.split(':').last() {
                             if let Ok(port) = port_str.parse::<u16>() {
-                                if suspicious_ports.contains(&port) && event.event_type.contains("established") {
+                                if suspicious_ports.contains(&port)
+                                    && event.event_type.contains("established")
+                                {
                                     if let Some(proc_name) = &event.process_name {
                                         let pid = event.process_id.unwrap_or(0) as i32;
-                                        let proc_entity = Entity::Process { pid, name: proc_name.clone() };
+                                        let proc_entity = Entity::Process {
+                                            pid,
+                                            name: proc_name.clone(),
+                                        };
                                         let net_entity = Entity::NetworkConnection {
                                             local: event.target.clone().unwrap_or_default(),
                                             remote: endpoint.clone(),
@@ -655,19 +818,30 @@ impl CorrelationEngine {
                                         self.graph.add_finding(CorrelationFinding {
                                             id: Uuid::new_v4().to_string(),
                                             title: "Suspicious Network Connection".to_string(),
-                                            description: format!("{} connected to suspicious port {}", proc_name, port),
+                                            description: format!(
+                                                "{} connected to suspicious port {}",
+                                                proc_name, port
+                                            ),
                                             entities: vec![proc_entity.clone(), net_entity.clone()],
                                             relationships: vec![Relationship {
                                                 id: Uuid::new_v4().to_string(),
                                                 source_entity: proc_entity,
                                                 target_entity: net_entity,
                                                 relationship_type: RelationshipType::ConnectedTo,
-                                                evidence_refs: event.evidence_ref.as_ref().map(|r| vec![r.clone()]).unwrap_or_default(),
+                                                evidence_refs: event
+                                                    .evidence_ref
+                                                    .as_ref()
+                                                    .map(|r| vec![r.clone()])
+                                                    .unwrap_or_default(),
                                                 confidence: 0.7,
                                                 timestamp: event.timestamp,
                                                 details: serde_json::Map::new(),
                                             }],
-                                            evidence_refs: event.evidence_ref.as_ref().map(|r| vec![r.clone()]).unwrap_or_default(),
+                                            evidence_refs: event
+                                                .evidence_ref
+                                                .as_ref()
+                                                .map(|r| vec![r.clone()])
+                                                .unwrap_or_default(),
                                             severity: CorrelationSeverity::High,
                                             confidence: 0.7,
                                             timestamp: event.timestamp,
@@ -700,10 +874,18 @@ impl CorrelationEngine {
             for (_, file_events) in process_file_events {
                 for file_event in file_events {
                     // Look for prior network activity by same process
-                    if let Some(net_events) = timeline.events.iter()
-                        .filter(|e| e.process_name == file_event.process_name && e.source == "network")
-                        .filter(|e| (file_event.timestamp - e.timestamp).num_seconds() >= 0 && (file_event.timestamp - e.timestamp).num_seconds() <= 300)
-                        .collect::<Vec<_>>().first()
+                    if let Some(net_events) = timeline
+                        .events
+                        .iter()
+                        .filter(|e| {
+                            e.process_name == file_event.process_name && e.source == "network"
+                        })
+                        .filter(|e| {
+                            (file_event.timestamp - e.timestamp).num_seconds() >= 0
+                                && (file_event.timestamp - e.timestamp).num_seconds() <= 300
+                        })
+                        .collect::<Vec<_>>()
+                        .first()
                     {
                         let proc_entity = Entity::Process {
                             pid: file_event.process_id.unwrap_or(0) as i32,
@@ -721,17 +903,29 @@ impl CorrelationEngine {
                         self.graph.add_finding(CorrelationFinding {
                             id: Uuid::new_v4().to_string(),
                             title: "Potential File Drop After Network Activity".to_string(),
-                            description: format!("Process created file {} after network connection to {}",
+                            description: format!(
+                                "Process created file {} after network connection to {}",
                                 file_event.path.clone().unwrap_or("unknown".to_string()),
-                                net_events.network_endpoint.clone().unwrap_or("unknown".to_string())),
-                            entities: vec![proc_entity.clone(), file_entity.clone(), net_entity.clone()],
+                                net_events
+                                    .network_endpoint
+                                    .clone()
+                                    .unwrap_or("unknown".to_string())
+                            ),
+                            entities: vec![
+                                proc_entity.clone(),
+                                file_entity.clone(),
+                                net_entity.clone(),
+                            ],
                             relationships: vec![
                                 Relationship {
                                     id: Uuid::new_v4().to_string(),
                                     source_entity: proc_entity.clone(),
                                     target_entity: file_entity.clone(),
                                     relationship_type: RelationshipType::Created,
-                                    evidence_refs: vec![file_event.evidence_ref.clone().unwrap_or_default()],
+                                    evidence_refs: vec![file_event
+                                        .evidence_ref
+                                        .clone()
+                                        .unwrap_or_default()],
                                     confidence: 0.75,
                                     timestamp: file_event.timestamp,
                                     details: serde_json::Map::new(),
@@ -741,7 +935,10 @@ impl CorrelationEngine {
                                     source_entity: proc_entity,
                                     target_entity: net_entity.clone(),
                                     relationship_type: RelationshipType::ConnectedTo,
-                                    evidence_refs: vec![net_events.evidence_ref.clone().unwrap_or_default()],
+                                    evidence_refs: vec![net_events
+                                        .evidence_ref
+                                        .clone()
+                                        .unwrap_or_default()],
                                     confidence: 0.75,
                                     timestamp: net_events.timestamp,
                                     details: serde_json::Map::new(),
@@ -772,11 +969,20 @@ impl CorrelationEngine {
 }
 
 fn infer_relationship_type(e1: &TimelineEvent, e2: &TimelineEvent) -> Option<RelationshipType> {
-    match (e1.source.as_str(), e1.event_type.as_str(), e2.source.as_str(), e2.event_type.as_str()) {
+    match (
+        e1.source.as_str(),
+        e1.event_type.as_str(),
+        e2.source.as_str(),
+        e2.event_type.as_str(),
+    ) {
         ("process", "process_observed", "network", _) => Some(RelationshipType::ConnectedTo),
-        ("process", "process_observed", "filesystem", "file_created") => Some(RelationshipType::Created),
+        ("process", "process_observed", "filesystem", "file_created") => {
+            Some(RelationshipType::Created)
+        }
         ("network", _, "filesystem", "file_created") => Some(RelationshipType::Created),
-        ("process", "process_observed", "process", "process_observed") => Some(RelationshipType::Spawned),
+        ("process", "process_observed", "process", "process_observed") => {
+            Some(RelationshipType::Spawned)
+        }
         ("process", "process_observed", "log", "log_entry") => Some(RelationshipType::ObservedOn),
         _ => None,
     }
@@ -788,10 +994,16 @@ mod tests {
 
     #[test]
     fn test_entity_display() {
-        let proc = Entity::Process { pid: 1234, name: "powershell.exe".to_string() };
+        let proc = Entity::Process {
+            pid: 1234,
+            name: "powershell.exe".to_string(),
+        };
         assert_eq!(proc.display(), "process:powershell.exe(1234)");
 
-        let file = Entity::File { path: "/tmp/test.exe".to_string(), hash: Some("abc123".to_string()) };
+        let file = Entity::File {
+            path: "/tmp/test.exe".to_string(),
+            hash: Some("abc123".to_string()),
+        };
         assert!(file.display().contains("/tmp/test.exe"));
     }
 
