@@ -393,6 +393,7 @@ fn test_instruction_enum_exhaustive_match() {
             MirInstruction::CollectMemoryRegions { .. } => {}
             MirInstruction::CollectRegistry { .. } => {}
             MirInstruction::CollectArtifacts { .. } => {}
+            MirInstruction::InvokeCapability { .. } => {}
             MirInstruction::Compare { .. } => {}
             MirInstruction::CallRuntime { .. } => {}
         }

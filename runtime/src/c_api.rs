@@ -46,7 +46,7 @@ pub unsafe extern "C" fn jockey_rt_invoke_capability(
         Ok(value) => value,
         Err(_) => return -1,
     };
-    let options = if options_json_ptr.is_null() {
+    let mut options = if options_json_ptr.is_null() {
         serde_json::Map::new()
     } else {
         let Ok(json) = CStr::from_ptr(options_json_ptr).to_str() else {
@@ -62,6 +62,10 @@ pub unsafe extern "C" fn jockey_rt_invoke_capability(
     };
 
     let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    options.insert(
+        "_evidence_records".to_string(),
+        serde_json::Value::Array(ctx.collector.records().to_vec()),
+    );
     let result = match crate::capabilities::registry()
         .invoke_runtime_capability_with_options(capability_id, &options)
     {

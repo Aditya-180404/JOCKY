@@ -1065,12 +1065,15 @@ pub fn carve_ssh_config(
         
         return Ok(results);
     }
-    Ok(vec![serde_json::json!({
-        "collector": "artifacts",
-        "artifact_type": "ssh_config",
-        "status": "platform_note",
-        "note": "SSH config is Linux-specific",
-    })])
+    #[cfg(not(target_os = "linux"))]
+    {
+        Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "ssh_config",
+            "status": "platform_note",
+            "note": "SSH config is Linux-specific",
+        })])
+    }
 }
 
 /// PowerShell script analyzer
@@ -1268,12 +1271,15 @@ pub fn analyze_shell_scripts(
         
         return Ok(results);
     }
-    Ok(vec![serde_json::json!({
-        "collector": "artifacts",
-        "artifact_type": "shell_script",
-        "status": "platform_note",
-        "note": "Shell script analysis is Linux-specific",
-    })])
+    #[cfg(not(target_os = "linux"))]
+    {
+        Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "shell_script",
+            "status": "platform_note",
+            "note": "Shell script analysis is Linux-specific",
+        })])
+    }
 }
 
 /// Python script analyzer
@@ -1410,29 +1416,39 @@ pub fn parse_elf_metadata(
     }
     #[cfg(target_os = "linux")]
     {
-        // Find ELF files
         let mut results = Vec::new();
-        for entry in walkdir_max_depth(path, 3) {
+        let entries = if path.is_file() {
+            vec![path.to_path_buf()]
+        } else {
+            walkdir_max_depth(path, 3)
+        };
+        for entry in entries {
             if entry.is_file() {
-                // Check if it's an ELF file by reading magic bytes
                 if let Ok(bytes) = std::fs::read(&entry) {
-                    if bytes.len() >= 4 && &bytes[0..4] == b"\x7fELF" {
+                    if bytes.starts_with(b"\x7fELF") {
                         let sha256 = sha256_file(&entry);
                         let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-                        
-                        results.push(serde_json::to_value(CarvedArtifact {
-                            artifact_type: "elf_metadata".to_string(),
-                            path: entry.display().to_string(),
-                            size_bytes: size,
-                            sha256,
-                            modified_at: modified_at(&entry),
-                            metadata: serde_json::json!({
-                                "file_type": "elf",
-                                "note": "ELF parsing not fully implemented",
-                            }),
-                            suspicious: false,
-                            suspicious_reason: None,
-                        })?);
+                        match parse_elf_bytes(&bytes) {
+                            Ok(metadata) => results.push(serde_json::to_value(CarvedArtifact {
+                                artifact_type: "elf_metadata".to_string(),
+                                path: entry.display().to_string(),
+                                size_bytes: size,
+                                sha256,
+                                modified_at: modified_at(&entry),
+                                metadata,
+                                suspicious: false,
+                                suspicious_reason: None,
+                            })?),
+                            Err(error) => results.push(serde_json::json!({
+                                "collector": "artifacts",
+                                "artifact_type": "elf_metadata",
+                                "path": entry.display().to_string(),
+                                "size_bytes": size,
+                                "sha256": sha256,
+                                "status": "partial",
+                                "parse_error": error,
+                            })),
+                        }
                     }
                 }
             }
@@ -1457,6 +1473,179 @@ pub fn parse_elf_metadata(
             "note": "ELF metadata parsing is Linux-specific",
         })])
     }
+}
+
+fn read_elf_uint(bytes: &[u8], offset: usize, width: usize, little_endian: bool) -> Result<u64, String> {
+    let end = offset.checked_add(width).ok_or_else(|| "ELF field offset overflow".to_string())?;
+    let field = bytes.get(offset..end).ok_or_else(|| format!("truncated ELF field at offset {}", offset))?;
+    let value = if little_endian {
+        field.iter().enumerate().fold(0u64, |value, (index, byte)| value | ((*byte as u64) << (index * 8)))
+    } else {
+        field.iter().fold(0u64, |value, byte| (value << 8) | *byte as u64)
+    };
+    Ok(value)
+}
+
+fn parse_elf_bytes(bytes: &[u8]) -> Result<serde_json::Value, String> {
+    if bytes.len() < 16 || !bytes.starts_with(b"\x7fELF") {
+        return Err("invalid or truncated ELF identification".to_string());
+    }
+    let class = match bytes[4] {
+        1 => 32,
+        2 => 64,
+        _ => return Err(format!("unsupported ELF class {}", bytes[4])),
+    };
+    let little_endian = match bytes[5] {
+        1 => true,
+        2 => false,
+        _ => return Err(format!("unsupported ELF byte order {}", bytes[5])),
+    };
+    if bytes[6] != 1 {
+        return Err(format!("unsupported ELF identification version {}", bytes[6]));
+    }
+
+    let header_size = if class == 32 { 52 } else { 64 };
+    if bytes.len() < header_size {
+        return Err(format!("truncated ELF{} header", class));
+    }
+    let file_type = read_elf_uint(bytes, 16, 2, little_endian)? as u16;
+    let machine = read_elf_uint(bytes, 18, 2, little_endian)? as u16;
+    let (entry, program_offset, section_offset, flags_offset, header_size_offset,
+        program_entry_size_offset, program_count_offset, section_entry_size_offset,
+        section_count_offset, section_names_index_offset) = if class == 32 {
+        (24, 28, 32, 36, 40, 42, 44, 46, 48, 50)
+    } else {
+        (24, 32, 40, 48, 52, 54, 56, 58, 60, 62)
+    };
+    let word_width = if class == 32 { 4 } else { 8 };
+    let entry_address = read_elf_uint(bytes, entry, word_width, little_endian)?;
+    let program_offset = read_elf_uint(bytes, program_offset, word_width, little_endian)? as usize;
+    let section_offset = read_elf_uint(bytes, section_offset, word_width, little_endian)? as usize;
+    let flags = read_elf_uint(bytes, flags_offset, 4, little_endian)?;
+    let declared_header_size = read_elf_uint(bytes, header_size_offset, 2, little_endian)?;
+    let program_entry_size = read_elf_uint(bytes, program_entry_size_offset, 2, little_endian)? as usize;
+    let program_count = read_elf_uint(bytes, program_count_offset, 2, little_endian)? as usize;
+    let section_entry_size = read_elf_uint(bytes, section_entry_size_offset, 2, little_endian)? as usize;
+    let section_count = read_elf_uint(bytes, section_count_offset, 2, little_endian)? as usize;
+    let section_names_index = read_elf_uint(bytes, section_names_index_offset, 2, little_endian)? as usize;
+
+    if declared_header_size < header_size as u64 {
+        return Err(format!("invalid ELF header size {}", declared_header_size));
+    }
+    if program_count > 0 && program_entry_size < if class == 32 { 32 } else { 56 } {
+        return Err(format!("invalid program header entry size {}", program_entry_size));
+    }
+    if section_count > 0 && section_entry_size < if class == 32 { 40 } else { 64 } {
+        return Err(format!("invalid section header entry size {}", section_entry_size));
+    }
+    if program_count > 65_536 || section_count > 65_536 {
+        return Err("ELF header table entry count exceeds parser limit".to_string());
+    }
+
+    let table_end = |offset: usize, count: usize, stride: usize| -> Result<usize, String> {
+        let length = count.checked_mul(stride).ok_or_else(|| "ELF table size overflow".to_string())?;
+        let end = offset.checked_add(length).ok_or_else(|| "ELF table offset overflow".to_string())?;
+        if end > bytes.len() {
+            return Err("truncated ELF header table".to_string());
+        }
+        Ok(end)
+    };
+    if program_count > 0 {
+        table_end(program_offset, program_count, program_entry_size)?;
+    }
+    if section_count > 0 {
+        table_end(section_offset, section_count, section_entry_size)?;
+    }
+
+    let mut interpreter = None;
+    let mut program_headers = Vec::with_capacity(program_count);
+    for index in 0..program_count {
+        let base = program_offset + index * program_entry_size;
+        let segment_type = read_elf_uint(bytes, base, 4, little_endian)? as u32;
+        let (file_offset, file_size) = if class == 32 {
+            (read_elf_uint(bytes, base + 4, 4, little_endian)?, read_elf_uint(bytes, base + 16, 4, little_endian)?)
+        } else {
+            (read_elf_uint(bytes, base + 8, 8, little_endian)?, read_elf_uint(bytes, base + 32, 8, little_endian)?)
+        };
+        let segment_name = match segment_type {
+            0 => "NULL", 1 => "LOAD", 2 => "DYNAMIC", 3 => "INTERP", 4 => "NOTE",
+            5 => "SHLIB", 6 => "PHDR", 7 => "TLS", _ => "OTHER",
+        };
+        if segment_type == 3 {
+            let start = usize::try_from(file_offset).map_err(|_| "ELF interpreter offset is too large")?;
+            let length = usize::try_from(file_size).map_err(|_| "ELF interpreter size is too large")?;
+            let end = start.checked_add(length).ok_or_else(|| "ELF interpreter range overflow".to_string())?;
+            let value = bytes.get(start..end).ok_or_else(|| "truncated ELF interpreter segment".to_string())?;
+            interpreter = Some(String::from_utf8_lossy(value).trim_end_matches('\0').to_string());
+        }
+        program_headers.push(serde_json::json!({
+            "type": segment_name,
+            "type_id": segment_type,
+            "offset": file_offset,
+            "file_size": file_size,
+        }));
+    }
+
+    let section_name_offset = if class == 32 { 0 } else { 0 };
+    let section_type_offset = 4;
+    let section_file_offset = if class == 32 { 16 } else { 24 };
+    let section_size_offset = if class == 32 { 20 } else { 32 };
+    let section_word_width = if class == 32 { 4 } else { 8 };
+    let section_names = if section_count > 0 && section_names_index < section_count {
+        let names_header = section_offset + section_names_index * section_entry_size;
+        let names_file_offset = read_elf_uint(bytes, names_header + section_file_offset, section_word_width, little_endian)? as usize;
+        let names_size = read_elf_uint(bytes, names_header + section_size_offset, section_word_width, little_endian)? as usize;
+        let names_end = names_file_offset.checked_add(names_size).ok_or_else(|| "ELF section-name table range overflow".to_string())?;
+        Some(bytes.get(names_file_offset..names_end).ok_or_else(|| "truncated ELF section-name string table".to_string())?)
+    } else {
+        None
+    };
+
+    let mut sections = Vec::with_capacity(section_count);
+    for index in 0..section_count {
+        let base = section_offset + index * section_entry_size;
+        let name_index = read_elf_uint(bytes, base + section_name_offset, 4, little_endian)? as usize;
+        let section_type = read_elf_uint(bytes, base + section_type_offset, 4, little_endian)? as u32;
+        let file_offset = read_elf_uint(bytes, base + section_file_offset, section_word_width, little_endian)?;
+        let size = read_elf_uint(bytes, base + section_size_offset, section_word_width, little_endian)?;
+        let name = section_names.and_then(|table| table.get(name_index..)).map(|remaining| {
+            let end = remaining.iter().position(|byte| *byte == 0).unwrap_or(remaining.len());
+            String::from_utf8_lossy(&remaining[..end]).into_owned()
+        }).unwrap_or_default();
+        let type_name = match section_type {
+            0 => "NULL", 1 => "PROGBITS", 2 => "SYMTAB", 3 => "STRTAB", 4 => "RELA",
+            5 => "HASH", 6 => "DYNAMIC", 7 => "NOTE", 8 => "NOBITS", 9 => "REL",
+            11 => "DYNSYM", _ => "OTHER",
+        };
+        sections.push(serde_json::json!({
+            "name": name,
+            "type": type_name,
+            "type_id": section_type,
+            "offset": file_offset,
+            "size": size,
+        }));
+    }
+
+    let file_type_name = match file_type {
+        0 => "none", 1 => "relocatable", 2 => "executable", 3 => "shared_object", 4 => "core", _ => "processor_specific",
+    };
+    let machine_name = match machine {
+        3 => "x86", 40 => "ARM", 62 => "x86_64", 183 => "AArch64", 243 => "RISC-V", _ => "unknown",
+    };
+    Ok(serde_json::json!({
+        "file_type": "elf",
+        "class": class,
+        "endianness": if little_endian { "little" } else { "big" },
+        "elf_type": file_type_name,
+        "elf_type_id": file_type,
+        "machine": machine_name,
+        "machine_id": machine,
+        "entry_point": format!("0x{:x}", entry_address),
+        "flags": flags,
+        "interpreter": interpreter,
+        "program_headers": program_headers,
+        "sections": sections,
+    }))
 }
 
 /// Code signature verifier
@@ -1695,6 +1884,25 @@ pub fn detect_binary_anomalies(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn test_parse_elf_metadata_reads_real_executable() {
+        let executable = std::env::current_exe().unwrap();
+        let records = parse_elf_metadata(executable.to_str().unwrap()).unwrap();
+        let metadata = records[0].get("metadata").expect("ELF metadata record");
+
+        assert_eq!(metadata["file_type"], "elf");
+        assert!(metadata["class"].as_u64().is_some());
+        assert!(metadata["machine"].as_str().is_some());
+        assert!(metadata["sections"].as_array().is_some_and(|sections| !sections.is_empty()));
+    }
+
+    #[test]
+    fn test_parse_elf_metadata_rejects_truncated_input() {
+        let error = parse_elf_bytes(b"\x7fELF").unwrap_err();
+        assert!(error.contains("truncated"));
+    }
 
     #[test]
     fn test_collect_autostart_entries_reads_real_paths() {

@@ -1261,6 +1261,15 @@ impl CapabilityRegistry {
                 evidence_contract: "file_pe_metadata",
             },
             RuntimeCapabilityBinding {
+                capability_id: "file.pe.metadata",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "parse_pe_metadata",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Windows,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "file_pe_metadata",
+            },
+            RuntimeCapabilityBinding {
                 capability_id: "file.elf_metadata",
                 runtime_module: "jockey_runtime_artifacts",
                 runtime_handler: "parse_elf_metadata",
@@ -1270,10 +1279,37 @@ impl CapabilityRegistry {
                 evidence_contract: "file_elf_metadata",
             },
             RuntimeCapabilityBinding {
+                capability_id: "file.elf.metadata",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "parse_elf_metadata",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Linux,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "file_elf_metadata",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "file.hash.sha256",
+                runtime_module: "jockey_runtime_filesystem",
+                runtime_handler: "hash_sha256",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "file_sha256",
+            },
+            RuntimeCapabilityBinding {
                 capability_id: "file.code_signature",
                 runtime_module: "jockey_runtime_artifacts",
                 runtime_handler: "verify_code_signature",
                 abi_symbol: Some("jockey_rt_collect_artifacts"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "file_code_signature",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "file.signature",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "verify_code_signature",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_code_signature",
@@ -3011,11 +3047,6 @@ impl CapabilityRegistry {
             "security.antivirus" | "security.update.state" => Some("security.av_status"),
             "security.firewall" => Some("security.firewall"),
             "security.selinux" | "security.apparmor" | "security.policy" => Some("security.app_control"),
-            "file.pe.metadata"
-            | "file.elf.metadata"
-            | "file.hash.sha256"
-            | "file.entropy"
-            | "file.signature" => Some("evidence.sha256"),
             "evidence.sha256" => Some("evidence.sha256"),
             "evidence.merkle" => Some("evidence.merkle"),
             "evidence.provenance" => Some("evidence.provenance"),
@@ -3117,7 +3148,14 @@ impl CapabilityRegistry {
                     "host": collector.host_identifier(),
                     "platform": format!("{:?}", current_platform),
                     "collected_at": chrono::Utc::now(),
-                    "status": format!("{:?}", status).to_ascii_uppercase(),
+                    "status": match status {
+                        CollectionStatus::Success => "SUCCESS",
+                        CollectionStatus::Partial => "PARTIAL",
+                        CollectionStatus::Failed => "FAILED",
+                        CollectionStatus::NotFound => "NOT_FOUND",
+                        CollectionStatus::Unsupported => "UNSUPPORTED",
+                        CollectionStatus::PermissionDenied => "PERMISSION_DENIED",
+                    },
                     "origin": "REAL",
                 });
                 for record in &mut evidence_records {
@@ -3384,7 +3422,13 @@ impl CapabilityRegistry {
             "enumerate_files" => {
                 let path = option_string("path", ".");
                 let recursive = options.get("recursive").and_then(serde_json::Value::as_bool).unwrap_or(false);
-                collector.collect_files(&path, recursive, &option_string("hash", "none"))
+                let default_hash = match capability.id.as_str() {
+                    "filesystem.hash.sha256" => "sha256",
+                    "filesystem.hash.sha1" => "sha1",
+                    "filesystem.hash.md5" => "md5",
+                    _ => "none",
+                };
+                collector.collect_files(&path, recursive, &option_string("hash", default_hash))
                     .map_err(|e| e.to_string())?;
                 let records = collector.data().to_vec();
                 let count = records.len();
@@ -3439,6 +3483,33 @@ impl CapabilityRegistry {
             "analyze_file_entropy" => append_records!(jockey_runtime_artifacts::analyze_file_entropy(&option_string("path", ".")).map_err(|e| e.to_string())?),
             "detect_binary_anomalies" => append_records!(jockey_runtime_artifacts::detect_binary_anomalies(&option_string("path", ".")).map_err(|e| e.to_string())?),
             "detect_rootkit_indicators" => append_records!(jockey_runtime_security::detect_rootkit_indicators(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "hash_sha256" => {
+                if capability.id.starts_with("file.") {
+                    let path = option_string("path", "");
+                    if path.is_empty() {
+                        return Err("A file path is required for file SHA-256 hashing".to_string());
+                    }
+                    let sha256 = jockey_runtime_filesystem::calculate_hash(&path, "sha256")
+                        .map_err(|e| e.to_string())?;
+                    append_records!(vec![serde_json::json!({
+                        "path": path,
+                        "sha256": sha256,
+                        "hash_algorithm": "sha256",
+                    })])
+                } else {
+                    let source_records = options.get("_evidence_records")
+                        .and_then(serde_json::Value::as_array)
+                        .cloned()
+                        .unwrap_or_default();
+                    let mut evidence = EvidenceCollector::new("capability-evidence-hash");
+                    evidence.set_records(source_records.clone());
+                    let sha256 = evidence.compute_hash("sha256").map_err(|e| e.to_string())?;
+                    append_records!(vec![serde_json::json!({
+                        "evidence_sha256": sha256,
+                        "record_count": source_records.len(),
+                    })])
+                }
+            }
             "collect_logs" => {
                 let source = match capability.id.as_str() {
                     "artifact.auth.logs" => "auth",
@@ -3487,22 +3558,18 @@ impl CapabilityRegistry {
             }
 
             // Evidence handlers
-            "hash_sha256" => {
-                // Hash a test file or the evidence itself
-                // For now, return a placeholder
-                let records = vec![serde_json::json!({
-                    "capability": "hash_sha256",
-                    "status": "not_implemented",
-                    "note": "File hashing requires a specific file path"
-                })];
-                Ok((CollectionStatus::Partial, 1, records, None, Some("File hashing requires a specific file path".to_string())))
-            }
             "build_merkle_tree" => {
-                // Build merkle tree from current evidence
-                collector.generate_timeline().ok();
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                let source_records = options.get("_evidence_records")
+                    .and_then(serde_json::Value::as_array)
+                    .cloned()
+                    .unwrap_or_default();
+                let mut evidence = EvidenceCollector::new("capability-evidence-merkle");
+                evidence.set_records(source_records.clone());
+                let merkle_root = evidence.to_bundle().merkle_root;
+                append_records!(vec![serde_json::json!({
+                    "merkle_root": merkle_root,
+                    "record_count": source_records.len(),
+                })])
             }
 
             _ => {
@@ -3717,6 +3784,10 @@ mod tests {
             ).status,
             CollectionStatus::Failed,
         );
+        assert_eq!(
+            serde_json::to_value(CollectionStatus::PermissionDenied).unwrap(),
+            "PERMISSION_DENIED",
+        );
     }
 
     #[test]
@@ -3763,5 +3834,66 @@ mod tests {
             assert!(!payload.handler.is_empty());
             assert!(!payload.runtime_module.is_empty());
         }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn test_elf_capability_invokes_parser_with_source_path() {
+        let registry = registry();
+        let executable = std::env::current_exe().unwrap();
+        let mut options = serde_json::Map::new();
+        options.insert("path".to_string(), serde_json::json!(executable));
+
+        let result = registry
+            .invoke_runtime_capability_with_options("file.elf.metadata", &options)
+            .unwrap();
+        assert_eq!(result.status, CollectionStatus::Success);
+        assert_eq!(result.runtime_module, "jockey_runtime_artifacts");
+        assert_eq!(result.records_count, 1);
+        assert_eq!(result.evidence_records[0]["metadata"]["file_type"], "elf");
+        assert_eq!(result.evidence_records[0]["_provenance"]["capability_id"], "file.elf.metadata");
+    }
+
+    #[test]
+    fn test_file_hash_capability_hashes_source_bytes() {
+        let path = std::env::temp_dir().join(format!("jockey-hash-{}.bin", std::process::id()));
+        std::fs::write(&path, b"forensic source bytes").unwrap();
+        let mut options = serde_json::Map::new();
+        options.insert("path".to_string(), serde_json::json!(path));
+
+        let result = registry()
+            .invoke_runtime_capability_with_options("file.hash.sha256", &options)
+            .unwrap();
+        let expected = jockey_runtime_filesystem::calculate_hash(
+            options["path"].as_str().unwrap(),
+            "sha256",
+        ).unwrap();
+        let _ = std::fs::remove_file(options["path"].as_str().unwrap());
+
+        assert_eq!(result.status, CollectionStatus::Success);
+        assert_eq!(result.evidence_records[0]["sha256"], expected);
+    }
+
+    #[test]
+    fn test_evidence_hash_and_merkle_use_supplied_records() {
+        let records = serde_json::json!([{"record": "one"}, {"record": "two"}]);
+        let mut options = serde_json::Map::new();
+        options.insert("_evidence_records".to_string(), records.clone());
+
+        let hash_result = registry()
+            .invoke_runtime_capability_with_options("evidence.sha256", &options)
+            .unwrap();
+        let mut evidence = EvidenceCollector::new("expected-hash");
+        evidence.set_records(records.as_array().unwrap().clone());
+        let expected_hash = evidence.compute_hash("sha256").unwrap();
+        assert_eq!(hash_result.status, CollectionStatus::Success);
+        assert_eq!(hash_result.evidence_records[0]["evidence_sha256"], expected_hash);
+
+        let merkle_result = registry()
+            .invoke_runtime_capability_with_options("evidence.merkle", &options)
+            .unwrap();
+        assert_eq!(merkle_result.status, CollectionStatus::Success);
+        assert_eq!(merkle_result.evidence_records[0]["record_count"], 2);
+        assert_eq!(merkle_result.evidence_records[0]["merkle_root"].as_str().unwrap().len(), 64);
     }
 }
