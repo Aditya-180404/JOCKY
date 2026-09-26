@@ -170,6 +170,18 @@ investigation "native_semantic_triage" {
         meta_path.exists(),
         "Sidecar metadata file must be created alongside evidence"
     );
+    let metadata_json: serde_json::Value = serde_json::from_slice(
+        &fs::read(&meta_path).expect("Failed to read evidence metadata"),
+    ).expect("Evidence metadata must be valid JSON");
+    assert_eq!(metadata_json["source_hash"], mir.provenance.source_hash);
+    assert_eq!(metadata_json["artifact_hash"], metadata.artifact_hash);
+
+    let bundle_path = temp_dir.join("native_evidence.json.bundle.json");
+    let bundle_json: serde_json::Value = serde_json::from_slice(
+        &fs::read(&bundle_path).expect("Failed to read canonical evidence bundle"),
+    ).expect("Evidence bundle must be valid JSON");
+    assert_eq!(bundle_json["source_hash"], mir.provenance.source_hash);
+    assert_eq!(bundle_json["artifact_hash"], metadata.artifact_hash);
 
     let deep_result =
         verify_evidence_deep(evidence_path.to_str().unwrap(), meta_path.to_str().unwrap())

@@ -61,9 +61,9 @@ impl RuntimeSignatures {
         let i64_ty = LLVMInt64TypeInContext(ctx);
         let void_ty = LLVMVoidTypeInContext(ctx);
 
-        // jockey_rt_evidence_init(investigation_name: *const c_char) -> *mut c_void
-        let mut init_params = [ptr_ty];
-        let init_ty = LLVMFunctionType(ptr_ty, init_params.as_mut_ptr(), 1, 0);
+        // jockey_rt_evidence_init(investigation_name, source_hash) -> *mut c_void
+        let mut init_params = [ptr_ty, ptr_ty];
+        let init_ty = LLVMFunctionType(ptr_ty, init_params.as_mut_ptr(), 2, 0);
 
         // jockey_rt_collect_system(ctx: *mut c_void) -> c_int
         let mut sys_params = [ptr_ty];

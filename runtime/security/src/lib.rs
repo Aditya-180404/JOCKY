@@ -702,45 +702,77 @@ pub fn detect_rootkit_indicators(
         })]);
     }
 
-    let mut results = Vec::new();
-    
-    // Check for common rootkit indicators
-    results.push(serde_json::json!({
-        "collector": "rootkit_indicators",
-        "status": "not_implemented",
-        "note": "Rootkit detection requires kernel-level access and is not fully implemented",
-        "checks": [
-            "hidden_processes",
-            "hidden_files",
-            "hidden_ports",
-            "ssdt_hooks",
-            "idt_hooks",
-            "dkom",
-            "kernel_module_integrity",
-            "system_call_table_integrity",
-        ],
-    }));
-    
-    // On Linux, check for some user-space indicators
+    let mut findings = Vec::new();
+    let mut completed_checks = Vec::new();
+
     #[cfg(target_os = "linux")]
     {
-        // Check for hidden processes (processes not in /proc but visible via other means)
-        // This is a simplified check
-        if let Ok(proc_dir) = std::fs::read_dir("/proc") {
-            let mut pids = Vec::new();
-            for entry in proc_dir.flatten() {
-                if let Ok(pid) = entry.file_name().to_string_lossy().parse::<i32>() {
-                    pids.push(pid);
+        let preload_path = std::path::Path::new("/etc/ld.so.preload");
+        if let Ok(contents) = std::fs::read_to_string(preload_path) {
+            completed_checks.push("ld_preload".to_string());
+            for line in contents.lines().map(str::trim).filter(|line| !line.is_empty() && !line.starts_with('#')) {
+                let library = std::path::Path::new(line);
+                let suspicious_location = line.starts_with("/tmp/") || line.starts_with("/dev/shm/") || line.starts_with("/home/");
+                if !library.exists() || suspicious_location {
+                    findings.push(serde_json::json!({
+                        "collector": "rootkit_indicators",
+                        "indicator": "ld_preload_anomaly",
+                        "path": line,
+                        "exists": library.exists(),
+                        "suspicious_location": suspicious_location,
+                        "reason": if suspicious_location { "preload library configured from a user-writable location" } else { "configured preload library is missing" },
+                    }));
                 }
             }
-            results.push(serde_json::json!({
-                "collector": "rootkit_indicators",
-                "check": "process_count",
-                "visible_processes": pids.len(),
-            }));
+        }
+
+        if let (Ok(proc_modules), Ok(sys_modules)) = (std::fs::read_to_string("/proc/modules"), std::fs::read_dir("/sys/module")) {
+            completed_checks.push("module_visibility_cross_check".to_string());
+            let loaded = proc_modules.lines().filter_map(|line| line.split_whitespace().next()).collect::<std::collections::HashSet<_>>();
+            let exposed = sys_modules.flatten().map(|entry| entry.file_name().to_string_lossy().into_owned()).collect::<std::collections::HashSet<_>>();
+            for module in loaded {
+                if !exposed.contains(module) {
+                    findings.push(serde_json::json!({
+                        "collector": "rootkit_indicators",
+                        "indicator": "module_visibility_mismatch",
+                        "module": module,
+                        "reason": "module appears in /proc/modules but is absent from /sys/module",
+                    }));
+                }
+            }
+        }
+
+        if let Ok(proc_entries) = std::fs::read_dir("/proc") {
+            completed_checks.push("deleted_running_executables".to_string());
+            for entry in proc_entries.flatten() {
+                let Ok(pid) = entry.file_name().to_string_lossy().parse::<u32>() else { continue };
+                let exe_link = format!("/proc/{}/exe", pid);
+                if let Ok(target) = std::fs::read_link(&exe_link) {
+                    let target = target.to_string_lossy();
+                    if target.ends_with(" (deleted)") {
+                        findings.push(serde_json::json!({
+                            "collector": "rootkit_indicators",
+                            "indicator": "deleted_running_executable",
+                            "pid": pid,
+                            "executable": target.trim_end_matches(" (deleted)"),
+                            "reason": "process executable has been unlinked while still mapped",
+                        }));
+                    }
+                }
+            }
         }
     }
-    
+
+    let unsupported_checks = ["hidden_processes", "hidden_files", "hidden_ports", "ssdt_hooks", "idt_hooks", "dkom", "system_call_table_integrity"];
+    findings.insert(0, serde_json::json!({
+        "collector": "rootkit_indicators",
+        "status": "partial",
+        "host_platform": std::env::consts::OS,
+        "completed_checks": completed_checks,
+        "unavailable_checks": unsupported_checks,
+        "finding_count": findings.len(),
+    }));
+    let results = findings;
     Ok(results)
 }
 
@@ -913,6 +945,15 @@ mod tests {
         ];
         analyzer.analyze_parent_child_relationships(&processes);
         assert!(analyzer.findings().is_empty());
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn test_rootkit_checks_report_partial_kernel_coverage() {
+        let records = detect_rootkit_indicators("/").unwrap();
+        assert_eq!(records[0]["status"], "partial");
+        assert!(records[0]["completed_checks"].as_array().unwrap().iter().any(|check| check == "deleted_running_executables"));
+        assert!(records[0]["unavailable_checks"].as_array().unwrap().iter().any(|check| check == "ssdt_hooks"));
     }
 
     #[test]

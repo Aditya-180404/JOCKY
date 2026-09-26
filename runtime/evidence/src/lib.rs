@@ -133,6 +133,9 @@ pub struct EvidenceCollector {
     investigation_name: String,
     tool_name: String,
     tool_version: String,
+    compiler_version: String,
+    source_hash: Option<String>,
+    artifact_hash: Option<String>,
     host_identifier: String,
     output_format: String,
     output_path: String,
@@ -152,6 +155,9 @@ impl EvidenceCollector {
             investigation_name: investigation_name.to_string(),
             tool_name: "jockey-tool".to_string(),
             tool_version: "0.1.0".to_string(),
+            compiler_version: "0.1.0".to_string(),
+            source_hash: None,
+            artifact_hash: None,
             host_identifier: whoami::devicename(),
             output_format: "json".to_string(),
             output_path: format!("{}.json", investigation_name),
@@ -168,6 +174,11 @@ impl EvidenceCollector {
 
     pub fn set_evidence_origin(&mut self, origin: EvidenceOrigin) {
         self.evidence_origin = origin;
+    }
+
+    pub fn set_build_provenance(&mut self, source_hash: Option<String>, artifact_hash: Option<String>) {
+        self.source_hash = source_hash;
+        self.artifact_hash = artifact_hash;
     }
 
     pub fn record_collector_result(
@@ -520,13 +531,16 @@ impl EvidenceCollector {
                     .or_else(|| item.get("collector"))
                     .and_then(|v| v.as_str())
                     .unwrap_or("record");
-                let provenance = EvidenceProvenance::new(
+                let mut provenance = EvidenceProvenance::new(
                     self.evidence_origin,
                     &self.host_identifier,
                     record_type,
                     &self.tool_version,
                     "native",
                 );
+                provenance.compiler_version = Some(self.compiler_version.clone());
+                provenance.source_hash = self.source_hash.clone();
+                provenance.artifact_hash = self.artifact_hash.clone();
                 EvidenceRecord::new(
                     Some(format!("rec-{:04}-{}", i, uuid::Uuid::new_v4().simple())),
                     &self.host_identifier,
@@ -545,12 +559,12 @@ impl EvidenceCollector {
             &self.host_identifier,
             "native",
             &self.tool_version,
-            "0.1.0",
+            &self.compiler_version,
             self.started_at,
             Utc::now(),
             self.collector_results.clone(),
-            None,
-            None,
+            self.source_hash.clone(),
+            self.artifact_hash.clone(),
             records,
         )
     }
@@ -614,9 +628,9 @@ impl EvidenceCollector {
             evidence_origin: self.evidence_origin,
             overall_status,
             collector_results: self.collector_results.clone(),
-            compiler_version: Some("0.1.0".to_string()),
-            source_hash: None,
-            artifact_hash: None,
+            compiler_version: Some(self.compiler_version.clone()),
+            source_hash: self.source_hash.clone(),
+            artifact_hash: self.artifact_hash.clone(),
             collection_started_at: Some(self.started_at),
             collection_finished_at: Some(Utc::now()),
         };
@@ -856,6 +870,17 @@ fn test_security_analysis_returns_evidence_backed_findings() {
     let findings = analyze_evidence(&evidence);
     assert!(!findings.is_empty());
     assert!(findings.iter().any(|f| f.category == "network-state"));
+}
+
+#[test]
+fn test_bundle_preserves_partial_and_unsupported_collection_status() {
+    let mut partial = EvidenceCollector::new("partial-status-test");
+    partial.record_collector_result("parser", CollectionStatus::Partial, 1, None, Some("malformed record".into()));
+    assert_eq!(partial.to_bundle().evidence_status, CollectionStatus::Partial);
+
+    let mut unsupported = EvidenceCollector::new("unsupported-status-test");
+    unsupported.record_collector_result("collector", CollectionStatus::Unsupported, 0, None, None);
+    assert_eq!(unsupported.to_bundle().evidence_status, CollectionStatus::Unsupported);
 }
 
 #[test]

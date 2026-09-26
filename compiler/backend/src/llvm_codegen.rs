@@ -361,6 +361,7 @@ impl ProgrammaticLlvmCodegen {
                     MirInstruction::EvidenceInit {
                         dest,
                         investigation_name,
+                        source_hash,
                     } => {
                         let (fn_val, fn_ty) = rt_funcs["jockey_rt_evidence_init"];
                         let name_ptr = get_string_ptr(
@@ -370,14 +371,21 @@ impl ProgrammaticLlvmCodegen {
                             string_pool,
                             investigation_name,
                         );
-                        let mut args = [name_ptr];
+                        let source_hash_ptr = get_string_ptr(
+                            ctx,
+                            mod_ref,
+                            builder_ref,
+                            string_pool,
+                            source_hash,
+                        );
+                        let mut args = [name_ptr, source_hash_ptr];
                         let c_call_name = CString::new("ev_ctx").unwrap();
                         let res = LLVMBuildCall2(
                             builder_ref,
                             fn_ty,
                             fn_val,
                             args.as_mut_ptr(),
-                            1,
+                            2,
                             c_call_name.as_ptr(),
                         );
                         store_local(builder_ref, &local_allocas, *dest, res)?;

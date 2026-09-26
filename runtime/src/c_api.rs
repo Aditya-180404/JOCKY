@@ -14,8 +14,11 @@ pub struct RuntimeContext {
 
 #[no_mangle]
 /// # Safety
-/// Caller must ensure `investigation_name` is either a valid UTF-8 C string pointer or null.
-pub unsafe extern "C" fn jockey_rt_evidence_init(investigation_name: *const c_char) -> *mut c_void {
+/// Caller must ensure `investigation_name` and `source_hash` are valid UTF-8 C string pointers or null.
+pub unsafe extern "C" fn jockey_rt_evidence_init(
+    investigation_name: *const c_char,
+    source_hash: *const c_char,
+) -> *mut c_void {
     let name_str = if investigation_name.is_null() {
         "investigation".to_string()
     } else {
@@ -24,7 +27,16 @@ pub unsafe extern "C" fn jockey_rt_evidence_init(investigation_name: *const c_ch
             .unwrap_or("investigation")
             .to_string()
     };
-    let collector = EvidenceCollector::new(&name_str);
+    let source_hash = if source_hash.is_null() {
+        None
+    } else {
+        CStr::from_ptr(source_hash).to_str().ok().filter(|value| !value.is_empty()).map(str::to_owned)
+    };
+    let artifact_hash = std::env::current_exe().ok().and_then(|path| {
+        jockey_runtime_evidence::hash_file(&path.to_string_lossy()).ok()
+    });
+    let mut collector = EvidenceCollector::new(&name_str);
+    collector.set_build_provenance(source_hash, artifact_hash);
     let ctx = Box::new(RuntimeContext { collector });
     Box::into_raw(ctx) as *mut c_void
 }

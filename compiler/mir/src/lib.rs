@@ -109,6 +109,7 @@ pub enum MirInstruction {
     EvidenceInit {
         dest: LocalId,
         investigation_name: String,
+        source_hash: String,
     },
     EvidenceAddFilter {
         ctx: LocalId,
@@ -338,6 +339,7 @@ impl MirLowering {
         self.instructions.push(MirInstruction::EvidenceInit {
             dest: ctx,
             investigation_name: hir.name.clone(),
+            source_hash: hir.provenance.source_hash.clone(),
         });
 
         // Lower each operation in HIR

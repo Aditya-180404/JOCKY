@@ -126,7 +126,7 @@ enum Commands {
         /// Metadata sidecar file (default: <evidence>.meta.json)
         #[arg(long)]
         meta: Option<PathBuf>,
-        /// Report format (terminal, markdown, json)
+        /// Report format (terminal, markdown, json, csv, html)
         #[arg(short, long, default_value = "terminal")]
         format: String,
         /// Output file to write report to (default: stdout)
@@ -1310,6 +1310,16 @@ fn generate_report(
         .and_then(|v| v.as_str())
         .unwrap_or("N/A");
 
+    let mut correlation = jockey_runtime::correlation::CorrelationEngine::new(inv_name, host_id);
+    correlation.ingest_records(items, host_id);
+    let graph = correlation.graph();
+    let timeline_event_count = correlation.timeline().map(|timeline| timeline.event_count).unwrap_or(0);
+    let process_records = items.iter().filter(|record| record.get("pid").is_some()).cloned().collect::<Vec<_>>();
+    let connection_records = items.iter().filter(|record| record.get("local_address").is_some() || record.get("local_addr").is_some()).cloned().collect::<Vec<_>>();
+    let mut security_analyzer = jockey_runtime::security::SecurityAnalyzer::new(host_id);
+    security_analyzer.run_full_analysis(&process_records, &connection_records);
+    let security_findings = security_analyzer.findings().to_vec();
+
     let report_output = match format.to_lowercase().as_str() {
         "json" => {
             let json_rep = serde_json::json!({
@@ -1321,6 +1331,12 @@ fn generate_report(
                 "evidence_hash": evidence_hash,
                 "merkle_root": merkle_root,
                 "total_items": total_items,
+                "timeline_event_count": timeline_event_count,
+                "timeline": correlation.timeline(),
+                "correlation_graph": graph,
+                "relationships": graph.relationships,
+                "correlation_findings": graph.findings,
+                "security_findings": security_findings,
                 "suspicious_items_count": suspicious_count,
                 "suspicious_findings": suspicious_details,
                 "counts_by_category": {
@@ -1336,6 +1352,103 @@ fn generate_report(
                 }
             });
             serde_json::to_string_pretty(&json_rep)?
+        }
+        "csv" => {
+            let mut csv = String::from("record_index,category,capability_id,collector,host,platform,status,record_json\n");
+            for (index, item) in items.iter().enumerate() {
+                let provenance = item.get("_provenance");
+                let category = report_record_category(item);
+                let columns = [
+                    (index + 1).to_string(),
+                    category,
+                    provenance.and_then(|value| value.get("capability_id")).and_then(serde_json::Value::as_str).unwrap_or("").to_string(),
+                    provenance.and_then(|value| value.get("collector")).and_then(serde_json::Value::as_str).unwrap_or("").to_string(),
+                    provenance.and_then(|value| value.get("host")).and_then(serde_json::Value::as_str).unwrap_or("").to_string(),
+                    provenance.and_then(|value| value.get("platform")).and_then(serde_json::Value::as_str).unwrap_or("").to_string(),
+                    provenance.and_then(|value| value.get("status")).and_then(serde_json::Value::as_str).unwrap_or("").to_string(),
+                    serde_json::to_string(item)?,
+                ];
+                csv.push_str(&columns.iter().map(|value| csv_escape(value)).collect::<Vec<_>>().join(","));
+                csv.push('\n');
+            }
+            for (offset, finding) in graph.findings.iter().enumerate() {
+                let columns = [
+                    (items.len() + offset + 1).to_string(),
+                    "correlation_finding".to_string(),
+                    String::new(),
+                    "correlation_engine".to_string(),
+                    host_id.to_string(),
+                    std::env::consts::OS.to_string(),
+                    format!("{:?}", finding.severity),
+                    serde_json::to_string(finding)?,
+                ];
+                csv.push_str(&columns.iter().map(|value| csv_escape(value)).collect::<Vec<_>>().join(","));
+                csv.push('\n');
+            }
+            for (offset, finding) in security_findings.iter().enumerate() {
+                let columns = [
+                    (items.len() + graph.findings.len() + offset + 1).to_string(),
+                    "security_finding".to_string(),
+                    String::new(),
+                    finding.category.to_string(),
+                    finding.host.clone(),
+                    std::env::consts::OS.to_string(),
+                    finding.severity.to_string(),
+                    serde_json::to_string(finding)?,
+                ];
+                csv.push_str(&columns.iter().map(|value| csv_escape(value)).collect::<Vec<_>>().join(","));
+                csv.push('\n');
+            }
+            csv
+        }
+        "html" => {
+            let mut html = String::from("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>JOCKEY Forensic Report</title><style>body{font:15px system-ui,sans-serif;margin:2rem;color:#17212b}h1{margin-bottom:.25rem}table{border-collapse:collapse;width:100%;margin-top:1.5rem}th,td{border:1px solid #ccd3d8;padding:.5rem;text-align:left;vertical-align:top}th{background:#edf2f4}pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}.meta{display:grid;grid-template-columns:max-content 1fr;gap:.35rem 1rem}.warn{color:#8b2b1d}</style></head><body>");
+            html.push_str(&format!("<h1>{}</h1><dl class=\"meta\"><dt>Host</dt><dd>{}</dd><dt>Collected</dt><dd>{}</dd><dt>Evidence SHA-256</dt><dd><code>{}</code></dd><dt>Merkle root</dt><dd><code>{}</code></dd><dt>Records</dt><dd>{}</dd><dt>Flagged records</dt><dd class=\"warn\">{}</dd></dl>", html_escape(inv_name), html_escape(host_id), html_escape(collected_at), html_escape(evidence_hash), html_escape(merkle_root), total_items, suspicious_count));
+            html.push_str("<table><thead><tr><th>#</th><th>Capability</th><th>Category</th><th>Source</th><th>Details</th></tr></thead><tbody>");
+            for (index, item) in items.iter().enumerate() {
+                let provenance = item.get("_provenance");
+                let capability_id = provenance.and_then(|value| value.get("capability_id")).and_then(serde_json::Value::as_str).unwrap_or("");
+                let collector = provenance.and_then(|value| value.get("collector")).and_then(serde_json::Value::as_str).unwrap_or("");
+                let details = ["path", "name", "protocol", "local_address", "pid", "state"]
+                    .iter()
+                    .filter_map(|key| item.get(*key).map(|value| format!("{}={}", key, value)))
+                    .collect::<Vec<_>>().join("; ");
+                html.push_str(&format!("<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>", index + 1, html_escape(capability_id), html_escape(&report_record_category(item)), html_escape(collector), html_escape(&details)));
+            }
+            html.push_str("</tbody></table><h2>Evidence-backed Correlation Findings</h2>");
+            if graph.findings.is_empty() {
+                html.push_str("<p>No correlation rules matched the collected evidence.</p>");
+            } else {
+                html.push_str("<table><thead><tr><th>Severity</th><th>Finding</th><th>Evidence references</th><th>MITRE ATT&amp;CK</th></tr></thead><tbody>");
+                for finding in &graph.findings {
+                    html.push_str(&format!("<tr><td>{}</td><td><strong>{}</strong><br>{}</td><td>{}</td><td>{}</td></tr>",
+                        html_escape(&format!("{:?}", finding.severity)),
+                        html_escape(&finding.title),
+                        html_escape(&finding.description),
+                        html_escape(&finding.evidence_refs.join(", ")),
+                        html_escape(&finding.mitre_attack_ids.join(", ")),
+                    ));
+                }
+                html.push_str("</tbody></table>");
+            }
+            html.push_str("<h2>Rule-based Security Findings</h2>");
+            if security_findings.is_empty() {
+                html.push_str("<p>No security rules matched the collected process and network evidence.</p>");
+            } else {
+                html.push_str("<table><thead><tr><th>Severity</th><th>Indicator</th><th>Reason</th><th>Evidence</th><th>MITRE ATT&amp;CK</th></tr></thead><tbody>");
+                for finding in &security_findings {
+                    html.push_str(&format!("<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
+                        html_escape(&finding.severity.to_string()),
+                        html_escape(&finding.indicator),
+                        html_escape(&finding.reason),
+                        html_escape(&finding.evidence),
+                        html_escape(&finding.mitre_attack_id),
+                    ));
+                }
+                html.push_str("</tbody></table>");
+            }
+            html.push_str(&format!("<p>Normalized timeline events: {}</p></body></html>", timeline_event_count));
+            html
         }
         "markdown" | "md" => {
             let mut md = String::new();
@@ -1369,6 +1482,39 @@ fn generate_report(
                 md.push_str("## High Risk Findings\n\n");
                 for (i, find) in suspicious_details.iter().enumerate() {
                     md.push_str(&format!("{}. {}\n", i + 1, find));
+                }
+                md.push('\n');
+            }
+
+            md.push_str("## Evidence-backed Correlation Findings\n\n");
+            if graph.findings.is_empty() {
+                md.push_str("No correlation rules matched the collected evidence.\n\n");
+            } else {
+                for finding in &graph.findings {
+                    md.push_str(&format!("- **{:?}: {}**: {} Evidence: `{}`. MITRE: `{}`.\n",
+                        finding.severity,
+                        finding.title,
+                        finding.description,
+                        finding.evidence_refs.join(", "),
+                        finding.mitre_attack_ids.join(", "),
+                    ));
+                }
+                md.push('\n');
+            }
+            md.push_str(&format!("Normalized timeline events: `{}`; relationships: `{}`.\n\n", timeline_event_count, graph.relationships.len()));
+
+            md.push_str("## Rule-based Security Findings\n\n");
+            if security_findings.is_empty() {
+                md.push_str("No security rules matched the collected process and network evidence.\n\n");
+            } else {
+                for finding in &security_findings {
+                    md.push_str(&format!("- **{}: {}**. Reason: {} Evidence: `{}`. MITRE: `{}`.\n",
+                        finding.severity,
+                        finding.indicator,
+                        finding.reason,
+                        finding.evidence,
+                        finding.mitre_attack_id,
+                    ));
                 }
                 md.push('\n');
             }
@@ -1453,6 +1599,38 @@ fn generate_report(
     }
 
     Ok(())
+}
+
+fn report_record_category(record: &serde_json::Value) -> String {
+    if record.get("pid").is_some() && record.get("ppid").is_some() {
+        "process".to_string()
+    } else if record.get("local_address").is_some() || record.get("local_addr").is_some() {
+        "network".to_string()
+    } else if record.get("start_address").is_some() && record.get("end_address").is_some() {
+        "memory".to_string()
+    } else if record.get("artifact_type").is_some() {
+        "artifact".to_string()
+    } else if record.get("path").is_some() {
+        "filesystem".to_string()
+    } else if record.get("hive").is_some() && record.get("key_path").is_some() {
+        "registry".to_string()
+    } else if record.get("event_type").is_some() {
+        "timeline".to_string()
+    } else {
+        "other".to_string()
+    }
+}
+
+fn csv_escape(value: &str) -> String {
+    format!("\"{}\"", value.replace('"', "\"\""))
+}
+
+fn html_escape(value: &str) -> String {
+    value.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#39;")
 }
 
 fn evidence_inspect(file: &Path) -> anyhow::Result<()> {
@@ -1890,4 +2068,19 @@ fn launch_ide(port: u16) -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod report_tests {
+    use super::{csv_escape, html_escape};
+
+    #[test]
+    fn csv_report_escapes_quotes_and_delimiters() {
+        assert_eq!(csv_escape("name, \"value\""), "\"name, \"\"value\"\"\"");
+    }
+
+    #[test]
+    fn html_report_escapes_markup_characters() {
+        assert_eq!(html_escape("<script a=\"x\">&'"), "&lt;script a=&quot;x&quot;&gt;&amp;&#39;");
+    }
 }

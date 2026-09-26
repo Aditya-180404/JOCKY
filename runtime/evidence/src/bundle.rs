@@ -221,7 +221,8 @@ impl EvidenceBundle {
             CollectionStatus::Failed | CollectionStatus::NotFound | CollectionStatus::Unsupported | CollectionStatus::PermissionDenied
         ));
         let has_success = collector_results.iter().any(|c| c.status == CollectionStatus::Success);
-        let evidence_status = if has_failed && has_success {
+        let has_partial = collector_results.iter().any(|c| c.status == CollectionStatus::Partial);
+        let evidence_status = if has_partial || (has_failed && has_success) {
             CollectionStatus::Partial
         } else if has_failed && !has_success {
             if collector_results.iter().all(|c| c.status == CollectionStatus::NotFound) {
