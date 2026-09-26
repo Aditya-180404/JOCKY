@@ -18,6 +18,9 @@ pub enum CollectionStatus {
     Success,
     Partial,
     Failed,
+    NotFound,
+    Unsupported,
+    PermissionDenied,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -208,10 +211,21 @@ impl EvidenceCollector {
             return CollectionStatus::Success;
         }
         let has_success = self.collector_results.iter().any(|r| r.status == CollectionStatus::Success);
-        let has_failure = self.collector_results.iter().any(|r| r.status == CollectionStatus::Failed);
+        let has_failure = self.collector_results.iter().any(|r| matches!(
+            r.status,
+            CollectionStatus::Failed | CollectionStatus::NotFound | CollectionStatus::Unsupported | CollectionStatus::PermissionDenied
+        ));
         let has_partial = self.collector_results.iter().any(|r| r.status == CollectionStatus::Partial);
         if has_failure && !has_success {
-            CollectionStatus::Failed
+            if self.collector_results.iter().all(|r| r.status == CollectionStatus::NotFound) {
+                CollectionStatus::NotFound
+            } else if self.collector_results.iter().all(|r| r.status == CollectionStatus::Unsupported) {
+                CollectionStatus::Unsupported
+            } else if self.collector_results.iter().all(|r| r.status == CollectionStatus::PermissionDenied) {
+                CollectionStatus::PermissionDenied
+            } else {
+                CollectionStatus::Failed
+            }
         } else if has_failure || has_partial {
             CollectionStatus::Partial
         } else {

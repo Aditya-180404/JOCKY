@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 
 use jockey_runtime_evidence::{
-    CollectionStatus, CollectorResult, EvidenceCollector, EvidenceOrigin,
+    CollectionStatus, EvidenceCollector, EvidenceOrigin,
 };
 
 /// Unique identifier for a capability
@@ -264,7 +264,7 @@ impl CapabilityExecutionResult {
             platform,
             privilege,
             evidence_contract,
-            status: CollectionStatus::Failed,
+            status: CollectionStatus::NotFound,
             records_count: 0,
             error: Some("Capability source not found".to_string()),
             warning: None,
@@ -291,7 +291,7 @@ impl CapabilityExecutionResult {
             platform,
             privilege,
             evidence_contract,
-            status: CollectionStatus::Failed,
+            status: CollectionStatus::Unsupported,
             records_count: 0,
             error: Some("Capability not supported on this platform".to_string()),
             warning: None,
@@ -318,7 +318,7 @@ impl CapabilityExecutionResult {
             platform,
             privilege,
             evidence_contract,
-            status: CollectionStatus::Failed,
+            status: CollectionStatus::PermissionDenied,
             records_count: 0,
             error: Some("Insufficient privileges to execute capability".to_string()),
             warning: None,
@@ -3054,6 +3054,15 @@ impl CapabilityRegistry {
     /// Invoke the runtime-backed collector contract for a capability.
     /// This executes the real collector and produces evidence through the canonical pipeline.
     pub fn invoke_runtime_capability(&self, capability_id: &str) -> Result<CapabilityExecutionResult, String> {
+        self.invoke_runtime_capability_with_options(capability_id, &serde_json::Map::new())
+    }
+
+    /// Invoke a runtime-backed collector with the options preserved by the compiler pipeline.
+    pub fn invoke_runtime_capability_with_options(
+        &self,
+        capability_id: &str,
+        options: &serde_json::Map<String, serde_json::Value>,
+    ) -> Result<CapabilityExecutionResult, String> {
         let start_time = std::time::Instant::now();
         
         let capability = self
@@ -3096,18 +3105,38 @@ impl CapabilityRegistry {
         collector.set_evidence_origin(EvidenceOrigin::Real);
 
         // Execute the appropriate handler based on the runtime binding
-        let result = self.execute_handler(&mut collector, capability, binding);
+        let result = self.execute_handler(&mut collector, capability, binding, options);
 
         let execution_time_ms = start_time.elapsed().as_millis() as u64;
 
         match result {
-            Ok((status, records_count, evidence_records, error, warning)) => {
+            Ok((status, records_count, mut evidence_records, error, warning)) => {
+                let provenance = serde_json::json!({
+                    "capability_id": capability.id,
+                    "collector": binding.runtime_handler,
+                    "host": collector.host_identifier(),
+                    "platform": format!("{:?}", current_platform),
+                    "collected_at": chrono::Utc::now(),
+                    "status": format!("{:?}", status).to_ascii_uppercase(),
+                    "origin": "REAL",
+                });
+                for record in &mut evidence_records {
+                    if let Some(fields) = record.as_object_mut() {
+                        fields.insert("_provenance".to_string(), provenance.clone());
+                    } else {
+                        *record = serde_json::json!({
+                            "data": record,
+                            "_provenance": provenance.clone(),
+                        });
+                    }
+                }
+                collector.set_records(evidence_records.clone());
                 Ok(CapabilityExecutionResult {
                     capability_id: capability.id.clone(),
                     capability_name: capability.name.clone(),
                     handler: binding.runtime_handler.to_string(),
                     runtime_module: binding.runtime_module.to_string(),
-                    platform: format!("{:?}", binding.platform),
+                    platform: format!("{:?}", current_platform),
                     privilege: format!("{:?}", binding.privilege),
                     evidence_contract: binding.evidence_contract.to_string(),
                     status,
@@ -3119,17 +3148,33 @@ impl CapabilityRegistry {
                 })
             }
             Err(e) => {
-                Ok(CapabilityExecutionResult::failed(
+                let error = e.to_lowercase();
+                let args = (
                     capability.id.clone(),
                     capability.name.clone(),
                     binding.runtime_handler.to_string(),
                     binding.runtime_module.to_string(),
-                    format!("{:?}", binding.platform),
+                    format!("{:?}", current_platform),
                     format!("{:?}", binding.privilege),
                     binding.evidence_contract.to_string(),
-                    e,
-                    execution_time_ms,
-                ))
+                );
+                if error.contains("permission denied") || error.contains("operation not permitted") {
+                    Ok(CapabilityExecutionResult::permission_denied(
+                        args.0, args.1, args.2, args.3, args.4, args.5, args.6, execution_time_ms,
+                    ))
+                } else if error.contains("not found") || error.contains("no such file") {
+                    Ok(CapabilityExecutionResult::not_found(
+                        args.0, args.1, args.2, args.3, args.4, args.5, args.6, execution_time_ms,
+                    ))
+                } else if error.contains("unsupported") || error.contains("not supported") {
+                    Ok(CapabilityExecutionResult::unsupported(
+                        args.0, args.1, args.2, args.3, args.4, args.5, args.6, execution_time_ms,
+                    ))
+                } else {
+                    Ok(CapabilityExecutionResult::failed(
+                        args.0, args.1, args.2, args.3, args.4, args.5, args.6, e, execution_time_ms,
+                    ))
+                }
             }
         }
     }
@@ -3140,9 +3185,42 @@ impl CapabilityRegistry {
         collector: &mut EvidenceCollector,
         capability: &Capability,
         binding: &RuntimeCapabilityBinding,
+        options: &serde_json::Map<String, serde_json::Value>,
     ) -> Result<(CollectionStatus, usize, Vec<serde_json::Value>, Option<String>, Option<String>), String> {
         let handler = binding.runtime_handler;
-        let evidence_contract = binding.evidence_contract;
+        let option_string = |key: &str, default: &str| {
+            options.get(key).and_then(serde_json::Value::as_str).unwrap_or(default).to_string()
+        };
+        let fields = options.get("fields")
+            .and_then(serde_json::Value::as_array)
+            .map(|values| values.iter().filter_map(serde_json::Value::as_str).map(str::to_owned).collect::<Vec<_>>())
+            .unwrap_or_default();
+
+        macro_rules! append_records {
+            ($records:expr) => {{
+                let records: Vec<serde_json::Value> = $records;
+                let count = records.len();
+                collector.data_mut().extend(records.iter().cloned());
+                let marker_status = records.iter().filter_map(|record| {
+                    record.get("status").and_then(serde_json::Value::as_str)
+                }).map(str::to_ascii_lowercase).find(|status| matches!(
+                    status.as_str(),
+                    "not_implemented" | "unsupported" | "platform_note" | "path_not_found"
+                        | "not_found" | "permission_denied" | "partial" | "failed"
+                ));
+                let status = match marker_status.as_deref() {
+                    Some("not_implemented" | "unsupported" | "platform_note") => CollectionStatus::Unsupported,
+                    Some("path_not_found" | "not_found") => CollectionStatus::NotFound,
+                    Some("permission_denied") => CollectionStatus::PermissionDenied,
+                    Some("partial") => CollectionStatus::Partial,
+                    Some("failed") => CollectionStatus::Failed,
+                    _ => CollectionStatus::Success,
+                };
+                let warning = (status == CollectionStatus::Partial || status == CollectionStatus::Unsupported)
+                    .then(|| format!("Collector returned status {}", marker_status.as_deref().unwrap_or("unknown")));
+                Ok((status, count, records, None, warning))
+            }};
+        }
 
         match handler {
             // System info handlers
@@ -3154,80 +3232,118 @@ impl CapabilityRegistry {
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
             "collect_system_info_detailed" => {
-                collector.collect_system_info()
+                let record = jockey_runtime_system::collect_system_info_detailed()
                     .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                append_records!(vec![record])
             }
 
             // Process handlers
             "enumerate_processes" => {
-                // For process enumeration, we need to pass fields - use empty for all fields
-                collector.collect_processes(Vec::new())
+                collector.collect_processes(fields)
                     .map_err(|e| e.to_string())?;
                 let records = collector.data().to_vec();
                 let count = records.len();
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
             "collect_process_tree" => {
-                // Process tree is a subset of process enumeration
-                collector.collect_processes(Vec::new())
+                let records = jockey_runtime_process::collect_process_tree()
                     .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                append_records!(records)
             }
             "collect_process_modules" => {
-                collector.collect_processes(Vec::new())
+                let processes = jockey_runtime_process::enumerate_processes(&[])
                     .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                let mut modules = Vec::new();
+                for process in processes {
+                    let Some(pid) = process.get("pid").and_then(serde_json::Value::as_i64) else {
+                        continue;
+                    };
+                    if let Some(process_modules) = process.get("modules").and_then(serde_json::Value::as_array) {
+                        for module in process_modules {
+                            let mut module = module.clone();
+                            if let Some(fields) = module.as_object_mut() {
+                                fields.insert("pid".to_string(), serde_json::json!(pid));
+                            }
+                            modules.push(module);
+                        }
+                    }
+                }
+                append_records!(modules)
+            }
+            "collect_process_handles" => {
+                let processes = jockey_runtime_process::enumerate_processes(&[])
+                    .map_err(|e| e.to_string())?;
+                let records = processes.into_iter().filter_map(|process| {
+                    let pid = process.get("pid")?.as_i64()?;
+                    let open_files = process.get("open_files")?.as_array()?;
+                    Some(serde_json::json!({
+                        "pid": pid,
+                        "open_files": open_files,
+                        "source": if cfg!(target_os = "linux") { "/proc/<pid>/fd" } else { "process collector" },
+                    }))
+                }).collect();
+                append_records!(records)
+            }
+            "enumerate_memory_regions" => {
+                let pid_filter = options.get("pid").and_then(serde_json::Value::as_i64).map(|pid| pid as i32);
+                collector.collect_memory_regions(pid_filter).map_err(|e| e.to_string())?;
+                append_records!(collector.data().to_vec())
             }
 
             // User handlers
             "enumerate_users" => {
-                // Users are collected as part of system info on Linux
-                // For now, collect system info which includes users
-                collector.collect_system_info()
+                let result = jockey_runtime_users::enumerate_users()
                     .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                let mut records = Vec::new();
+                for user in result.users {
+                    records.push(serde_json::json!({
+                        "record_type": "user",
+                        "data": serde_json::to_value(user).map_err(|e| e.to_string())?,
+                    }));
+                }
+                for group in result.groups {
+                    records.push(serde_json::json!({
+                        "record_type": "group",
+                        "data": serde_json::to_value(group).map_err(|e| e.to_string())?,
+                    }));
+                }
+                append_records!(records)
             }
 
             // Auth handlers
             "collect_logon_events" => {
-                collector.collect_logs("auth")
+                let result = jockey_runtime_auth::collect_logon_events()
                     .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                let records = result.events.into_iter()
+                    .map(|event| serde_json::to_value(event).map_err(|e| e.to_string()))
+                    .collect::<Result<Vec<_>, _>>()?;
+                append_records!(records)
             }
             "collect_credential_artifacts" => {
-                collector.collect_artifacts("credentials", "")
+                let result = jockey_runtime_auth::collect_credential_artifacts()
                     .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                let records = result.artifacts.into_iter()
+                    .map(|artifact| serde_json::to_value(artifact).map_err(|e| e.to_string()))
+                    .collect::<Result<Vec<_>, _>>()?;
+                append_records!(records)
             }
             "collect_auth_policy" => {
-                collector.collect_logs("auth")
+                let result = jockey_runtime_auth::collect_auth_policy()
                     .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                let records = result.policies.into_iter()
+                    .map(|policy| serde_json::to_value(policy).map_err(|e| e.to_string()))
+                    .collect::<Result<Vec<_>, _>>()?;
+                append_records!(records)
             }
 
             // Service handlers
             "enumerate_services" => {
-                // Services are collected via system info or artifacts
-                collector.collect_system_info()
+                let result = jockey_runtime_services::enumerate_services()
                     .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                let records = result.services.into_iter()
+                    .map(|service| serde_json::to_value(service).map_err(|e| e.to_string()))
+                    .collect::<Result<Vec<_>, _>>()?;
+                append_records!(records)
             }
             "enumerate_drivers" => {
                 collector.collect_drivers()
@@ -3237,11 +3353,12 @@ impl CapabilityRegistry {
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
             "enumerate_systemd_units" => {
-                collector.collect_artifacts("systemd", "")
+                let units = jockey_runtime_services::enumerate_systemd_units()
                     .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                let records = units.into_iter()
+                    .map(|unit| serde_json::to_value(unit).map_err(|e| e.to_string()))
+                    .collect::<Result<Vec<_>, _>>()?;
+                append_records!(records)
             }
 
             // Network handlers
@@ -3252,17 +3369,29 @@ impl CapabilityRegistry {
                 let count = records.len();
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
+            "enumerate_interfaces" => append_records!(jockey_runtime_network::enumerate_interfaces().map_err(|e| e.to_string())?),
+            "enumerate_routes" => append_records!(jockey_runtime_network::enumerate_routes().map_err(|e| e.to_string())?),
+            "enumerate_arp" => append_records!(jockey_runtime_network::enumerate_arp().map_err(|e| e.to_string())?),
+            "enumerate_dns_servers" => append_records!(jockey_runtime_network::enumerate_dns_servers().map_err(|e| e.to_string())?),
+            "enumerate_dns_cache" => append_records!(jockey_runtime_network::enumerate_dns_cache().map_err(|e| e.to_string())?),
+            "enumerate_hosts" => append_records!(jockey_runtime_network::enumerate_hosts().map_err(|e| e.to_string())?),
+            "enumerate_listening_ports" => append_records!(jockey_runtime_network::enumerate_listening_ports().map_err(|e| e.to_string())?),
+            "enumerate_firewall_policy" => append_records!(jockey_runtime_network::enumerate_firewall_policy().map_err(|e| e.to_string())?),
+            "enumerate_shares" => append_records!(jockey_runtime_network::enumerate_shares().map_err(|e| e.to_string())?),
+            "enumerate_listeners" => append_records!(jockey_runtime_network::enumerate_listeners().map_err(|e| e.to_string())?),
 
             // Filesystem handlers
             "enumerate_files" => {
-                collector.collect_files("/", true, "sha256")
+                let path = option_string("path", ".");
+                let recursive = options.get("recursive").and_then(serde_json::Value::as_bool).unwrap_or(false);
+                collector.collect_files(&path, recursive, &option_string("hash", "none"))
                     .map_err(|e| e.to_string())?;
                 let records = collector.data().to_vec();
                 let count = records.len();
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
             "enumerate_mounts" => {
-                collector.collect_files("/", true, "sha256")
+                collector.collect_files(&option_string("path", "."), false, "none")
                     .map_err(|e| e.to_string())?;
                 let records = collector.data().to_vec();
                 let count = records.len();
@@ -3270,49 +3399,82 @@ impl CapabilityRegistry {
             }
 
             // Artifact handlers
-            "carve_shell_history" => {
-                collector.collect_artifacts("shell_history", "")
-                    .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+            "carve_shell_history" => append_records!(jockey_runtime_artifacts::carve_shell_history("/home").map_err(|e| e.to_string())?),
+            "carve_cron_entries" => append_records!(jockey_runtime_artifacts::carve_cron_entries("").map_err(|e| e.to_string())?),
+            "carve_systemd_units" => append_records!(jockey_runtime_artifacts::carve_systemd_units("").map_err(|e| e.to_string())?),
+            "carve_ssh_config" => append_records!(jockey_runtime_artifacts::carve_ssh_config("/etc/ssh").map_err(|e| e.to_string())?),
+            "carve_prefetch" => append_records!(jockey_runtime_artifacts::carve_prefetch(r"C:\Windows\Prefetch").map_err(|e| e.to_string())?),
+            "carve_lnk_files" => {
+                let recent = std::env::var("APPDATA")
+                    .map(|path| format!(r"{}\Microsoft\Windows\Recent", path))
+                    .unwrap_or_else(|_| r"C:\Users\Default\AppData\Roaming\Microsoft\Windows\Recent".to_string());
+                append_records!(jockey_runtime_artifacts::carve_lnk_files(&recent).map_err(|e| e.to_string())?)
+            }
+            "carve_recycle_bin" => append_records!(jockey_runtime_artifacts::carve_recycle_bin(r"C:\$RECYCLE.BIN").map_err(|e| e.to_string())?),
+            "carve_shellbags" => append_records!(jockey_runtime_artifacts::carve_shellbags(".").map_err(|e| e.to_string())?),
+            "carve_jumplists" => {
+                let recent = std::env::var("APPDATA")
+                    .map(|path| format!(r"{}\Microsoft\Windows\Recent\AutomaticDestinations", path))
+                    .unwrap_or_else(|_| r"C:\Users\Default\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations".to_string());
+                append_records!(jockey_runtime_artifacts::carve_jumplists(&recent).map_err(|e| e.to_string())?)
+            }
+            "carve_amcache" => append_records!(jockey_runtime_artifacts::carve_amcache(r"C:\Windows\AppCompat\Programs\Amcache.hve").map_err(|e| e.to_string())?),
+            "carve_srum" => append_records!(jockey_runtime_artifacts::carve_srum(r"C:\Windows\System32\sru\SRUDB.dat").map_err(|e| e.to_string())?),
+            "collect_etw_logs" => append_records!(jockey_runtime_artifacts::collect_etw_logs(".").map_err(|e| e.to_string())?),
+            "carve_event_logs" => append_records!(jockey_runtime_artifacts::carve_event_logs(r"C:\Windows\System32\winevt\Logs").map_err(|e| e.to_string())?),
+            "carve_recent_files" => {
+                let recent = std::env::var("APPDATA")
+                    .map(|path| format!(r"{}\Microsoft\Windows\Recent", path))
+                    .unwrap_or_else(|_| r"C:\Users\Default\AppData\Roaming\Microsoft\Windows\Recent".to_string());
+                append_records!(jockey_runtime_artifacts::carve_recent_files(&recent).map_err(|e| e.to_string())?)
+            }
+            "carve_container_artifacts" => append_records!(jockey_runtime_artifacts::carve_container_artifacts("/var/lib").map_err(|e| e.to_string())?),
+            "analyze_powershell_scripts" => append_records!(jockey_runtime_artifacts::analyze_powershell_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "analyze_wmi_scripts" => append_records!(jockey_runtime_artifacts::analyze_wmi_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "analyze_shell_scripts" => append_records!(jockey_runtime_artifacts::analyze_shell_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "analyze_python_scripts" => append_records!(jockey_runtime_artifacts::analyze_python_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "parse_pe_metadata" => append_records!(jockey_runtime_artifacts::parse_pe_metadata(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "parse_elf_metadata" => append_records!(jockey_runtime_artifacts::parse_elf_metadata(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "verify_code_signature" => append_records!(jockey_runtime_artifacts::verify_code_signature(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "analyze_file_entropy" => append_records!(jockey_runtime_artifacts::analyze_file_entropy(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "detect_binary_anomalies" => append_records!(jockey_runtime_artifacts::detect_binary_anomalies(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "detect_rootkit_indicators" => append_records!(jockey_runtime_security::detect_rootkit_indicators(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "collect_logs" => {
+                let source = match capability.id.as_str() {
+                    "artifact.auth.logs" => "auth",
+                    "artifact.journal" => "journal",
+                    "artifact.auditd" => "audit",
+                    "artifact.sudo" => "sudo",
+                    "artifact.login.config" => "login",
+                    _ => return Err(format!("No log source mapping for capability {}", capability.id)),
+                };
+                collector.collect_logs(source).map_err(|e| e.to_string())?;
+                append_records!(collector.data().to_vec())
             }
             "collect_autostart_entries" => {
-                collector.collect_artifacts("autostart", "")
-                    .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                let records = match capability.id.as_str() {
+                    "persistence.autostart" => jockey_runtime_artifacts::collect_autostart_entries(None),
+                    "persistence.cron" => jockey_runtime_artifacts::carve_cron_entries(""),
+                    "persistence.systemd.timer" => jockey_runtime_artifacts::carve_systemd_units("").map(|units| units.into_iter().filter(|unit| unit.get("metadata").and_then(|m| m.get("unit_type")).and_then(serde_json::Value::as_str) == Some("timer")).collect()),
+                    "persistence.ssh" => jockey_runtime_artifacts::carve_ssh_config("/etc/ssh"),
+                    "persistence.scheduled.task" | "persistence.scheduled_tasks" if cfg!(target_os = "linux") => jockey_runtime_artifacts::carve_cron_entries(""),
+                    _ => return Err(format!("No mechanism-specific persistence collector is implemented for {}", capability.id)),
+                }.map_err(|e| e.to_string())?;
+                append_records!(records)
             }
 
             // Security handlers
             "collect_audit_policy" => {
-                collector.collect_logs("audit")
-                    .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                append_records!(jockey_runtime_security::collect_audit_policy().map_err(|e| e.to_string())?)
             }
             "collect_firewall_rules" => {
-                collector.collect_logs("firewall")
-                    .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                append_records!(jockey_runtime_security::collect_firewall_rules().map_err(|e| e.to_string())?)
             }
             "detect_av_edr" => {
-                collector.collect_artifacts("av", "")
-                    .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                append_records!(jockey_runtime_security::detect_av_edr().map_err(|e| e.to_string())?)
             }
             "collect_app_control" => {
-                collector.collect_logs("app_control")
-                    .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                append_records!(jockey_runtime_security::collect_app_control().map_err(|e| e.to_string())?)
             }
 
             // Kernel handlers
@@ -3525,6 +3687,36 @@ mod tests {
         assert_eq!(payload.status, CollectionStatus::Success);
         assert_eq!(payload.runtime_module, "jockey_runtime_system");
         assert!(payload.records_count > 0);
+        let provenance = payload.evidence_records[0]
+            .get("_provenance")
+            .expect("collected evidence must carry provenance");
+        assert_eq!(provenance["capability_id"], "system.info.basic");
+        assert_eq!(provenance["collector"], "collect_system_info");
+        assert!(!provenance["host"].as_str().unwrap_or_default().is_empty());
+        assert_eq!(provenance["platform"], "Linux");
+        assert_eq!(provenance["status"], "SUCCESS");
+        assert_eq!(provenance["origin"], "REAL");
+    }
+
+    #[test]
+    fn test_capability_result_status_constructors() {
+        let make_result = |status: fn(String, String, String, String, String, String, String, u64) -> CapabilityExecutionResult| {
+            status(
+                "cap.test".into(), "Test".into(), "handler".into(), "module".into(),
+                "Linux".into(), "User".into(), "record".into(), 1,
+            )
+        };
+
+        assert_eq!(make_result(CapabilityExecutionResult::not_found).status, CollectionStatus::NotFound);
+        assert_eq!(make_result(CapabilityExecutionResult::unsupported).status, CollectionStatus::Unsupported);
+        assert_eq!(make_result(CapabilityExecutionResult::permission_denied).status, CollectionStatus::PermissionDenied);
+        assert_eq!(
+            CapabilityExecutionResult::failed(
+                "cap.test".into(), "Test".into(), "handler".into(), "module".into(),
+                "Linux".into(), "User".into(), "record".into(), "failure".into(), 1,
+            ).status,
+            CollectionStatus::Failed,
+        );
     }
 
     #[test]
@@ -3559,7 +3751,15 @@ mod tests {
             assert!(result.is_ok(), "{} should invoke successfully through its runtime binding: {:?}", id, result.err());
             let payload = result.unwrap();
             // Check that the execution produced some result (success, partial, or failed with proper error)
-            assert!(matches!(payload.status, CollectionStatus::Success | CollectionStatus::Partial | CollectionStatus::Failed));
+            assert!(matches!(
+                payload.status,
+                CollectionStatus::Success
+                    | CollectionStatus::Partial
+                    | CollectionStatus::Failed
+                    | CollectionStatus::NotFound
+                    | CollectionStatus::Unsupported
+                    | CollectionStatus::PermissionDenied
+            ));
             assert!(!payload.handler.is_empty());
             assert!(!payload.runtime_module.is_empty());
         }

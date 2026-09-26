@@ -39,6 +39,7 @@ pub struct RuntimeSignatures {
     pub collect_memory_regions: (LLVMTypeRef, &'static str),
     pub collect_registry: (LLVMTypeRef, &'static str),
     pub collect_artifacts: (LLVMTypeRef, &'static str),
+    pub invoke_capability: (LLVMTypeRef, &'static str),
     pub evidence_filter: (LLVMTypeRef, &'static str),
     pub evidence_where: (LLVMTypeRef, &'static str),
     pub evidence_limit: (LLVMTypeRef, &'static str),
@@ -100,6 +101,10 @@ impl RuntimeSignatures {
         let mut art_params = [ptr_ty, ptr_ty, ptr_ty];
         let art_ty = LLVMFunctionType(i32_ty, art_params.as_mut_ptr(), 3, 0);
 
+        // jockey_rt_invoke_capability(ctx, capability_id, options_json) -> c_int
+        let mut invoke_params = [ptr_ty, ptr_ty, ptr_ty];
+        let invoke_ty = LLVMFunctionType(i32_ty, invoke_params.as_mut_ptr(), 3, 0);
+
         // jockey_rt_evidence_filter(ctx: *mut c_void, filter_json: *const c_char) -> c_int
         let mut filter_params = [ptr_ty, ptr_ty];
         let filter_ty = LLVMFunctionType(i32_ty, filter_params.as_mut_ptr(), 2, 0);
@@ -139,6 +144,7 @@ impl RuntimeSignatures {
             collect_memory_regions: (mem_ty, "jockey_rt_collect_memory_regions"),
             collect_registry: (reg_ty, "jockey_rt_collect_registry"),
             collect_artifacts: (art_ty, "jockey_rt_collect_artifacts"),
+            invoke_capability: (invoke_ty, "jockey_rt_invoke_capability"),
             evidence_filter: (filter_ty, "jockey_rt_evidence_filter"),
             evidence_where: (where_ty, "jockey_rt_evidence_where"),
             evidence_limit: (limit_ty, "jockey_rt_evidence_limit"),

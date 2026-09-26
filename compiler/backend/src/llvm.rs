@@ -209,11 +209,7 @@ impl LlvmBackend {
             ),
         };
 
-        if rel_path.exists() {
-            return Ok(rel_path);
-        }
-
-        // Build runtime static library on demand
+        // Let Cargo freshness-check the archive; an existing file may predate runtime source changes.
         let cargo_bin = std::env::var("CARGO").unwrap_or_else(|_| {
             let home_cargo = std::env::var("HOME")
                 .map(|h| PathBuf::from(h).join(".cargo/bin/cargo"))

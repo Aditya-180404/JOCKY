@@ -216,12 +216,23 @@ impl EvidenceBundle {
         };
 
         // Determine collection status
-        let has_failed = collector_results.iter().any(|c| c.status == CollectionStatus::Failed);
+        let has_failed = collector_results.iter().any(|c| matches!(
+            c.status,
+            CollectionStatus::Failed | CollectionStatus::NotFound | CollectionStatus::Unsupported | CollectionStatus::PermissionDenied
+        ));
         let has_success = collector_results.iter().any(|c| c.status == CollectionStatus::Success);
         let evidence_status = if has_failed && has_success {
             CollectionStatus::Partial
         } else if has_failed && !has_success {
-            CollectionStatus::Failed
+            if collector_results.iter().all(|c| c.status == CollectionStatus::NotFound) {
+                CollectionStatus::NotFound
+            } else if collector_results.iter().all(|c| c.status == CollectionStatus::Unsupported) {
+                CollectionStatus::Unsupported
+            } else if collector_results.iter().all(|c| c.status == CollectionStatus::PermissionDenied) {
+                CollectionStatus::PermissionDenied
+            } else {
+                CollectionStatus::Failed
+            }
         } else {
             CollectionStatus::Success
         };

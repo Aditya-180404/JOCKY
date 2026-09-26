@@ -53,6 +53,12 @@ pub struct HirProvenance {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "kind")]
 pub enum HirOperation {
+    InvokeCapability {
+        capability_id: String,
+        fields: Vec<String>,
+        options: serde_json::Map<String, serde_json::Value>,
+        span: Span,
+    },
     CollectSystemInfo {
         span: Span,
     },
@@ -569,47 +575,16 @@ impl From<&jockey_ir::IrInvestigation> for HirInvestigation {
             match op {
                 jockey_ir::IrOperation::Collect(c) => match c.operation.as_str() {
                     "system.info" => {
-                        operations.push(HirOperation::CollectSystemInfo { span: c.span });
+                        operations.push(invoke_capability_from_ir(c, "system.info.basic"));
                     }
                     "process.enumerate" => {
-                        let hash_algo = c
-                            .options
-                            .get("hash")
-                            .and_then(|v| v.as_str())
-                            .map(|s| s.to_string());
-                        operations.push(HirOperation::CollectProcesses {
-                            fields: c.fields.clone(),
-                            hash_algorithm: hash_algo,
-                            span: c.span,
-                        });
+                        operations.push(invoke_capability_from_ir(c, "process.enumerate"));
                     }
                     "network.connections" => {
-                        operations.push(HirOperation::CollectNetworkConnections { span: c.span });
+                        operations.push(invoke_capability_from_ir(c, "network.connections"));
                     }
                     "filesystem.enumerate" => {
-                        let path = c
-                            .options
-                            .get("path")
-                            .and_then(|v| v.as_str())
-                            .unwrap_or("/")
-                            .to_string();
-                        let recursive = c
-                            .options
-                            .get("recursive")
-                            .and_then(|v| v.as_bool())
-                            .unwrap_or(false);
-                        let hash_algo = c
-                            .options
-                            .get("hash")
-                            .and_then(|v| v.as_str())
-                            .unwrap_or("none")
-                            .to_string();
-                        operations.push(HirOperation::CollectFiles {
-                            path,
-                            recursive,
-                            hash_algorithm: hash_algo,
-                            span: c.span,
-                        });
+                        operations.push(invoke_capability_from_ir(c, "filesystem.enumerate"));
                     }
                     "logs.collect" => {
                         let source = c
@@ -624,11 +599,10 @@ impl From<&jockey_ir::IrInvestigation> for HirInvestigation {
                         });
                     }
                     "drivers.enumerate" => {
-                        operations.push(HirOperation::CollectDrivers { span: c.span });
+                        operations.push(invoke_capability_from_ir(c, "service.drivers"));
                     }
                     "memory.regions" => {
-                        let pid = c.options.get("pid").and_then(|v| v.as_i64()).unwrap_or(0) as i32;
-                        operations.push(HirOperation::CollectMemoryRegions { pid, span: c.span });
+                        operations.push(invoke_capability_from_ir(c, "process.memory"));
                     }
                     "registry.enumerate" => {
                         let hive = c
@@ -696,7 +670,12 @@ impl From<&jockey_ir::IrInvestigation> for HirInvestigation {
                             span: c.span,
                         });
                     }
-                    _ => {}
+                    _ => operations.push(HirOperation::InvokeCapability {
+                        capability_id: c.operation.clone(),
+                        fields: c.fields.clone(),
+                        options: c.options.clone(),
+                        span: c.span,
+                    }),
                 },
                 jockey_ir::IrOperation::Export(e) => {
                     operations.push(HirOperation::Export {
@@ -804,6 +783,20 @@ impl From<&jockey_ir::IrInvestigation> for HirInvestigation {
             },
             span: ir.span,
         }
+    }
+}
+
+fn invoke_capability_from_ir(
+    operation: &jockey_ir::IrCollectOperation,
+    capability_id: &str,
+) -> HirOperation {
+    let mut options = operation.options.clone();
+    options.insert("fields".to_string(), serde_json::json!(operation.fields));
+    HirOperation::InvokeCapability {
+        capability_id: capability_id.to_string(),
+        fields: operation.fields.clone(),
+        options,
+        span: operation.span,
     }
 }
 
@@ -1046,5 +1039,65 @@ mod tests {
         assert_eq!(hir.target, Some("windows".to_string()));
         assert_eq!(hir.operations.len(), 2);
         assert!(!hir.provenance.source_hash.is_empty());
+    }
+
+    #[test]
+    fn test_hir_preserves_unknown_capability_identity_and_options() {
+        use jockey_ir::{IrCollectOperation, IrInvestigation, IrOperation};
+
+        let mut options = serde_json::Map::new();
+        options.insert("path".to_string(), serde_json::json!("/var/log"));
+        let ir = IrInvestigation {
+            name: "capability_dispatch".to_string(),
+            target: None,
+            metadata: vec![],
+            operations: vec![IrOperation::Collect(IrCollectOperation {
+                operation: "network.routes".to_string(),
+                fields: vec!["destination".to_string()],
+                options,
+                span: Span::new(1, 1, 1, 20),
+            })],
+            required_capabilities: HashSet::new(),
+            span: Span::new(1, 1, 1, 20),
+        };
+
+        let hir = HirInvestigation::from(&ir);
+        assert!(matches!(
+            &hir.operations[0],
+            HirOperation::InvokeCapability { capability_id, fields, options, .. }
+                if capability_id == "network.routes"
+                    && fields == &["destination"]
+                    && options.get("path").and_then(serde_json::Value::as_str) == Some("/var/log")
+        ));
+    }
+
+    #[test]
+    fn test_hir_maps_core_collectors_to_runtime_capability_ids() {
+        use jockey_ir::{IrCollectOperation, IrInvestigation, IrOperation};
+
+        let operations = ["system.info", "process.enumerate", "network.connections", "filesystem.enumerate"]
+            .into_iter()
+            .map(|operation| IrOperation::Collect(IrCollectOperation {
+                operation: operation.to_string(),
+                fields: vec![],
+                options: serde_json::Map::new(),
+                span: Span::new(1, 1, 1, 20),
+            }))
+            .collect();
+        let ir = IrInvestigation {
+            name: "core_capabilities".to_string(),
+            target: None,
+            metadata: vec![],
+            operations,
+            required_capabilities: HashSet::new(),
+            span: Span::new(1, 1, 1, 20),
+        };
+
+        let hir = HirInvestigation::from(&ir);
+        let ids = hir.operations.iter().filter_map(|operation| match operation {
+            HirOperation::InvokeCapability { capability_id, .. } => Some(capability_id.as_str()),
+            _ => None,
+        }).collect::<Vec<_>>();
+        assert_eq!(ids, ["system.info.basic", "process.enumerate", "network.connections", "filesystem.enumerate"]);
     }
 }

@@ -109,8 +109,12 @@ fn e2e_network_investigation() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_network_investigation");
     assert!(
-        ir.contains("jockey_rt_collect_network"),
-        "missing collect_network"
+        ir.contains("call i32 @jockey_rt_invoke_capability"),
+        "missing generic capability runtime call"
+    );
+    assert!(
+        ir.contains("network.connections"),
+        "network capability ID was lost before LLVM"
     );
     validate_with_clang(&ir, "e2e_network_investigation");
 }

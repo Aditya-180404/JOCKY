@@ -145,6 +145,12 @@ impl ProgrammaticLlvmCodegen {
             declare_rt(
                 module.as_raw(),
                 &mut rt_funcs,
+                rt_sigs.invoke_capability.1,
+                rt_sigs.invoke_capability.0,
+            );
+            declare_rt(
+                module.as_raw(),
+                &mut rt_funcs,
                 rt_sigs.evidence_filter.1,
                 rt_sigs.evidence_filter.0,
             );
@@ -733,6 +739,40 @@ impl ProgrammaticLlvmCodegen {
                         let path_ptr = get_string_ptr(ctx, mod_ref, builder_ref, string_pool, path);
                         let mut args = [ctx_ptr, type_ptr, path_ptr];
                         let c_call_name = CString::new("collect_art_res").unwrap();
+                        let res = LLVMBuildCall2(
+                            builder_ref,
+                            fn_ty,
+                            fn_val,
+                            args.as_mut_ptr(),
+                            3,
+                            c_call_name.as_ptr(),
+                        );
+                        store_local(builder_ref, &local_allocas, *dest, res)?;
+                    }
+                    MirInstruction::InvokeCapability {
+                        dest,
+                        ctx: ev_ctx,
+                        capability_id,
+                        options_json,
+                    } => {
+                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_invoke_capability"];
+                        let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
+                        let capability_ptr = get_string_ptr(
+                            ctx,
+                            mod_ref,
+                            builder_ref,
+                            string_pool,
+                            capability_id,
+                        );
+                        let options_ptr = get_string_ptr(
+                            ctx,
+                            mod_ref,
+                            builder_ref,
+                            string_pool,
+                            options_json,
+                        );
+                        let mut args = [ctx_ptr, capability_ptr, options_ptr];
+                        let c_call_name = CString::new("invoke_capability_res").unwrap();
                         let res = LLVMBuildCall2(
                             builder_ref,
                             fn_ty,

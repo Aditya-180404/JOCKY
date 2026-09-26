@@ -385,6 +385,7 @@ fn run(file: &Path, target: &str, arch: &str, output: &Path) -> anyhow::Result<(
     compile(
         file, target, arch, output, "speed", "llvm", false, false, false, false, false,
     )?;
+    let output_dir = std::fs::canonicalize(output)?;
 
     let target_platform = match target.to_lowercase().as_str() {
         "linux" => TargetPlatform::Linux,
@@ -428,12 +429,12 @@ fn run(file: &Path, target: &str, arch: &str, output: &Path) -> anyhow::Result<(
     let investigation =
         ir.ok_or_else(|| anyhow::anyhow!("Unable to determine investigation name"))?;
     let artifact = match target_platform {
-        TargetPlatform::Linux => output.join(format!(
+        TargetPlatform::Linux => output_dir.join(format!(
             "{}-linux-{}",
             investigation.name,
             arch_suffix(arch)?
         )),
-        TargetPlatform::Windows => output.join(format!(
+        TargetPlatform::Windows => output_dir.join(format!(
             "{}-windows-{}.exe",
             investigation.name,
             arch_suffix(arch)?
@@ -442,7 +443,7 @@ fn run(file: &Path, target: &str, arch: &str, output: &Path) -> anyhow::Result<(
 
     println!("Running {}", artifact.display());
     let mut child = std::process::Command::new(&artifact)
-        .current_dir(output)
+        .current_dir(&output_dir)
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()?;

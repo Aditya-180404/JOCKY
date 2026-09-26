@@ -3,7 +3,7 @@
 //! Provides `extern "C"` endpoints called directly by the LLVM IR generated
 //! by the jockey compiler.
 
-use jockey_runtime_evidence::EvidenceCollector;
+use jockey_runtime_evidence::{CollectionStatus, EvidenceCollector};
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int, c_void};
 
@@ -27,6 +27,70 @@ pub unsafe extern "C" fn jockey_rt_evidence_init(investigation_name: *const c_ch
     let collector = EvidenceCollector::new(&name_str);
     let ctx = Box::new(RuntimeContext { collector });
     Box::into_raw(ctx) as *mut c_void
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context and valid UTF-8 C strings for the capability ID
+/// and options JSON, or null for options.
+pub unsafe extern "C" fn jockey_rt_invoke_capability(
+    ctx_ptr: *mut c_void,
+    capability_id_ptr: *const c_char,
+    options_json_ptr: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() || capability_id_ptr.is_null() {
+        return -1;
+    }
+
+    let capability_id = match CStr::from_ptr(capability_id_ptr).to_str() {
+        Ok(value) => value,
+        Err(_) => return -1,
+    };
+    let options = if options_json_ptr.is_null() {
+        serde_json::Map::new()
+    } else {
+        let Ok(json) = CStr::from_ptr(options_json_ptr).to_str() else {
+            return -1;
+        };
+        match serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(json) {
+            Ok(options) => options,
+            Err(error) => {
+                eprintln!("[jockey Runtime] Invalid capability options JSON: {}", error);
+                return -1;
+            }
+        }
+    };
+
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let result = match crate::capabilities::registry()
+        .invoke_runtime_capability_with_options(capability_id, &options)
+    {
+        Ok(result) => result,
+        Err(error) => {
+            eprintln!("[jockey Runtime] Capability {} dispatch error: {}", capability_id, error);
+            return -1;
+        }
+    };
+
+    for record in result.evidence_records {
+        ctx.collector.add_record(record);
+    }
+    ctx.collector.record_collector_result(
+        capability_id,
+        result.status,
+        result.records_count,
+        result.error,
+        result.warning,
+    );
+
+    match result.status {
+        CollectionStatus::Success => 0,
+        CollectionStatus::Partial => 1,
+        CollectionStatus::Failed => -1,
+        CollectionStatus::NotFound => -2,
+        CollectionStatus::Unsupported => -3,
+        CollectionStatus::PermissionDenied => -4,
+    }
 }
 
 #[no_mangle]

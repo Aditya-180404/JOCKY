@@ -203,6 +203,12 @@ pub enum MirInstruction {
         artifact_type: String,
         path: String,
     },
+    InvokeCapability {
+        dest: LocalId,
+        ctx: LocalId,
+        capability_id: String,
+        options_json: String,
+    },
 
     // Comparison and call
     Compare {
@@ -368,6 +374,21 @@ impl MirLowering {
         let res_id = self.new_local("res", MirType::Int32);
 
         match op {
+            HirOperation::InvokeCapability {
+                capability_id,
+                fields,
+                options,
+                ..
+            } => {
+                let mut args = options.clone();
+                args.insert("fields".to_string(), serde_json::json!(fields));
+                self.instructions.push(MirInstruction::InvokeCapability {
+                    dest: res_id,
+                    ctx,
+                    capability_id: capability_id.clone(),
+                    options_json: serde_json::Value::Object(args).to_string(),
+                });
+            }
             HirOperation::CollectSystemInfo { .. } => {
                 self.instructions
                     .push(MirInstruction::CollectSystemInfo { dest: res_id, ctx });
@@ -669,7 +690,8 @@ impl MirValidator {
                         | MirInstruction::CollectDrivers { dest, .. }
                         | MirInstruction::CollectMemoryRegions { dest, .. }
                         | MirInstruction::CollectRegistry { dest, .. }
-                        | MirInstruction::CollectArtifacts { dest, .. } => {
+                        | MirInstruction::CollectArtifacts { dest, .. }
+                        | MirInstruction::InvokeCapability { dest, .. } => {
                             if !valid_local_ids.contains(dest) {
                                 return Err(format!("Undefined destination local {}", dest));
                             }
@@ -762,6 +784,41 @@ mod tests {
 
         let validation_res = MirValidator::validate(&mir);
         assert!(validation_res.is_ok());
+    }
+
+    #[test]
+    fn test_mir_preserves_generic_capability_id_and_options() {
+        let mut options = serde_json::Map::new();
+        options.insert("path".to_string(), serde_json::json!("/var/log"));
+        let hir = HirInvestigation {
+            name: "generic_capability".to_string(),
+            target: Some("linux".to_string()),
+            metadata: vec![],
+            operations: vec![HirOperation::InvokeCapability {
+                capability_id: "network.routes".to_string(),
+                fields: vec!["destination".to_string()],
+                options,
+                span: Span::new(1, 1, 1, 20),
+            }],
+            capabilities: HashSet::new(),
+            provenance: HirProvenance {
+                source_hash: "abcd".to_string(),
+                ast_hash: "1234".to_string(),
+                compiler_version: "0.1.0".to_string(),
+                created_at: "2026-01-01T00:00:00Z".to_string(),
+            },
+            span: Span::new(1, 1, 1, 20),
+        };
+
+        let mir = MirLowering::lower(&hir).expect("MIR lowering failed");
+        let instruction = &mir.functions[0].blocks[0].instructions;
+        assert!(instruction.iter().any(|instruction| matches!(
+            instruction,
+            MirInstruction::InvokeCapability { capability_id, options_json, .. }
+                if capability_id == "network.routes"
+                    && options_json.contains("/var/log")
+                    && options_json.contains("destination")
+        )));
     }
 
     #[test]
