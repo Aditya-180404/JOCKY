@@ -393,6 +393,77 @@ impl SecurityAnalyzer {
         }
     }
 
+    /// Analyze memory regions for injection indicators such as writable + executable + anonymous pages.
+    pub fn analyze_memory_anomalies(&mut self, regions: &[serde_json::Value]) {
+        for region in regions {
+            let executable = region.get("executable").and_then(|v| v.as_bool()).unwrap_or(false);
+            let writable = region.get("writable").and_then(|v| v.as_bool()).unwrap_or(false);
+            let anonymous = region.get("anonymous").and_then(|v| v.as_bool()).unwrap_or(false);
+            let mapped_file = region.get("mapped_file").and_then(|v| v.as_str()).unwrap_or("[anon]");
+            let pid = region.get("pid").and_then(|v| v.as_i64()).map(|v| v as i32);
+
+            if executable && writable && anonymous {
+                let category = FindingCategory::MemoryAnomaly;
+                self.findings.push(SecurityFinding {
+                    indicator: "memory.injected".to_string(),
+                    severity: FindingSeverity::High,
+                    evidence: format!("PID {:?}: {} {} {} {}", pid, mapped_file, executable, writable, anonymous),
+                    reason: "Writable+executable anonymous memory is a common indicator of shellcode or injected code execution".to_string(),
+                    timestamp: chrono::Utc::now(),
+                    host: self.hostname.clone(),
+                    process: None,
+                    pid,
+                    confidence: 0.8,
+                    mitre_attack_id: category.mitre_attack_id().to_string(),
+                    category,
+                });
+            }
+        }
+    }
+
+    /// Analyze loaded driver records for BYOVD or kernel abuse indicators.
+    pub fn analyze_driver_anomalies(&mut self, drivers: &[serde_json::Value]) {
+        for driver in drivers {
+            let name = driver.get("name").and_then(|v| v.as_str()).unwrap_or("unknown");
+            let vulns = driver
+                .get("vulnerability_indicators")
+                .and_then(|v| v.as_array())
+                .cloned()
+                .unwrap_or_default();
+
+            if vulns.is_empty() {
+                continue;
+            }
+
+            let mut highest = FindingSeverity::Medium;
+            for vuln in &vulns {
+                let severity = vuln.get("severity").and_then(|v| v.as_str()).unwrap_or("MEDIUM");
+                if severity == "CRITICAL" {
+                    highest = FindingSeverity::Critical;
+                    break;
+                }
+                if severity == "HIGH" {
+                    highest = FindingSeverity::High;
+                }
+            }
+
+            let category = FindingCategory::DriverAnomaly;
+            self.findings.push(SecurityFinding {
+                indicator: format!("Driver vulnerability indicator: {}", name),
+                severity: highest,
+                evidence: format!("{}: {}", name, serde_json::to_string(&vulns).unwrap_or_default()),
+                reason: "Loaded driver matches a known vulnerable-driver or BYOVD signature set".to_string(),
+                timestamp: chrono::Utc::now(),
+                host: self.hostname.clone(),
+                process: None,
+                pid: None,
+                confidence: 0.82,
+                mitre_attack_id: category.mitre_attack_id().to_string(),
+                category,
+            });
+        }
+    }
+
     /// Return all accumulated findings
     pub fn findings(&self) -> &[SecurityFinding] {
         &self.findings
@@ -413,6 +484,22 @@ impl SecurityAnalyzer {
         self.analyze_executable_locations(processes);
         self.analyze_command_lines(processes);
         self.analyze_network_connections(connections);
+    }
+
+    /// Run the full analysis with additional memory and driver evidence for injection and BYOVD detection.
+    pub fn run_full_analysis_with_context(
+        &mut self,
+        processes: &[serde_json::Value],
+        connections: &[serde_json::Value],
+        memory_regions: &[serde_json::Value],
+        drivers: &[serde_json::Value],
+    ) {
+        self.analyze_parent_child_relationships(processes);
+        self.analyze_executable_locations(processes);
+        self.analyze_command_lines(processes);
+        self.analyze_network_connections(connections);
+        self.analyze_memory_anomalies(memory_regions);
+        self.analyze_driver_anomalies(drivers);
     }
 
     /// Generate a summary report
@@ -776,6 +863,36 @@ pub fn detect_rootkit_indicators(
     Ok(results)
 }
 
+fn detect_packer_signatures(bytes: &[u8]) -> Vec<String> {
+    let text = String::from_utf8_lossy(bytes).to_ascii_lowercase();
+    const PACKER_PATTERNS: &[(&str, &str)] = &[
+        ("upx", "upx0"),
+        ("upx", "upx1"),
+        ("upx", "upx2"),
+        ("upx", "upx3"),
+        ("upx", "upx!"),
+        ("aspack", "aspack"),
+        ("aspack", "asprotect"),
+        ("fsg", "fsg!"),
+        ("pecompact", "pecompact"),
+        ("nspack", "nspack"),
+        ("mpress", "mpress"),
+        ("kkrunchy", "kkrunchy"),
+        ("winupack", "winupack"),
+        ("themida", "themida"),
+    ];
+
+    let mut hits = Vec::new();
+    for (label, pattern) in PACKER_PATTERNS {
+        if text.contains(pattern) {
+            hits.push(label.to_string());
+        }
+    }
+    hits.sort();
+    hits.dedup();
+    hits
+}
+
 /// Binary anomaly detector
 pub fn detect_binary_anomalies(
     search_path: &str,
@@ -790,7 +907,7 @@ pub fn detect_binary_anomalies(
     }
 
     let mut results = Vec::new();
-    
+
     for entry in walkdir_max_depth(path, 3) {
         if entry.is_file() {
             let ext = entry.extension().and_then(|e| e.to_str()).unwrap_or("");
@@ -799,8 +916,7 @@ pub fn detect_binary_anomalies(
                 if bytes.is_empty() {
                     continue;
                 }
-                
-                // Calculate entropy
+
                 let mut freq = [0u64; 256];
                 for &b in &bytes {
                     freq[b as usize] += 1;
@@ -813,12 +929,19 @@ pub fn detect_binary_anomalies(
                         entropy -= p * p.log2();
                     }
                 }
-                
+
                 let sha256 = sha256_file(&entry);
                 let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-                
-                let suspicious = entropy > 7.0;
-                
+                let packer_hits = detect_packer_signatures(&bytes);
+                let mut anomalies = Vec::new();
+                if entropy > 7.0 {
+                    anomalies.push("high_entropy".to_string());
+                }
+                if !packer_hits.is_empty() {
+                    anomalies.push("packing_signature".to_string());
+                }
+                let suspicious = !anomalies.is_empty();
+
                 results.push(serde_json::json!({
                     "collector": "binary_anomalies",
                     "path": entry.display().to_string(),
@@ -826,13 +949,14 @@ pub fn detect_binary_anomalies(
                     "sha256": sha256,
                     "entropy": entropy,
                     "file_type": ext,
-                    "anomalies": if suspicious { vec!["high_entropy"] } else { vec![] },
+                    "anomalies": anomalies,
+                    "packer_signatures": packer_hits,
                     "suspicious": suspicious,
                 }));
             }
         }
     }
-    
+
     if results.is_empty() {
         results.push(serde_json::json!({
             "collector": "binary_anomalies",
@@ -840,7 +964,7 @@ pub fn detect_binary_anomalies(
             "path": search_path,
         }));
     }
-    
+
     Ok(results)
 }
 
@@ -971,6 +1095,36 @@ mod tests {
         analyzer.run_full_analysis(&processes, &connections);
         let summary = analyzer.summary();
         assert!(summary.total_findings >= 2);
+    }
+
+    #[test]
+    fn test_memory_injection_analysis() {
+        let mut analyzer = SecurityAnalyzer::new("test-host");
+        let regions = vec![json!({
+            "pid": 333,
+            "mapped_file": "[anon]",
+            "executable": true,
+            "writable": true,
+            "anonymous": true,
+        })];
+        analyzer.analyze_memory_anomalies(&regions);
+        assert_eq!(analyzer.findings().len(), 1);
+        assert_eq!(analyzer.findings()[0].category, FindingCategory::MemoryAnomaly);
+    }
+
+    #[test]
+    fn test_driver_vulnerability_analysis() {
+        let mut analyzer = SecurityAnalyzer::new("test-host");
+        let drivers = vec![json!({
+            "name": "rtcore64",
+            "vulnerability_indicators": [
+                {"indicator_type": "known_vulnerable_driver", "severity": "CRITICAL"}
+            ]
+        })];
+        analyzer.analyze_driver_anomalies(&drivers);
+        assert_eq!(analyzer.findings().len(), 1);
+        assert_eq!(analyzer.findings()[0].category, FindingCategory::DriverAnomaly);
+        assert_eq!(analyzer.findings()[0].severity, FindingSeverity::Critical);
     }
 
     #[test]

@@ -2104,6 +2104,36 @@ pub fn detect_rootkit_indicators(
     }
 }
 
+fn detect_packer_signatures(bytes: &[u8]) -> Vec<String> {
+    let text = String::from_utf8_lossy(bytes).to_ascii_lowercase();
+    const PACKER_PATTERNS: &[(&str, &str)] = &[
+        ("upx", "upx0"),
+        ("upx", "upx1"),
+        ("upx", "upx2"),
+        ("upx", "upx3"),
+        ("upx", "upx!"),
+        ("aspack", "aspack"),
+        ("aspack", "asprotect"),
+        ("fsg", "fsg!"),
+        ("pecompact", "pecompact"),
+        ("nspack", "nspack"),
+        ("mpress", "mpress"),
+        ("kkrunchy", "kkrunchy"),
+        ("winupack", "winupack"),
+        ("themida", "themida"),
+    ];
+
+    let mut hits = Vec::new();
+    for (label, pattern) in PACKER_PATTERNS {
+        if text.contains(pattern) {
+            hits.push(label.to_string());
+        }
+    }
+    hits.sort();
+    hits.dedup();
+    hits
+}
+
 /// Binary anomaly detector
 pub fn detect_binary_anomalies(
     search_path: &str,
@@ -2122,13 +2152,12 @@ pub fn detect_binary_anomalies(
         for entry in walkdir_max_depth(path, 3) {
             if entry.is_file() {
                 let ext = entry.extension().and_then(|e| e.to_str()).unwrap_or("");
-                if ext == "exe" || ext == "dll" || ext == "so" || ext == "bin" {
+                if ext == "exe" || ext == "dll" || ext == "so" || ext == "bin" || ext == "sys" {
                     let bytes = std::fs::read(&entry).unwrap_or_default();
                     if bytes.is_empty() {
                         continue;
                     }
-                    
-                    // Calculate entropy
+
                     let mut freq = [0u64; 256];
                     for &b in &bytes {
                         freq[b as usize] += 1;
@@ -2141,12 +2170,19 @@ pub fn detect_binary_anomalies(
                             entropy -= p * p.log2();
                         }
                     }
-                    
+
                     let sha256 = sha256_file(&entry);
                     let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-                    
-                    let suspicious = entropy > 7.0;
-                    
+                    let packer_hits = detect_packer_signatures(&bytes);
+                    let mut anomalies = Vec::new();
+                    if entropy > 7.0 {
+                        anomalies.push("high_entropy".to_string());
+                    }
+                    if !packer_hits.is_empty() {
+                        anomalies.push("packing_signature".to_string());
+                    }
+                    let suspicious = !anomalies.is_empty();
+
                     results.push(serde_json::to_value(CarvedArtifact {
                         artifact_type: "binary_anomalies".to_string(),
                         path: entry.display().to_string(),
@@ -2156,11 +2192,19 @@ pub fn detect_binary_anomalies(
                         metadata: serde_json::json!({
                             "entropy": entropy,
                             "file_type": ext,
-                            "anomalies": if suspicious { vec!["high_entropy"] } else { vec![] },
+                            "anomalies": anomalies,
+                            "packer_signatures": packer_hits,
                         }),
                         suspicious,
                         suspicious_reason: if suspicious {
-                            Some(format!("Binary has high entropy ({:.2})", entropy))
+                            let mut reasons = Vec::new();
+                            if entropy > 7.0 {
+                                reasons.push(format!("high entropy ({:.2})", entropy));
+                            }
+                            if !packer_hits.is_empty() {
+                                reasons.push(format!("packer signature ({})", packer_hits.join(", ")));
+                            }
+                            Some(format!("Binary anomaly indicators: {}", reasons.join("; ")))
                         } else {
                             None
                         },
@@ -2168,7 +2212,7 @@ pub fn detect_binary_anomalies(
                 }
             }
         }
-        
+
         if results.is_empty() {
             results.push(serde_json::json!({
                 "collector": "artifacts",
@@ -2176,7 +2220,7 @@ pub fn detect_binary_anomalies(
                 "status": "no_artifacts_found",
             }));
         }
-        
+
         return Ok(results);
     }
 }
@@ -2259,6 +2303,25 @@ mod tests {
         assert!(analysis["behavior_indicators"].as_array().unwrap().iter().any(|value| value == "persistence"));
         assert!(!analysis.to_string().contains(encoded));
         assert!(analysis["encoded_strings"].as_array().unwrap()[0]["sha256"].as_str().is_some());
+    }
+
+    #[test]
+    fn test_detect_binary_anomalies_flags_upx_packers() {
+        let tmp = std::env::temp_dir().join("jockey-binary-anomaly-tests");
+        let _ = std::fs::create_dir_all(&tmp);
+        let path = tmp.join("sample.bin");
+        let bytes = b"UPX0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+        std::fs::write(&path, bytes).unwrap();
+
+        let results = detect_binary_anomalies(tmp.to_str().unwrap()).unwrap();
+        let suspicious = results
+            .iter()
+            .find(|r| r.get("suspicious").and_then(|v| v.as_bool()) == Some(true))
+            .unwrap();
+        assert!(suspicious["suspicious"].as_bool().unwrap());
+        let metadata = suspicious["metadata"].as_object().unwrap();
+        assert!(metadata["anomalies"].as_array().unwrap().iter().any(|v| v.as_str() == Some("packing_signature")));
+        assert!(metadata["packer_signatures"].as_array().unwrap().iter().any(|v| v.as_str() == Some("upx")));
     }
 
     #[test]

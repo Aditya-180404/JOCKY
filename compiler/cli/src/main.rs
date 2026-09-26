@@ -1316,8 +1316,10 @@ fn generate_report(
     let timeline_event_count = correlation.timeline().map(|timeline| timeline.event_count).unwrap_or(0);
     let process_records = items.iter().filter(|record| record.get("pid").is_some()).cloned().collect::<Vec<_>>();
     let connection_records = items.iter().filter(|record| record.get("local_address").is_some() || record.get("local_addr").is_some()).cloned().collect::<Vec<_>>();
+    let memory_records = items.iter().filter(|record| record.get("mapped_file").is_some() || record.get("start_address").is_some()).cloned().collect::<Vec<_>>();
+    let driver_records = items.iter().filter(|record| record.get("name").is_some() && record.get("vulnerability_indicators").is_some()).cloned().collect::<Vec<_>>();
     let mut security_analyzer = jockey_runtime::security::SecurityAnalyzer::new(host_id);
-    security_analyzer.run_full_analysis(&process_records, &connection_records);
+    security_analyzer.run_full_analysis_with_context(&process_records, &connection_records, &memory_records, &driver_records);
     let security_findings = security_analyzer.findings().to_vec();
 
     let report_output = match format.to_lowercase().as_str() {

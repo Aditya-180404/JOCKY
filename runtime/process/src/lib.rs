@@ -487,6 +487,39 @@ pub fn enumerate_processes(
 }
 
 /// Build process tree from flat process list
+pub fn detect_process_hollowing(processes: &[ProcessInfo]) -> Vec<serde_json::Value> {
+    let mut findings = Vec::new();
+    for proc in processes {
+        let executable = proc.executable_path.as_deref().unwrap_or("");
+        let deleted = proc.deleted_executable;
+        let has_memory_only_module = proc.modules.iter().any(|module| {
+            module.path.starts_with('[') || module.path.contains("memfd") || module.path.contains("anon") || module.path.is_empty()
+        });
+        let name_lower = proc.name.to_ascii_lowercase();
+        let suspicious = deleted || has_memory_only_module || (name_lower.contains("rundll32") && !executable.is_empty() && !executable.contains("rundll32"));
+
+        if suspicious {
+            findings.push(serde_json::json!({
+                "indicator": "process.hollowing",
+                "pid": proc.pid,
+                "process": proc.name,
+                "executable_path": executable,
+                "deleted_executable": deleted,
+                "memory_only_modules": has_memory_only_module,
+                "reason": if deleted {
+                    "process executable is deleted while still mapped"
+                } else if has_memory_only_module {
+                    "process contains executable memory regions without a stable file-backed mapping"
+                } else {
+                    "process image path does not align with its observed execution behavior"
+                },
+                "confidence": if deleted { 0.9 } else { 0.74 },
+            }));
+        }
+    }
+    findings
+}
+
 pub fn build_process_tree(processes: &[ProcessInfo]) -> Vec<ProcessTreeNode> {
     let mut pid_to_node: std::collections::HashMap<i32, ProcessTreeNode> = std::collections::HashMap::new();
     let mut children_map: std::collections::HashMap<i32, Vec<i32>> = std::collections::HashMap::new();

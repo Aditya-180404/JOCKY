@@ -186,17 +186,68 @@ fn parse_smaps_rss(smaps_path: &str) -> std::collections::HashMap<String, u64> {
     map
 }
 
+/// Classify memory regions by the forensic indicator they support. This keeps the
+/// evidence model tied to concrete region semantics rather than a single generic flag.
+pub fn classify_memory_regions(regions: &[serde_json::Value]) -> Vec<serde_json::Value> {
+    let mut findings = Vec::new();
+
+    for region in regions {
+        let executable = region
+            .get("executable")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let writable = region
+            .get("writable")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let anonymous = region
+            .get("anonymous")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let mapped_file = region
+            .get("mapped_file")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        let pid = region.get("pid").and_then(|v| v.as_i64()).unwrap_or_default() as i32;
+        let start_address = region.get("start_address").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+
+        let mut indicators = Vec::new();
+        if executable && anonymous {
+            indicators.push("memory.anonymous".to_string());
+        }
+        if executable && writable {
+            indicators.push("memory.rwx".to_string());
+        }
+        if executable && writable && anonymous {
+            indicators.push("memory.injected".to_string());
+        }
+
+        if !indicators.is_empty() {
+            findings.push(serde_json::json!({
+                "pid": pid,
+                "start_address": start_address,
+                "mapped_file": mapped_file,
+                "indicator": if indicators.contains(&"memory.injected".to_string()) { "memory.injected" } else if indicators.contains(&"memory.rwx".to_string()) { "memory.rwx" } else { "memory.anonymous" },
+                "reasons": indicators,
+                "executable": executable,
+                "writable": writable,
+                "anonymous": anonymous,
+            }));
+        }
+    }
+
+    findings
+}
+
 /// Summarize suspicious memory regions: anonymous + executable (classic shellcode indicator)
 pub fn find_suspicious_regions(regions: &[serde_json::Value]) -> Vec<serde_json::Value> {
     regions
         .iter()
         .filter(|r| {
-            r.get("executable")
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false)
-                && r.get("anonymous")
-                    .and_then(|v| v.as_bool())
-                    .unwrap_or(false)
+            let executable = r.get("executable").and_then(|v| v.as_bool()).unwrap_or(false);
+            let writable = r.get("writable").and_then(|v| v.as_bool()).unwrap_or(false);
+            let anonymous = r.get("anonymous").and_then(|v| v.as_bool()).unwrap_or(false);
+            executable && (anonymous || writable)
         })
         .cloned()
         .collect()
@@ -251,5 +302,32 @@ mod tests {
         let suspicious = find_suspicious_regions(&regions);
         assert_eq!(suspicious.len(), 1);
         assert_eq!(suspicious[0]["start_address"], "aaa");
+    }
+
+    #[test]
+    fn test_classify_memory_regions_flags_injection_patterns() {
+        let regions = vec![
+            serde_json::json!({
+                "pid": 4201,
+                "start_address": "7f00",
+                "mapped_file": "[anon]",
+                "executable": true,
+                "writable": true,
+                "anonymous": true,
+            }),
+            serde_json::json!({
+                "pid": 4201,
+                "start_address": "7f10",
+                "mapped_file": "/usr/lib/libc.so.6",
+                "executable": false,
+                "writable": false,
+                "anonymous": false,
+            }),
+        ];
+
+        let findings = classify_memory_regions(&regions);
+        assert!(!findings.is_empty());
+        assert!(findings.iter().any(|r| r["indicator"] == "memory.injected"));
+        assert!(findings.iter().any(|r| r["reasons"].as_array().unwrap().iter().any(|v| v == "memory.rwx")));
     }
 }
