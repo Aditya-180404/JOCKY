@@ -13,27 +13,27 @@ export function DocsPage() {
 
   const cliCommands = [
     {
-      cmd: 'jockey check <file.tfg>',
+      cmd: 'jockey check <file.jy>',
       desc: 'Validates source syntax, AST, and semantic capability constraints.',
     },
     {
-      cmd: 'jockey compile <file.tfg> --target windows --arch x64',
-      desc: 'Compiles the .tfg investigation into a standalone native executable artifact.',
+      cmd: 'jockey compile <file.jy> --target windows --arch x64',
+      desc: 'Compiles the .jy investigation into a standalone native executable artifact.',
     },
     {
-      cmd: 'jockey build <file.tfg>',
+      cmd: 'jockey build <file.jy>',
       desc: 'Alias for speed-optimized compilation into release binary.',
     },
     {
-      cmd: 'jockey run <file.tfg>',
+      cmd: 'jockey run <file.jy>',
       desc: 'Compiles and immediately executes the investigation on the current host.',
     },
     {
-      cmd: 'jockey fmt <file.tfg> [--write]',
+      cmd: 'jockey fmt <file.jy> [--write]',
       desc: 'Parses and formats source code into normalized jockey syntax.',
     },
     {
-      cmd: 'jockey inspect <file.tfg> --format [tokens|ast|ir]',
+      cmd: 'jockey inspect <file.jy> --format [tokens|ast|ir]',
       desc: 'Dumps lexer tokens, AST hierarchy, or Intermediate Representation (IR).',
     },
     {
@@ -104,12 +104,12 @@ export function DocsPage() {
               <div>
                 <h1 className="text-xl font-bold font-mono text-white mb-1">Compiler Architecture</h1>
                 <p className="text-slate-400">
-                  Deterministic pipeline transforming domain-specific `.tfg` source into native forensic binaries.
+                  Deterministic pipeline transforming domain-specific `.jy` source into native forensic binaries.
                 </p>
               </div>
 
               <div className="p-4 rounded bg-[#090d15] border border-slate-800 font-mono text-[11px] space-y-2">
-                <div>[Source .tfg] → Lexer (Token Scanner with Span Tracking)</div>
+                <div>[Source .jy] → Lexer (Token Scanner with Span Tracking)</div>
                 <div>    ↓</div>
                 <div>Parser → AST (Abstract Syntax Tree Construction)</div>
                 <div>    ↓</div>

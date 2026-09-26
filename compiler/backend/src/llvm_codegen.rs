@@ -371,13 +371,8 @@ impl ProgrammaticLlvmCodegen {
                             string_pool,
                             investigation_name,
                         );
-                        let source_hash_ptr = get_string_ptr(
-                            ctx,
-                            mod_ref,
-                            builder_ref,
-                            string_pool,
-                            source_hash,
-                        );
+                        let source_hash_ptr =
+                            get_string_ptr(ctx, mod_ref, builder_ref, string_pool, source_hash);
                         let mut args = [name_ptr, source_hash_ptr];
                         let c_call_name = CString::new("ev_ctx").unwrap();
                         let res = LLVMBuildCall2(
@@ -568,7 +563,11 @@ impl ProgrammaticLlvmCodegen {
                         );
                         store_local(builder_ref, &local_allocas, *dest, res)?;
                     }
-                    MirInstruction::CollectProcessModules { dest, ctx: ev_ctx, pid } => {
+                    MirInstruction::CollectProcessModules {
+                        dest,
+                        ctx: ev_ctx,
+                        pid,
+                    } => {
                         let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_process_modules"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let pid_val = LLVMConstInt(i32_ty, *pid as u64, 1);
@@ -584,7 +583,11 @@ impl ProgrammaticLlvmCodegen {
                         );
                         store_local(builder_ref, &local_allocas, *dest, res)?;
                     }
-                    MirInstruction::CollectProcessHandles { dest, ctx: ev_ctx, pid } => {
+                    MirInstruction::CollectProcessHandles {
+                        dest,
+                        ctx: ev_ctx,
+                        pid,
+                    } => {
                         let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_process_handles"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let pid_val = LLVMConstInt(i32_ty, *pid as u64, 1);
@@ -765,20 +768,10 @@ impl ProgrammaticLlvmCodegen {
                     } => {
                         let (fn_val, fn_ty) = rt_funcs["jockey_rt_invoke_capability"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
-                        let capability_ptr = get_string_ptr(
-                            ctx,
-                            mod_ref,
-                            builder_ref,
-                            string_pool,
-                            capability_id,
-                        );
-                        let options_ptr = get_string_ptr(
-                            ctx,
-                            mod_ref,
-                            builder_ref,
-                            string_pool,
-                            options_json,
-                        );
+                        let capability_ptr =
+                            get_string_ptr(ctx, mod_ref, builder_ref, string_pool, capability_id);
+                        let options_ptr =
+                            get_string_ptr(ctx, mod_ref, builder_ref, string_pool, options_json);
                         let mut args = [ctx_ptr, capability_ptr, options_ptr];
                         let c_call_name = CString::new("invoke_capability_res").unwrap();
                         let res = LLVMBuildCall2(

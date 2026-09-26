@@ -142,7 +142,7 @@ export function ExamplesPage() {
   };
 
   const handleDownload = (code: string, title: string) => {
-    const filename = `${title.toLowerCase().replace(/[^a-z0-9]/g, '_')}.tfg`;
+    const filename = `${title.toLowerCase().replace(/[^a-z0-9]/g, '_')}.jy`;
     const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -167,7 +167,7 @@ export function ExamplesPage() {
             jockey Examples
           </h1>
           <p className="mt-2 text-xs text-slate-400">
-            Explore ready-to-run forensic investigations. Open any example in the Web IDE or download the `.tfg` source.
+            Explore ready-to-run forensic investigations. Open any example in the Web IDE or download the `.jy` source.
           </p>
         </div>
 

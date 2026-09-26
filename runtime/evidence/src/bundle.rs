@@ -12,9 +12,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
-use crate::{
-    compute_merkle_root, CollectionStatus, CollectorResult, EvidenceOrigin,
-};
+use crate::{compute_merkle_root, CollectionStatus, CollectorResult, EvidenceOrigin};
 
 /// Immutable provenance metadata tracking source, compiler, and host identity.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -96,6 +94,7 @@ impl EvidenceRecord {
     }
 
     /// Construct a new sealed EvidenceRecord with computed hash.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         evidence_id: Option<String>,
         host_id: &str,
@@ -191,6 +190,7 @@ pub struct BundleVerificationResult {
 
 impl EvidenceBundle {
     /// Construct a canonical EvidenceBundle from raw records and collector telemetry.
+    #[allow(clippy::too_many_arguments)]
     pub fn from_records(
         investigation_id: &str,
         host_id: &str,
@@ -216,21 +216,45 @@ impl EvidenceBundle {
         };
 
         // Determine collection status
-        let has_failed = collector_results.iter().any(|c| matches!(
-            c.status,
-            CollectionStatus::Failed | CollectionStatus::NotFound | CollectionStatus::Unsupported | CollectionStatus::PermissionDenied
-        ));
-        let has_success = collector_results.iter().any(|c| c.status == CollectionStatus::Success);
-        let has_partial = collector_results.iter().any(|c| c.status == CollectionStatus::Partial);
+        let has_failed = collector_results.iter().any(|c| {
+            matches!(
+                c.status,
+                CollectionStatus::Failed
+                    | CollectionStatus::NotFound
+                    | CollectionStatus::Unsupported
+                    | CollectionStatus::PermissionDenied
+                    | CollectionStatus::RequiresElevation
+            )
+        });
+        let has_success = collector_results
+            .iter()
+            .any(|c| c.status == CollectionStatus::Success);
+        let has_partial = collector_results
+            .iter()
+            .any(|c| c.status == CollectionStatus::Partial);
         let evidence_status = if has_partial || (has_failed && has_success) {
             CollectionStatus::Partial
         } else if has_failed && !has_success {
-            if collector_results.iter().all(|c| c.status == CollectionStatus::NotFound) {
+            if collector_results
+                .iter()
+                .all(|c| c.status == CollectionStatus::NotFound)
+            {
                 CollectionStatus::NotFound
-            } else if collector_results.iter().all(|c| c.status == CollectionStatus::Unsupported) {
+            } else if collector_results
+                .iter()
+                .all(|c| c.status == CollectionStatus::Unsupported)
+            {
                 CollectionStatus::Unsupported
-            } else if collector_results.iter().all(|c| c.status == CollectionStatus::PermissionDenied) {
+            } else if collector_results
+                .iter()
+                .all(|c| c.status == CollectionStatus::PermissionDenied)
+            {
                 CollectionStatus::PermissionDenied
+            } else if collector_results
+                .iter()
+                .all(|c| c.status == CollectionStatus::RequiresElevation)
+            {
+                CollectionStatus::RequiresElevation
             } else {
                 CollectionStatus::Failed
             }
@@ -283,7 +307,13 @@ impl EvidenceBundle {
         // 1. Verify individual record hashes
         for (idx, record) in self.records.iter().enumerate() {
             if !record.verify_hash() {
-                mismatched.push((idx, format!("Record {} ({}) has invalid cryptographic hash", idx, record.evidence_id)));
+                mismatched.push((
+                    idx,
+                    format!(
+                        "Record {} ({}) has invalid cryptographic hash",
+                        idx, record.evidence_id
+                    ),
+                ));
             }
             recomputed_leaf_hashes.push(record.hash.clone());
         }
@@ -294,16 +324,16 @@ impl EvidenceBundle {
         } else {
             compute_merkle_root(&recomputed_leaf_hashes)
         };
-        let merkle_root_matches = recomputed_merkle == self.merkle_root
-            && self.merkle_root == self.manifest.merkle_root;
+        let merkle_root_matches =
+            recomputed_merkle == self.merkle_root && self.merkle_root == self.manifest.merkle_root;
 
         // 3. Recompute bundle payload SHA-256
         let records_bytes = serde_json::to_vec(&self.records).unwrap_or_default();
         let mut hasher = Sha256::new();
         hasher.update(&records_bytes);
         let recomputed_sha256 = format!("{:x}", hasher.finalize());
-        let sha256_matches = recomputed_sha256 == self.sha256
-            && self.sha256 == self.manifest.sha256;
+        let sha256_matches =
+            recomputed_sha256 == self.sha256 && self.sha256 == self.manifest.sha256;
 
         // 4. Verify manifest integrity
         let manifest_valid = self.manifest.bundle_id == self.bundle_id
@@ -311,11 +341,15 @@ impl EvidenceBundle {
             && self.manifest.record_hashes == recomputed_leaf_hashes;
 
         let verified_records = self.records.len().saturating_sub(mismatched.len());
-        let valid = mismatched.is_empty() && merkle_root_matches && sha256_matches && manifest_valid;
+        let valid =
+            mismatched.is_empty() && merkle_root_matches && sha256_matches && manifest_valid;
 
         let failure_reason = if !valid {
             if !mismatched.is_empty() {
-                Some(format!("Tamper detected: {} records have altered content", mismatched.len()))
+                Some(format!(
+                    "Tamper detected: {} records have altered content",
+                    mismatched.len()
+                ))
             } else if !merkle_root_matches {
                 Some("Tamper detected: Merkle root mismatch".to_string())
             } else if !sha256_matches {

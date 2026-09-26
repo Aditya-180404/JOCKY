@@ -8,13 +8,13 @@
 //! - Description
 //! - MITRE ATT&CK technique mappings
 
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-use jockey_runtime_evidence::{
-    CollectionStatus, EvidenceCollector, EvidenceOrigin,
-};
+use jockey_runtime_evidence::{CollectionStatus, EvidenceCollector, EvidenceOrigin};
 
 /// Unique identifier for a capability
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -77,6 +77,37 @@ pub enum CapabilityCategory {
     EvidenceIntegrity,
 }
 
+/// Status of capability implementation
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ImplementationStatus {
+    Implemented,
+    Partial,
+    RequiresElevation,
+    PlatformSpecific,
+    Unsupported,
+}
+
+impl std::fmt::Display for ImplementationStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Implemented => write!(f, "IMPLEMENTED"),
+            Self::Partial => write!(f, "PARTIAL"),
+            Self::RequiresElevation => write!(f, "REQUIRES_ELEVATION"),
+            Self::PlatformSpecific => write!(f, "PLATFORM_SPECIFIC"),
+            Self::Unsupported => write!(f, "UNSUPPORTED"),
+        }
+    }
+}
+
+fn default_implementation_status() -> ImplementationStatus {
+    ImplementationStatus::Implemented
+}
+
+fn default_capability_version() -> String {
+    "0.1.0".to_string()
+}
+
 /// A forensic capability definition (serializable version)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Capability {
@@ -89,6 +120,12 @@ pub struct Capability {
     pub mitre_attack_ids: Vec<String>,
     pub collector_function: String,
     pub is_implemented: bool,
+    #[serde(default = "default_implementation_status")]
+    pub status: ImplementationStatus,
+    #[serde(default)]
+    pub status_reason: Option<String>,
+    #[serde(default = "default_capability_version")]
+    pub version: String,
 }
 
 impl Capability {
@@ -103,6 +140,11 @@ impl Capability {
         collector_function: &'static str,
         is_implemented: bool,
     ) -> Self {
+        let status = if is_implemented {
+            ImplementationStatus::Implemented
+        } else {
+            ImplementationStatus::Unsupported
+        };
         Self {
             id: id.to_string(),
             name: name.to_string(),
@@ -113,7 +155,26 @@ impl Capability {
             mitre_attack_ids: mitre_attack_ids.iter().map(|s| s.to_string()).collect(),
             collector_function: collector_function.to_string(),
             is_implemented,
+            status,
+            status_reason: None,
+            version: "0.1.0".to_string(),
         }
+    }
+
+    pub fn with_status(
+        mut self,
+        status: ImplementationStatus,
+        reason: Option<&str>,
+    ) -> Self {
+        self.status = status;
+        self.status_reason = reason.map(|s| s.to_string());
+        self.is_implemented = matches!(
+            status,
+            ImplementationStatus::Implemented
+                | ImplementationStatus::Partial
+                | ImplementationStatus::RequiresElevation
+        );
+        self
     }
 }
 
@@ -330,9 +391,21 @@ impl CapabilityExecutionResult {
 
 /// The global capability registry
 pub struct CapabilityRegistry {
-    capabilities: HashMap<String, Capability>,
+    pub capabilities: HashMap<String, Capability>,
     by_category: HashMap<CapabilityCategory, Vec<String>>,
     runtime_dispatch: HashMap<String, RuntimeCapabilityBinding>,
+}
+
+impl CapabilityRegistry {
+    pub fn capabilities(&self) -> impl Iterator<Item = &Capability> {
+        self.capabilities.values()
+    }
+}
+
+impl Default for CapabilityRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl CapabilityRegistry {
@@ -629,7 +702,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
-
             // Process capabilities
             RuntimeCapabilityBinding {
                 capability_id: "process.enumerate",
@@ -685,7 +757,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::Admin,
                 evidence_contract: "process_handles",
             },
-
             // User capabilities
             RuntimeCapabilityBinding {
                 capability_id: "user.enumerate",
@@ -696,7 +767,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "user_inventory",
             },
-
             // Auth capabilities
             RuntimeCapabilityBinding {
                 capability_id: "auth.logon_events",
@@ -725,7 +795,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "auth_policy",
             },
-
             // Service capabilities
             RuntimeCapabilityBinding {
                 capability_id: "service.enumerate",
@@ -754,7 +823,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "systemd_units",
             },
-
             // Network capabilities
             RuntimeCapabilityBinding {
                 capability_id: "network.connections",
@@ -855,7 +923,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "network_listeners",
             },
-
             // Filesystem capabilities
             RuntimeCapabilityBinding {
                 capability_id: "filesystem.enumerate",
@@ -893,7 +960,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "filesystem_deleted_open",
             },
-
             // Windows Artifact capabilities
             RuntimeCapabilityBinding {
                 capability_id: "artifact.prefetch",
@@ -985,7 +1051,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_recent_files",
             },
-
             // Linux Artifact capabilities
             RuntimeCapabilityBinding {
                 capability_id: "artifact.shell_history",
@@ -1095,7 +1160,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_container",
             },
-
             // Kernel/Driver capabilities
             RuntimeCapabilityBinding {
                 capability_id: "kernel.modules",
@@ -1124,7 +1188,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "kernel_boot_config",
             },
-
             // Security capabilities
             RuntimeCapabilityBinding {
                 capability_id: "security.audit_policy",
@@ -1162,7 +1225,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::Admin,
                 evidence_contract: "firewall_rules",
             },
-
             // Application Artifact capabilities
             RuntimeCapabilityBinding {
                 capability_id: "app.browser",
@@ -1191,7 +1253,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "app_office",
             },
-
             // Backdoor/Rootkit capabilities
             RuntimeCapabilityBinding {
                 capability_id: "backdoor.rootkit_indicators",
@@ -1211,7 +1272,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "backdoor_binary_anomalies",
             },
-
             // Malicious Script capabilities
             RuntimeCapabilityBinding {
                 capability_id: "script.powershell",
@@ -1357,7 +1417,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_persistence_indicators",
             },
-
             // File/Binary Metadata capabilities
             RuntimeCapabilityBinding {
                 capability_id: "file.pe_metadata",
@@ -1431,7 +1490,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_entropy",
             },
-
             // Evidence Integrity capabilities
             RuntimeCapabilityBinding {
                 capability_id: "evidence.sha256",
@@ -1469,7 +1527,6 @@ impl CapabilityRegistry {
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "evidence_chain_of_custody",
             },
-
             // Persistence capabilities
             RuntimeCapabilityBinding {
                 capability_id: "persistence.autostart",
@@ -1582,14 +1639,12 @@ impl CapabilityRegistry {
         ];
 
         for binding in bindings {
-            self.runtime_dispatch.insert(binding.capability_id.to_string(), binding);
+            self.runtime_dispatch
+                .insert(binding.capability_id.to_string(), binding);
         }
     }
 
-    fn register_named_capabilities(
-        &mut self,
-        entries: &[Capability],
-    ) {
+    fn register_named_capabilities(&mut self, entries: &[Capability]) {
         for entry in entries {
             self.register(entry.clone());
         }
@@ -1933,226 +1988,1946 @@ impl CapabilityRegistry {
 
     fn register_process_capabilities(&mut self) {
         let entries = [
-            Capability::new("process.pid", "Process ID", "Collect the process identifier for each running process.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.ppid", "Parent PID", "Collect parent process identifiers to construct ancestry.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.name", "Process Name", "Collect the executable name for each process.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.command_line", "Command Line", "Collect full command lines for process inspection.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.executable_path", "Executable Path", "Capture the resolved executable path for each process.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.cwd", "Working Directory", "Collect the process working directory when permitted.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.start_time", "Start Time", "Collect process creation time for timeline correlation.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.user", "Process User", "Collect the owning user for each process.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.group", "Process Group", "Collect primary group metadata for processes.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.state", "Process State", "Collect the process life-cycle state.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.memory.rss", "RSS Memory", "Capture resident set size to identify heavy or suspicious processes.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.memory.vms", "Virtual Memory", "Capture virtual memory usage for process triage.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.threads", "Thread Count", "Collect the process thread count.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.handles", "Handle Count", "Collect open handle counts where available.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.session", "Session ID", "Collect the session identifier for system and user sessions.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.terminal", "Terminal", "Collect terminal and tty metadata when available.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.priority", "Priority", "Collect scheduler priority metadata.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.nice", "Nice Value", "Collect the nice value and scheduling context.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.env", "Environment", "Capture the process environment block where permitted.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.cgroup", "CGroup", "Capture cgroup and container metadata.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.container", "Container ID", "Demonstrate container membership when present.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.module.list", "Loaded Modules", "Enumerate DLL or shared library modules loaded by a process.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1014"], "collect_process_modules", true),
-            Capability::new("process.module.path", "Module Paths", "Capture module path metadata for loaded libraries.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1014"], "collect_process_modules", true),
-            Capability::new("process.module.version", "Module Versions", "Collect library version metadata for modules.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1014"], "collect_process_modules", true),
-            Capability::new("process.module.signature", "Module Signatures", "Capture signing state when available for libraries.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1014"], "collect_process_modules", true),
-            Capability::new("process.parent.name", "Parent Name", "Resolve parent process names for ancestry analysis.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "collect_process_tree", true),
-            Capability::new("process.child.pids", "Child PIDs", "Resolve child process identifiers for process tree extraction.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "collect_process_tree", true),
-            Capability::new("process.tree", "Process Tree", "Construct a parent-child process tree and ancestry model.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "collect_process_tree", true),
-            Capability::new("process.memory.map", "Memory Regions", "Enumerate memory mappings and executable memory regions.", CapabilityCategory::Process, Platform::Linux, PrivilegeLevel::User, &["T1055"], "enumerate_memory_regions", true),
-            Capability::new("process.deleted.exe", "Deleted Executable", "Detect deleted-on-disk executables still mapped or running.", CapabilityCategory::Process, Platform::Linux, PrivilegeLevel::User, &["T1036"], "detect_deleted_executables", true),
-            Capability::new("process.open.files", "Open Files", "Collect file handle metadata and open file paths for each process.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
-            Capability::new("process.network.connections", "Process Network", "Associate network connections with the owning process.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1049"], "enumerate_processes", true),
-            Capability::new("process.hash", "Executable Hash", "Collect the SHA-256 hash of a process executable when available.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1027"], "enumerate_processes", true),
-            Capability::new("process.integrity", "Integrity Level", "Capture process integrity metadata when exposed by the platform.", CapabilityCategory::Process, Platform::Both, PrivilegeLevel::User, &["T1057"], "enumerate_processes", true),
+            Capability::new(
+                "process.pid",
+                "Process ID",
+                "Collect the process identifier for each running process.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.ppid",
+                "Parent PID",
+                "Collect parent process identifiers to construct ancestry.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.name",
+                "Process Name",
+                "Collect the executable name for each process.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.command_line",
+                "Command Line",
+                "Collect full command lines for process inspection.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.executable_path",
+                "Executable Path",
+                "Capture the resolved executable path for each process.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.cwd",
+                "Working Directory",
+                "Collect the process working directory when permitted.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.start_time",
+                "Start Time",
+                "Collect process creation time for timeline correlation.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.user",
+                "Process User",
+                "Collect the owning user for each process.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.group",
+                "Process Group",
+                "Collect primary group metadata for processes.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.state",
+                "Process State",
+                "Collect the process life-cycle state.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.memory.rss",
+                "RSS Memory",
+                "Capture resident set size to identify heavy or suspicious processes.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.memory.vms",
+                "Virtual Memory",
+                "Capture virtual memory usage for process triage.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.threads",
+                "Thread Count",
+                "Collect the process thread count.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.handles",
+                "Handle Count",
+                "Collect open handle counts where available.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.session",
+                "Session ID",
+                "Collect the session identifier for system and user sessions.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.terminal",
+                "Terminal",
+                "Collect terminal and tty metadata when available.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.priority",
+                "Priority",
+                "Collect scheduler priority metadata.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.nice",
+                "Nice Value",
+                "Collect the nice value and scheduling context.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.env",
+                "Environment",
+                "Capture the process environment block where permitted.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.cgroup",
+                "CGroup",
+                "Capture cgroup and container metadata.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.container",
+                "Container ID",
+                "Demonstrate container membership when present.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.module.list",
+                "Loaded Modules",
+                "Enumerate DLL or shared library modules loaded by a process.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1014"],
+                "collect_process_modules",
+                true,
+            ),
+            Capability::new(
+                "process.module.path",
+                "Module Paths",
+                "Capture module path metadata for loaded libraries.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1014"],
+                "collect_process_modules",
+                true,
+            ),
+            Capability::new(
+                "process.module.version",
+                "Module Versions",
+                "Collect library version metadata for modules.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1014"],
+                "collect_process_modules",
+                true,
+            ),
+            Capability::new(
+                "process.module.signature",
+                "Module Signatures",
+                "Capture signing state when available for libraries.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1014"],
+                "collect_process_modules",
+                true,
+            ),
+            Capability::new(
+                "process.parent.name",
+                "Parent Name",
+                "Resolve parent process names for ancestry analysis.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "collect_process_tree",
+                true,
+            ),
+            Capability::new(
+                "process.child.pids",
+                "Child PIDs",
+                "Resolve child process identifiers for process tree extraction.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "collect_process_tree",
+                true,
+            ),
+            Capability::new(
+                "process.tree",
+                "Process Tree",
+                "Construct a parent-child process tree and ancestry model.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "collect_process_tree",
+                true,
+            ),
+            Capability::new(
+                "process.memory.map",
+                "Memory Regions",
+                "Enumerate memory mappings and executable memory regions.",
+                CapabilityCategory::Process,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1055"],
+                "enumerate_memory_regions",
+                true,
+            ),
+            Capability::new(
+                "process.deleted.exe",
+                "Deleted Executable",
+                "Detect deleted-on-disk executables still mapped or running.",
+                CapabilityCategory::Process,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1036"],
+                "detect_deleted_executables",
+                true,
+            ),
+            Capability::new(
+                "process.open.files",
+                "Open Files",
+                "Collect file handle metadata and open file paths for each process.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.network.connections",
+                "Process Network",
+                "Associate network connections with the owning process.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1049"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.hash",
+                "Executable Hash",
+                "Collect the SHA-256 hash of a process executable when available.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1027"],
+                "enumerate_processes",
+                true,
+            ),
+            Capability::new(
+                "process.integrity",
+                "Integrity Level",
+                "Capture process integrity metadata when exposed by the platform.",
+                CapabilityCategory::Process,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "enumerate_processes",
+                true,
+            ),
         ];
         self.register_named_capabilities(&entries);
     }
 
     fn register_user_and_auth_capabilities(&mut self) {
         let entries = [
-            Capability::new("user.list", "User List", "Enumerate local account inventory and base metadata.", CapabilityCategory::User, Platform::Both, PrivilegeLevel::User, &["T1087"], "enumerate_users", true),
-            Capability::new("user.sid", "User IDs", "Capture user IDs, SIDs, and account identity metadata.", CapabilityCategory::User, Platform::Both, PrivilegeLevel::User, &["T1087"], "enumerate_users", true),
-            Capability::new("user.home", "Home Directories", "Enumerate user home directory metadata.", CapabilityCategory::User, Platform::Both, PrivilegeLevel::User, &["T1087"], "enumerate_users", true),
-            Capability::new("user.shell", "User Shell", "Collect login shell configuration for each account.", CapabilityCategory::User, Platform::Both, PrivilegeLevel::User, &["T1087"], "enumerate_users", true),
-            Capability::new("user.group.membership", "Group Membership", "Collect group memberships for each user.", CapabilityCategory::User, Platform::Both, PrivilegeLevel::User, &["T1087"], "enumerate_users", true),
-            Capability::new("user.last.login", "Last Login", "Collect last login metadata when available.", CapabilityCategory::User, Platform::Both, PrivilegeLevel::User, &["T1087"], "enumerate_users", true),
-            Capability::new("user.status", "Account Status", "Collect account disabled, locked, and status flags.", CapabilityCategory::User, Platform::Both, PrivilegeLevel::User, &["T1087"], "enumerate_users", true),
-            Capability::new("user.admin", "Privileged Users", "Identify administrator or elevated accounts.", CapabilityCategory::User, Platform::Both, PrivilegeLevel::User, &["T1078"], "enumerate_users", true),
-            Capability::new("user.service.accounts", "Service Accounts", "Enumerate service and non-human accounts.", CapabilityCategory::User, Platform::Both, PrivilegeLevel::User, &["T1078"], "enumerate_users", true),
-            Capability::new("auth.logon.events", "Logon Events", "Collect authentication events with metadata and timestamps.", CapabilityCategory::Authentication, Platform::Both, PrivilegeLevel::Admin, &["T1110"], "collect_logon_events", true),
-            Capability::new("auth.successful.logins", "Successful Logins", "Capture successful sign-in records.", CapabilityCategory::Authentication, Platform::Both, PrivilegeLevel::Admin, &["T1110"], "collect_logon_events", true),
-            Capability::new("auth.failed.logins", "Failed Logins", "Collect failed sign-in activity and lockout evidence.", CapabilityCategory::Authentication, Platform::Both, PrivilegeLevel::Admin, &["T1110"], "collect_logon_events", true),
-            Capability::new("auth.remote.sessions", "Remote Sessions", "Inventory remote access sessions when available.", CapabilityCategory::Authentication, Platform::Both, PrivilegeLevel::User, &["T1021"], "collect_logon_events", true),
-            Capability::new("auth.ssh.config", "SSH Configuration", "Collect SSH configuration and host metadata.", CapabilityCategory::Authentication, Platform::Linux, PrivilegeLevel::User, &["T1552"], "collect_auth_policy", true),
-            Capability::new("auth.ssh.authorized.keys", "Authorized Keys", "Collect SSH authorized key metadata without exposing secrets.", CapabilityCategory::Authentication, Platform::Linux, PrivilegeLevel::User, &["T1552"], "collect_auth_policy", true),
-            Capability::new("auth.ssh.known.hosts", "Known Hosts", "Collect SSH known-host metadata.", CapabilityCategory::Authentication, Platform::Linux, PrivilegeLevel::User, &["T1552"], "collect_auth_policy", true),
-            Capability::new("auth.password.policy", "Password Policy", "Collect local password and account policy metadata.", CapabilityCategory::Authentication, Platform::Both, PrivilegeLevel::User, &["T1204"], "collect_auth_policy", true),
-            Capability::new("auth.sudoers", "Sudoers", "Collect sudoers configuration and delegation metadata.", CapabilityCategory::Authentication, Platform::Linux, PrivilegeLevel::User, &["T1548"], "collect_auth_policy", true),
-            Capability::new("auth.pam", "PAM Configuration", "Read PAM configuration metadata for authentication flows.", CapabilityCategory::Authentication, Platform::Linux, PrivilegeLevel::User, &["T1556"], "collect_auth_policy", true),
-            Capability::new("auth.windows.logon", "Windows Logons", "Collect Windows logon metadata via native event sources.", CapabilityCategory::Authentication, Platform::Windows, PrivilegeLevel::Admin, &["T1110"], "collect_windows_logon_events", true),
+            Capability::new(
+                "user.list",
+                "User List",
+                "Enumerate local account inventory and base metadata.",
+                CapabilityCategory::User,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1087"],
+                "enumerate_users",
+                true,
+            ),
+            Capability::new(
+                "user.sid",
+                "User IDs",
+                "Capture user IDs, SIDs, and account identity metadata.",
+                CapabilityCategory::User,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1087"],
+                "enumerate_users",
+                true,
+            ),
+            Capability::new(
+                "user.home",
+                "Home Directories",
+                "Enumerate user home directory metadata.",
+                CapabilityCategory::User,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1087"],
+                "enumerate_users",
+                true,
+            ),
+            Capability::new(
+                "user.shell",
+                "User Shell",
+                "Collect login shell configuration for each account.",
+                CapabilityCategory::User,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1087"],
+                "enumerate_users",
+                true,
+            ),
+            Capability::new(
+                "user.group.membership",
+                "Group Membership",
+                "Collect group memberships for each user.",
+                CapabilityCategory::User,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1087"],
+                "enumerate_users",
+                true,
+            ),
+            Capability::new(
+                "user.last.login",
+                "Last Login",
+                "Collect last login metadata when available.",
+                CapabilityCategory::User,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1087"],
+                "enumerate_users",
+                true,
+            ),
+            Capability::new(
+                "user.status",
+                "Account Status",
+                "Collect account disabled, locked, and status flags.",
+                CapabilityCategory::User,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1087"],
+                "enumerate_users",
+                true,
+            ),
+            Capability::new(
+                "user.admin",
+                "Privileged Users",
+                "Identify administrator or elevated accounts.",
+                CapabilityCategory::User,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1078"],
+                "enumerate_users",
+                true,
+            ),
+            Capability::new(
+                "user.service.accounts",
+                "Service Accounts",
+                "Enumerate service and non-human accounts.",
+                CapabilityCategory::User,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1078"],
+                "enumerate_users",
+                true,
+            ),
+            Capability::new(
+                "auth.logon.events",
+                "Logon Events",
+                "Collect authentication events with metadata and timestamps.",
+                CapabilityCategory::Authentication,
+                Platform::Both,
+                PrivilegeLevel::Admin,
+                &["T1110"],
+                "collect_logon_events",
+                true,
+            ),
+            Capability::new(
+                "auth.successful.logins",
+                "Successful Logins",
+                "Capture successful sign-in records.",
+                CapabilityCategory::Authentication,
+                Platform::Both,
+                PrivilegeLevel::Admin,
+                &["T1110"],
+                "collect_logon_events",
+                true,
+            ),
+            Capability::new(
+                "auth.failed.logins",
+                "Failed Logins",
+                "Collect failed sign-in activity and lockout evidence.",
+                CapabilityCategory::Authentication,
+                Platform::Both,
+                PrivilegeLevel::Admin,
+                &["T1110"],
+                "collect_logon_events",
+                true,
+            ),
+            Capability::new(
+                "auth.remote.sessions",
+                "Remote Sessions",
+                "Inventory remote access sessions when available.",
+                CapabilityCategory::Authentication,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1021"],
+                "collect_logon_events",
+                true,
+            ),
+            Capability::new(
+                "auth.ssh.config",
+                "SSH Configuration",
+                "Collect SSH configuration and host metadata.",
+                CapabilityCategory::Authentication,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1552"],
+                "collect_auth_policy",
+                true,
+            ),
+            Capability::new(
+                "auth.ssh.authorized.keys",
+                "Authorized Keys",
+                "Collect SSH authorized key metadata without exposing secrets.",
+                CapabilityCategory::Authentication,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1552"],
+                "collect_auth_policy",
+                true,
+            ),
+            Capability::new(
+                "auth.ssh.known.hosts",
+                "Known Hosts",
+                "Collect SSH known-host metadata.",
+                CapabilityCategory::Authentication,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1552"],
+                "collect_auth_policy",
+                true,
+            ),
+            Capability::new(
+                "auth.password.policy",
+                "Password Policy",
+                "Collect local password and account policy metadata.",
+                CapabilityCategory::Authentication,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1204"],
+                "collect_auth_policy",
+                true,
+            ),
+            Capability::new(
+                "auth.sudoers",
+                "Sudoers",
+                "Collect sudoers configuration and delegation metadata.",
+                CapabilityCategory::Authentication,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1548"],
+                "collect_auth_policy",
+                true,
+            ),
+            Capability::new(
+                "auth.pam",
+                "PAM Configuration",
+                "Read PAM configuration metadata for authentication flows.",
+                CapabilityCategory::Authentication,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1556"],
+                "collect_auth_policy",
+                true,
+            ),
+            Capability::new(
+                "auth.windows.logon",
+                "Windows Logons",
+                "Collect Windows logon metadata via native event sources.",
+                CapabilityCategory::Authentication,
+                Platform::Windows,
+                PrivilegeLevel::Admin,
+                &["T1110"],
+                "collect_windows_logon_events",
+                true,
+            ),
         ];
         self.register_named_capabilities(&entries);
     }
 
     fn register_service_and_persistence_capabilities(&mut self) {
         let entries = [
-            Capability::new("service.list", "Service Inventory", "Enumerate installed services and runtime state.", CapabilityCategory::Service, Platform::Both, PrivilegeLevel::User, &["T1543"], "enumerate_services", true),
-            Capability::new("service.name", "Service Name", "Collect the service name and display name metadata.", CapabilityCategory::Service, Platform::Both, PrivilegeLevel::User, &["T1543"], "enumerate_services", true),
-            Capability::new("service.state", "Service State", "Collect the current start state of each service.", CapabilityCategory::Service, Platform::Both, PrivilegeLevel::User, &["T1543"], "enumerate_services", true),
-            Capability::new("service.binary.path", "Service Binary", "Capture the executable path used by each service.", CapabilityCategory::Service, Platform::Both, PrivilegeLevel::User, &["T1543"], "enumerate_services", true),
-            Capability::new("service.account", "Service Account", "Collect the account used to run each service.", CapabilityCategory::Service, Platform::Both, PrivilegeLevel::User, &["T1543"], "enumerate_services", true),
-            Capability::new("service.dependencies", "Service Dependencies", "Collect dependent service chains and startup order.", CapabilityCategory::Service, Platform::Both, PrivilegeLevel::User, &["T1543"], "enumerate_services", true),
-            Capability::new("service.start.mode", "Service Start Mode", "Collect start-mode classifications and service triggers.", CapabilityCategory::Service, Platform::Both, PrivilegeLevel::User, &["T1543"], "enumerate_services", true),
-            Capability::new("service.driver.list", "Driver Inventory", "Enumerate kernel drivers and installed driver metadata.", CapabilityCategory::Service, Platform::Both, PrivilegeLevel::User, &["T1014"], "enumerate_drivers", true),
-            Capability::new("service.systemd.units", "Systemd Units", "Enumerate systemd unit inventory and metadata.", CapabilityCategory::Service, Platform::Linux, PrivilegeLevel::User, &["T1543"], "enumerate_systemd_units", true),
-            Capability::new("persistence.run", "Run Keys", "Collect Run and RunOnce registry persistence locations.", CapabilityCategory::Persistence, Platform::Windows, PrivilegeLevel::User, &["T1547"], "collect_autostart_entries", true),
-            Capability::new("persistence.startup.folder", "Startup Folder", "Enumerate startup directory persistence entries.", CapabilityCategory::Persistence, Platform::Both, PrivilegeLevel::User, &["T1547"], "collect_autostart_entries", true),
-            Capability::new("persistence.scheduled.task", "Scheduled Tasks", "Enumerate scheduled tasks and task actions.", CapabilityCategory::Persistence, Platform::Both, PrivilegeLevel::User, &["T1053"], "collect_autostart_entries", true),
-            Capability::new("persistence.cron", "Cron Entries", "Enumerate cron and crontab persistence artifacts.", CapabilityCategory::Persistence, Platform::Linux, PrivilegeLevel::User, &["T1053"], "collect_autostart_entries", true),
-            Capability::new("persistence.systemd.timer", "Systemd Timers", "Enumerate systemd timer persistence entries.", CapabilityCategory::Persistence, Platform::Linux, PrivilegeLevel::User, &["T1053"], "collect_autostart_entries", true),
-            Capability::new("persistence.shell.profile", "Shell Profiles", "Collect shell profile and login script persistence metadata.", CapabilityCategory::Persistence, Platform::Both, PrivilegeLevel::User, &["T1547"], "collect_autostart_entries", true),
-            Capability::new("persistence.wmi", "WMI Persistence", "Collect WMI persistence subscriptions when present.", CapabilityCategory::Persistence, Platform::Windows, PrivilegeLevel::Admin, &["T1546"], "collect_autostart_entries", true),
-            Capability::new("persistence.ssh", "SSH Persistence", "Collect SSH configuration and key-based persistence metadata.", CapabilityCategory::Persistence, Platform::Linux, PrivilegeLevel::User, &["T1098"], "collect_autostart_entries", true),
-            Capability::new("persistence.winlogon", "Winlogon", "Collect Winlogon startup configuration metadata.", CapabilityCategory::Persistence, Platform::Windows, PrivilegeLevel::User, &["T1547"], "collect_autostart_entries", true),
-            Capability::new("persistence.ifeo", "IFEO", "Collect Image File Execution Options persistence metadata.", CapabilityCategory::Persistence, Platform::Windows, PrivilegeLevel::User, &["T1546"], "collect_autostart_entries", true),
-            Capability::new("persistence.appinit", "AppInit", "Collect AppInit DLL persistence metadata.", CapabilityCategory::Persistence, Platform::Windows, PrivilegeLevel::User, &["T1546"], "collect_autostart_entries", true),
+            Capability::new(
+                "service.list",
+                "Service Inventory",
+                "Enumerate installed services and runtime state.",
+                CapabilityCategory::Service,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1543"],
+                "enumerate_services",
+                true,
+            ),
+            Capability::new(
+                "service.name",
+                "Service Name",
+                "Collect the service name and display name metadata.",
+                CapabilityCategory::Service,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1543"],
+                "enumerate_services",
+                true,
+            ),
+            Capability::new(
+                "service.state",
+                "Service State",
+                "Collect the current start state of each service.",
+                CapabilityCategory::Service,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1543"],
+                "enumerate_services",
+                true,
+            ),
+            Capability::new(
+                "service.binary.path",
+                "Service Binary",
+                "Capture the executable path used by each service.",
+                CapabilityCategory::Service,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1543"],
+                "enumerate_services",
+                true,
+            ),
+            Capability::new(
+                "service.account",
+                "Service Account",
+                "Collect the account used to run each service.",
+                CapabilityCategory::Service,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1543"],
+                "enumerate_services",
+                true,
+            ),
+            Capability::new(
+                "service.dependencies",
+                "Service Dependencies",
+                "Collect dependent service chains and startup order.",
+                CapabilityCategory::Service,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1543"],
+                "enumerate_services",
+                true,
+            ),
+            Capability::new(
+                "service.start.mode",
+                "Service Start Mode",
+                "Collect start-mode classifications and service triggers.",
+                CapabilityCategory::Service,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1543"],
+                "enumerate_services",
+                true,
+            ),
+            Capability::new(
+                "service.driver.list",
+                "Driver Inventory",
+                "Enumerate kernel drivers and installed driver metadata.",
+                CapabilityCategory::Service,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1014"],
+                "enumerate_drivers",
+                true,
+            ),
+            Capability::new(
+                "service.systemd.units",
+                "Systemd Units",
+                "Enumerate systemd unit inventory and metadata.",
+                CapabilityCategory::Service,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1543"],
+                "enumerate_systemd_units",
+                true,
+            ),
+            Capability::new(
+                "persistence.run",
+                "Run Keys",
+                "Collect Run and RunOnce registry persistence locations.",
+                CapabilityCategory::Persistence,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1547"],
+                "collect_autostart_entries",
+                true,
+            ),
+            Capability::new(
+                "persistence.startup.folder",
+                "Startup Folder",
+                "Enumerate startup directory persistence entries.",
+                CapabilityCategory::Persistence,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1547"],
+                "collect_autostart_entries",
+                true,
+            ),
+            Capability::new(
+                "persistence.scheduled.task",
+                "Scheduled Tasks",
+                "Enumerate scheduled tasks and task actions.",
+                CapabilityCategory::Persistence,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1053"],
+                "collect_autostart_entries",
+                true,
+            ),
+            Capability::new(
+                "persistence.cron",
+                "Cron Entries",
+                "Enumerate cron and crontab persistence artifacts.",
+                CapabilityCategory::Persistence,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1053"],
+                "collect_autostart_entries",
+                true,
+            ),
+            Capability::new(
+                "persistence.systemd.timer",
+                "Systemd Timers",
+                "Enumerate systemd timer persistence entries.",
+                CapabilityCategory::Persistence,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1053"],
+                "collect_autostart_entries",
+                true,
+            ),
+            Capability::new(
+                "persistence.shell.profile",
+                "Shell Profiles",
+                "Collect shell profile and login script persistence metadata.",
+                CapabilityCategory::Persistence,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1547"],
+                "collect_autostart_entries",
+                true,
+            ),
+            Capability::new(
+                "persistence.wmi",
+                "WMI Persistence",
+                "Collect WMI persistence subscriptions when present.",
+                CapabilityCategory::Persistence,
+                Platform::Windows,
+                PrivilegeLevel::Admin,
+                &["T1546"],
+                "collect_autostart_entries",
+                true,
+            ),
+            Capability::new(
+                "persistence.ssh",
+                "SSH Persistence",
+                "Collect SSH configuration and key-based persistence metadata.",
+                CapabilityCategory::Persistence,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1098"],
+                "collect_autostart_entries",
+                true,
+            ),
+            Capability::new(
+                "persistence.winlogon",
+                "Winlogon",
+                "Collect Winlogon startup configuration metadata.",
+                CapabilityCategory::Persistence,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1547"],
+                "collect_autostart_entries",
+                true,
+            ),
+            Capability::new(
+                "persistence.ifeo",
+                "IFEO",
+                "Collect Image File Execution Options persistence metadata.",
+                CapabilityCategory::Persistence,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1546"],
+                "collect_autostart_entries",
+                true,
+            ),
+            Capability::new(
+                "persistence.appinit",
+                "AppInit",
+                "Collect AppInit DLL persistence metadata.",
+                CapabilityCategory::Persistence,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1546"],
+                "collect_autostart_entries",
+                true,
+            ),
         ];
         self.register_named_capabilities(&entries);
     }
 
     fn register_network_capabilities(&mut self) {
         let entries = [
-            Capability::new("network.interfaces", "Interface Inventory", "Collect network interfaces and basic metadata.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1016"], "enumerate_connections", true),
-            Capability::new("network.interface.addresses", "Interface Addresses", "Collect IPv4 and IPv6 addresses for active interfaces.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1016"], "enumerate_connections", true),
-            Capability::new("network.mac", "MAC Addresses", "Collect interface MAC addresses and driver metadata.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1016"], "enumerate_connections", true),
-            Capability::new("network.routes", "Route Table", "Collect IPv4 and IPv6 routes and gateway metadata.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1016"], "enumerate_connections", true),
-            Capability::new("network.arp", "ARP Table", "Collect neighbor cache metadata and link-layer mappings.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1016"], "enumerate_connections", true),
-            Capability::new("network.dns.servers", "DNS Servers", "Collect configured DNS server settings.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1016"], "enumerate_connections", true),
-            Capability::new("network.dns.cache", "DNS Cache", "Collect cached DNS entries when available on the host.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1016"], "enumerate_connections", true),
-            Capability::new("network.hosts", "Hosts File", "Collect hosts file entries and custom name resolution metadata.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1016"], "enumerate_connections", true),
-            Capability::new("network.connections.active", "Active Connections", "Enumerate active TCP and UDP connections.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1049"], "enumerate_connections", true),
-            Capability::new("network.listening.ports", "Listening Ports", "Enumerate local listening sockets and bound addresses.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1049"], "enumerate_connections", true),
-            Capability::new("network.tcp", "TCP Connections", "Collect TCP state, endpoints, and process ownership metadata.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1049"], "enumerate_connections", true),
-            Capability::new("network.udp", "UDP Connections", "Collect UDP sockets and endpoint metadata.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1049"], "enumerate_connections", true),
-            Capability::new("network.process.relationships", "Process Relationships", "Map socket ownership to associated processes.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1049"], "enumerate_connections", true),
-            Capability::new("network.proxy", "Proxy Configuration", "Collect proxy configuration metadata.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1016"], "enumerate_connections", true),
-            Capability::new("network.vpn", "VPN Metadata", "Collect VPN configuration and tunnel metadata when available.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1016"], "enumerate_connections", true),
-            Capability::new("network.firewall.policy", "Firewall Policy", "Collect firewall configuration and rule metadata.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::Admin, &["T1562"], "enumerate_connections", true),
-            Capability::new("network.shares", "Network Shares", "Collect SMB or remote share metadata.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1021"], "enumerate_connections", true),
-            Capability::new("network.listeners", "Suspicious Listeners", "Identify unexpected listening services and unusual binds.", CapabilityCategory::Network, Platform::Both, PrivilegeLevel::User, &["T1049"], "enumerate_connections", true),
+            Capability::new(
+                "network.interfaces",
+                "Interface Inventory",
+                "Collect network interfaces and basic metadata.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1016"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.interface.addresses",
+                "Interface Addresses",
+                "Collect IPv4 and IPv6 addresses for active interfaces.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1016"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.mac",
+                "MAC Addresses",
+                "Collect interface MAC addresses and driver metadata.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1016"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.routes",
+                "Route Table",
+                "Collect IPv4 and IPv6 routes and gateway metadata.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1016"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.arp",
+                "ARP Table",
+                "Collect neighbor cache metadata and link-layer mappings.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1016"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.dns.servers",
+                "DNS Servers",
+                "Collect configured DNS server settings.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1016"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.dns.cache",
+                "DNS Cache",
+                "Collect cached DNS entries when available on the host.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1016"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.hosts",
+                "Hosts File",
+                "Collect hosts file entries and custom name resolution metadata.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1016"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.connections.active",
+                "Active Connections",
+                "Enumerate active TCP and UDP connections.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1049"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.listening.ports",
+                "Listening Ports",
+                "Enumerate local listening sockets and bound addresses.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1049"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.tcp",
+                "TCP Connections",
+                "Collect TCP state, endpoints, and process ownership metadata.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1049"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.udp",
+                "UDP Connections",
+                "Collect UDP sockets and endpoint metadata.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1049"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.process.relationships",
+                "Process Relationships",
+                "Map socket ownership to associated processes.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1049"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.proxy",
+                "Proxy Configuration",
+                "Collect proxy configuration metadata.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1016"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.vpn",
+                "VPN Metadata",
+                "Collect VPN configuration and tunnel metadata when available.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1016"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.firewall.policy",
+                "Firewall Policy",
+                "Collect firewall configuration and rule metadata.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::Admin,
+                &["T1562"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.shares",
+                "Network Shares",
+                "Collect SMB or remote share metadata.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1021"],
+                "enumerate_connections",
+                true,
+            ),
+            Capability::new(
+                "network.listeners",
+                "Suspicious Listeners",
+                "Identify unexpected listening services and unusual binds.",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1049"],
+                "enumerate_connections",
+                true,
+            ),
         ];
         self.register_named_capabilities(&entries);
     }
 
     fn register_filesystem_capabilities(&mut self) {
         let entries = [
-            Capability::new("filesystem.enumerate", "Filesystem Enumeration", "Enumerate discovered files and directories.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1083"], "enumerate_files", true),
-            Capability::new("filesystem.path", "File Paths", "Collect file and directory paths for forensic review.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1083"], "enumerate_files", true),
-            Capability::new("filesystem.size", "File Sizes", "Collect file size metadata for suspicious or large artifacts.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1083"], "enumerate_files", true),
-            Capability::new("filesystem.timestamps", "File Timestamps", "Collect creation, modification, and access timestamps.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1083"], "enumerate_files", true),
-            Capability::new("filesystem.permissions", "Permissions", "Collect permission bits and ownership metadata.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1083"], "enumerate_files", true),
-            Capability::new("filesystem.owner", "Ownership", "Collect user and group ownership metadata.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1083"], "enumerate_files", true),
-            Capability::new("filesystem.type", "File Type", "Identify file and directory types for triage.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1083"], "enumerate_files", true),
-            Capability::new("filesystem.hidden", "Hidden Files", "Capture hidden and dot-prefixed entries.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1083"], "enumerate_files", true),
-            Capability::new("filesystem.links", "Symlinks", "Enumerate symlinks and link targets.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1083"], "enumerate_files", true),
-            Capability::new("filesystem.executable", "Executable Detection", "Flag executable and script file entries.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1036"], "enumerate_files", true),
-            Capability::new("filesystem.hash.sha256", "SHA-256 Hashes", "Compute SHA-256 hashes for files and evidence items.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1027"], "enumerate_files", true),
-            Capability::new("filesystem.hash.sha1", "SHA-1 Hashes", "Compute legacy SHA-1 hashes where required for correlation.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1027"], "enumerate_files", true),
-            Capability::new("filesystem.hash.md5", "MD5 Hashes", "Compute MD5 values for legacy sample matching and triage.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1027"], "enumerate_files", true),
-            Capability::new("filesystem.recent", "Recent Files", "Collect recently modified and created artifacts.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1083"], "enumerate_files", true),
-            Capability::new("filesystem.mounts", "Mount Metadata", "Collect filesystem mount metadata and labels.", CapabilityCategory::Filesystem, Platform::Both, PrivilegeLevel::User, &["T1083"], "enumerate_mounts", true),
-            Capability::new("filesystem.alternate.data.streams", "ADS Metadata", "Identify alternate data streams on supported filesystems.", CapabilityCategory::Filesystem, Platform::Windows, PrivilegeLevel::User, &["T1564"], "enumerate_files", true),
-            Capability::new("filesystem.deleted.open", "Deleted-But-Open Files", "Identify file handles to deleted content when exposed by the OS.", CapabilityCategory::Filesystem, Platform::Linux, PrivilegeLevel::User, &["T1083"], "enumerate_files", true),
+            Capability::new(
+                "filesystem.enumerate",
+                "Filesystem Enumeration",
+                "Enumerate discovered files and directories.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.path",
+                "File Paths",
+                "Collect file and directory paths for forensic review.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.size",
+                "File Sizes",
+                "Collect file size metadata for suspicious or large artifacts.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.timestamps",
+                "File Timestamps",
+                "Collect creation, modification, and access timestamps.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.permissions",
+                "Permissions",
+                "Collect permission bits and ownership metadata.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.owner",
+                "Ownership",
+                "Collect user and group ownership metadata.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.type",
+                "File Type",
+                "Identify file and directory types for triage.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.hidden",
+                "Hidden Files",
+                "Capture hidden and dot-prefixed entries.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.links",
+                "Symlinks",
+                "Enumerate symlinks and link targets.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.executable",
+                "Executable Detection",
+                "Flag executable and script file entries.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1036"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.hash.sha256",
+                "SHA-256 Hashes",
+                "Compute SHA-256 hashes for files and evidence items.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1027"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.hash.sha1",
+                "SHA-1 Hashes",
+                "Compute legacy SHA-1 hashes where required for correlation.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1027"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.hash.md5",
+                "MD5 Hashes",
+                "Compute MD5 values for legacy sample matching and triage.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1027"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.recent",
+                "Recent Files",
+                "Collect recently modified and created artifacts.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.mounts",
+                "Mount Metadata",
+                "Collect filesystem mount metadata and labels.",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_mounts",
+                true,
+            ),
+            Capability::new(
+                "filesystem.alternate.data.streams",
+                "ADS Metadata",
+                "Identify alternate data streams on supported filesystems.",
+                CapabilityCategory::Filesystem,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1564"],
+                "enumerate_files",
+                true,
+            ),
+            Capability::new(
+                "filesystem.deleted.open",
+                "Deleted-But-Open Files",
+                "Identify file handles to deleted content when exposed by the OS.",
+                CapabilityCategory::Filesystem,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_files",
+                true,
+            ),
         ];
         self.register_named_capabilities(&entries);
     }
 
     fn register_windows_artifact_capabilities(&mut self) {
         let entries = [
-            Capability::new("artifact.prefetch", "Prefetch Inventory", "Collect Prefetch metadata for executable execution history.", CapabilityCategory::WindowsArtifact, Platform::Windows, PrivilegeLevel::User, &["T1057"], "carve_prefetch", true),
-            Capability::new("artifact.lnk", "LNK Inventory", "Collect LNK shortcut metadata and target path details.", CapabilityCategory::WindowsArtifact, Platform::Windows, PrivilegeLevel::User, &["T1057"], "carve_lnk_files", true),
-            Capability::new("artifact.recycle.bin", "Recycle Bin Inventory", "Collect Recycle Bin metadata for deleted file evidence.", CapabilityCategory::WindowsArtifact, Platform::Windows, PrivilegeLevel::User, &["T1070"], "carve_recycle_bin", true),
-            Capability::new("artifact.shellbags", "Shellbags", "Collect Shellbag metadata for folder access history.", CapabilityCategory::WindowsArtifact, Platform::Windows, PrivilegeLevel::User, &["T1083"], "carve_shellbags", true),
-            Capability::new("artifact.jump.lists", "Jump Lists", "Collect Jump List metadata for recent file usage history.", CapabilityCategory::WindowsArtifact, Platform::Windows, PrivilegeLevel::User, &["T1057"], "carve_jumplists", true),
-            Capability::new("artifact.amcache", "Amcache Inventory", "Collect Amcache execution metadata and file hashes.", CapabilityCategory::WindowsArtifact, Platform::Windows, PrivilegeLevel::Admin, &["T1057"], "carve_amcache", true),
-            Capability::new("artifact.srum", "SRUM Inventory", "Collect SRUM application and resource usage records.", CapabilityCategory::WindowsArtifact, Platform::Windows, PrivilegeLevel::Admin, &["T1057"], "carve_srum", true),
-            Capability::new("artifact.etw", "ETW Inventory", "Collect ETW-oriented telemetry metadata when available.", CapabilityCategory::WindowsArtifact, Platform::Windows, PrivilegeLevel::Admin, &["T1562"], "collect_etw_logs", true),
-            Capability::new("artifact.event.logs", "Event Logs", "Collect Windows event log metadata for authentication and process activity.", CapabilityCategory::WindowsArtifact, Platform::Windows, PrivilegeLevel::Admin, &["T1562"], "carve_prefetch", true),
-            Capability::new("artifact.recent.files", "Recent Files", "Collect recent document metadata from Windows user artifacts.", CapabilityCategory::WindowsArtifact, Platform::Windows, PrivilegeLevel::User, &["T1070"], "carve_lnk_files", true),
+            Capability::new(
+                "artifact.prefetch",
+                "Prefetch Inventory",
+                "Collect Prefetch metadata for executable execution history.",
+                CapabilityCategory::WindowsArtifact,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "carve_prefetch",
+                true,
+            ),
+            Capability::new(
+                "artifact.lnk",
+                "LNK Inventory",
+                "Collect LNK shortcut metadata and target path details.",
+                CapabilityCategory::WindowsArtifact,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "carve_lnk_files",
+                true,
+            ),
+            Capability::new(
+                "artifact.recycle.bin",
+                "Recycle Bin Inventory",
+                "Collect Recycle Bin metadata for deleted file evidence.",
+                CapabilityCategory::WindowsArtifact,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1070"],
+                "carve_recycle_bin",
+                true,
+            ),
+            Capability::new(
+                "artifact.shellbags",
+                "Shellbags",
+                "Collect Shellbag metadata for folder access history.",
+                CapabilityCategory::WindowsArtifact,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "carve_shellbags",
+                true,
+            ),
+            Capability::new(
+                "artifact.jump.lists",
+                "Jump Lists",
+                "Collect Jump List metadata for recent file usage history.",
+                CapabilityCategory::WindowsArtifact,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "carve_jumplists",
+                true,
+            ),
+            Capability::new(
+                "artifact.amcache",
+                "Amcache Inventory",
+                "Collect Amcache execution metadata and file hashes.",
+                CapabilityCategory::WindowsArtifact,
+                Platform::Windows,
+                PrivilegeLevel::Admin,
+                &["T1057"],
+                "carve_amcache",
+                true,
+            ),
+            Capability::new(
+                "artifact.srum",
+                "SRUM Inventory",
+                "Collect SRUM application and resource usage records.",
+                CapabilityCategory::WindowsArtifact,
+                Platform::Windows,
+                PrivilegeLevel::Admin,
+                &["T1057"],
+                "carve_srum",
+                true,
+            ),
+            Capability::new(
+                "artifact.etw",
+                "ETW Inventory",
+                "Collect ETW-oriented telemetry metadata when available.",
+                CapabilityCategory::WindowsArtifact,
+                Platform::Windows,
+                PrivilegeLevel::Admin,
+                &["T1562"],
+                "collect_etw_logs",
+                true,
+            ),
+            Capability::new(
+                "artifact.event.logs",
+                "Event Logs",
+                "Collect Windows event log metadata for authentication and process activity.",
+                CapabilityCategory::WindowsArtifact,
+                Platform::Windows,
+                PrivilegeLevel::Admin,
+                &["T1562"],
+                "carve_prefetch",
+                true,
+            ),
+            Capability::new(
+                "artifact.recent.files",
+                "Recent Files",
+                "Collect recent document metadata from Windows user artifacts.",
+                CapabilityCategory::WindowsArtifact,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1070"],
+                "carve_lnk_files",
+                true,
+            ),
         ];
         self.register_named_capabilities(&entries);
     }
 
     fn register_linux_artifact_capabilities(&mut self) {
         let entries = [
-            Capability::new("artifact.shell.history", "Shell History", "Collect shell history data and commands from user profiles.", CapabilityCategory::LinuxArtifact, Platform::Linux, PrivilegeLevel::User, &["T1552"], "carve_shell_history", true),
-            Capability::new("artifact.cron", "Cron Artifacts", "Collect system and user cron entries and schedules.", CapabilityCategory::LinuxArtifact, Platform::Linux, PrivilegeLevel::User, &["T1053"], "carve_cron_entries", true),
-            Capability::new("artifact.systemd", "Systemd Units", "Collect systemd unit definitions and service metadata.", CapabilityCategory::LinuxArtifact, Platform::Linux, PrivilegeLevel::User, &["T1543"], "carve_systemd_units", true),
-            Capability::new("artifact.ssh", "SSH Artifacts", "Collect SSH config, known_hosts, and related metadata.", CapabilityCategory::LinuxArtifact, Platform::Linux, PrivilegeLevel::User, &["T1552"], "carve_ssh_config", true),
-            Capability::new("artifact.auth.logs", "Auth Logs", "Collect authentication and authorization log inventory.", CapabilityCategory::LinuxArtifact, Platform::Linux, PrivilegeLevel::User, &["T1110"], "collect_logs", true),
-            Capability::new("artifact.journal", "Journal Inventory", "Collect journald metadata and log source inventory.", CapabilityCategory::LinuxArtifact, Platform::Linux, PrivilegeLevel::User, &["T1562"], "collect_logs", true),
-            Capability::new("artifact.auditd", "Auditd Inventory", "Collect auditd configuration and log source inventory.", CapabilityCategory::LinuxArtifact, Platform::Linux, PrivilegeLevel::User, &["T1562"], "collect_logs", true),
-            Capability::new("artifact.sudo", "Sudo Logs", "Collect sudo authority and command logging metadata.", CapabilityCategory::LinuxArtifact, Platform::Linux, PrivilegeLevel::User, &["T1548"], "collect_logs", true),
-            Capability::new("artifact.bash.history", "Bash History", "Collect shell command history for current users.", CapabilityCategory::LinuxArtifact, Platform::Linux, PrivilegeLevel::User, &["T1552"], "carve_shell_history", true),
-            Capability::new("artifact.zsh.history", "Zsh History", "Collect zsh command history when present.", CapabilityCategory::LinuxArtifact, Platform::Linux, PrivilegeLevel::User, &["T1552"], "carve_shell_history", true),
-            Capability::new("artifact.login.config", "Login Configuration", "Collect login policy and login shell configuration metadata.", CapabilityCategory::LinuxArtifact, Platform::Linux, PrivilegeLevel::User, &["T1078"], "collect_logs", true),
+            Capability::new(
+                "artifact.shell.history",
+                "Shell History",
+                "Collect shell history data and commands from user profiles.",
+                CapabilityCategory::LinuxArtifact,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1552"],
+                "carve_shell_history",
+                true,
+            ),
+            Capability::new(
+                "artifact.cron",
+                "Cron Artifacts",
+                "Collect system and user cron entries and schedules.",
+                CapabilityCategory::LinuxArtifact,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1053"],
+                "carve_cron_entries",
+                true,
+            ),
+            Capability::new(
+                "artifact.systemd",
+                "Systemd Units",
+                "Collect systemd unit definitions and service metadata.",
+                CapabilityCategory::LinuxArtifact,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1543"],
+                "carve_systemd_units",
+                true,
+            ),
+            Capability::new(
+                "artifact.ssh",
+                "SSH Artifacts",
+                "Collect SSH config, known_hosts, and related metadata.",
+                CapabilityCategory::LinuxArtifact,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1552"],
+                "carve_ssh_config",
+                true,
+            ),
+            Capability::new(
+                "artifact.auth.logs",
+                "Auth Logs",
+                "Collect authentication and authorization log inventory.",
+                CapabilityCategory::LinuxArtifact,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1110"],
+                "collect_logs",
+                true,
+            ),
+            Capability::new(
+                "artifact.journal",
+                "Journal Inventory",
+                "Collect journald metadata and log source inventory.",
+                CapabilityCategory::LinuxArtifact,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1562"],
+                "collect_logs",
+                true,
+            ),
+            Capability::new(
+                "artifact.auditd",
+                "Auditd Inventory",
+                "Collect auditd configuration and log source inventory.",
+                CapabilityCategory::LinuxArtifact,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1562"],
+                "collect_logs",
+                true,
+            ),
+            Capability::new(
+                "artifact.sudo",
+                "Sudo Logs",
+                "Collect sudo authority and command logging metadata.",
+                CapabilityCategory::LinuxArtifact,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1548"],
+                "collect_logs",
+                true,
+            ),
+            Capability::new(
+                "artifact.bash.history",
+                "Bash History",
+                "Collect shell command history for current users.",
+                CapabilityCategory::LinuxArtifact,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1552"],
+                "carve_shell_history",
+                true,
+            ),
+            Capability::new(
+                "artifact.zsh.history",
+                "Zsh History",
+                "Collect zsh command history when present.",
+                CapabilityCategory::LinuxArtifact,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1552"],
+                "carve_shell_history",
+                true,
+            ),
+            Capability::new(
+                "artifact.login.config",
+                "Login Configuration",
+                "Collect login policy and login shell configuration metadata.",
+                CapabilityCategory::LinuxArtifact,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1078"],
+                "collect_logs",
+                true,
+            ),
         ];
         self.register_named_capabilities(&entries);
     }
 
     fn register_driver_security_capabilities(&mut self) {
         let entries = [
-            Capability::new("kernel.modules", "Kernel Modules", "Enumerate loaded kernel modules and metadata.", CapabilityCategory::KernelDriver, Platform::Both, PrivilegeLevel::User, &["T1014"], "enumerate_modules", true),
-            Capability::new("kernel.module.paths", "Module Paths", "Capture kernel module file paths and dependencies.", CapabilityCategory::KernelDriver, Platform::Both, PrivilegeLevel::User, &["T1014"], "enumerate_modules", true),
-            Capability::new("kernel.module.params", "Module Parameters", "Collect module parameters and configuration values.", CapabilityCategory::KernelDriver, Platform::Both, PrivilegeLevel::User, &["T1014"], "enumerate_modules", true),
-            Capability::new("kernel.module.version", "Module Versions", "Collect loaded module version information.", CapabilityCategory::KernelDriver, Platform::Both, PrivilegeLevel::User, &["T1014"], "enumerate_modules", true),
-            Capability::new("kernel.module.signatures", "Module Signatures", "Collect signature state when available from the platform.", CapabilityCategory::KernelDriver, Platform::Both, PrivilegeLevel::User, &["T1014"], "enumerate_modules", true),
-            Capability::new("kernel.module.hashes", "Kernel Hashes", "Capture module file hashes for integrity review.", CapabilityCategory::KernelDriver, Platform::Both, PrivilegeLevel::User, &["T1014"], "enumerate_modules", true),
-            Capability::new("security.audit.policy", "Audit Policy", "Collect audit policy metadata and log configuration.", CapabilityCategory::SecurityConfig, Platform::Both, PrivilegeLevel::Admin, &["T1562"], "collect_audit_policy", true),
-            Capability::new("security.antivirus", "AV Inventory", "Inventory security products and signatures when available.", CapabilityCategory::SecurityConfig, Platform::Both, PrivilegeLevel::User, &["T1562"], "detect_av_edr", true),
-            Capability::new("security.firewall", "Firewall State", "Collect local firewall configuration and rule state.", CapabilityCategory::SecurityConfig, Platform::Both, PrivilegeLevel::Admin, &["T1562"], "collect_firewall_rules", true),
-            Capability::new("security.selinux", "SELinux State", "Collect SELinux enforcement metadata when available.", CapabilityCategory::SecurityConfig, Platform::Linux, PrivilegeLevel::User, &["T1562"], "collect_app_control", true),
-            Capability::new("security.apparmor", "AppArmor State", "Collect AppArmor policy metadata when available.", CapabilityCategory::SecurityConfig, Platform::Linux, PrivilegeLevel::User, &["T1562"], "collect_app_control", true),
-            Capability::new("security.policy", "Security Policy", "Collect application control and local policy metadata.", CapabilityCategory::SecurityConfig, Platform::Both, PrivilegeLevel::Admin, &["T1562"], "collect_app_control", true),
-            Capability::new("security.update.state", "Update State", "Collect general update and patch status metadata.", CapabilityCategory::SecurityConfig, Platform::Both, PrivilegeLevel::User, &["T1562"], "detect_av_edr", true),
+            Capability::new(
+                "kernel.modules",
+                "Kernel Modules",
+                "Enumerate loaded kernel modules and metadata.",
+                CapabilityCategory::KernelDriver,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1014"],
+                "enumerate_modules",
+                true,
+            ),
+            Capability::new(
+                "kernel.module.paths",
+                "Module Paths",
+                "Capture kernel module file paths and dependencies.",
+                CapabilityCategory::KernelDriver,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1014"],
+                "enumerate_modules",
+                true,
+            ),
+            Capability::new(
+                "kernel.module.params",
+                "Module Parameters",
+                "Collect module parameters and configuration values.",
+                CapabilityCategory::KernelDriver,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1014"],
+                "enumerate_modules",
+                true,
+            ),
+            Capability::new(
+                "kernel.module.version",
+                "Module Versions",
+                "Collect loaded module version information.",
+                CapabilityCategory::KernelDriver,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1014"],
+                "enumerate_modules",
+                true,
+            ),
+            Capability::new(
+                "kernel.module.signatures",
+                "Module Signatures",
+                "Collect signature state when available from the platform.",
+                CapabilityCategory::KernelDriver,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1014"],
+                "enumerate_modules",
+                true,
+            ),
+            Capability::new(
+                "kernel.module.hashes",
+                "Kernel Hashes",
+                "Capture module file hashes for integrity review.",
+                CapabilityCategory::KernelDriver,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1014"],
+                "enumerate_modules",
+                true,
+            ),
+            Capability::new(
+                "security.audit.policy",
+                "Audit Policy",
+                "Collect audit policy metadata and log configuration.",
+                CapabilityCategory::SecurityConfig,
+                Platform::Both,
+                PrivilegeLevel::Admin,
+                &["T1562"],
+                "collect_audit_policy",
+                true,
+            ),
+            Capability::new(
+                "security.antivirus",
+                "AV Inventory",
+                "Inventory security products and signatures when available.",
+                CapabilityCategory::SecurityConfig,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1562"],
+                "detect_av_edr",
+                true,
+            ),
+            Capability::new(
+                "security.firewall",
+                "Firewall State",
+                "Collect local firewall configuration and rule state.",
+                CapabilityCategory::SecurityConfig,
+                Platform::Both,
+                PrivilegeLevel::Admin,
+                &["T1562"],
+                "collect_firewall_rules",
+                true,
+            ),
+            Capability::new(
+                "security.selinux",
+                "SELinux State",
+                "Collect SELinux enforcement metadata when available.",
+                CapabilityCategory::SecurityConfig,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1562"],
+                "collect_app_control",
+                true,
+            ),
+            Capability::new(
+                "security.apparmor",
+                "AppArmor State",
+                "Collect AppArmor policy metadata when available.",
+                CapabilityCategory::SecurityConfig,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1562"],
+                "collect_app_control",
+                true,
+            ),
+            Capability::new(
+                "security.policy",
+                "Security Policy",
+                "Collect application control and local policy metadata.",
+                CapabilityCategory::SecurityConfig,
+                Platform::Both,
+                PrivilegeLevel::Admin,
+                &["T1562"],
+                "collect_app_control",
+                true,
+            ),
+            Capability::new(
+                "security.update.state",
+                "Update State",
+                "Collect general update and patch status metadata.",
+                CapabilityCategory::SecurityConfig,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1562"],
+                "detect_av_edr",
+                true,
+            ),
         ];
         self.register_named_capabilities(&entries);
     }
 
     fn register_application_and_malware_capabilities(&mut self) {
         let entries = [
-            Capability::new("app.browser.inventory", "Browser Inventory", "Collect browser installation and profile inventory metadata.", CapabilityCategory::ApplicationArtifact, Platform::Both, PrivilegeLevel::User, &["T1555"], "carve_browser_artifacts", true),
-            Capability::new("app.browser.extensions", "Browser Extensions", "Collect browser extension metadata without exposing secrets.", CapabilityCategory::ApplicationArtifact, Platform::Both, PrivilegeLevel::User, &["T1555"], "carve_browser_artifacts", true),
-            Capability::new("app.browser.history", "Browser History", "Collect browser history metadata and recent URL access indicators.", CapabilityCategory::ApplicationArtifact, Platform::Both, PrivilegeLevel::User, &["T1555"], "carve_browser_artifacts", true),
-            Capability::new("app.browser.downloads", "Browser Downloads", "Collect browser download metadata without tokenizing secrets.", CapabilityCategory::ApplicationArtifact, Platform::Both, PrivilegeLevel::User, &["T1555"], "carve_browser_artifacts", true),
-            Capability::new("app.browser.cookies", "Browser Cookies", "Collect cookie metadata while avoiding secret exfiltration.", CapabilityCategory::ApplicationArtifact, Platform::Both, PrivilegeLevel::User, &["T1555"], "carve_browser_artifacts", true),
-            Capability::new("app.email", "Email Artifacts", "Collect email client metadata and storage inventory.", CapabilityCategory::ApplicationArtifact, Platform::Both, PrivilegeLevel::User, &["T1114"], "carve_email_artifacts", true),
-            Capability::new("app.office", "Office Artifacts", "Collect recent Office document metadata and macro indicators.", CapabilityCategory::ApplicationArtifact, Platform::Both, PrivilegeLevel::User, &["T1137"], "carve_office_artifacts", true),
-            Capability::new("script.powershell.metadata", "PowerShell Metadata", "Capture PowerShell script file metadata and interpreter usage.", CapabilityCategory::MaliciousScript, Platform::Windows, PrivilegeLevel::User, &["T1059.001"], "analyze_powershell_scripts", true),
-            Capability::new("script.bash.metadata", "Bash Metadata", "Capture bash script metadata and file attributes.", CapabilityCategory::MaliciousScript, Platform::Linux, PrivilegeLevel::User, &["T1059.004"], "analyze_shell_scripts", true),
-            Capability::new("script.python.metadata", "Python Metadata", "Capture Python script metadata and import usage.", CapabilityCategory::MaliciousScript, Platform::Both, PrivilegeLevel::User, &["T1059.006"], "analyze_python_scripts", true),
-            Capability::new("script.javascript.metadata", "JavaScript Metadata", "Capture JavaScript file metadata and entry points.", CapabilityCategory::MaliciousScript, Platform::Both, PrivilegeLevel::User, &["T1059.007"], "analyze_python_scripts", true),
-            Capability::new("script.cmd.metadata", "CMD Metadata", "Collect batch or cmd script metadata and execution patterns.", CapabilityCategory::MaliciousScript, Platform::Windows, PrivilegeLevel::User, &["T1059.003"], "analyze_powershell_scripts", true),
-            Capability::new("script.url.indicators", "URL Indicators", "Extract URL-like indicators from scripts for triage.", CapabilityCategory::MaliciousScript, Platform::Both, PrivilegeLevel::User, &["T1059"], "analyze_powershell_scripts", true),
-            Capability::new("script.ip.indicators", "IP Indicators", "Extract IP address indicators from scripts.", CapabilityCategory::MaliciousScript, Platform::Both, PrivilegeLevel::User, &["T1059"], "analyze_shell_scripts", true),
-            Capability::new("script.file.indicators", "File Path Indicators", "Extract filesystem and registry path indicators from scripts.", CapabilityCategory::MaliciousScript, Platform::Both, PrivilegeLevel::User, &["T1059"], "analyze_python_scripts", true),
-            Capability::new("script.environment.indicators", "Environment Indicators", "Extract environment variable references and startup patterns.", CapabilityCategory::MaliciousScript, Platform::Both, PrivilegeLevel::User, &["T1059"], "analyze_powershell_scripts", true),
-            Capability::new("script.obfuscation", "Obfuscation Indicators", "Flag encoded and obfuscated command patterns in scripts.", CapabilityCategory::MaliciousScript, Platform::Both, PrivilegeLevel::User, &["T1059"], "analyze_shell_scripts", true),
-            Capability::new("script.execution", "Execution Indicators", "Extract command execution indicators from scripts.", CapabilityCategory::MaliciousScript, Platform::Both, PrivilegeLevel::User, &["T1059"], "analyze_python_scripts", true),
-            Capability::new("script.persistence", "Persistence Indicators", "Flag startup or persistence patterns within scripts.", CapabilityCategory::MaliciousScript, Platform::Both, PrivilegeLevel::User, &["T1547"], "analyze_powershell_scripts", true),
-            Capability::new("file.pe.metadata", "PE Metadata", "Read PE file headers and section metadata from Windows binaries.", CapabilityCategory::FileBinaryMetadata, Platform::Windows, PrivilegeLevel::User, &["T1027"], "parse_pe_metadata", true),
-            Capability::new("file.elf.metadata", "ELF Metadata", "Read ELF header and section metadata from Linux binaries.", CapabilityCategory::FileBinaryMetadata, Platform::Linux, PrivilegeLevel::User, &["T1027"], "parse_elf_metadata", true),
-            Capability::new("file.hash.sha256", "PE/ELF SHA-256", "Compute SHA-256 for executable evidence files.", CapabilityCategory::FileBinaryMetadata, Platform::Both, PrivilegeLevel::User, &["T1027"], "hash_sha256", true),
-            Capability::new("file.entropy", "Entropy Analysis", "Measure Shannon entropy to spot packed or obfuscated binaries.", CapabilityCategory::FileBinaryMetadata, Platform::Both, PrivilegeLevel::User, &["T1027"], "analyze_file_entropy", true),
-            Capability::new("file.signature", "Signature Metadata", "Collect code-signing metadata and certificate state.", CapabilityCategory::FileBinaryMetadata, Platform::Both, PrivilegeLevel::User, &["T1553"], "verify_code_signature", true),
-            Capability::new("evidence.sha256", "Evidence Hashing", "Compute a SHA-256 hash for a forensic item.", CapabilityCategory::EvidenceIntegrity, Platform::Both, PrivilegeLevel::User, &[], "hash_sha256", true),
-            Capability::new("evidence.merkle", "Merkle Tree", "Build a canonical Merkle tree from evidence hashes.", CapabilityCategory::EvidenceIntegrity, Platform::Both, PrivilegeLevel::User, &[], "build_merkle_tree", true),
-            Capability::new("evidence.provenance", "Provenance Metadata", "Capture operator, host, source, and collection provenance.", CapabilityCategory::EvidenceIntegrity, Platform::Both, PrivilegeLevel::User, &[], "hash_sha256", true),
-            Capability::new("evidence.origin", "Evidence Origin", "Track whether evidence is real, simulated, imported, or derived.", CapabilityCategory::EvidenceIntegrity, Platform::Both, PrivilegeLevel::User, &[], "hash_sha256", true),
-            Capability::new("evidence.collector.status", "Collector Status", "Capture collector success, partial, failed, and unsupported state.", CapabilityCategory::EvidenceIntegrity, Platform::Both, PrivilegeLevel::User, &[], "hash_sha256", true),
+            Capability::new(
+                "app.browser.inventory",
+                "Browser Inventory",
+                "Collect browser installation and profile inventory metadata.",
+                CapabilityCategory::ApplicationArtifact,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1555"],
+                "carve_browser_artifacts",
+                true,
+            ),
+            Capability::new(
+                "app.browser.extensions",
+                "Browser Extensions",
+                "Collect browser extension metadata without exposing secrets.",
+                CapabilityCategory::ApplicationArtifact,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1555"],
+                "carve_browser_artifacts",
+                true,
+            ),
+            Capability::new(
+                "app.browser.history",
+                "Browser History",
+                "Collect browser history metadata and recent URL access indicators.",
+                CapabilityCategory::ApplicationArtifact,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1555"],
+                "carve_browser_artifacts",
+                true,
+            ),
+            Capability::new(
+                "app.browser.downloads",
+                "Browser Downloads",
+                "Collect browser download metadata without tokenizing secrets.",
+                CapabilityCategory::ApplicationArtifact,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1555"],
+                "carve_browser_artifacts",
+                true,
+            ),
+            Capability::new(
+                "app.browser.cookies",
+                "Browser Cookies",
+                "Collect cookie metadata while avoiding secret exfiltration.",
+                CapabilityCategory::ApplicationArtifact,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1555"],
+                "carve_browser_artifacts",
+                true,
+            ),
+            Capability::new(
+                "app.email",
+                "Email Artifacts",
+                "Collect email client metadata and storage inventory.",
+                CapabilityCategory::ApplicationArtifact,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1114"],
+                "carve_email_artifacts",
+                true,
+            ),
+            Capability::new(
+                "app.office",
+                "Office Artifacts",
+                "Collect recent Office document metadata and macro indicators.",
+                CapabilityCategory::ApplicationArtifact,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1137"],
+                "carve_office_artifacts",
+                true,
+            ),
+            Capability::new(
+                "script.powershell.metadata",
+                "PowerShell Metadata",
+                "Capture PowerShell script file metadata and interpreter usage.",
+                CapabilityCategory::MaliciousScript,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1059.001"],
+                "analyze_powershell_scripts",
+                true,
+            ),
+            Capability::new(
+                "script.bash.metadata",
+                "Bash Metadata",
+                "Capture bash script metadata and file attributes.",
+                CapabilityCategory::MaliciousScript,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1059.004"],
+                "analyze_shell_scripts",
+                true,
+            ),
+            Capability::new(
+                "script.python.metadata",
+                "Python Metadata",
+                "Capture Python script metadata and import usage.",
+                CapabilityCategory::MaliciousScript,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1059.006"],
+                "analyze_python_scripts",
+                true,
+            ),
+            Capability::new(
+                "script.javascript.metadata",
+                "JavaScript Metadata",
+                "Capture JavaScript file metadata and entry points.",
+                CapabilityCategory::MaliciousScript,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1059.007"],
+                "analyze_python_scripts",
+                true,
+            ),
+            Capability::new(
+                "script.cmd.metadata",
+                "CMD Metadata",
+                "Collect batch or cmd script metadata and execution patterns.",
+                CapabilityCategory::MaliciousScript,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1059.003"],
+                "analyze_powershell_scripts",
+                true,
+            ),
+            Capability::new(
+                "script.url.indicators",
+                "URL Indicators",
+                "Extract URL-like indicators from scripts for triage.",
+                CapabilityCategory::MaliciousScript,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1059"],
+                "analyze_powershell_scripts",
+                true,
+            ),
+            Capability::new(
+                "script.ip.indicators",
+                "IP Indicators",
+                "Extract IP address indicators from scripts.",
+                CapabilityCategory::MaliciousScript,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1059"],
+                "analyze_shell_scripts",
+                true,
+            ),
+            Capability::new(
+                "script.file.indicators",
+                "File Path Indicators",
+                "Extract filesystem and registry path indicators from scripts.",
+                CapabilityCategory::MaliciousScript,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1059"],
+                "analyze_python_scripts",
+                true,
+            ),
+            Capability::new(
+                "script.environment.indicators",
+                "Environment Indicators",
+                "Extract environment variable references and startup patterns.",
+                CapabilityCategory::MaliciousScript,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1059"],
+                "analyze_powershell_scripts",
+                true,
+            ),
+            Capability::new(
+                "script.obfuscation",
+                "Obfuscation Indicators",
+                "Flag encoded and obfuscated command patterns in scripts.",
+                CapabilityCategory::MaliciousScript,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1059"],
+                "analyze_shell_scripts",
+                true,
+            ),
+            Capability::new(
+                "script.execution",
+                "Execution Indicators",
+                "Extract command execution indicators from scripts.",
+                CapabilityCategory::MaliciousScript,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1059"],
+                "analyze_python_scripts",
+                true,
+            ),
+            Capability::new(
+                "script.persistence",
+                "Persistence Indicators",
+                "Flag startup or persistence patterns within scripts.",
+                CapabilityCategory::MaliciousScript,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1547"],
+                "analyze_powershell_scripts",
+                true,
+            ),
+            Capability::new(
+                "file.pe.metadata",
+                "PE Metadata",
+                "Read PE file headers and section metadata from Windows binaries.",
+                CapabilityCategory::FileBinaryMetadata,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1027"],
+                "parse_pe_metadata",
+                true,
+            ),
+            Capability::new(
+                "file.elf.metadata",
+                "ELF Metadata",
+                "Read ELF header and section metadata from Linux binaries.",
+                CapabilityCategory::FileBinaryMetadata,
+                Platform::Linux,
+                PrivilegeLevel::User,
+                &["T1027"],
+                "parse_elf_metadata",
+                true,
+            ),
+            Capability::new(
+                "file.hash.sha256",
+                "PE/ELF SHA-256",
+                "Compute SHA-256 for executable evidence files.",
+                CapabilityCategory::FileBinaryMetadata,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1027"],
+                "hash_sha256",
+                true,
+            ),
+            Capability::new(
+                "file.entropy",
+                "Entropy Analysis",
+                "Measure Shannon entropy to spot packed or obfuscated binaries.",
+                CapabilityCategory::FileBinaryMetadata,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1027"],
+                "analyze_file_entropy",
+                true,
+            ),
+            Capability::new(
+                "file.signature",
+                "Signature Metadata",
+                "Collect code-signing metadata and certificate state.",
+                CapabilityCategory::FileBinaryMetadata,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1553"],
+                "verify_code_signature",
+                true,
+            ),
+            Capability::new(
+                "evidence.sha256",
+                "Evidence Hashing",
+                "Compute a SHA-256 hash for a forensic item.",
+                CapabilityCategory::EvidenceIntegrity,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &[],
+                "hash_sha256",
+                true,
+            ),
+            Capability::new(
+                "evidence.merkle",
+                "Merkle Tree",
+                "Build a canonical Merkle tree from evidence hashes.",
+                CapabilityCategory::EvidenceIntegrity,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &[],
+                "build_merkle_tree",
+                true,
+            ),
+            Capability::new(
+                "evidence.provenance",
+                "Provenance Metadata",
+                "Capture operator, host, source, and collection provenance.",
+                CapabilityCategory::EvidenceIntegrity,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &[],
+                "hash_sha256",
+                true,
+            ),
+            Capability::new(
+                "evidence.origin",
+                "Evidence Origin",
+                "Track whether evidence is real, simulated, imported, or derived.",
+                CapabilityCategory::EvidenceIntegrity,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &[],
+                "hash_sha256",
+                true,
+            ),
+            Capability::new(
+                "evidence.collector.status",
+                "Collector Status",
+                "Capture collector success, partial, failed, and unsupported state.",
+                CapabilityCategory::EvidenceIntegrity,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &[],
+                "hash_sha256",
+                true,
+            ),
         ];
         self.register_named_capabilities(&entries);
     }
@@ -2375,8 +4150,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1547"],
             "collect_autostart_entries",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "persistence.scheduled_tasks",
@@ -2387,8 +4162,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1053"],
             "enumerate_scheduled_tasks",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "persistence.wmi",
@@ -2399,8 +4174,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::Admin,
             &["T1546"],
             "enumerate_wmi_subscriptions",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         // ===== NETWORK CAPABILITIES =====
         self.register(Capability::new(
@@ -2424,8 +4199,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1049"],
             "enumerate_listening_ports",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "network.dns_cache",
@@ -2436,8 +4211,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::Admin,
             &["T1016"],
             "collect_dns_cache",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "network.arp_table",
@@ -2448,8 +4223,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1016"],
             "collect_arp_table",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "network.routing_table",
@@ -2460,8 +4235,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1016"],
             "collect_routing_table",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "network.firewall",
@@ -2472,8 +4247,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::Admin,
             &["T1562"],
             "collect_firewall_rules",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         // ===== FILESYSTEM CAPABILITIES =====
         self.register(Capability::new(
@@ -2497,8 +4272,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1083"],
             "enumerate_mounts",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "filesystem.alternate_data_streams",
@@ -2509,8 +4284,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1564"],
             "detect_alternate_data_streams",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         // ===== WINDOWS ARTIFACT CAPABILITIES =====
         self.register(Capability::new(
@@ -2558,8 +4333,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1083"],
             "carve_shellbags",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "artifact.jumplists",
@@ -2570,8 +4345,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1057"],
             "carve_jumplists",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "artifact.amcache",
@@ -2582,7 +4357,10 @@ impl CapabilityRegistry {
             PrivilegeLevel::Admin,
             &["T1057"],
             "carve_amcache",
-            false,
+            true,
+        ).with_status(
+            ImplementationStatus::RequiresElevation,
+            Some("Access to locked Amcache.hve requires Administrator privilege; dynamic fallback supported"),
         ));
 
         self.register(Capability::new(
@@ -2594,7 +4372,10 @@ impl CapabilityRegistry {
             PrivilegeLevel::Admin,
             &["T1057"],
             "carve_srum",
-            false,
+            true,
+        ).with_status(
+            ImplementationStatus::RequiresElevation,
+            Some("Access to SRUDB.dat database requires Administrator privilege; dynamic fallback supported"),
         ));
 
         self.register(Capability::new(
@@ -2606,7 +4387,10 @@ impl CapabilityRegistry {
             PrivilegeLevel::Admin,
             &["T1562"],
             "collect_etw_logs",
-            false,
+            true,
+        ).with_status(
+            ImplementationStatus::RequiresElevation,
+            Some("Querying active kernel ETW sessions requires Administrator privilege"),
         ));
 
         // ===== LINUX ARTIFACT CAPABILITIES =====
@@ -2655,8 +4439,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1552"],
             "carve_ssh_config",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "artifact.container",
@@ -2667,8 +4451,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1610"],
             "carve_container_artifacts",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         // ===== KERNEL/DRIVER CAPABILITIES =====
         self.register(Capability::new(
@@ -2692,7 +4476,10 @@ impl CapabilityRegistry {
             PrivilegeLevel::Kernel,
             &["T1014"],
             "inspect_syscall_table",
-            false,
+            true,
+        ).with_status(
+            ImplementationStatus::RequiresElevation,
+            Some("Inspection of system call table / SSDT requires Kernel/root privilege"),
         ));
 
         self.register(Capability::new(
@@ -2704,8 +4491,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1542"],
             "collect_boot_config",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         // ===== SECURITY CONFIG CAPABILITIES =====
         self.register(Capability::new(
@@ -2717,8 +4504,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::Admin,
             &["T1562"],
             "collect_audit_policy",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "security.av_status",
@@ -2729,8 +4516,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1562"],
             "detect_av_edr",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "security.app_control",
@@ -2741,8 +4528,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::Admin,
             &["T1562"],
             "collect_app_control",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         // ===== APPLICATION ARTIFACT CAPABILITIES =====
         self.register(Capability::new(
@@ -2754,8 +4541,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1555"],
             "carve_browser_artifacts",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "app.email",
@@ -2766,8 +4553,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1114"],
             "carve_email_artifacts",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "app.office",
@@ -2778,8 +4565,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1137"],
             "carve_office_artifacts",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         // ===== BACKDOOR/ROOTKIT CAPABILITIES =====
         self.register(Capability::new(
@@ -2791,7 +4578,10 @@ impl CapabilityRegistry {
             PrivilegeLevel::Kernel,
             &["T1014"],
             "detect_rootkit_indicators",
-            false,
+            true,
+        ).with_status(
+            ImplementationStatus::Partial,
+            Some("Heuristic rootkit detection implemented; full SSDT/DKOM verification requires Ring 0 driver"),
         ));
 
         self.register(Capability::new(
@@ -2803,8 +4593,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1027", "T1036"],
             "detect_binary_anomalies",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         // ===== MALICIOUS SCRIPT CAPABILITIES =====
         self.register(Capability::new(
@@ -2816,8 +4606,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1059.001"],
             "analyze_powershell_scripts",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "script.wmi",
@@ -2828,8 +4618,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1059.005"],
             "analyze_wmi_scripts",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "script.shell",
@@ -2840,8 +4630,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1059.004"],
             "analyze_shell_scripts",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "script.python",
@@ -2852,8 +4642,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1059.006"],
             "analyze_python_scripts",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         // ===== FILE/BINARY METADATA CAPABILITIES =====
         self.register(Capability::new(
@@ -2865,8 +4655,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1027"],
             "parse_pe_metadata",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "file.elf_metadata",
@@ -2877,7 +4667,18 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1027"],
             "parse_elf_metadata",
-            false,
+            true,
+        ).with_status(
+            if cfg!(target_os = "windows") {
+                ImplementationStatus::PlatformSpecific
+            } else {
+                ImplementationStatus::Implemented
+            },
+            if cfg!(target_os = "windows") {
+                Some("ELF metadata parser is primary for Linux targets")
+            } else {
+                None
+            },
         ));
 
         self.register(Capability::new(
@@ -2889,8 +4690,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1553"],
             "verify_code_signature",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         self.register(Capability::new(
             "file.entropy",
@@ -2901,8 +4702,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &["T1027"],
             "analyze_file_entropy",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
 
         // ===== EVIDENCE INTEGRITY CAPABILITIES =====
         self.register(Capability::new(
@@ -2939,6 +4740,9 @@ impl CapabilityRegistry {
             &[],
             "anchor_to_blockchain",
             false,
+        ).with_status(
+            ImplementationStatus::Unsupported,
+            Some("Anchoring to public blockchain requires external funded wallet & JSON-RPC node; local development ledger active"),
         ));
 
         self.register(Capability::new(
@@ -2950,8 +4754,8 @@ impl CapabilityRegistry {
             PrivilegeLevel::User,
             &[],
             "generate_chain_of_custody",
-            false,
-        ));
+            true,
+        ).with_status(ImplementationStatus::Implemented, None));
     }
 
     fn register(&mut self, cap: Capability) {
@@ -2977,7 +4781,11 @@ impl CapabilityRegistry {
     pub fn by_category(&self, category: CapabilityCategory) -> Vec<&Capability> {
         self.by_category
             .get(&category)
-            .map(|ids| ids.iter().filter_map(|id| self.capabilities.get(id.as_str())).collect())
+            .map(|ids| {
+                ids.iter()
+                    .filter_map(|id| self.capabilities.get(id.as_str()))
+                    .collect()
+            })
             .unwrap_or_default()
     }
 
@@ -2991,7 +4799,10 @@ impl CapabilityRegistry {
 
     /// Get implemented capabilities
     pub fn implemented(&self) -> Vec<&Capability> {
-        self.capabilities.values().filter(|c| c.is_implemented).collect()
+        self.capabilities
+            .values()
+            .filter(|c| c.is_implemented)
+            .collect()
     }
 
     fn runtime_dispatch_alias(&self, capability_id: &str) -> Option<&'static str> {
@@ -3154,7 +4965,9 @@ impl CapabilityRegistry {
             "security.audit.policy" => Some("security.audit_policy"),
             "security.antivirus" | "security.update.state" => Some("security.av_status"),
             "security.firewall" => Some("security.firewall"),
-            "security.selinux" | "security.apparmor" | "security.policy" => Some("security.app_control"),
+            "security.selinux" | "security.apparmor" | "security.policy" => {
+                Some("security.app_control")
+            }
             "evidence.sha256" => Some("evidence.sha256"),
             "evidence.merkle" => Some("evidence.merkle"),
             "evidence.provenance" => Some("evidence.provenance"),
@@ -3192,7 +5005,10 @@ impl CapabilityRegistry {
 
     /// Invoke the runtime-backed collector contract for a capability.
     /// This executes the real collector and produces evidence through the canonical pipeline.
-    pub fn invoke_runtime_capability(&self, capability_id: &str) -> Result<CapabilityExecutionResult, String> {
+    pub fn invoke_runtime_capability(
+        &self,
+        capability_id: &str,
+    ) -> Result<CapabilityExecutionResult, String> {
         self.invoke_runtime_capability_with_options(capability_id, &serde_json::Map::new())
     }
 
@@ -3203,15 +5019,18 @@ impl CapabilityRegistry {
         options: &serde_json::Map<String, serde_json::Value>,
     ) -> Result<CapabilityExecutionResult, String> {
         let start_time = std::time::Instant::now();
-        
+
         let capability = self
             .capabilities
             .get(capability_id)
             .ok_or_else(|| format!("Capability '{}' not found in registry", capability_id))?;
 
-        let binding = self
-            .runtime_binding_for(capability_id)
-            .ok_or_else(|| format!("Capability '{}' is declared but not runtime-bound", capability_id))?;
+        let binding = self.runtime_binding_for(capability_id).ok_or_else(|| {
+            format!(
+                "Capability '{}' is declared but not runtime-bound",
+                capability_id
+            )
+        })?;
 
         // Platform validation
         let current_platform = if cfg!(target_os = "linux") {
@@ -3263,6 +5082,7 @@ impl CapabilityRegistry {
                         CollectionStatus::NotFound => "NOT_FOUND",
                         CollectionStatus::Unsupported => "UNSUPPORTED",
                         CollectionStatus::PermissionDenied => "PERMISSION_DENIED",
+                        CollectionStatus::RequiresElevation => "REQUIRES_ELEVATION",
                     },
                     "origin": "REAL",
                 });
@@ -3304,21 +5124,51 @@ impl CapabilityRegistry {
                     format!("{:?}", binding.privilege),
                     binding.evidence_contract.to_string(),
                 );
-                if error.contains("permission denied") || error.contains("operation not permitted") {
+                if error.contains("permission denied") || error.contains("operation not permitted")
+                {
                     Ok(CapabilityExecutionResult::permission_denied(
-                        args.0, args.1, args.2, args.3, args.4, args.5, args.6, execution_time_ms,
+                        args.0,
+                        args.1,
+                        args.2,
+                        args.3,
+                        args.4,
+                        args.5,
+                        args.6,
+                        execution_time_ms,
                     ))
                 } else if error.contains("not found") || error.contains("no such file") {
                     Ok(CapabilityExecutionResult::not_found(
-                        args.0, args.1, args.2, args.3, args.4, args.5, args.6, execution_time_ms,
+                        args.0,
+                        args.1,
+                        args.2,
+                        args.3,
+                        args.4,
+                        args.5,
+                        args.6,
+                        execution_time_ms,
                     ))
                 } else if error.contains("unsupported") || error.contains("not supported") {
                     Ok(CapabilityExecutionResult::unsupported(
-                        args.0, args.1, args.2, args.3, args.4, args.5, args.6, execution_time_ms,
+                        args.0,
+                        args.1,
+                        args.2,
+                        args.3,
+                        args.4,
+                        args.5,
+                        args.6,
+                        execution_time_ms,
                     ))
                 } else {
                     Ok(CapabilityExecutionResult::failed(
-                        args.0, args.1, args.2, args.3, args.4, args.5, args.6, e, execution_time_ms,
+                        args.0,
+                        args.1,
+                        args.2,
+                        args.3,
+                        args.4,
+                        args.5,
+                        args.6,
+                        e,
+                        execution_time_ms,
                     ))
                 }
             }
@@ -3332,14 +5182,34 @@ impl CapabilityRegistry {
         capability: &Capability,
         binding: &RuntimeCapabilityBinding,
         options: &serde_json::Map<String, serde_json::Value>,
-    ) -> Result<(CollectionStatus, usize, Vec<serde_json::Value>, Option<String>, Option<String>), String> {
+    ) -> Result<
+        (
+            CollectionStatus,
+            usize,
+            Vec<serde_json::Value>,
+            Option<String>,
+            Option<String>,
+        ),
+        String,
+    > {
         let handler = binding.runtime_handler;
         let option_string = |key: &str, default: &str| {
-            options.get(key).and_then(serde_json::Value::as_str).unwrap_or(default).to_string()
+            options
+                .get(key)
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or(default)
+                .to_string()
         };
-        let fields = options.get("fields")
+        let fields = options
+            .get("fields")
             .and_then(serde_json::Value::as_array)
-            .map(|values| values.iter().filter_map(serde_json::Value::as_str).map(str::to_owned).collect::<Vec<_>>())
+            .map(|values| {
+                values
+                    .iter()
+                    .filter_map(serde_json::Value::as_str)
+                    .map(str::to_owned)
+                    .collect::<Vec<_>>()
+            })
             .unwrap_or_default();
 
         macro_rules! append_records {
@@ -3347,26 +5217,53 @@ impl CapabilityRegistry {
                 let records: Vec<serde_json::Value> = $records;
                 let count = records.len();
                 collector.data_mut().extend(records.iter().cloned());
-                let marker_status = records.iter().filter_map(|record| {
-                    record.get("status").and_then(serde_json::Value::as_str)
-                }).map(str::to_ascii_lowercase).find(|status| matches!(
-                    status.as_str(),
-                    "not_implemented" | "unsupported" | "platform_note" | "path_not_found"
-                        | "not_found" | "no_paths_found" | "not_available" | "unavailable"
-                        | "unknown_type" | "permission_denied" | "partial" | "failed"
-                        | "parse_error" | "read_error"
-                ));
+                let marker_status = records
+                    .iter()
+                    .filter_map(|record| record.get("status").and_then(serde_json::Value::as_str))
+                    .map(str::to_ascii_lowercase)
+                    .find(|status| {
+                        matches!(
+                            status.as_str(),
+                            "not_implemented"
+                                | "unsupported"
+                                | "platform_note"
+                                | "path_not_found"
+                                | "not_found"
+                                | "no_paths_found"
+                                | "not_available"
+                                | "unavailable"
+                                | "unknown_type"
+                                | "permission_denied"
+                                | "requires_elevation"
+                                | "partial"
+                                | "failed"
+                                | "parse_error"
+                                | "read_error"
+                        )
+                    });
                 let status = match marker_status.as_deref() {
-                    Some("not_implemented" | "unsupported" | "platform_note") => CollectionStatus::Unsupported,
+                    Some("not_implemented" | "unsupported" | "platform_note") => {
+                        CollectionStatus::Unsupported
+                    }
                     Some("unavailable" | "unknown_type") => CollectionStatus::Unsupported,
-                    Some("path_not_found" | "not_found" | "no_paths_found" | "not_available") => CollectionStatus::NotFound,
+                    Some("path_not_found" | "not_found" | "no_paths_found" | "not_available") => {
+                        CollectionStatus::NotFound
+                    }
                     Some("permission_denied") => CollectionStatus::PermissionDenied,
+                    Some("requires_elevation") => CollectionStatus::RequiresElevation,
                     Some("partial" | "parse_error" | "read_error") => CollectionStatus::Partial,
                     Some("failed") => CollectionStatus::Failed,
                     _ => CollectionStatus::Success,
                 };
-                let warning = (status == CollectionStatus::Partial || status == CollectionStatus::Unsupported)
-                    .then(|| format!("Collector returned status {}", marker_status.as_deref().unwrap_or("unknown")));
+                let warning = (status == CollectionStatus::Partial
+                    || status == CollectionStatus::Unsupported
+                    || status == CollectionStatus::RequiresElevation)
+                    .then(|| {
+                        format!(
+                            "Collector returned status {}",
+                            marker_status.as_deref().unwrap_or("unknown")
+                        )
+                    });
                 Ok((status, count, records, None, warning))
             }};
         }
@@ -3378,7 +5275,11 @@ impl CapabilityRegistry {
                 let count = records.len();
                 collector.data_mut().extend(records.iter().cloned());
                 let warning = (!errors.is_empty()).then(|| errors.join("; "));
-                let status = if warning.is_some() { CollectionStatus::Partial } else { CollectionStatus::Success };
+                let status = if warning.is_some() {
+                    CollectionStatus::Partial
+                } else {
+                    CollectionStatus::Success
+                };
                 Ok((status, count, records, None, warning))
             }};
         }
@@ -3386,8 +5287,7 @@ impl CapabilityRegistry {
         match handler {
             // System info handlers
             "collect_system_info" => {
-                collector.collect_system_info()
-                    .map_err(|e| e.to_string())?;
+                collector.collect_system_info().map_err(|e| e.to_string())?;
                 let records = collector.data().to_vec();
                 let count = records.len();
                 Ok((CollectionStatus::Success, count, records, None, None))
@@ -3400,26 +5300,29 @@ impl CapabilityRegistry {
 
             // Process handlers
             "enumerate_processes" => {
-                collector.collect_processes(fields)
+                collector
+                    .collect_processes(fields)
                     .map_err(|e| e.to_string())?;
                 let records = collector.data().to_vec();
                 let count = records.len();
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
             "collect_process_tree" => {
-                let records = jockey_runtime_process::collect_process_tree()
-                    .map_err(|e| e.to_string())?;
+                let records =
+                    jockey_runtime_process::collect_process_tree().map_err(|e| e.to_string())?;
                 append_records!(records)
             }
             "collect_process_modules" => {
-                let processes = jockey_runtime_process::enumerate_processes(&[])
-                    .map_err(|e| e.to_string())?;
+                let processes =
+                    jockey_runtime_process::enumerate_processes(&[]).map_err(|e| e.to_string())?;
                 let mut modules = Vec::new();
                 for process in processes {
                     let Some(pid) = process.get("pid").and_then(serde_json::Value::as_i64) else {
                         continue;
                     };
-                    if let Some(process_modules) = process.get("modules").and_then(serde_json::Value::as_array) {
+                    if let Some(process_modules) =
+                        process.get("modules").and_then(serde_json::Value::as_array)
+                    {
                         for module in process_modules {
                             let mut module = module.clone();
                             if let Some(fields) = module.as_object_mut() {
@@ -3432,8 +5335,8 @@ impl CapabilityRegistry {
                 append_records!(modules)
             }
             "collect_process_handles" => {
-                let processes = jockey_runtime_process::enumerate_processes(&[])
-                    .map_err(|e| e.to_string())?;
+                let processes =
+                    jockey_runtime_process::enumerate_processes(&[]).map_err(|e| e.to_string())?;
                 let records = processes.into_iter().filter_map(|process| {
                     let pid = process.get("pid")?.as_i64()?;
                     let open_files = process.get("open_files")?.as_array()?;
@@ -3446,15 +5349,19 @@ impl CapabilityRegistry {
                 append_records!(records)
             }
             "enumerate_memory_regions" => {
-                let pid_filter = options.get("pid").and_then(serde_json::Value::as_i64).map(|pid| pid as i32);
-                collector.collect_memory_regions(pid_filter).map_err(|e| e.to_string())?;
+                let pid_filter = options
+                    .get("pid")
+                    .and_then(serde_json::Value::as_i64)
+                    .map(|pid| pid as i32);
+                collector
+                    .collect_memory_regions(pid_filter)
+                    .map_err(|e| e.to_string())?;
                 append_records!(collector.data().to_vec())
             }
 
             // User handlers
             "enumerate_users" => {
-                let result = jockey_runtime_users::enumerate_users()
-                    .map_err(|e| e.to_string())?;
+                let result = jockey_runtime_users::enumerate_users().map_err(|e| e.to_string())?;
                 let mut records = Vec::new();
                 for user in result.users {
                     records.push(serde_json::json!({
@@ -3473,10 +5380,12 @@ impl CapabilityRegistry {
 
             // Auth handlers
             "collect_logon_events" => {
-                let result = jockey_runtime_auth::collect_logon_events()
-                    .map_err(|e| e.to_string())?;
+                let result =
+                    jockey_runtime_auth::collect_logon_events().map_err(|e| e.to_string())?;
                 let errors = result.errors;
-                let records = result.events.into_iter()
+                let records = result
+                    .events
+                    .into_iter()
                     .map(|event| serde_json::to_value(event).map_err(|e| e.to_string()))
                     .collect::<Result<Vec<_>, _>>()?;
                 append_records_with_errors!(records, errors)
@@ -3485,16 +5394,20 @@ impl CapabilityRegistry {
                 let result = jockey_runtime_auth::collect_credential_artifacts()
                     .map_err(|e| e.to_string())?;
                 let errors = result.errors;
-                let records = result.artifacts.into_iter()
+                let records = result
+                    .artifacts
+                    .into_iter()
                     .map(|artifact| serde_json::to_value(artifact).map_err(|e| e.to_string()))
                     .collect::<Result<Vec<_>, _>>()?;
                 append_records_with_errors!(records, errors)
             }
             "collect_auth_policy" => {
-                let result = jockey_runtime_auth::collect_auth_policy()
-                    .map_err(|e| e.to_string())?;
+                let result =
+                    jockey_runtime_auth::collect_auth_policy().map_err(|e| e.to_string())?;
                 let errors = result.errors;
-                let records = result.policies.into_iter()
+                let records = result
+                    .policies
+                    .into_iter()
                     .map(|policy| serde_json::to_value(policy).map_err(|e| e.to_string()))
                     .collect::<Result<Vec<_>, _>>()?;
                 append_records_with_errors!(records, errors)
@@ -3502,17 +5415,18 @@ impl CapabilityRegistry {
 
             // Service handlers
             "enumerate_services" => {
-                let result = jockey_runtime_services::enumerate_services()
-                    .map_err(|e| e.to_string())?;
+                let result =
+                    jockey_runtime_services::enumerate_services().map_err(|e| e.to_string())?;
                 let errors = result.errors;
-                let records = result.services.into_iter()
+                let records = result
+                    .services
+                    .into_iter()
                     .map(|service| serde_json::to_value(service).map_err(|e| e.to_string()))
                     .collect::<Result<Vec<_>, _>>()?;
                 append_records_with_errors!(records, errors)
             }
             "enumerate_drivers" => {
-                collector.collect_drivers()
-                    .map_err(|e| e.to_string())?;
+                collector.collect_drivers().map_err(|e| e.to_string())?;
                 let records = collector.data().to_vec();
                 let count = records.len();
                 Ok((CollectionStatus::Success, count, records, None, None))
@@ -3520,7 +5434,8 @@ impl CapabilityRegistry {
             "enumerate_systemd_units" => {
                 let units = jockey_runtime_services::enumerate_systemd_units()
                     .map_err(|e| e.to_string())?;
-                let records = units.into_iter()
+                let records = units
+                    .into_iter()
                     .map(|unit| serde_json::to_value(unit).map_err(|e| e.to_string()))
                     .collect::<Result<Vec<_>, _>>()?;
                 append_records!(records)
@@ -3528,87 +5443,191 @@ impl CapabilityRegistry {
 
             // Network handlers
             "enumerate_connections" => {
-                collector.collect_network_connections()
+                collector
+                    .collect_network_connections()
                     .map_err(|e| e.to_string())?;
                 let records = collector.data().to_vec();
                 let count = records.len();
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
-            "enumerate_interfaces" => append_records!(jockey_runtime_network::enumerate_interfaces().map_err(|e| e.to_string())?),
-            "enumerate_routes" => append_records!(jockey_runtime_network::enumerate_routes().map_err(|e| e.to_string())?),
-            "enumerate_arp" => append_records!(jockey_runtime_network::enumerate_arp().map_err(|e| e.to_string())?),
-            "enumerate_dns_servers" => append_records!(jockey_runtime_network::enumerate_dns_servers().map_err(|e| e.to_string())?),
-            "enumerate_dns_cache" => append_records!(jockey_runtime_network::enumerate_dns_cache().map_err(|e| e.to_string())?),
-            "enumerate_hosts" => append_records!(jockey_runtime_network::enumerate_hosts().map_err(|e| e.to_string())?),
-            "enumerate_listening_ports" => append_records!(jockey_runtime_network::enumerate_listening_ports().map_err(|e| e.to_string())?),
-            "enumerate_firewall_policy" => append_records!(jockey_runtime_network::enumerate_firewall_policy().map_err(|e| e.to_string())?),
-            "enumerate_shares" => append_records!(jockey_runtime_network::enumerate_shares().map_err(|e| e.to_string())?),
-            "enumerate_listeners" => append_records!(jockey_runtime_network::enumerate_listeners().map_err(|e| e.to_string())?),
+            "enumerate_interfaces" => append_records!(
+                jockey_runtime_network::enumerate_interfaces().map_err(|e| e.to_string())?
+            ),
+            "enumerate_routes" => append_records!(
+                jockey_runtime_network::enumerate_routes().map_err(|e| e.to_string())?
+            ),
+            "enumerate_arp" => {
+                append_records!(jockey_runtime_network::enumerate_arp().map_err(|e| e.to_string())?)
+            }
+            "enumerate_dns_servers" => append_records!(
+                jockey_runtime_network::enumerate_dns_servers().map_err(|e| e.to_string())?
+            ),
+            "enumerate_dns_cache" => append_records!(
+                jockey_runtime_network::enumerate_dns_cache().map_err(|e| e.to_string())?
+            ),
+            "enumerate_hosts" => append_records!(
+                jockey_runtime_network::enumerate_hosts().map_err(|e| e.to_string())?
+            ),
+            "enumerate_listening_ports" => {
+                append_records!(jockey_runtime_network::enumerate_listening_ports()
+                    .map_err(|e| e.to_string())?)
+            }
+            "enumerate_firewall_policy" => {
+                append_records!(jockey_runtime_network::enumerate_firewall_policy()
+                    .map_err(|e| e.to_string())?)
+            }
+            "enumerate_shares" => append_records!(
+                jockey_runtime_network::enumerate_shares().map_err(|e| e.to_string())?
+            ),
+            "enumerate_listeners" => append_records!(
+                jockey_runtime_network::enumerate_listeners().map_err(|e| e.to_string())?
+            ),
 
             // Filesystem handlers
             "enumerate_files" => {
                 let path = option_string("path", ".");
-                let recursive = options.get("recursive").and_then(serde_json::Value::as_bool).unwrap_or(false);
+                let recursive = options
+                    .get("recursive")
+                    .and_then(serde_json::Value::as_bool)
+                    .unwrap_or(false);
                 let default_hash = match capability.id.as_str() {
                     "filesystem.hash.sha256" => "sha256",
                     "filesystem.hash.sha1" => "sha1",
                     "filesystem.hash.md5" => "md5",
                     _ => "none",
                 };
-                collector.collect_files(&path, recursive, &option_string("hash", default_hash))
+                collector
+                    .collect_files(&path, recursive, &option_string("hash", default_hash))
                     .map_err(|e| e.to_string())?;
                 let records = collector.data().to_vec();
                 let count = records.len();
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
             "enumerate_mounts" => {
-                collector.collect_files(&option_string("path", "."), false, "none")
+                let records = jockey_runtime_filesystem::enumerate_mounts()
                     .map_err(|e| e.to_string())?;
-                let records = collector.data().to_vec();
-                let count = records.len();
-                Ok((CollectionStatus::Success, count, records, None, None))
+                append_records!(records)
+            }
+            "detect_alternate_data_streams" => {
+                let path = option_string("path", ".");
+                let records = jockey_runtime_filesystem::detect_alternate_data_streams(&path)
+                    .map_err(|e| e.to_string())?;
+                append_records!(records)
             }
 
             // Artifact handlers
-            "carve_shell_history" => append_records!(jockey_runtime_artifacts::carve_shell_history("/home").map_err(|e| e.to_string())?),
-            "carve_cron_entries" => append_records!(jockey_runtime_artifacts::carve_cron_entries("").map_err(|e| e.to_string())?),
-            "carve_systemd_units" => append_records!(jockey_runtime_artifacts::carve_systemd_units("").map_err(|e| e.to_string())?),
-            "carve_ssh_config" => append_records!(jockey_runtime_artifacts::carve_ssh_config("/etc/ssh").map_err(|e| e.to_string())?),
-            "carve_prefetch" => append_records!(jockey_runtime_artifacts::carve_prefetch(r"C:\Windows\Prefetch").map_err(|e| e.to_string())?),
+            "carve_shell_history" => {
+                append_records!(jockey_runtime_artifacts::carve_shell_history("/home")
+                    .map_err(|e| e.to_string())?)
+            }
+            "carve_cron_entries" => append_records!(jockey_runtime_artifacts::carve_cron_entries(
+                ""
+            )
+            .map_err(|e| e.to_string())?),
+            "carve_systemd_units" => append_records!(
+                jockey_runtime_artifacts::carve_systemd_units("").map_err(|e| e.to_string())?
+            ),
+            "carve_ssh_config" => {
+                append_records!(jockey_runtime_artifacts::carve_ssh_config("/etc/ssh")
+                    .map_err(|e| e.to_string())?)
+            }
+            "carve_prefetch" => append_records!(jockey_runtime_artifacts::carve_prefetch(
+                r"C:\Windows\Prefetch"
+            )
+            .map_err(|e| e.to_string())?),
             "carve_lnk_files" => {
                 let recent = std::env::var("APPDATA")
                     .map(|path| format!(r"{}\Microsoft\Windows\Recent", path))
-                    .unwrap_or_else(|_| r"C:\Users\Default\AppData\Roaming\Microsoft\Windows\Recent".to_string());
-                append_records!(jockey_runtime_artifacts::carve_lnk_files(&recent).map_err(|e| e.to_string())?)
+                    .unwrap_or_else(|_| {
+                        r"C:\Users\Default\AppData\Roaming\Microsoft\Windows\Recent".to_string()
+                    });
+                append_records!(
+                    jockey_runtime_artifacts::carve_lnk_files(&recent).map_err(|e| e.to_string())?
+                )
             }
-            "carve_recycle_bin" => append_records!(jockey_runtime_artifacts::carve_recycle_bin(r"C:\$RECYCLE.BIN").map_err(|e| e.to_string())?),
-            "carve_shellbags" => append_records!(jockey_runtime_artifacts::carve_shellbags(".").map_err(|e| e.to_string())?),
+            "carve_recycle_bin" => append_records!(jockey_runtime_artifacts::carve_recycle_bin(
+                r"C:\$RECYCLE.BIN"
+            )
+            .map_err(|e| e.to_string())?),
+            "carve_shellbags" => append_records!(
+                jockey_runtime_artifacts::carve_shellbags(".").map_err(|e| e.to_string())?
+            ),
             "carve_jumplists" => {
                 let recent = std::env::var("APPDATA")
                     .map(|path| format!(r"{}\Microsoft\Windows\Recent\AutomaticDestinations", path))
                     .unwrap_or_else(|_| r"C:\Users\Default\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations".to_string());
-                append_records!(jockey_runtime_artifacts::carve_jumplists(&recent).map_err(|e| e.to_string())?)
+                append_records!(
+                    jockey_runtime_artifacts::carve_jumplists(&recent).map_err(|e| e.to_string())?
+                )
             }
-            "carve_amcache" => append_records!(jockey_runtime_artifacts::carve_amcache(r"C:\Windows\AppCompat\Programs\Amcache.hve").map_err(|e| e.to_string())?),
-            "carve_srum" => append_records!(jockey_runtime_artifacts::carve_srum(r"C:\Windows\System32\sru\SRUDB.dat").map_err(|e| e.to_string())?),
-            "collect_etw_logs" => append_records!(jockey_runtime_artifacts::collect_etw_logs(".").map_err(|e| e.to_string())?),
-            "carve_event_logs" => append_records!(jockey_runtime_artifacts::carve_event_logs(r"C:\Windows\System32\winevt\Logs").map_err(|e| e.to_string())?),
+            "carve_amcache" => append_records!(jockey_runtime_artifacts::carve_amcache(
+                r"C:\Windows\AppCompat\Programs\Amcache.hve"
+            )
+            .map_err(|e| e.to_string())?),
+            "carve_srum" => append_records!(jockey_runtime_artifacts::carve_srum(
+                r"C:\Windows\System32\sru\SRUDB.dat"
+            )
+            .map_err(|e| e.to_string())?),
+            "collect_etw_logs" => append_records!(
+                jockey_runtime_artifacts::collect_etw_logs(".").map_err(|e| e.to_string())?
+            ),
+            "carve_event_logs" => append_records!(jockey_runtime_artifacts::carve_event_logs(
+                r"C:\Windows\System32\winevt\Logs"
+            )
+            .map_err(|e| e.to_string())?),
             "carve_recent_files" => {
                 let recent = std::env::var("APPDATA")
                     .map(|path| format!(r"{}\Microsoft\Windows\Recent", path))
-                    .unwrap_or_else(|_| r"C:\Users\Default\AppData\Roaming\Microsoft\Windows\Recent".to_string());
-                append_records!(jockey_runtime_artifacts::carve_recent_files(&recent).map_err(|e| e.to_string())?)
+                    .unwrap_or_else(|_| {
+                        r"C:\Users\Default\AppData\Roaming\Microsoft\Windows\Recent".to_string()
+                    });
+                append_records!(jockey_runtime_artifacts::carve_recent_files(&recent)
+                    .map_err(|e| e.to_string())?)
             }
-            "carve_container_artifacts" => append_records!(jockey_runtime_artifacts::carve_container_artifacts("/var/lib").map_err(|e| e.to_string())?),
-            "analyze_powershell_scripts" => append_records!(jockey_runtime_artifacts::analyze_powershell_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
-            "analyze_wmi_scripts" => append_records!(jockey_runtime_artifacts::analyze_wmi_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
-            "analyze_shell_scripts" => append_records!(jockey_runtime_artifacts::analyze_shell_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
-            "analyze_python_scripts" => append_records!(jockey_runtime_artifacts::analyze_python_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
-            "analyze_javascript_scripts" => append_records!(jockey_runtime_artifacts::analyze_javascript_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
-            "analyze_batch_scripts" => append_records!(jockey_runtime_artifacts::analyze_batch_scripts(&option_string("path", ".")).map_err(|e| e.to_string())?),
+            "carve_container_artifacts" => append_records!(
+                jockey_runtime_artifacts::carve_container_artifacts("/var/lib")
+                    .map_err(|e| e.to_string())?
+            ),
+            "carve_browser_artifacts" => append_records!(
+                jockey_runtime_artifacts::carve_browser_artifacts(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
+            "carve_email_artifacts" => append_records!(
+                jockey_runtime_artifacts::carve_email_artifacts(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
+            "carve_office_artifacts" => append_records!(
+                jockey_runtime_artifacts::carve_office_artifacts(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
+            "analyze_powershell_scripts" => append_records!(
+                jockey_runtime_artifacts::analyze_powershell_scripts(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
+            "analyze_wmi_scripts" => append_records!(
+                jockey_runtime_artifacts::analyze_wmi_scripts(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
+            "analyze_shell_scripts" => append_records!(
+                jockey_runtime_artifacts::analyze_shell_scripts(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
+            "analyze_python_scripts" => append_records!(
+                jockey_runtime_artifacts::analyze_python_scripts(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
+            "analyze_javascript_scripts" => append_records!(
+                jockey_runtime_artifacts::analyze_javascript_scripts(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
+            "analyze_batch_scripts" => append_records!(
+                jockey_runtime_artifacts::analyze_batch_scripts(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
             "analyze_all_scripts" => {
-                let records = jockey_runtime_artifacts::analyze_all_script_files(&option_string("path", "."))
-                    .map_err(|e| e.to_string())?;
+                let records =
+                    jockey_runtime_artifacts::analyze_all_script_files(&option_string("path", "."))
+                        .map_err(|e| e.to_string())?;
                 let (field, behavior) = match capability.id.as_str() {
                     "script.url.indicators" => (Some("urls"), None),
                     "script.ip.indicators" => (Some("ip_addresses"), None),
@@ -3619,36 +5638,65 @@ impl CapabilityRegistry {
                     "script.persistence" => (None, Some("persistence")),
                     _ => return Err(format!("No indicator projection for {}", capability.id)),
                 };
-                let projected = records.into_iter().filter_map(|record| {
-                    let analysis = record.get("static_analysis")?;
-                    let values = if let Some(field) = field {
-                        analysis.get(field)?.as_array()?.clone()
-                    } else {
-                        let matches = analysis.get("behavior_indicators")?.as_array()?;
-                        if !matches.iter().any(|value| value.as_str() == behavior) {
+                let projected = records
+                    .into_iter()
+                    .filter_map(|record| {
+                        let analysis = record.get("static_analysis")?;
+                        let values = if let Some(field) = field {
+                            analysis.get(field)?.as_array()?.clone()
+                        } else {
+                            let matches = analysis.get("behavior_indicators")?.as_array()?;
+                            if !matches.iter().any(|value| value.as_str() == behavior) {
+                                return None;
+                            }
+                            matches.clone()
+                        };
+                        if values.is_empty() {
                             return None;
                         }
-                        matches.clone()
-                    };
-                    if values.is_empty() { return None; }
-                    Some(serde_json::json!({
-                        "artifact_type": record.get("artifact_type"),
-                        "path": record.get("path"),
-                        "sha256": record.get("sha256"),
-                        "indicator_type": capability.id,
-                        "indicators": values,
-                    }))
-                }).collect::<Vec<_>>();
+                        Some(serde_json::json!({
+                            "artifact_type": record.get("artifact_type"),
+                            "path": record.get("path"),
+                            "sha256": record.get("sha256"),
+                            "indicator_type": capability.id,
+                            "indicators": values,
+                        }))
+                    })
+                    .collect::<Vec<_>>();
                 append_records!(projected)
             }
-            "parse_pe_metadata" => append_records!(jockey_runtime_artifacts::parse_pe_metadata(&option_string("path", ".")).map_err(|e| e.to_string())?),
-            "parse_elf_metadata" => append_records!(jockey_runtime_artifacts::parse_elf_metadata(&option_string("path", ".")).map_err(|e| e.to_string())?),
-            "verify_code_signature" => append_records!(jockey_runtime_artifacts::verify_code_signature(&option_string("path", ".")).map_err(|e| e.to_string())?),
-            "analyze_file_entropy" => append_records!(jockey_runtime_artifacts::analyze_file_entropy(&option_string("path", ".")).map_err(|e| e.to_string())?),
-            "detect_binary_anomalies" => append_records!(jockey_runtime_artifacts::detect_binary_anomalies(&option_string("path", ".")).map_err(|e| e.to_string())?),
-            "detect_rootkit_indicators" => append_records!(jockey_runtime_security::detect_rootkit_indicators(&option_string("path", ".")).map_err(|e| e.to_string())?),
-            "enumerate_scheduled_tasks" => append_records!(jockey_runtime_artifacts::collect_windows_scheduled_tasks().map_err(|e| e.to_string())?),
-            "enumerate_wmi_subscriptions" => append_records!(jockey_runtime_artifacts::collect_windows_wmi_subscriptions().map_err(|e| e.to_string())?),
+            "parse_pe_metadata" => append_records!(jockey_runtime_artifacts::parse_pe_metadata(
+                &option_string("path", ".")
+            )
+            .map_err(|e| e.to_string())?),
+            "parse_elf_metadata" => append_records!(jockey_runtime_artifacts::parse_elf_metadata(
+                &option_string("path", ".")
+            )
+            .map_err(|e| e.to_string())?),
+            "verify_code_signature" => append_records!(
+                jockey_runtime_artifacts::verify_code_signature(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
+            "analyze_file_entropy" => append_records!(
+                jockey_runtime_artifacts::analyze_file_entropy(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
+            "detect_binary_anomalies" => append_records!(
+                jockey_runtime_artifacts::detect_binary_anomalies(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
+            "detect_rootkit_indicators" => append_records!(
+                jockey_runtime_security::detect_rootkit_indicators(&option_string("path", "."))
+                    .map_err(|e| e.to_string())?
+            ),
+            "enumerate_scheduled_tasks" => {
+                append_records!(jockey_runtime_artifacts::collect_windows_scheduled_tasks()
+                    .map_err(|e| e.to_string())?)
+            }
+            "enumerate_wmi_subscriptions" => append_records!(
+                jockey_runtime_artifacts::collect_windows_wmi_subscriptions()
+                    .map_err(|e| e.to_string())?
+            ),
             "hash_sha256" => {
                 if capability.id.starts_with("file.") {
                     let path = option_string("path", "");
@@ -3663,7 +5711,8 @@ impl CapabilityRegistry {
                         "hash_algorithm": "sha256",
                     })])
                 } else {
-                    let source_records = options.get("_evidence_records")
+                    let source_records = options
+                        .get("_evidence_records")
                         .and_then(serde_json::Value::as_array)
                         .cloned()
                         .unwrap_or_default();
@@ -3683,13 +5732,24 @@ impl CapabilityRegistry {
                     "artifact.auditd" => "audit",
                     "artifact.sudo" => "sudo",
                     "artifact.login.config" => "login",
-                    _ => return Err(format!("No log source mapping for capability {}", capability.id)),
+                    _ => {
+                        return Err(format!(
+                            "No log source mapping for capability {}",
+                            capability.id
+                        ))
+                    }
                 };
                 collector.collect_logs(source).map_err(|e| e.to_string())?;
                 append_records!(collector.data().to_vec())
             }
             "collect_autostart_entries" => {
-                if matches!(capability.id.as_str(), "persistence.run" | "persistence.winlogon" | "persistence.ifeo" | "persistence.appinit") {
+                if matches!(
+                    capability.id.as_str(),
+                    "persistence.run"
+                        | "persistence.winlogon"
+                        | "persistence.ifeo"
+                        | "persistence.appinit"
+                ) {
                     if !cfg!(target_os = "windows") {
                         return Err(format!("Unsupported platform for {}", capability.id));
                     }
@@ -3700,9 +5760,18 @@ impl CapabilityRegistry {
                             ("HKLM", r"Software\Microsoft\Windows\CurrentVersion\Run"),
                             ("HKLM", r"Software\Microsoft\Windows\CurrentVersion\RunOnce"),
                         ],
-                        "persistence.winlogon" => vec![("HKLM", r"Software\Microsoft\Windows NT\CurrentVersion\Winlogon")],
-                        "persistence.ifeo" => vec![("HKLM", r"Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options")],
-                        "persistence.appinit" => vec![("HKLM", r"Software\Microsoft\Windows NT\CurrentVersion\Windows")],
+                        "persistence.winlogon" => vec![(
+                            "HKLM",
+                            r"Software\Microsoft\Windows NT\CurrentVersion\Winlogon",
+                        )],
+                        "persistence.ifeo" => vec![(
+                            "HKLM",
+                            r"Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options",
+                        )],
+                        "persistence.appinit" => vec![(
+                            "HKLM",
+                            r"Software\Microsoft\Windows NT\CurrentVersion\Windows",
+                        )],
                         _ => unreachable!(),
                     };
                     let mut failed = false;
@@ -3716,61 +5785,128 @@ impl CapabilityRegistry {
                         return Err("Permission denied or registry key unavailable".to_string());
                     }
                     let count = records.len();
-                    let status = if failed { CollectionStatus::Partial } else { CollectionStatus::Success };
-                    let warning = failed.then(|| "One or more registry keys could not be read".to_string());
+                    let status = if failed {
+                        CollectionStatus::Partial
+                    } else {
+                        CollectionStatus::Success
+                    };
+                    let warning =
+                        failed.then(|| "One or more registry keys could not be read".to_string());
                     return Ok((status, count, records, None, warning));
                 }
                 let records = match capability.id.as_str() {
-                    "persistence.autostart" => jockey_runtime_artifacts::collect_autostart_entries(None),
+                    "persistence.autostart" => {
+                        jockey_runtime_artifacts::collect_autostart_entries(None)
+                    }
                     "persistence.cron" => jockey_runtime_artifacts::carve_cron_entries(""),
-                    "persistence.systemd.timer" => jockey_runtime_artifacts::carve_systemd_units("").map(|units| units.into_iter().filter(|unit| unit.get("metadata").and_then(|m| m.get("unit_type")).and_then(serde_json::Value::as_str) == Some("timer")).collect()),
+                    "persistence.systemd.timer" => {
+                        jockey_runtime_artifacts::carve_systemd_units("").map(|units| {
+                            units
+                                .into_iter()
+                                .filter(|unit| {
+                                    unit.get("metadata")
+                                        .and_then(|m| m.get("unit_type"))
+                                        .and_then(serde_json::Value::as_str)
+                                        == Some("timer")
+                                })
+                                .collect()
+                        })
+                    }
                     "persistence.ssh" => jockey_runtime_artifacts::carve_ssh_config("/etc/ssh"),
-                    "persistence.shell.profile" => jockey_runtime_artifacts::collect_shell_profiles(None),
-                    "persistence.startup.folder" if cfg!(target_os = "linux") => jockey_runtime_artifacts::collect_xdg_autostart_entries(None),
+                    "persistence.shell.profile" => {
+                        jockey_runtime_artifacts::collect_shell_profiles(None)
+                    }
+                    "persistence.startup.folder" if cfg!(target_os = "linux") => {
+                        jockey_runtime_artifacts::collect_xdg_autostart_entries(None)
+                    }
                     "persistence.startup.folder" if cfg!(target_os = "windows") => {
                         let mut startup_records = Vec::new();
                         for directory in [
-                            std::env::var("APPDATA").ok().map(|root| format!(r"{}\Microsoft\Windows\Start Menu\Programs\Startup", root)),
-                            std::env::var("PROGRAMDATA").ok().map(|root| format!(r"{}\Microsoft\Windows\Start Menu\Programs\Startup", root)),
-                        ].into_iter().flatten() {
-                            startup_records.extend(jockey_runtime_artifacts::carve_lnk_files(&directory).map_err(|e| e.to_string())?);
+                            std::env::var("APPDATA").ok().map(|root| {
+                                format!(r"{}\Microsoft\Windows\Start Menu\Programs\Startup", root)
+                            }),
+                            std::env::var("PROGRAMDATA").ok().map(|root| {
+                                format!(r"{}\Microsoft\Windows\Start Menu\Programs\Startup", root)
+                            }),
+                        ]
+                        .into_iter()
+                        .flatten()
+                        {
+                            startup_records.extend(
+                                jockey_runtime_artifacts::carve_lnk_files(&directory)
+                                    .map_err(|e| e.to_string())?,
+                            );
                         }
                         Ok(startup_records)
                     }
-                    "persistence.scheduled.task" | "persistence.scheduled_tasks" if cfg!(target_os = "linux") => jockey_runtime_artifacts::carve_cron_entries(""),
-                    "persistence.scheduled.task" | "persistence.scheduled_tasks" if cfg!(target_os = "windows") => jockey_runtime_artifacts::collect_windows_scheduled_tasks(),
-                    "persistence.wmi" => jockey_runtime_artifacts::collect_windows_wmi_subscriptions(),
-                    _ => return Err(format!("No mechanism-specific persistence collector is implemented for {}", capability.id)),
-                }.map_err(|e| e.to_string())?;
+                    "persistence.scheduled.task" | "persistence.scheduled_tasks"
+                        if cfg!(target_os = "linux") =>
+                    {
+                        jockey_runtime_artifacts::carve_cron_entries("")
+                    }
+                    "persistence.scheduled.task" | "persistence.scheduled_tasks"
+                        if cfg!(target_os = "windows") =>
+                    {
+                        jockey_runtime_artifacts::collect_windows_scheduled_tasks()
+                    }
+                    "persistence.wmi" => {
+                        jockey_runtime_artifacts::collect_windows_wmi_subscriptions()
+                    }
+                    _ => {
+                        return Err(format!(
+                            "No mechanism-specific persistence collector is implemented for {}",
+                            capability.id
+                        ))
+                    }
+                }
+                .map_err(|e| e.to_string())?;
                 append_records!(records)
             }
 
             // Security handlers
             "collect_audit_policy" => {
-                append_records!(jockey_runtime_security::collect_audit_policy().map_err(|e| e.to_string())?)
+                append_records!(
+                    jockey_runtime_security::collect_audit_policy().map_err(|e| e.to_string())?
+                )
             }
             "collect_firewall_rules" => {
-                append_records!(jockey_runtime_security::collect_firewall_rules().map_err(|e| e.to_string())?)
+                append_records!(
+                    jockey_runtime_security::collect_firewall_rules().map_err(|e| e.to_string())?
+                )
             }
             "detect_av_edr" => {
                 append_records!(jockey_runtime_security::detect_av_edr().map_err(|e| e.to_string())?)
             }
             "collect_app_control" => {
-                append_records!(jockey_runtime_security::collect_app_control().map_err(|e| e.to_string())?)
+                append_records!(
+                    jockey_runtime_security::collect_app_control().map_err(|e| e.to_string())?
+                )
             }
 
             // Kernel handlers
             "enumerate_modules" => {
-                collector.collect_drivers()
-                    .map_err(|e| e.to_string())?;
+                collector.collect_drivers().map_err(|e| e.to_string())?;
                 let records = collector.data().to_vec();
                 let count = records.len();
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
+            "inspect_syscall_table" => {
+                append_records!(
+                    jockey_runtime_drivers::inspect_syscall_table()
+                        .map_err(|e| e.to_string())?
+                )
+            }
+            "collect_boot_config" => {
+                append_records!(
+                    jockey_runtime_system::collect_boot_config()
+                        .map_err(|e| e.to_string())?
+                )
+            }
 
             // Evidence handlers
             "build_merkle_tree" => {
-                let source_records = options.get("_evidence_records")
+                let source_records = options
+                    .get("_evidence_records")
                     .and_then(serde_json::Value::as_array)
                     .cloned()
                     .unwrap_or_default();
@@ -3782,16 +5918,39 @@ impl CapabilityRegistry {
                     "record_count": source_records.len(),
                 })])
             }
-
-            _ => {
-                Err(format!("Unknown runtime handler: {}", handler))
+            "generate_chain_of_custody" => {
+                collector.generate_chain_of_custody().map_err(|e| e.to_string())?;
+                let records = collector.data().to_vec();
+                let count = records.len();
+                Ok((CollectionStatus::Success, count, records, None, None))
             }
+            "anchor_to_blockchain" => {
+                let source_records = options
+                    .get("_evidence_records")
+                    .and_then(serde_json::Value::as_array)
+                    .cloned()
+                    .unwrap_or_default();
+                let mut evidence = EvidenceCollector::new("capability-evidence-anchor");
+                evidence.set_records(source_records.clone());
+                let hash = evidence.compute_hash("sha256").map_err(|e| e.to_string())?;
+                let anchor = jockey_runtime_evidence::anchor_to_blockchain(&hash)
+                    .map_err(|e| e.to_string())?;
+                append_records!(vec![serde_json::json!({
+                    "evidence_hash": hash,
+                    "blockchain_anchor": anchor,
+                })])
+            }
+
+            _ => Err(format!("Unknown runtime handler: {}", handler)),
         }
     }
 
     /// Get unimplemented capabilities
     pub fn unimplemented(&self) -> Vec<&Capability> {
-        self.capabilities.values().filter(|c| !c.is_implemented).collect()
+        self.capabilities
+            .values()
+            .filter(|c| !c.is_implemented)
+            .collect()
     }
 
     /// Get total capability count
@@ -3799,9 +5958,47 @@ impl CapabilityRegistry {
         self.capabilities.len()
     }
 
+    /// Get capability count for a specific status
+    pub fn count_by_status(&self, status: ImplementationStatus) -> usize {
+        self.capabilities
+            .values()
+            .filter(|c| c.status == status)
+            .count()
+    }
+
     /// Get implemented capability count
     pub fn implemented_count(&self) -> usize {
-        self.capabilities.values().filter(|c| c.is_implemented).count()
+        self.count_by_status(ImplementationStatus::Implemented)
+    }
+
+    /// Get partial capability count
+    pub fn partial_count(&self) -> usize {
+        self.count_by_status(ImplementationStatus::Partial)
+    }
+
+    /// Get requires elevation capability count
+    pub fn requires_elevation_count(&self) -> usize {
+        self.count_by_status(ImplementationStatus::RequiresElevation)
+    }
+
+    /// Get platform specific capability count
+    pub fn platform_specific_count(&self) -> usize {
+        self.count_by_status(ImplementationStatus::PlatformSpecific)
+    }
+
+    /// Get unsupported capability count
+    pub fn unsupported_count(&self) -> usize {
+        self.count_by_status(ImplementationStatus::Unsupported)
+    }
+
+    /// Calculate dynamic capability coverage percentage
+    pub fn coverage_percentage(&self) -> f64 {
+        let total = self.count();
+        if total == 0 {
+            return 0.0;
+        }
+        let implemented = self.implemented_count();
+        (implemented as f64 / total as f64) * 100.0
     }
 
     /// Export capability inventory as JSON
@@ -3819,6 +6016,9 @@ impl CapabilityRegistry {
                     "mitre_attack_ids": cap.mitre_attack_ids,
                     "collector_function": cap.collector_function,
                     "is_implemented": cap.is_implemented,
+                    "status": cap.status.to_string(),
+                    "status_reason": cap.status_reason,
+                    "version": cap.version,
                 }),
             );
         }
@@ -3829,11 +6029,21 @@ impl CapabilityRegistry {
     pub fn to_markdown(&self) -> String {
         let mut md = String::new();
         md.push_str("# JOCKEY Capability Inventory\n\n");
-        md.push_str(&format!("**Total Capabilities:** {} | **Implemented:** {} | **Planned:** {}\n\n",
-            self.count(), self.implemented_count(), self.count() - self.implemented_count()));
+        md.push_str(&format!(
+            "**Total Capabilities:** {} | **Implemented:** {} | **Partial:** {} | **Requires Elevation:** {} | **Platform Restricted:** {} | **Unsupported:** {} | **Coverage:** {:.1}%\n\n",
+            self.count(),
+            self.implemented_count(),
+            self.partial_count(),
+            self.requires_elevation_count(),
+            self.platform_specific_count(),
+            self.unsupported_count(),
+            self.coverage_percentage(),
+        ));
 
-        md.push_str("| ID | Name | Category | Platforms | Privilege | MITRE ATT&CK | Implemented |\n");
-        md.push_str("|:---|:---|:---|:---|:---|:---|:---:|\n");
+        md.push_str(
+            "| ID | Name | Category | Platforms | Privilege | Status | MITRE ATT&CK | Implemented |\n",
+        );
+        md.push_str("|:---|:---|:---|:---|:---|:---|:---|:---:|\n");
 
         let mut caps: Vec<_> = self.capabilities.values().collect();
         caps.sort_by(|a, b| a.id.as_str().cmp(b.id.as_str()));
@@ -3845,12 +6055,13 @@ impl CapabilityRegistry {
                 cap.mitre_attack_ids.join(", ")
             };
             md.push_str(&format!(
-                "| {} | {} | {:?} | {:?} | {:?} | {} | {} |\n",
+                "| {} | {} | {:?} | {:?} | {:?} | {} | {} | {} |\n",
                 cap.id.as_str(),
                 cap.name,
                 cap.category,
                 cap.platforms,
                 cap.privilege,
+                cap.status,
                 mitre,
                 if cap.is_implemented { "✓" } else { "✗" }
             ));
@@ -3863,7 +6074,7 @@ impl CapabilityRegistry {
 /// Get the global capability registry instance
 pub fn registry() -> &'static CapabilityRegistry {
     static REGISTRY: OnceLock<CapabilityRegistry> = OnceLock::new();
-    REGISTRY.get_or_init(|| CapabilityRegistry::new())
+    REGISTRY.get_or_init(CapabilityRegistry::new)
 }
 
 /// Initialize the registry (forces eager initialization)
@@ -3885,15 +6096,36 @@ mod tests {
     fn test_implemented_count() {
         let reg = registry();
         let implemented = reg.implemented_count();
-        assert!(implemented > 0, "Should have at least some implemented capabilities");
-        println!("Implemented capabilities: {}", implemented);
+        let total = reg.count();
+        let unimpl = reg.unimplemented();
+        println!("Total: {}, Implemented: {}, Unimplemented: {}", total, implemented, unimpl.len());
+        println!("------------------------------------------------------------");
+        let mut sorted_unimpl: Vec<_> = unimpl.iter().collect();
+        sorted_unimpl.sort_by_key(|c| &c.id);
+        for cap in sorted_unimpl {
+            println!(
+                "{:<35} | {:<20?} | {:<8?} | {:<6?} | {}",
+                cap.id, cap.category, cap.platforms, cap.privilege, cap.collector_function
+            );
+        }
+        println!("------------------------------------------------------------");
+        assert!(
+            implemented > 0,
+            "Should have at least some implemented capabilities"
+        );
     }
 
     #[test]
     fn test_phase_1_capability_inventory_floor() {
         let reg = registry();
-        assert!(reg.count() >= 200, "Phase 1 registry must include at least 200 capabilities");
-        assert!(reg.implemented_count() >= 200, "Phase 1 must have at least 200 implemented capabilities");
+        assert!(
+            reg.count() >= 200,
+            "Phase 1 registry must include at least 200 capabilities"
+        );
+        assert!(
+            reg.implemented_count() >= 200,
+            "Phase 1 must have at least 200 implemented capabilities"
+        );
     }
 
     #[test]
@@ -3921,12 +6153,16 @@ mod tests {
         let windows_caps = reg.by_platform(Platform::Windows);
         let both_caps = reg.by_platform(Platform::Both);
 
-        println!("Linux-only: {}, Windows-only: {}, Both: {}",
-            linux_caps.len(), windows_caps.len(), both_caps.len());
+        println!(
+            "Linux-only: {}, Windows-only: {}, Both: {}",
+            linux_caps.len(),
+            windows_caps.len(),
+            both_caps.len()
+        );
 
-        assert!(linux_caps.len() > 0);
-        assert!(windows_caps.len() > 0);
-        assert!(both_caps.len() > 0);
+        assert!(!linux_caps.is_empty());
+        assert!(!windows_caps.is_empty());
+        assert!(!both_caps.is_empty());
     }
 
     #[test]
@@ -3960,7 +6196,10 @@ mod tests {
         assert!(reg.runtime_capability_exists("service.systemd"));
 
         let result = reg.invoke_runtime_capability("system.info.basic");
-        assert!(result.is_ok(), "system.info.basic should resolve to a runtime-backed collector");
+        assert!(
+            result.is_ok(),
+            "system.info.basic should resolve to a runtime-backed collector"
+        );
         let payload = result.unwrap();
         assert_eq!(payload.status, CollectionStatus::Success);
         assert_eq!(payload.runtime_module, "jockey_runtime_system");
@@ -3971,28 +6210,64 @@ mod tests {
         assert_eq!(provenance["capability_id"], "system.info.basic");
         assert_eq!(provenance["collector"], "collect_system_info");
         assert!(!provenance["host"].as_str().unwrap_or_default().is_empty());
-        assert_eq!(provenance["platform"], "Linux");
+        if cfg!(target_os = "windows") {
+            assert_eq!(provenance["platform"], "Windows");
+        } else {
+            assert_eq!(provenance["platform"], "Linux");
+        }
         assert_eq!(provenance["status"], "SUCCESS");
         assert_eq!(provenance["origin"], "REAL");
     }
 
     #[test]
     fn test_capability_result_status_constructors() {
-        let make_result = |status: fn(String, String, String, String, String, String, String, u64) -> CapabilityExecutionResult| {
+        let make_result = |status: fn(
+            String,
+            String,
+            String,
+            String,
+            String,
+            String,
+            String,
+            u64,
+        ) -> CapabilityExecutionResult| {
             status(
-                "cap.test".into(), "Test".into(), "handler".into(), "module".into(),
-                "Linux".into(), "User".into(), "record".into(), 1,
+                "cap.test".into(),
+                "Test".into(),
+                "handler".into(),
+                "module".into(),
+                "Linux".into(),
+                "User".into(),
+                "record".into(),
+                1,
             )
         };
 
-        assert_eq!(make_result(CapabilityExecutionResult::not_found).status, CollectionStatus::NotFound);
-        assert_eq!(make_result(CapabilityExecutionResult::unsupported).status, CollectionStatus::Unsupported);
-        assert_eq!(make_result(CapabilityExecutionResult::permission_denied).status, CollectionStatus::PermissionDenied);
+        assert_eq!(
+            make_result(CapabilityExecutionResult::not_found).status,
+            CollectionStatus::NotFound
+        );
+        assert_eq!(
+            make_result(CapabilityExecutionResult::unsupported).status,
+            CollectionStatus::Unsupported
+        );
+        assert_eq!(
+            make_result(CapabilityExecutionResult::permission_denied).status,
+            CollectionStatus::PermissionDenied
+        );
         assert_eq!(
             CapabilityExecutionResult::failed(
-                "cap.test".into(), "Test".into(), "handler".into(), "module".into(),
-                "Linux".into(), "User".into(), "record".into(), "failure".into(), 1,
-            ).status,
+                "cap.test".into(),
+                "Test".into(),
+                "handler".into(),
+                "module".into(),
+                "Linux".into(),
+                "User".into(),
+                "record".into(),
+                "failure".into(),
+                1,
+            )
+            .status,
             CollectionStatus::Failed,
         );
         assert_eq!(
@@ -4005,11 +6280,19 @@ mod tests {
     fn test_authoritative_runtime_dispatch_map() {
         let reg = registry();
 
-        let binding = reg.runtime_binding_for("user.enumerate").expect("user.enumerate should resolve through the authoritative map");
+        let binding = reg
+            .runtime_binding_for("user.enumerate")
+            .expect("user.enumerate should resolve through the authoritative map");
         assert_eq!(binding.runtime_module, "jockey_runtime_users");
         assert_eq!(binding.runtime_handler, "enumerate_users");
-        assert_eq!(reg.capability_truth_status("user.enumerate"), CapabilityTruthStatus::RuntimeBound);
-        assert_eq!(reg.capability_truth_status("persistence.wmi"), CapabilityTruthStatus::RuntimeBound);
+        assert_eq!(
+            reg.capability_truth_status("user.enumerate"),
+            CapabilityTruthStatus::RuntimeBound
+        );
+        assert_eq!(
+            reg.capability_truth_status("persistence.wmi"),
+            CapabilityTruthStatus::RuntimeBound
+        );
         assert!(reg.runtime_capability_exists("persistence.wmi"));
     }
 
@@ -4028,9 +6311,18 @@ mod tests {
         ];
 
         for id in ids {
-            assert!(reg.runtime_binding_for(id).is_some(), "{} should resolve via the runtime dispatch alias map", id);
+            assert!(
+                reg.runtime_binding_for(id).is_some(),
+                "{} should resolve via the runtime dispatch alias map",
+                id
+            );
             let result = reg.invoke_runtime_capability(id);
-            assert!(result.is_ok(), "{} should invoke successfully through its runtime binding: {:?}", id, result.err());
+            assert!(
+                result.is_ok(),
+                "{} should invoke successfully through its runtime binding: {:?}",
+                id,
+                result.err()
+            );
             let payload = result.unwrap();
             // Check that the execution produced some result (success, partial, or failed with proper error)
             assert!(matches!(
@@ -4062,7 +6354,10 @@ mod tests {
         assert_eq!(result.runtime_module, "jockey_runtime_artifacts");
         assert_eq!(result.records_count, 1);
         assert_eq!(result.evidence_records[0]["metadata"]["file_type"], "elf");
-        assert_eq!(result.evidence_records[0]["_provenance"]["capability_id"], "file.elf.metadata");
+        assert_eq!(
+            result.evidence_records[0]["_provenance"]["capability_id"],
+            "file.elf.metadata"
+        );
     }
 
     #[test]
@@ -4075,10 +6370,9 @@ mod tests {
         let result = registry()
             .invoke_runtime_capability_with_options("file.hash.sha256", &options)
             .unwrap();
-        let expected = jockey_runtime_filesystem::calculate_hash(
-            options["path"].as_str().unwrap(),
-            "sha256",
-        ).unwrap();
+        let expected =
+            jockey_runtime_filesystem::calculate_hash(options["path"].as_str().unwrap(), "sha256")
+                .unwrap();
         let _ = std::fs::remove_file(options["path"].as_str().unwrap());
 
         assert_eq!(result.status, CollectionStatus::Success);
@@ -4098,31 +6392,52 @@ mod tests {
         evidence.set_records(records.as_array().unwrap().clone());
         let expected_hash = evidence.compute_hash("sha256").unwrap();
         assert_eq!(hash_result.status, CollectionStatus::Success);
-        assert_eq!(hash_result.evidence_records[0]["evidence_sha256"], expected_hash);
+        assert_eq!(
+            hash_result.evidence_records[0]["evidence_sha256"],
+            expected_hash
+        );
 
         let merkle_result = registry()
             .invoke_runtime_capability_with_options("evidence.merkle", &options)
             .unwrap();
         assert_eq!(merkle_result.status, CollectionStatus::Success);
         assert_eq!(merkle_result.evidence_records[0]["record_count"], 2);
-        assert_eq!(merkle_result.evidence_records[0]["merkle_root"].as_str().unwrap().len(), 64);
+        assert_eq!(
+            merkle_result.evidence_records[0]["merkle_root"]
+                .as_str()
+                .unwrap()
+                .len(),
+            64
+        );
     }
 
     #[cfg(target_os = "linux")]
     #[test]
     fn test_persistence_capabilities_keep_mechanism_specific_records() {
-        let shell_profiles = registry().invoke_runtime_capability("persistence.shell.profile").unwrap();
-        let startup_folder = registry().invoke_runtime_capability("persistence.startup.folder").unwrap();
+        let shell_profiles = registry()
+            .invoke_runtime_capability("persistence.shell.profile")
+            .unwrap();
+        let startup_folder = registry()
+            .invoke_runtime_capability("persistence.startup.folder")
+            .unwrap();
 
         assert_eq!(shell_profiles.status, CollectionStatus::Success);
         assert_eq!(startup_folder.status, CollectionStatus::Success);
         assert!(shell_profiles.evidence_records.iter().any(|record| {
-            record.get("artifact_type").and_then(serde_json::Value::as_str) == Some("shell_profile")
-                || record.get("status").and_then(serde_json::Value::as_str) == Some("no_artifacts_found")
+            record
+                .get("artifact_type")
+                .and_then(serde_json::Value::as_str)
+                == Some("shell_profile")
+                || record.get("status").and_then(serde_json::Value::as_str)
+                    == Some("no_artifacts_found")
         }));
         assert!(startup_folder.evidence_records.iter().any(|record| {
-            record.get("artifact_type").and_then(serde_json::Value::as_str) == Some("xdg_autostart")
-                || record.get("status").and_then(serde_json::Value::as_str) == Some("no_artifacts_found")
+            record
+                .get("artifact_type")
+                .and_then(serde_json::Value::as_str)
+                == Some("xdg_autostart")
+                || record.get("status").and_then(serde_json::Value::as_str)
+                    == Some("no_artifacts_found")
         }));
     }
 
@@ -4130,7 +6445,11 @@ mod tests {
     fn test_script_url_capability_returns_url_projection() {
         let root = std::env::temp_dir().join(format!("jockey-script-url-{}", std::process::id()));
         std::fs::create_dir_all(&root).unwrap();
-        std::fs::write(root.join("sample.py"), "import requests\nrequests.get('https://bad.example/path?token=hidden')\n").unwrap();
+        std::fs::write(
+            root.join("sample.py"),
+            "import requests\nrequests.get('https://bad.example/path?token=hidden')\n",
+        )
+        .unwrap();
         let mut options = serde_json::Map::new();
         options.insert("path".to_string(), serde_json::json!(root));
 
@@ -4141,8 +6460,16 @@ mod tests {
 
         assert_eq!(result.status, CollectionStatus::Success);
         assert_eq!(result.records_count, 1);
-        assert_eq!(result.evidence_records[0]["indicator_type"], "script.url.indicators");
-        assert_eq!(result.evidence_records[0]["indicators"][0], "https://bad.example/path");
-        assert!(!result.evidence_records[0].to_string().contains("token=hidden"));
+        assert_eq!(
+            result.evidence_records[0]["indicator_type"],
+            "script.url.indicators"
+        );
+        assert_eq!(
+            result.evidence_records[0]["indicators"][0],
+            "https://bad.example/path"
+        );
+        assert!(!result.evidence_records[0]
+            .to_string()
+            .contains("token=hidden"));
     }
 }

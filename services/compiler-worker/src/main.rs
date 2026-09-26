@@ -306,7 +306,7 @@ impl Worker {
         let build_dir = self.state.work_dir.path().join(job.build_id.to_string());
         std::fs::create_dir_all(&build_dir)?;
 
-        let source_path = build_dir.join("investigation.tfg");
+        let source_path = build_dir.join("investigation.jy");
         std::fs::write(&source_path, &job.source)?;
 
         self.stream_log(job.build_id, "compile", "Compiling source...")

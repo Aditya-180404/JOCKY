@@ -92,9 +92,15 @@ impl Indicator {
     pub fn is_match(&self, observed: &str) -> bool {
         match self.match_type {
             MatchType::Exact => observed.eq_ignore_ascii_case(&self.value),
-            MatchType::Contains => observed.to_ascii_lowercase().contains(&self.value.to_ascii_lowercase()),
-            MatchType::Prefix => observed.to_ascii_lowercase().starts_with(&self.value.to_ascii_lowercase()),
-            MatchType::Suffix => observed.to_ascii_lowercase().ends_with(&self.value.to_ascii_lowercase()),
+            MatchType::Contains => observed
+                .to_ascii_lowercase()
+                .contains(&self.value.to_ascii_lowercase()),
+            MatchType::Prefix => observed
+                .to_ascii_lowercase()
+                .starts_with(&self.value.to_ascii_lowercase()),
+            MatchType::Suffix => observed
+                .to_ascii_lowercase()
+                .ends_with(&self.value.to_ascii_lowercase()),
             MatchType::Regex => {
                 if let Ok(re) = Regex::new(&self.value) {
                     re.is_match(observed)
@@ -136,7 +142,11 @@ impl IocEngine {
     }
 
     /// Scan normalized forensic entities for all registered indicators
-    pub fn scan_entities(&self, entities: &NormalizedEntities, host_id: &str) -> Vec<IndicatorMatch> {
+    pub fn scan_entities(
+        &self,
+        entities: &NormalizedEntities,
+        host_id: &str,
+    ) -> Vec<IndicatorMatch> {
         let mut matches = Vec::new();
         let now = Utc::now();
 
@@ -164,16 +174,16 @@ impl IocEngine {
                         if let Some(exe) = &proc.executable {
                             if indicator.is_match(exe) {
                                 matches.push(IndicatorMatch {
-                                indicator_id: indicator.id.clone(),
-                                indicator_type: indicator.indicator_type,
-                                indicator_value: indicator.value.clone(),
-                                matched_field: "process.executable".to_string(),
-                                observed_value: exe.clone(),
-                                host_id: host_id.to_string(),
-                                timestamp: proc.start_time.unwrap_or(now),
-                                evidence_reference: Some(format!("pid:{}", proc.pid)),
-                                severity: indicator.severity.clone(),
-                            });
+                                    indicator_id: indicator.id.clone(),
+                                    indicator_type: indicator.indicator_type,
+                                    indicator_value: indicator.value.clone(),
+                                    matched_field: "process.executable".to_string(),
+                                    observed_value: exe.clone(),
+                                    host_id: host_id.to_string(),
+                                    timestamp: proc.start_time.unwrap_or(now),
+                                    evidence_reference: Some(format!("pid:{}", proc.pid)),
+                                    severity: indicator.severity.clone(),
+                                });
                             }
                         }
                     }
@@ -232,7 +242,8 @@ impl IocEngine {
                 IndicatorType::Ip => {
                     for net in &entities.network_connections {
                         let remote_ip = net.remote_address.split(':').next().unwrap_or("");
-                        if indicator.is_match(remote_ip) || indicator.is_match(&net.remote_address) {
+                        if indicator.is_match(remote_ip) || indicator.is_match(&net.remote_address)
+                        {
                             matches.push(IndicatorMatch {
                                 indicator_id: indicator.id.clone(),
                                 indicator_type: indicator.indicator_type,
@@ -241,7 +252,10 @@ impl IocEngine {
                                 observed_value: net.remote_address.clone(),
                                 host_id: host_id.to_string(),
                                 timestamp: net.timestamp,
-                                evidence_reference: Some(format!("conn:{}->{}", net.local_address, net.remote_address)),
+                                evidence_reference: Some(format!(
+                                    "conn:{}->{}",
+                                    net.local_address, net.remote_address
+                                )),
                                 severity: indicator.severity.clone(),
                             });
                         }
@@ -299,15 +313,19 @@ impl IocEngine {
                 let mut observed = "";
 
                 if let Some(proc) = &event.process_name {
-                    if indicator.indicator_type == IndicatorType::ProcessName && indicator.is_match(proc) {
+                    if indicator.indicator_type == IndicatorType::ProcessName
+                        && indicator.is_match(proc)
+                    {
                         matched = true;
                         field = "timeline.process_name";
                         observed = proc;
                     }
                 }
                 if let Some(path) = &event.path {
-                    if (indicator.indicator_type == IndicatorType::Path || indicator.indicator_type == IndicatorType::Filename)
-                        && indicator.is_match(path) {
+                    if (indicator.indicator_type == IndicatorType::Path
+                        || indicator.indicator_type == IndicatorType::Filename)
+                        && indicator.is_match(path)
+                    {
                         matched = true;
                         field = "timeline.path";
                         observed = path;

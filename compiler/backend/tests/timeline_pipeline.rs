@@ -1,10 +1,12 @@
+#![cfg(feature = "llvm")]
+
 use jockey_backend::llvm::LlvmBackend;
+use jockey_hir::{HirLowering, HirOperation};
 use jockey_ir::BuildConfig;
 use jockey_lexer::Lexer;
+use jockey_mir::{MirInstruction, MirLowering};
 use jockey_parser::Parser;
 use jockey_semantic::SemanticAnalyzer;
-use jockey_hir::{HirLowering, HirOperation};
-use jockey_mir::{MirLowering, MirInstruction};
 
 #[test]
 fn test_timeline_lowering_pipeline_integrity() {
@@ -46,20 +48,28 @@ investigation "timeline_verification" {
     assert!(has_ir_timeline, "IR must contain timeline.build operation");
 
     // 3. HIR Lowering
-    let hir = HirLowering::lower(&ast, &ir.required_capabilities, source)
-        .expect("HIR lowering failed");
+    let hir =
+        HirLowering::lower(&ast, &ir.required_capabilities, source).expect("HIR lowering failed");
 
-    let has_hir_timeline = hir.operations.iter().any(|op| {
-        matches!(op, HirOperation::CollectTimeline { .. })
-    });
-    assert!(has_hir_timeline, "HIR must contain HirOperation::CollectTimeline, NOT CollectSystemInfo");
+    let has_hir_timeline = hir
+        .operations
+        .iter()
+        .any(|op| matches!(op, HirOperation::CollectTimeline { .. }));
+    assert!(
+        has_hir_timeline,
+        "HIR must contain HirOperation::CollectTimeline, NOT CollectSystemInfo"
+    );
 
     // Also verify from_ir roundtrip
     let hir_from_ir = jockey_hir::HirInvestigation::from(&ir);
-    let has_hir_from_ir_timeline = hir_from_ir.operations.iter().any(|op| {
-        matches!(op, HirOperation::CollectTimeline { .. })
-    });
-    assert!(has_hir_from_ir_timeline, "HIR from IR must contain HirOperation::CollectTimeline");
+    let has_hir_from_ir_timeline = hir_from_ir
+        .operations
+        .iter()
+        .any(|op| matches!(op, HirOperation::CollectTimeline { .. }));
+    assert!(
+        has_hir_from_ir_timeline,
+        "HIR from IR must contain HirOperation::CollectTimeline"
+    );
 
     // 4. MIR Lowering
     let mir = MirLowering::lower(&hir).expect("MIR lowering failed");
@@ -74,11 +84,16 @@ investigation "timeline_verification" {
             }
         }
     }
-    assert!(has_mir_timeline, "MIR must contain MirInstruction::EvidenceGenerateTimeline");
+    assert!(
+        has_mir_timeline,
+        "MIR must contain MirInstruction::EvidenceGenerateTimeline"
+    );
 
     // 5. LLVM IR Generation
     let backend = LlvmBackend::new(BuildConfig::default());
-    let llvm_ir = backend.generate_llvm_ir(&mir).expect("LLVM generation failed");
+    let llvm_ir = backend
+        .generate_llvm_ir(&mir)
+        .expect("LLVM generation failed");
 
     assert!(
         llvm_ir.contains("call i32 @jockey_rt_evidence_generate_timeline"),

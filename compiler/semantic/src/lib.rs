@@ -263,7 +263,8 @@ impl SemanticAnalyzer {
                 })])
             }
             CollectTarget::ProcessModules { pid } => {
-                self.required_capabilities.insert(Capability::ProcessModules);
+                self.required_capabilities
+                    .insert(Capability::ProcessModules);
                 let mut opts = self.convert_collect_options(options)?;
                 opts.insert("pid".to_string(), serde_json::Value::Number((*pid).into()));
                 Ok(vec![IrOperation::Collect(IrCollectOperation {
@@ -274,7 +275,8 @@ impl SemanticAnalyzer {
                 })])
             }
             CollectTarget::ProcessHandles { pid } => {
-                self.required_capabilities.insert(Capability::ProcessHandles);
+                self.required_capabilities
+                    .insert(Capability::ProcessHandles);
                 let mut opts = self.convert_collect_options(options)?;
                 opts.insert("pid".to_string(), serde_json::Value::Number((*pid).into()));
                 Ok(vec![IrOperation::Collect(IrCollectOperation {
@@ -285,7 +287,8 @@ impl SemanticAnalyzer {
                 })])
             }
             CollectTarget::DeletedExecutables => {
-                self.required_capabilities.insert(Capability::DeletedExecutables);
+                self.required_capabilities
+                    .insert(Capability::DeletedExecutables);
                 Ok(vec![IrOperation::Collect(IrCollectOperation {
                     operation: "process.deleted_executables".to_string(),
                     fields: options.fields.clone(),
@@ -493,13 +496,16 @@ impl SemanticAnalyzer {
                     self.required_capabilities.insert(Capability::ProcessTree);
                 }
                 CollectTarget::ProcessModules { .. } => {
-                    self.required_capabilities.insert(Capability::ProcessModules);
+                    self.required_capabilities
+                        .insert(Capability::ProcessModules);
                 }
                 CollectTarget::ProcessHandles { .. } => {
-                    self.required_capabilities.insert(Capability::ProcessHandles);
+                    self.required_capabilities
+                        .insert(Capability::ProcessHandles);
                 }
                 CollectTarget::DeletedExecutables => {
-                    self.required_capabilities.insert(Capability::DeletedExecutables);
+                    self.required_capabilities
+                        .insert(Capability::DeletedExecutables);
                 }
                 CollectTarget::NetworkConnections => {
                     self.required_capabilities.insert(Capability::NetworkRead);

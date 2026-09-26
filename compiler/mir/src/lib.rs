@@ -467,16 +467,12 @@ impl MirLowering {
                 });
             }
             HirOperation::CollectTimeline { .. } => {
-                self.instructions.push(MirInstruction::EvidenceGenerateTimeline {
-                    dest: res_id,
-                    ctx,
-                });
+                self.instructions
+                    .push(MirInstruction::EvidenceGenerateTimeline { dest: res_id, ctx });
             }
             HirOperation::CollectEvidence { .. } => {
-                self.instructions.push(MirInstruction::CollectSystemInfo {
-                    dest: res_id,
-                    ctx,
-                });
+                self.instructions
+                    .push(MirInstruction::CollectSystemInfo { dest: res_id, ctx });
             }
             HirOperation::CollectProcessTree { .. } => {
                 self.instructions
@@ -484,11 +480,19 @@ impl MirLowering {
             }
             HirOperation::CollectProcessModules { pid, .. } => {
                 self.instructions
-                    .push(MirInstruction::CollectProcessModules { dest: res_id, ctx, pid: *pid });
+                    .push(MirInstruction::CollectProcessModules {
+                        dest: res_id,
+                        ctx,
+                        pid: *pid,
+                    });
             }
             HirOperation::CollectProcessHandles { pid, .. } => {
                 self.instructions
-                    .push(MirInstruction::CollectProcessHandles { dest: res_id, ctx, pid: *pid });
+                    .push(MirInstruction::CollectProcessHandles {
+                        dest: res_id,
+                        ctx,
+                        pid: *pid,
+                    });
             }
             HirOperation::CollectDeletedExecutables { .. } => {
                 self.instructions

@@ -21,7 +21,7 @@ thiserror = { workspace = true }
 llvm-sys = { version = "211.1.0", features = ["prefer-dynamic"], optional = true }
 
 [features]
-default = ["llvm"]
+default = []
 llvm = ["llvm-sys"]
 
 [dev-dependencies]

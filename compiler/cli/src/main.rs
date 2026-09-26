@@ -23,15 +23,15 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Validate a JOCKY source file
+    /// Validate a JOCKEY source file (.jy)
     #[command(alias = "check")]
     Validate {
-        /// Source file to validate
+        /// Source file to validate (.jy)
         file: PathBuf,
     },
-    /// Compile a JOCKY source file
+    /// Compile a JOCKEY source file (.jy)
     Compile {
-        /// Source file to compile
+        /// Source file to compile (.jy)
         file: PathBuf,
         /// Target platform (linux, windows, native)
         #[arg(short, long, default_value = "native")]
@@ -64,9 +64,9 @@ enum Commands {
         #[arg(short, long)]
         verbose: bool,
     },
-    /// Build a JOCKY source file (alias for compile)
+    /// Build a JOCKEY source file (.jy) (alias for compile)
     Build {
-        /// Source file to build
+        /// Source file to build (.jy)
         file: PathBuf,
         /// Target platform (linux, windows, native)
         #[arg(short, long, default_value = "native")]
@@ -96,9 +96,9 @@ enum Commands {
         #[arg(short, long)]
         verbose: bool,
     },
-    /// Inspect a JOCKY source file (show AST/IR)
+    /// Inspect a JOCKEY source file (.jy) (show AST/IR)
     Inspect {
-        /// Source file to inspect
+        /// Source file to inspect (.jy)
         file: PathBuf,
         /// Output format (ast, ir, json)
         #[arg(short, long, default_value = "ir")]
@@ -133,14 +133,14 @@ enum Commands {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
-    /// Initialize a new JOCKY project
+    /// Initialize a new JOCKEY project
     Init {
         /// Project name
         name: String,
     },
-    /// Compile and execute a JOCKY source file
+    /// Compile and execute a JOCKEY source file (.jy)
     Run {
-        /// Source file to run
+        /// Source file to run (.jy)
         file: PathBuf,
         /// Target platform (linux, windows, native)
         #[arg(short, long, default_value = "native")]
@@ -152,23 +152,43 @@ enum Commands {
         #[arg(short, long, default_value = "./build")]
         output: PathBuf,
     },
-    /// Validate and normalize a JOCKY source file
+    /// Validate and normalize a JOCKEY source file (.jy)
     Fmt {
-        /// Source file to format
+        /// Source file to format (.jy)
         file: PathBuf,
         /// Write the normalized source back to the file
         #[arg(long)]
         write: bool,
     },
     /// List supported compilation targets
+    #[command(alias = "targets")]
     Target {
         #[command(subcommand)]
-        command: TargetCommands,
+        command: Option<TargetCommands>,
     },
     /// List all forensic capabilities
+    #[command(alias = "capability")]
     Capabilities {
+        /// Show all capabilities
+        #[arg(long)]
+        all: bool,
+        /// Show only implemented capabilities
+        #[arg(long)]
+        implemented: bool,
+        /// Show missing / unsupported capabilities
+        #[arg(long)]
+        missing: bool,
+        /// Filter by platform (windows, linux, both)
+        #[arg(long)]
+        platform: Option<String>,
+        /// Filter by category
+        #[arg(long)]
+        category: Option<String>,
+        /// Output format (table, json, markdown)
+        #[arg(long, default_value = "table")]
+        format: String,
         #[command(subcommand)]
-        command: CapabilityCommands,
+        command: Option<CapabilityCommands>,
     },
     /// Log in to the JOCKY tool repository
     Login {
@@ -225,6 +245,8 @@ enum Commands {
         #[arg(short, long, default_value = "3000")]
         port: u16,
     },
+    /// Inspect environment and platform capabilities
+    Doctor,
 }
 
 #[derive(Subcommand)]
@@ -246,6 +268,9 @@ enum CapabilityCommands {
         /// Show only implemented capabilities
         #[arg(long)]
         implemented: bool,
+        /// Show only missing / unsupported capabilities
+        #[arg(long)]
+        missing: bool,
         /// Output format (table, json, markdown)
         #[arg(long, default_value = "table")]
         format: String,
@@ -349,18 +374,33 @@ fn main() -> anyhow::Result<()> {
             output,
         } => run(&file, &target, &arch, &output),
         Commands::Fmt { file, write } => fmt(&file, write),
-        Commands::Target {
-            command: TargetCommands::List,
-        } => list_targets(),
-        Commands::Capabilities { command } => match command {
-            CapabilityCommands::List {
-                category,
-                platform,
-                implemented,
-                format,
-            } => list_capabilities(category, platform, implemented, &format),
-            CapabilityCommands::ExportJson { output } => export_capabilities_json(&output),
-            CapabilityCommands::ExportMarkdown { output } => export_capabilities_markdown(&output),
+        Commands::Target { command: _ } => list_targets(),
+        Commands::Capabilities {
+            all: _,
+            implemented,
+            missing,
+            platform,
+            category,
+            format,
+            command,
+        } => {
+            if let Some(sub) = command {
+                match sub {
+                    CapabilityCommands::List {
+                        category,
+                        platform,
+                        implemented,
+                        missing,
+                        format,
+                    } => list_capabilities(category, platform, implemented, missing, &format),
+                    CapabilityCommands::ExportJson { output } => export_capabilities_json(&output),
+                    CapabilityCommands::ExportMarkdown { output } => {
+                        export_capabilities_markdown(&output)
+                    }
+                }
+            } else {
+                list_capabilities(category, platform, implemented, missing, &format)
+            }
         },
         Commands::Login {
             email,
@@ -378,6 +418,7 @@ fn main() -> anyhow::Result<()> {
             description,
         } => repo_publish(&file, &version, &description),
         Commands::Ide { port } => launch_ide(port),
+        Commands::Doctor => doctor_command(),
     }
 }
 
@@ -387,17 +428,19 @@ fn run(file: &Path, target: &str, arch: &str, output: &Path) -> anyhow::Result<(
     )?;
     let output_dir = std::fs::canonicalize(output)?;
 
-    let target_platform = match target.to_lowercase().as_str() {
-        "linux" => TargetPlatform::Linux,
-        "windows" => TargetPlatform::Windows,
-        "native" => {
-            if cfg!(target_os = "windows") {
-                TargetPlatform::Windows
-            } else {
-                TargetPlatform::Linux
-            }
+    let target_lower = target.to_lowercase();
+    let target_platform = if target_lower.starts_with("linux") || target_lower.contains("linux") {
+        TargetPlatform::Linux
+    } else if target_lower.starts_with("windows") || target_lower.contains("windows") {
+        TargetPlatform::Windows
+    } else if target_lower == "native" {
+        if cfg!(target_os = "windows") {
+            TargetPlatform::Windows
+        } else {
+            TargetPlatform::Linux
         }
-        _ => anyhow::bail!("Unknown target platform: {}", target),
+    } else {
+        anyhow::bail!("Unknown target platform: {}", target);
     };
 
     match target_platform {
@@ -489,6 +532,7 @@ fn arch_suffix(arch: &str) -> anyhow::Result<&'static str> {
 }
 
 fn fmt(file: &Path, write: bool) -> anyhow::Result<()> {
+    jockey_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
     let source = std::fs::read_to_string(file)?;
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize()?;
@@ -527,6 +571,7 @@ fn list_capabilities(
     category_filter: Option<String>,
     platform_filter: Option<String>,
     implemented_only: bool,
+    missing_only: bool,
     format: &str,
 ) -> anyhow::Result<()> {
     let registry = CapabilityRegistry::new();
@@ -544,13 +589,23 @@ fn list_capabilities(
         let plat = plat_str.to_lowercase();
         caps.retain(|c| {
             let c_plat = format!("{:?}", c.platforms).to_lowercase();
-            c_plat == plat || c_plat.contains(&plat)
+            if plat == "windows" {
+                c_plat == "windows" || c_plat == "both"
+            } else if plat == "linux" {
+                c_plat == "linux" || c_plat == "both"
+            } else {
+                c_plat == plat || c_plat.contains(&plat)
+            }
         });
     }
 
     if implemented_only {
         caps.retain(|c| c.is_implemented);
+    } else if missing_only {
+        caps.retain(|c| !c.is_implemented);
     }
+
+    caps.sort_by(|a, b| a.id.cmp(&b.id));
 
     match format.to_lowercase().as_str() {
         "json" => {
@@ -562,22 +617,34 @@ fn list_capabilities(
         _ => {
             // Table format
             println!(
-                "{:<30} {:<12} {:<10} {:<8} {:<12} {}",
-                "ID", "CATEGORY", "PLATFORM", "PRIV", "MITRE", "NAME"
+                "{:<35} {:<15} {:<10} {:<8} {:<20} {:<10} NAME",
+                "ID", "CATEGORY", "PLATFORM", "PRIV", "STATUS", "MITRE"
             );
             println!("{}", "-".repeat(120));
-            for cap in caps {
+            for cap in &caps {
                 let mitre = cap.mitre_attack_ids.join(",");
                 println!(
-                    "{:<30} {:<12} {:<10} {:<8} {:<12} {}",
+                    "{:<35} {:<15} {:<10} {:<8} {:<20} {:<10} {}",
                     cap.id,
                     format!("{:?}", cap.category),
                     format!("{:?}", cap.platforms),
                     format!("{:?}", cap.privilege),
-                    if mitre.is_empty() { "none".to_string() } else { mitre },
+                    cap.status.to_string(),
+                    if mitre.is_empty() { "—" } else { &mitre },
                     cap.name
                 );
             }
+            println!("{}", "-".repeat(120));
+            println!(
+                "Total: {} | Implemented: {} | Partial: {} | Requires Elevation: {} | Platform Restricted: {} | Unsupported: {} | Coverage: {:.1}%",
+                registry.count(),
+                registry.implemented_count(),
+                registry.partial_count(),
+                registry.requires_elevation_count(),
+                registry.platform_specific_count(),
+                registry.unsupported_count(),
+                registry.coverage_percentage()
+            );
         }
     }
     Ok(())
@@ -601,6 +668,7 @@ fn export_capabilities_markdown(output: &Path) -> anyhow::Result<()> {
 }
 
 fn validate(file: &Path) -> anyhow::Result<()> {
+    jockey_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
     println!("Validating {}", file.display());
 
     let source = std::fs::read_to_string(file)?;
@@ -665,6 +733,7 @@ fn compile(
     emit_all: bool,
     verbose: bool,
 ) -> anyhow::Result<()> {
+    jockey_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
     println!("Compiling {}", file.display());
 
     let source = std::fs::read_to_string(file)?;
@@ -725,24 +794,31 @@ fn compile(
 
     let ir = ir.unwrap();
 
-    // --- Target resolution ---
-    let target_platform = match target.to_lowercase().as_str() {
-        "linux" => TargetPlatform::Linux,
-        "windows" => TargetPlatform::Windows,
-        "native" => {
-            if cfg!(target_os = "windows") {
-                TargetPlatform::Windows
-            } else {
-                TargetPlatform::Linux
-            }
+    let target_lower = target.to_lowercase();
+    let target_platform = if target_lower.starts_with("linux") || target_lower.contains("linux") {
+        TargetPlatform::Linux
+    } else if target_lower.starts_with("windows") || target_lower.contains("windows") {
+        TargetPlatform::Windows
+    } else if target_lower == "native" {
+        if cfg!(target_os = "windows") {
+            TargetPlatform::Windows
+        } else {
+            TargetPlatform::Linux
         }
-        _ => anyhow::bail!("Unknown target platform: {}", target),
+    } else {
+        anyhow::bail!("Unknown target platform: {}", target);
     };
 
-    let target_arch = match arch.to_lowercase().as_str() {
-        "x64" | "x86_64" => TargetArch::X64,
-        "arm64" | "aarch64" => TargetArch::Arm64,
-        _ => anyhow::bail!("Unknown target architecture: {}", arch),
+    let target_arch = if target_lower.contains("arm64") || target_lower.contains("aarch64") {
+        TargetArch::Arm64
+    } else if target_lower.contains("x64") || target_lower.contains("x86_64") {
+        TargetArch::X64
+    } else {
+        match arch.to_lowercase().as_str() {
+            "x64" | "x86_64" => TargetArch::X64,
+            "arm64" | "aarch64" => TargetArch::Arm64,
+            _ => anyhow::bail!("Unknown target architecture: {}", arch),
+        }
     };
 
     let optimization_level = match opt.to_lowercase().as_str() {
@@ -761,7 +837,21 @@ fn compile(
     };
 
     // --- Resolve backend kind ---
-    let backend_kind: BackendKind = backend_name.parse().unwrap_or(BackendKind::Llvm);
+    let backend_kind: BackendKind = {
+        #[cfg(feature = "llvm")]
+        {
+            backend_name.parse().unwrap_or(BackendKind::Llvm)
+        }
+        #[cfg(not(feature = "llvm"))]
+        {
+            if backend_name.to_lowercase() == "llvm" {
+                eprintln!(
+                    "Note: LLVM backend not compiled in this binary; using native Rust backend."
+                );
+            }
+            BackendKind::Rust
+        }
+    };
     if verbose {
         println!("  Backend:          {:?}", backend_kind);
         println!(
@@ -813,6 +903,7 @@ fn compile(
     }
 
     // --- LLVM IR emission (optional, before actual compilation) ---
+    #[cfg(feature = "llvm")]
     if emit_llvm || emit_all {
         if let Some(mir) = &maybe_mir {
             let llvm_backend = jockey_backend::LlvmBackend::new(config.clone());
@@ -823,6 +914,10 @@ fn compile(
             std::fs::write(&ll_path, &llvm_ir)?;
             println!("  LLVM  → {}", ll_path.display());
         }
+    }
+    #[cfg(not(feature = "llvm"))]
+    if emit_llvm {
+        println!("  LLVM  → (LLVM feature not enabled in this build)");
     }
 
     // --- Code generation ---
@@ -841,14 +936,23 @@ fn compile(
     // Always generate deterministic build & capability provenance manifest sidecar
     let hir_hash = maybe_mir.as_ref().map(|m| m.provenance.hir_hash.clone());
     let mir_hash = maybe_mir.as_ref().map(|m| m.provenance.mir_hash.clone());
-    let llvm_ir_hash = if let Some(mir) = &maybe_mir {
-        let llvm_backend = jockey_backend::LlvmBackend::new(config.clone());
-        llvm_backend
-            .generate_llvm_ir(mir)
-            .ok()
-            .map(|ir_text| calculate_sha256(&ir_text))
-    } else {
-        None
+    let llvm_ir_hash: Option<String> = {
+        #[cfg(feature = "llvm")]
+        {
+            if let Some(mir) = &maybe_mir {
+                let llvm_backend = jockey_backend::LlvmBackend::new(config.clone());
+                llvm_backend
+                    .generate_llvm_ir(mir)
+                    .ok()
+                    .map(|ir_text| calculate_sha256(ir_text.as_bytes()))
+            } else {
+                None
+            }
+        }
+        #[cfg(not(feature = "llvm"))]
+        {
+            None
+        }
     };
 
     let mut cap_provenance = Vec::new();
@@ -928,6 +1032,7 @@ fn compile(
 }
 
 fn inspect(file: &Path, format: &str) -> anyhow::Result<()> {
+    jockey_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
     let source = std::fs::read_to_string(file)?;
 
     let mut lexer = Lexer::new(&source);
@@ -1313,13 +1418,43 @@ fn generate_report(
     let mut correlation = jockey_runtime::correlation::CorrelationEngine::new(inv_name, host_id);
     correlation.ingest_records(items, host_id);
     let graph = correlation.graph();
-    let timeline_event_count = correlation.timeline().map(|timeline| timeline.event_count).unwrap_or(0);
-    let process_records = items.iter().filter(|record| record.get("pid").is_some()).cloned().collect::<Vec<_>>();
-    let connection_records = items.iter().filter(|record| record.get("local_address").is_some() || record.get("local_addr").is_some()).cloned().collect::<Vec<_>>();
-    let memory_records = items.iter().filter(|record| record.get("mapped_file").is_some() || record.get("start_address").is_some()).cloned().collect::<Vec<_>>();
-    let driver_records = items.iter().filter(|record| record.get("name").is_some() && record.get("vulnerability_indicators").is_some()).cloned().collect::<Vec<_>>();
+    let timeline_event_count = correlation
+        .timeline()
+        .map(|timeline| timeline.event_count)
+        .unwrap_or(0);
+    let process_records = items
+        .iter()
+        .filter(|record| record.get("pid").is_some())
+        .cloned()
+        .collect::<Vec<_>>();
+    let connection_records = items
+        .iter()
+        .filter(|record| {
+            record.get("local_address").is_some() || record.get("local_addr").is_some()
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+    let memory_records = items
+        .iter()
+        .filter(|record| {
+            record.get("mapped_file").is_some() || record.get("start_address").is_some()
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+    let driver_records = items
+        .iter()
+        .filter(|record| {
+            record.get("name").is_some() && record.get("vulnerability_indicators").is_some()
+        })
+        .cloned()
+        .collect::<Vec<_>>();
     let mut security_analyzer = jockey_runtime::security::SecurityAnalyzer::new(host_id);
-    security_analyzer.run_full_analysis_with_context(&process_records, &connection_records, &memory_records, &driver_records);
+    security_analyzer.run_full_analysis_with_context(
+        &process_records,
+        &connection_records,
+        &memory_records,
+        &driver_records,
+    );
     let security_findings = security_analyzer.findings().to_vec();
 
     let report_output = match format.to_lowercase().as_str() {
@@ -1356,21 +1491,49 @@ fn generate_report(
             serde_json::to_string_pretty(&json_rep)?
         }
         "csv" => {
-            let mut csv = String::from("record_index,category,capability_id,collector,host,platform,status,record_json\n");
+            let mut csv = String::from(
+                "record_index,category,capability_id,collector,host,platform,status,record_json\n",
+            );
             for (index, item) in items.iter().enumerate() {
                 let provenance = item.get("_provenance");
                 let category = report_record_category(item);
                 let columns = [
                     (index + 1).to_string(),
                     category,
-                    provenance.and_then(|value| value.get("capability_id")).and_then(serde_json::Value::as_str).unwrap_or("").to_string(),
-                    provenance.and_then(|value| value.get("collector")).and_then(serde_json::Value::as_str).unwrap_or("").to_string(),
-                    provenance.and_then(|value| value.get("host")).and_then(serde_json::Value::as_str).unwrap_or("").to_string(),
-                    provenance.and_then(|value| value.get("platform")).and_then(serde_json::Value::as_str).unwrap_or("").to_string(),
-                    provenance.and_then(|value| value.get("status")).and_then(serde_json::Value::as_str).unwrap_or("").to_string(),
+                    provenance
+                        .and_then(|value| value.get("capability_id"))
+                        .and_then(serde_json::Value::as_str)
+                        .unwrap_or("")
+                        .to_string(),
+                    provenance
+                        .and_then(|value| value.get("collector"))
+                        .and_then(serde_json::Value::as_str)
+                        .unwrap_or("")
+                        .to_string(),
+                    provenance
+                        .and_then(|value| value.get("host"))
+                        .and_then(serde_json::Value::as_str)
+                        .unwrap_or("")
+                        .to_string(),
+                    provenance
+                        .and_then(|value| value.get("platform"))
+                        .and_then(serde_json::Value::as_str)
+                        .unwrap_or("")
+                        .to_string(),
+                    provenance
+                        .and_then(|value| value.get("status"))
+                        .and_then(serde_json::Value::as_str)
+                        .unwrap_or("")
+                        .to_string(),
                     serde_json::to_string(item)?,
                 ];
-                csv.push_str(&columns.iter().map(|value| csv_escape(value)).collect::<Vec<_>>().join(","));
+                csv.push_str(
+                    &columns
+                        .iter()
+                        .map(|value| csv_escape(value))
+                        .collect::<Vec<_>>()
+                        .join(","),
+                );
                 csv.push('\n');
             }
             for (offset, finding) in graph.findings.iter().enumerate() {
@@ -1384,7 +1547,13 @@ fn generate_report(
                     format!("{:?}", finding.severity),
                     serde_json::to_string(finding)?,
                 ];
-                csv.push_str(&columns.iter().map(|value| csv_escape(value)).collect::<Vec<_>>().join(","));
+                csv.push_str(
+                    &columns
+                        .iter()
+                        .map(|value| csv_escape(value))
+                        .collect::<Vec<_>>()
+                        .join(","),
+                );
                 csv.push('\n');
             }
             for (offset, finding) in security_findings.iter().enumerate() {
@@ -1398,7 +1567,13 @@ fn generate_report(
                     finding.severity.to_string(),
                     serde_json::to_string(finding)?,
                 ];
-                csv.push_str(&columns.iter().map(|value| csv_escape(value)).collect::<Vec<_>>().join(","));
+                csv.push_str(
+                    &columns
+                        .iter()
+                        .map(|value| csv_escape(value))
+                        .collect::<Vec<_>>()
+                        .join(","),
+                );
                 csv.push('\n');
             }
             csv
@@ -1409,13 +1584,27 @@ fn generate_report(
             html.push_str("<table><thead><tr><th>#</th><th>Capability</th><th>Category</th><th>Source</th><th>Details</th></tr></thead><tbody>");
             for (index, item) in items.iter().enumerate() {
                 let provenance = item.get("_provenance");
-                let capability_id = provenance.and_then(|value| value.get("capability_id")).and_then(serde_json::Value::as_str).unwrap_or("");
-                let collector = provenance.and_then(|value| value.get("collector")).and_then(serde_json::Value::as_str).unwrap_or("");
+                let capability_id = provenance
+                    .and_then(|value| value.get("capability_id"))
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("");
+                let collector = provenance
+                    .and_then(|value| value.get("collector"))
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("");
                 let details = ["path", "name", "protocol", "local_address", "pid", "state"]
                     .iter()
                     .filter_map(|key| item.get(*key).map(|value| format!("{}={}", key, value)))
-                    .collect::<Vec<_>>().join("; ");
-                html.push_str(&format!("<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>", index + 1, html_escape(capability_id), html_escape(&report_record_category(item)), html_escape(collector), html_escape(&details)));
+                    .collect::<Vec<_>>()
+                    .join("; ");
+                html.push_str(&format!(
+                    "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
+                    index + 1,
+                    html_escape(capability_id),
+                    html_escape(&report_record_category(item)),
+                    html_escape(collector),
+                    html_escape(&details)
+                ));
             }
             html.push_str("</tbody></table><h2>Evidence-backed Correlation Findings</h2>");
             if graph.findings.is_empty() {
@@ -1435,11 +1624,14 @@ fn generate_report(
             }
             html.push_str("<h2>Rule-based Security Findings</h2>");
             if security_findings.is_empty() {
-                html.push_str("<p>No security rules matched the collected process and network evidence.</p>");
+                html.push_str(
+                    "<p>No security rules matched the collected process and network evidence.</p>",
+                );
             } else {
                 html.push_str("<table><thead><tr><th>Severity</th><th>Indicator</th><th>Reason</th><th>Evidence</th><th>MITRE ATT&amp;CK</th></tr></thead><tbody>");
                 for finding in &security_findings {
-                    html.push_str(&format!("<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
+                    html.push_str(&format!(
+                        "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
                         html_escape(&finding.severity.to_string()),
                         html_escape(&finding.indicator),
                         html_escape(&finding.reason),
@@ -1449,7 +1641,10 @@ fn generate_report(
                 }
                 html.push_str("</tbody></table>");
             }
-            html.push_str(&format!("<p>Normalized timeline events: {}</p></body></html>", timeline_event_count));
+            html.push_str(&format!(
+                "<p>Normalized timeline events: {}</p></body></html>",
+                timeline_event_count
+            ));
             html
         }
         "markdown" | "md" => {
@@ -1493,7 +1688,8 @@ fn generate_report(
                 md.push_str("No correlation rules matched the collected evidence.\n\n");
             } else {
                 for finding in &graph.findings {
-                    md.push_str(&format!("- **{:?}: {}**: {} Evidence: `{}`. MITRE: `{}`.\n",
+                    md.push_str(&format!(
+                        "- **{:?}: {}**: {} Evidence: `{}`. MITRE: `{}`.\n",
                         finding.severity,
                         finding.title,
                         finding.description,
@@ -1503,14 +1699,21 @@ fn generate_report(
                 }
                 md.push('\n');
             }
-            md.push_str(&format!("Normalized timeline events: `{}`; relationships: `{}`.\n\n", timeline_event_count, graph.relationships.len()));
+            md.push_str(&format!(
+                "Normalized timeline events: `{}`; relationships: `{}`.\n\n",
+                timeline_event_count,
+                graph.relationships.len()
+            ));
 
             md.push_str("## Rule-based Security Findings\n\n");
             if security_findings.is_empty() {
-                md.push_str("No security rules matched the collected process and network evidence.\n\n");
+                md.push_str(
+                    "No security rules matched the collected process and network evidence.\n\n",
+                );
             } else {
                 for finding in &security_findings {
-                    md.push_str(&format!("- **{}: {}**. Reason: {} Evidence: `{}`. MITRE: `{}`.\n",
+                    md.push_str(&format!(
+                        "- **{}: {}**. Reason: {} Evidence: `{}`. MITRE: `{}`.\n",
                         finding.severity,
                         finding.indicator,
                         finding.reason,
@@ -1628,7 +1831,8 @@ fn csv_escape(value: &str) -> String {
 }
 
 fn html_escape(value: &str) -> String {
-    value.replace('&', "&amp;")
+    value
+        .replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
         .replace('"', "&quot;")
@@ -1705,7 +1909,7 @@ fn init_project(name: &str) -> anyhow::Result<()> {
         name, name
     );
 
-    std::fs::write(dir.join(format!("{}.tfg", name)), example)?;
+    std::fs::write(dir.join(format!("{}.jy", name)), example)?;
 
     // Create README
     let readme = format!(
@@ -1716,7 +1920,7 @@ This investigation collects system information, process details, and network con
 ## Building
 
 ```bash
-jockey build {}.tfg --target linux --arch x64
+jockey build {}.jy --target linux --arch x64
 ```
 
 ## Running
@@ -1735,8 +1939,8 @@ Evidence will be written to `{}_evidence.json` with a SHA-256 hash for integrity
     std::fs::write(dir.join("README.md"), readme)?;
 
     println!("Created project: {}", dir.display());
-    println!("  Edit {}.tfg to customize your investigation", name);
-    println!("  Run `jockey build {}.tfg` to compile", name);
+    println!("  Edit {}.jy to customize your investigation", name);
+    println!("  Run `jockey build {}.jy` to compile", name);
 
     Ok(())
 }
@@ -1986,8 +2190,42 @@ fn repo_info(tool: &str) -> anyhow::Result<()> {
 }
 
 fn repo_update(tool: Option<&str>) -> anyhow::Result<()> {
-    let _ = tool;
-    anyhow::bail!("Repository update is not implemented by the current API")
+    let cfg = load_config();
+    let api_url = cfg
+        .api_url
+        .unwrap_or_else(|| "http://localhost:8080".to_string());
+    let token = cfg
+        .token
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jockey login first"))?;
+
+    match tool {
+        Some(name) => {
+            // Attempt to look up a tool by name and report its latest version
+            let response: serde_json::Value = ureq::get(&format!("{}/api/tools", api_url))
+                .set("Authorization", &format!("Bearer {}", token))
+                .call()
+                .map_err(|e| anyhow::anyhow!("Repository unreachable: {e}"))?
+                .into_json()?;
+            if let Some(items) = response.get("data").and_then(|d| d.as_array()) {
+                let matched: Vec<_> = items
+                    .iter()
+                    .filter(|i| i.get("name").and_then(|n| n.as_str()) == Some(name))
+                    .collect();
+                if matched.is_empty() {
+                    println!("No repository tool named '{}' found.", name);
+                } else {
+                    println!("Tool '{}' is at the latest published version (local install management not yet implemented).", name);
+                    println!("{}", serde_json::to_string_pretty(&matched[0])?);
+                }
+            }
+        }
+        None => {
+            println!("Checking all installed tools against repository...");
+            println!("(Local tool tracking not yet implemented — listing available tools instead)");
+            repo_list()?;
+        }
+    }
+    Ok(())
 }
 
 fn repo_publish(file: &Path, version: &str, description: &str) -> anyhow::Result<()> {
@@ -2072,6 +2310,169 @@ fn launch_ide(port: u16) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn probe_tool(name: &str) -> Option<String> {
+    std::process::Command::new(name)
+        .arg("--version")
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+}
+
+fn rustup_installed_targets() -> Vec<String> {
+    std::process::Command::new("rustup")
+        .args(["target", "list", "--installed"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| {
+            String::from_utf8_lossy(&o.stdout)
+                .lines()
+                .map(str::trim)
+                .filter(|l| !l.is_empty())
+                .map(str::to_string)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn doctor_command() -> anyhow::Result<()> {
+    println!("============================================================");
+    println!("  JOCKEY System & Environment Diagnostic (jockey doctor)");
+    println!("============================================================");
+    println!();
+
+    // ── Host ─────────────────────────────────────────────────────────────────
+    println!("  Host");
+    println!("  ─────────────────────────────────────────────────────────");
+    println!("  [OS]               {}", std::env::consts::OS);
+    println!("  [Architecture]     {}", std::env::consts::ARCH);
+    if let Ok(dir) = std::env::current_dir() {
+        println!("  [Working Dir]      {}", dir.display());
+    }
+    println!();
+
+    // ── Rust toolchain ───────────────────────────────────────────────────────
+    println!("  Rust Toolchain");
+    println!("  ─────────────────────────────────────────────────────────");
+    match probe_tool("rustc") {
+        Some(v) => println!("  [rustc]            ✓ {}", v),
+        None => println!("  [rustc]            ✗ NOT FOUND — install from https://rustup.rs"),
+    }
+    match probe_tool("cargo") {
+        Some(v) => println!("  [cargo]            ✓ {}", v),
+        None => println!("  [cargo]            ✗ NOT FOUND"),
+    }
+    match probe_tool("rustup") {
+        Some(v) => println!("  [rustup]           ✓ {}", v),
+        None => println!(
+            "  [rustup]           ! NOT FOUND (optional, needed for cross-compilation targets)"
+        ),
+    }
+    println!();
+
+    // ── Compilation targets ──────────────────────────────────────────────────
+    println!("  Compilation Targets");
+    println!("  ─────────────────────────────────────────────────────────");
+    let installed_targets = rustup_installed_targets();
+
+    // Windows x64 — native on Windows, needs toolchain on Linux
+    let win_x64_target = "x86_64-pc-windows-msvc";
+    let win_x64_gnu = "x86_64-pc-windows-gnu";
+    if cfg!(target_os = "windows") {
+        println!("  [windows-x64]      ✓ Native host (MSVC toolchain available)");
+    } else if installed_targets
+        .iter()
+        .any(|t| t == win_x64_target || t == win_x64_gnu)
+    {
+        println!("  [windows-x64]      ✓ Cross-compile toolchain installed");
+    } else {
+        println!(
+            "  [windows-x64]      ✗ NOT available on this host — run: rustup target add {}",
+            win_x64_gnu
+        );
+    }
+
+    // Linux x64 — native on Linux, needs 'cross' on Windows
+    if cfg!(target_os = "linux") {
+        println!("  [linux-x64]        ✓ Native host");
+    } else {
+        match probe_tool("cross") {
+            Some(v) => println!("  [linux-x64]        ✓ 'cross' available ({})", v),
+            None    => println!("  [linux-x64]        ! Requires Linux host or 'cross' — install: cargo install cross"),
+        }
+    }
+    if !installed_targets.is_empty() {
+        println!("  [Installed targets] {}", installed_targets.join(", "));
+    }
+    println!();
+
+    // ── Optional tooling ─────────────────────────────────────────────────────
+    println!("  Optional Tooling");
+    println!("  ─────────────────────────────────────────────────────────");
+    match probe_tool("git") {
+        Some(v) => println!("  [git]              ✓ {}", v),
+        None => println!("  [git]              ! NOT FOUND (optional)"),
+    }
+    match probe_tool("docker") {
+        Some(v) => println!("  [docker]           ✓ {}", v),
+        None => println!(
+            "  [docker]           ! NOT FOUND (optional, needed for Debian package builds)"
+        ),
+    }
+    println!();
+
+    // ── Capability registry ───────────────────────────────────────────────────
+    let reg = CapabilityRegistry::new();
+    let total = reg.count();
+    let implemented = reg.implemented_count();
+    let partial = reg.partial_count();
+    let requires_elevation = reg.requires_elevation_count();
+    let platform_restricted = reg.platform_specific_count();
+    let unsupported = reg.unsupported_count();
+    let coverage = reg.coverage_percentage();
+
+    println!("  Capability Coverage");
+    println!("  ─────────────────────────────────────────────────────────");
+    println!("  Total:               {}", total);
+    println!("  Implemented:         {}", implemented);
+    println!("  Partial:             {}", partial);
+    println!("  Requires elevation:  {}", requires_elevation);
+    println!("  Platform restricted: {}", platform_restricted);
+    println!("  Unsupported:         {}", unsupported);
+    println!("  Coverage:            {:.1}%", coverage);
+    println!();
+
+    // ── API ───────────────────────────────────────────────────────────────────
+    println!("  API Server");
+    println!("  ─────────────────────────────────────────────────────────");
+    match ureq::get("http://localhost:8080/health")
+        .timeout(std::time::Duration::from_millis(800))
+        .call()
+    {
+        Ok(resp) if resp.status() == 200 => {
+            println!("  [API]              ✓ Online at http://localhost:8080");
+        }
+        _ => {
+            println!("  [API]              ! Offline — start with: cargo run -p jockey-api");
+        }
+    }
+    println!();
+
+    // ── Auth config ───────────────────────────────────────────────────────────
+    let cfg = load_config();
+    match &cfg.user_email {
+        Some(email) => println!("  [Logged In]        ✓ {}", email),
+        None => println!("  [Auth]             ! Not logged in — run: jockey login"),
+    }
+
+    println!();
+    println!("============================================================");
+    println!("  Status: Diagnostic complete.");
+    println!("============================================================");
+    Ok(())
+}
+
 #[cfg(test)]
 mod report_tests {
     use super::{csv_escape, html_escape};
@@ -2083,6 +2484,25 @@ mod report_tests {
 
     #[test]
     fn html_report_escapes_markup_characters() {
-        assert_eq!(html_escape("<script a=\"x\">&'"), "&lt;script a=&quot;x&quot;&gt;&amp;&#39;");
+        assert_eq!(
+            html_escape("<script a=\"x\">&'"),
+            "&lt;script a=&quot;x&quot;&gt;&amp;&#39;"
+        );
+    }
+
+    #[test]
+    fn test_cli_accepts_jy_source_extension() {
+        let p = std::path::Path::new("examples/complete_forensic_triage.jy");
+        assert!(jockey_ir::validate_source_extension(p).is_ok());
+    }
+
+    #[test]
+    fn test_cli_rejects_tfg_source_extension() {
+        let p = std::path::Path::new("examples/complete_forensic_triage.tfg");
+        let res = jockey_ir::validate_source_extension(p);
+        assert!(res.is_err());
+        let err = res.unwrap_err();
+        assert!(err.contains("Unsupported JOCKEY source extension '.tfg'"));
+        assert!(err.contains("Expected a '.jy' source file"));
     }
 }

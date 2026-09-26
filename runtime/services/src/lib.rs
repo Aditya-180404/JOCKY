@@ -2,7 +2,7 @@
 //!
 //! Enumerates Windows services, systemd units, and kernel drivers.
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -264,6 +264,12 @@ pub struct ServicesResult {
     pub errors: Vec<String>,
 }
 
+impl Default for ServicesResult {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ServicesResult {
     pub fn new() -> Self {
         Self {
@@ -279,186 +285,97 @@ impl ServicesResult {
 /// Enumerate Windows services
 #[cfg(target_os = "windows")]
 pub fn enumerate_windows_services() -> Result<Vec<ServiceInfo>> {
-    use std::ffi::OsString;
-    use windows::Win32::Foundation::*;
-    use windows::Win32::System::Services::*;
-    use windows::Win32::System::Threading::*;
-    use sha2::{Digest, Sha256};
-    use std::fs::File;
-    use std::io::{BufReader, Read};
+    use std::process::Command;
 
     let mut services = Vec::new();
 
-    // Open SCM
-    let scm = unsafe { OpenSCManagerW(None, None, SC_MANAGER_ENUMERATE_SERVICE | SC_MANAGER_CONNECT)? };
+    let output = Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-Command",
+            "Get-CimInstance Win32_Service -ErrorAction SilentlyContinue | Select-Object Name,DisplayName,Description,State,StartMode,PathName,StartName,ProcessId | ConvertTo-Json -Compress",
+        ])
+        .output();
 
-    // Enumerate services
-    let mut bytes_needed = 0u32;
-    let mut services_returned = 0u32;
-    let mut resume_handle = 0u32;
+    if let Ok(out) = output {
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&stdout) {
+            let items = match val {
+                serde_json::Value::Array(arr) => arr,
+                serde_json::Value::Object(obj) => vec![serde_json::Value::Object(obj)],
+                _ => vec![],
+            };
 
-    // First call to get buffer size
-    unsafe {
-        EnumServicesStatusExW(
-            scm,
-            SC_ENUM_PROCESS_INFO,
-            SERVICE_WIN32,
-            SERVICE_STATE_ALL,
-            None,
-            0,
-            &mut bytes_needed,
-            &mut services_returned,
-            &mut resume_handle,
-            None,
-        );
-    }
+            for item in items {
+                let name = item
+                    .get("Name")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let display_name = item
+                    .get("DisplayName")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let description = item
+                    .get("Description")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                let state_str = item.get("State").and_then(|v| v.as_str()).unwrap_or("");
+                let start_mode_str = item.get("StartMode").and_then(|v| v.as_str()).unwrap_or("");
+                let path_name = item
+                    .get("PathName")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                let start_name = item
+                    .get("StartName")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                let pid = item
+                    .get("ProcessId")
+                    .and_then(|v| v.as_u64())
+                    .map(|p| p as u32);
 
-    let mut buffer = vec![0u8; bytes_needed as usize];
-    let enum_result = unsafe {
-        EnumServicesStatusExW(
-            scm,
-            SC_ENUM_PROCESS_INFO,
-            SERVICE_WIN32,
-            SERVICE_STATE_ALL,
-            Some(buffer.as_mut_ptr() as *mut _),
-            bytes_needed,
-            &mut bytes_needed,
-            &mut services_returned,
-            &mut resume_handle,
-            None,
-        )
-    };
+                let status = match state_str.to_lowercase().as_str() {
+                    "running" => ServiceStatus::Running,
+                    "stopped" => ServiceStatus::Stopped,
+                    "paused" => ServiceStatus::Paused,
+                    "start pending" => ServiceStatus::StartPending,
+                    "stop pending" => ServiceStatus::StopPending,
+                    _ => ServiceStatus::Unknown,
+                };
 
-    if enum_result.is_ok() {
-        let enum_buffer = unsafe { &*(buffer.as_ptr() as *const ENUM_SERVICE_STATUS_PROCESSW) };
-        let slice = unsafe { std::slice::from_raw_parts(enum_buffer, services_returned as usize) };
+                let start_type = match start_mode_str.to_lowercase().as_str() {
+                    "auto" | "automatic" => ServiceStartType::Auto,
+                    "manual" => ServiceStartType::Demand,
+                    "disabled" => ServiceStartType::Disabled,
+                    "boot" => ServiceStartType::Boot,
+                    "system" => ServiceStartType::System,
+                    _ => ServiceStartType::Unknown,
+                };
 
-        for entry in slice {
-            let name = String::from_utf16_lossy(&entry.lpServiceName[..entry.lpServiceName.iter().position(|&c| c == 0).unwrap_or(entry.lpServiceName.len())]);
-            let display_name = String::from_utf16_lossy(&entry.lpDisplayName[..entry.lpDisplayName.iter().position(|&c| c == 0).unwrap_or(entry.lpDisplayName.len())]);
-
-            // Open service for more details
-            let service_name_wide: Vec<u16> = name.encode_utf16().chain(Some(0)).collect();
-            if let Ok(service) = unsafe { OpenServiceW(scm, PCWSTR(service_name_wide.as_ptr()), SERVICE_QUERY_CONFIG | SERVICE_QUERY_STATUS) } {
-                // Get config
-                let mut config_bytes = 0u32;
-                unsafe { QueryServiceConfigW(service, None, 0, &mut config_bytes); }
-                let mut config_buffer = vec![0u8; config_bytes as usize];
-                if unsafe { QueryServiceConfigW(service, Some(config_buffer.as_mut_ptr() as *mut _), config_bytes, &mut config_bytes) }.is_ok() {
-                    let config = unsafe { &*(config_buffer.as_ptr() as *const QUERY_SERVICE_CONFIGW) };
-
-                    let binary_path = if !config.lpBinaryPathName.is_null() {
-                        let len = (0..).take_while(|&i| unsafe { *config.lpBinaryPathName.offset(i) != 0 }).count();
-                        Some(String::from_utf16_lossy(unsafe { std::slice::from_raw_parts(config.lpBinaryPathName, len) }))
-                    } else {
-                        None
-                    };
-
-                    let service_account = if !config.lpServiceStartName.is_null() {
-                        let len = (0..).take_while(|&i| unsafe { *config.lpServiceStartName.offset(i) != 0 }).count();
-                        Some(String::from_utf16_lossy(unsafe { std::slice::from_raw_parts(config.lpServiceStartName, len) }))
-                    } else {
-                        None
-                    };
-
-                    let load_order_group = if !config.lpLoadOrderGroup.is_null() {
-                        let len = (0..).take_while(|&i| unsafe { *config.lpLoadOrderGroup.offset(i) != 0 }).count();
-                        Some(String::from_utf16_lossy(unsafe { std::slice::from_raw_parts(config.lpLoadOrderGroup, len) }))
-                    } else {
-                        None
-                    };
-
-                    // Get dependencies
-                    let mut dep_bytes = 0u32;
-                    unsafe { QueryServiceConfig2W(service, SERVICE_CONFIG_DEPENDENCIES, None, 0, &mut dep_bytes); }
-                    let mut dependencies = Vec::new();
-                    if dep_bytes > 0 {
-                        let mut dep_buffer = vec![0u8; dep_bytes as usize];
-                        if unsafe { QueryServiceConfig2W(service, SERVICE_CONFIG_DEPENDENCIES, Some(dep_buffer.as_mut_ptr() as *mut _), dep_bytes, &mut dep_bytes) }.is_ok() {
-                            let dep_str = String::from_utf16_lossy(unsafe { std::slice::from_raw_parts(dep_buffer.as_ptr() as *const u16, dep_bytes as usize / 2) });
-                            dependencies = dep_str.split('\0').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
-                        }
-                    }
-
-                    // Compute binary hash
-                    let binary_hash = binary_path.as_ref().and_then(|p| {
-                        if let Ok(file) = File::open(p) {
-                            let mut reader = BufReader::new(file);
-                            let mut hasher = Sha256::new();
-                            let mut buf = [0; 8192];
-                            loop {
-                                match reader.read(&mut buf) {
-                                    Ok(0) => break,
-                                    Ok(n) => hasher.update(&buf[..n]),
-                                    Err(_) => return None,
-                                }
-                            }
-                            Some(hex::encode(hasher.finalize()))
-                        } else {
-                            None
-                        }
-                    });
-
-                    let service_info = ServiceInfo {
-                        name,
-                        display_name,
-                        description: None, // Would need QueryServiceConfig2 with SERVICE_CONFIG_DESCRIPTION
-                        status: match entry.ServiceStatusProcess.dwCurrentState {
-                            SERVICE_STOPPED => ServiceStatus::Stopped,
-                            SERVICE_RUNNING => ServiceStatus::Running,
-                            SERVICE_PAUSED => ServiceStatus::Paused,
-                            SERVICE_START_PENDING => ServiceStatus::StartPending,
-                            SERVICE_STOP_PENDING => ServiceStatus::StopPending,
-                            SERVICE_CONTINUE_PENDING => ServiceStatus::ContinuePending,
-                            SERVICE_PAUSE_PENDING => ServiceStatus::PausePending,
-                            _ => ServiceStatus::Unknown,
-                        },
-                        start_type: match config.dwStartType {
-                            SERVICE_BOOT_START => ServiceStartType::Boot,
-                            SERVICE_SYSTEM_START => ServiceStartType::System,
-                            SERVICE_AUTO_START => ServiceStartType::Auto,
-                            SERVICE_DEMAND_START => ServiceStartType::Demand,
-                            SERVICE_DISABLED => ServiceStartType::Disabled,
-                            _ => ServiceStartType::Unknown,
-                        },
-                        binary_path,
-                        service_account,
-                        dependencies,
-                        pid: if entry.ServiceStatusProcess.dwProcessId != 0 {
-                            Some(entry.ServiceStatusProcess.dwProcessId)
-                        } else {
-                            None
-                        },
-                        binary_hash,
-                        signature_status: None, // Would need WinVerifyTrust
-                        load_order_group,
-                        error_control: Some(match config.dwErrorControl {
-                            SERVICE_ERROR_IGNORE => "Ignore".to_string(),
-                            SERVICE_ERROR_NORMAL => "Normal".to_string(),
-                            SERVICE_ERROR_SEVERE => "Severe".to_string(),
-                            SERVICE_ERROR_CRITICAL => "Critical".to_string(),
-                            _ => "Unknown".to_string(),
-                        }),
-                        tag_id: if config.dwTagId != 0 { Some(config.dwTagId) } else { None },
-                        interactive: config.dwServiceType & SERVICE_INTERACTIVE_PROCESS != 0,
-                        service_type: match config.dwServiceType & 0xFF {
-                            SERVICE_KERNEL_DRIVER => ServiceType::KernelDriver,
-                            SERVICE_FILE_SYSTEM_DRIVER => ServiceType::FileSystemDriver,
-                            SERVICE_WIN32_OWN_PROCESS => ServiceType::Win32OwnProcess,
-                            SERVICE_WIN32_SHARE_PROCESS => ServiceType::Win32ShareProcess,
-                            SERVICE_INTERACTIVE_PROCESS => ServiceType::InteractiveProcess,
-                            _ => ServiceType::Unknown,
-                        },
-                        source: ServiceSource::WindowsSCM,
-                    };
-                    services.push(service_info);
-                }
-                unsafe { CloseServiceHandle(service); }
+                services.push(ServiceInfo {
+                    name,
+                    display_name,
+                    description,
+                    status,
+                    start_type,
+                    binary_path: path_name,
+                    service_account: start_name,
+                    dependencies: Vec::new(),
+                    pid,
+                    binary_hash: None,
+                    signature_status: None,
+                    load_order_group: None,
+                    error_control: None,
+                    tag_id: None,
+                    interactive: false,
+                    service_type: ServiceType::Win32OwnProcess,
+                    source: ServiceSource::WindowsSCM,
+                });
             }
         }
     }
-
-    unsafe { CloseServiceHandle(scm); }
 
     Ok(services)
 }
@@ -466,45 +383,66 @@ pub fn enumerate_windows_services() -> Result<Vec<ServiceInfo>> {
 /// Enumerate Windows kernel drivers
 #[cfg(target_os = "windows")]
 pub fn enumerate_windows_drivers() -> Result<Vec<DriverInfo>> {
-    use windows::Win32::Foundation::*;
-    use windows::Win32::System::SystemServices::*;
-    use windows::Win32::System::Threading::*;
-    use std::ffi::OsString;
+    use std::process::Command;
 
     let mut drivers = Vec::new();
 
-    // Use EnumDeviceDrivers
-    let mut drivers_buffer = [0u64; 1024];
-    let mut needed = 0u32;
-    if unsafe { EnumDeviceDrivers(drivers_buffer.as_mut_ptr() as *mut _, (drivers_buffer.len() * 8) as u32, &mut needed) }.is_ok() {
-        let count = (needed / 8) as usize;
-        for i in 0..count {
-            let base = drivers_buffer[i];
-            if base == 0 { continue; }
+    let output = Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-Command",
+            "Get-CimInstance Win32_SystemDriver -ErrorAction SilentlyContinue | Select-Object Name,DisplayName,State,StartMode,PathName | ConvertTo-Json -Compress",
+        ])
+        .output();
 
-            // Get driver name
-            let mut name_buffer = [0u16; 256];
-            let name_len = unsafe { GetDeviceDriverBaseNameW(base as *mut _, &mut name_buffer) };
-            if name_len > 0 {
-                let name = String::from_utf16_lossy(&name_buffer[..name_len as usize]);
+    if let Ok(out) = output {
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&stdout) {
+            let items = match val {
+                serde_json::Value::Array(arr) => arr,
+                serde_json::Value::Object(obj) => vec![serde_json::Value::Object(obj)],
+                _ => vec![],
+            };
 
-                // Get driver path
-                let mut path_buffer = [0u16; 1024];
-                let path_len = unsafe { GetDeviceDriverFileNameW(base as *mut _, &mut path_buffer) };
-                let path = if path_len > 0 {
-                    Some(String::from_utf16_lossy(&path_buffer[..path_len as usize]))
-                } else {
-                    None
+            for item in items {
+                let name = item
+                    .get("Name")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let display_name = item
+                    .get("DisplayName")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                let state_str = item.get("State").and_then(|v| v.as_str()).unwrap_or("");
+                let start_mode_str = item.get("StartMode").and_then(|v| v.as_str()).unwrap_or("");
+                let path = item
+                    .get("PathName")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+
+                let status = match state_str.to_lowercase().as_str() {
+                    "running" => ServiceStatus::Running,
+                    "stopped" => ServiceStatus::Stopped,
+                    _ => ServiceStatus::Unknown,
                 };
 
-                // Get driver info (would need more APIs for full details)
+                let start_type = match start_mode_str.to_lowercase().as_str() {
+                    "boot" => ServiceStartType::Boot,
+                    "system" => ServiceStartType::System,
+                    "auto" | "automatic" => ServiceStartType::Auto,
+                    "manual" => ServiceStartType::Demand,
+                    "disabled" => ServiceStartType::Disabled,
+                    _ => ServiceStartType::Unknown,
+                };
+
                 drivers.push(DriverInfo {
                     name,
-                    display_name: None,
+                    display_name,
                     path,
-                    status: ServiceStatus::Running, // Loaded drivers are running
-                    start_type: ServiceStartType::Unknown,
-                    image_base: Some(base),
+                    status,
+                    start_type,
+                    image_base: None,
                     image_size: None,
                     hash: None,
                     signature_status: None,
@@ -518,6 +456,12 @@ pub fn enumerate_windows_drivers() -> Result<Vec<DriverInfo>> {
     }
 
     Ok(drivers)
+}
+
+/// Enumerate systemd units (Non-Linux stub)
+#[cfg(not(target_os = "linux"))]
+pub fn enumerate_systemd_units() -> Result<Vec<SystemdUnitInfo>> {
+    Ok(Vec::new())
 }
 
 /// Enumerate systemd units
@@ -550,7 +494,8 @@ pub fn enumerate_systemd_units() -> Result<Vec<SystemdUnitInfo>> {
                     || path.extension().and_then(|s| s.to_str()) == Some("target")
                     || path.extension().and_then(|s| s.to_str()) == Some("slice")
                     || path.extension().and_then(|s| s.to_str()) == Some("scope")
-                    || path.extension().and_then(|s| s.to_str()) == Some("device") {
+                    || path.extension().and_then(|s| s.to_str()) == Some("device")
+                {
                     if let Ok(unit) = parse_systemd_unit_file(&path) {
                         units.push(unit);
                     }
@@ -624,7 +569,7 @@ fn parse_systemd_unit_file(path: &std::path::Path) -> Result<SystemdUnitInfo> {
     for line in content.lines() {
         let line = line.trim();
         if line.starts_with('[') && line.ends_with(']') {
-            current_section = line[1..line.len()-1].to_string();
+            current_section = line[1..line.len() - 1].to_string();
             continue;
         }
         if line.is_empty() || line.starts_with('#') {
@@ -642,39 +587,44 @@ fn parse_systemd_unit_file(path: &std::path::Path) -> Result<SystemdUnitInfo> {
             "Unit" => {
                 match key {
                     "Description" => unit.description = Some(value.to_string()),
-                    "Requires" => unit.dependencies = value.split_whitespace().map(|s| s.to_string()).collect(),
-                    "Wants" => unit.wants = value.split_whitespace().map(|s| s.to_string()).collect(),
+                    "Requires" => {
+                        unit.dependencies =
+                            value.split_whitespace().map(|s| s.to_string()).collect()
+                    }
+                    "Wants" => {
+                        unit.wants = value.split_whitespace().map(|s| s.to_string()).collect()
+                    }
                     "After" | "Before" => {
                         // Ordering dependencies
-                        unit.dependencies.extend(value.split_whitespace().map(|s| s.to_string()));
+                        unit.dependencies
+                            .extend(value.split_whitespace().map(|s| s.to_string()));
                     }
                     _ => {}
                 }
             }
-            "Service" => {
-                match key {
-                    "ExecStart" => unit.exec_start = Some(value.to_string()),
-                    "ExecStartPre" => unit.exec_start_pre.push(value.to_string()),
-                    "ExecStartPost" => unit.exec_start_post.push(value.to_string()),
-                    "ExecStop" => unit.exec_stop = Some(value.to_string()),
-                    "ExecStopPost" => unit.exec_stop_post.push(value.to_string()),
-                    "User" => unit.user = Some(value.to_string()),
-                    "Group" => unit.group = Some(value.to_string()),
-                    "WorkingDirectory" => unit.working_directory = Some(value.to_string()),
-                    "Environment" => {
-                        for env in value.split_whitespace() {
-                            if let Some(eq_pos) = env.find('=') {
-                                unit.environment.insert(env[..eq_pos].to_string(), env[eq_pos+1..].to_string());
-                            }
+            "Service" => match key {
+                "ExecStart" => unit.exec_start = Some(value.to_string()),
+                "ExecStartPre" => unit.exec_start_pre.push(value.to_string()),
+                "ExecStartPost" => unit.exec_start_post.push(value.to_string()),
+                "ExecStop" => unit.exec_stop = Some(value.to_string()),
+                "ExecStopPost" => unit.exec_stop_post.push(value.to_string()),
+                "User" => unit.user = Some(value.to_string()),
+                "Group" => unit.group = Some(value.to_string()),
+                "WorkingDirectory" => unit.working_directory = Some(value.to_string()),
+                "Environment" => {
+                    for env in value.split_whitespace() {
+                        if let Some(eq_pos) = env.find('=') {
+                            unit.environment
+                                .insert(env[..eq_pos].to_string(), env[eq_pos + 1..].to_string());
                         }
                     }
-                    "Restart" => unit.restart = Some(value.to_string()),
-                    "RestartSec" => unit.restart_sec = Some(value.to_string()),
-                    "MemoryLimit" => unit.memory_limit = Some(value.to_string()),
-                    "CPUQuota" => unit.cpu_limit = Some(value.to_string()),
-                    _ => {}
                 }
-            }
+                "Restart" => unit.restart = Some(value.to_string()),
+                "RestartSec" => unit.restart_sec = Some(value.to_string()),
+                "MemoryLimit" => unit.memory_limit = Some(value.to_string()),
+                "CPUQuota" => unit.cpu_limit = Some(value.to_string()),
+                _ => {}
+            },
             "Timer" => {
                 let mut timer = unit.timer_properties.get_or_insert(TimerProperties {
                     on_calendar: None,
@@ -698,13 +648,15 @@ fn parse_systemd_unit_file(path: &std::path::Path) -> Result<SystemdUnitInfo> {
                     _ => {}
                 }
             }
-            "Install" => {
-                match key {
-                    "WantedBy" => unit.wanted_by = value.split_whitespace().map(|s| s.to_string()).collect(),
-                    "RequiredBy" => unit.required_by = value.split_whitespace().map(|s| s.to_string()).collect(),
-                    _ => {}
+            "Install" => match key {
+                "WantedBy" => {
+                    unit.wanted_by = value.split_whitespace().map(|s| s.to_string()).collect()
                 }
-            }
+                "RequiredBy" => {
+                    unit.required_by = value.split_whitespace().map(|s| s.to_string()).collect()
+                }
+                _ => {}
+            },
             _ => {}
         }
     }
@@ -715,7 +667,8 @@ fn parse_systemd_unit_file(path: &std::path::Path) -> Result<SystemdUnitInfo> {
         if let Ok(entries) = fs::read_dir(&dropin_dir) {
             for entry in entries.flatten() {
                 if entry.path().extension().and_then(|s| s.to_str()) == Some("conf") {
-                    unit.drop_in_paths.push(entry.path().to_string_lossy().to_string());
+                    unit.drop_in_paths
+                        .push(entry.path().to_string_lossy().to_string());
                 }
             }
         }
@@ -774,9 +727,7 @@ pub fn enumerate_linux_services() -> Result<Vec<ServiceInfo>> {
 fn get_init_d_status(name: &str) -> ServiceStatus {
     use std::process::Command;
 
-    let output = Command::new("service")
-        .args([name, "status"])
-        .output();
+    let output = Command::new("service").args([name, "status"]).output();
 
     match output {
         Ok(out) => {
@@ -785,7 +736,10 @@ fn get_init_d_status(name: &str) -> ServiceStatus {
             let combined = format!("{} {}", stdout, stderr).to_lowercase();
             if combined.contains("running") || combined.contains("active") {
                 ServiceStatus::Running
-            } else if combined.contains("stopped") || combined.contains("inactive") || combined.contains("dead") {
+            } else if combined.contains("stopped")
+                || combined.contains("inactive")
+                || combined.contains("dead")
+            {
                 ServiceStatus::Stopped
             } else {
                 ServiceStatus::Unknown

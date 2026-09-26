@@ -30,11 +30,15 @@ pub unsafe extern "C" fn jockey_rt_evidence_init(
     let source_hash = if source_hash.is_null() {
         None
     } else {
-        CStr::from_ptr(source_hash).to_str().ok().filter(|value| !value.is_empty()).map(str::to_owned)
+        CStr::from_ptr(source_hash)
+            .to_str()
+            .ok()
+            .filter(|value| !value.is_empty())
+            .map(str::to_owned)
     };
-    let artifact_hash = std::env::current_exe().ok().and_then(|path| {
-        jockey_runtime_evidence::hash_file(&path.to_string_lossy()).ok()
-    });
+    let artifact_hash = std::env::current_exe()
+        .ok()
+        .and_then(|path| jockey_runtime_evidence::hash_file(&path.to_string_lossy()).ok());
     let mut collector = EvidenceCollector::new(&name_str);
     collector.set_build_provenance(source_hash, artifact_hash);
     let ctx = Box::new(RuntimeContext { collector });
@@ -67,7 +71,10 @@ pub unsafe extern "C" fn jockey_rt_invoke_capability(
         match serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(json) {
             Ok(options) => options,
             Err(error) => {
-                eprintln!("[jockey Runtime] Invalid capability options JSON: {}", error);
+                eprintln!(
+                    "[jockey Runtime] Invalid capability options JSON: {}",
+                    error
+                );
                 return -1;
             }
         }
@@ -83,7 +90,10 @@ pub unsafe extern "C" fn jockey_rt_invoke_capability(
     {
         Ok(result) => result,
         Err(error) => {
-            eprintln!("[jockey Runtime] Capability {} dispatch error: {}", capability_id, error);
+            eprintln!(
+                "[jockey Runtime] Capability {} dispatch error: {}",
+                capability_id, error
+            );
             return -1;
         }
     };
@@ -106,6 +116,7 @@ pub unsafe extern "C" fn jockey_rt_invoke_capability(
         CollectionStatus::NotFound => -2,
         CollectionStatus::Unsupported => -3,
         CollectionStatus::PermissionDenied => -4,
+        CollectionStatus::RequiresElevation => -5,
     }
 }
 

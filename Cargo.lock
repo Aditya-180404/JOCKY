@@ -2030,6 +2030,7 @@ dependencies = [
  "jockey-lexer",
  "jockey-parser",
  "jockey-runtime",
+ "jockey-runtime-capabilities",
  "jockey-runtime-correlation",
  "jockey-runtime-evidence",
  "jockey-runtime-filesystem",
@@ -2229,6 +2230,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "thiserror 1.0.69",
+ "winreg 0.52.0",
 ]
 
 [[package]]
@@ -2259,6 +2261,7 @@ dependencies = [
  "chrono",
  "jockey-runtime-artifacts",
  "jockey-runtime-auth",
+ "jockey-runtime-drivers",
  "jockey-runtime-evidence",
  "jockey-runtime-filesystem",
  "jockey-runtime-logs",
@@ -2426,6 +2429,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "hex",
  "libc",
  "procfs",
  "serde",
@@ -2447,6 +2451,7 @@ dependencies = [
  "serde_json",
  "thiserror 1.0.69",
  "whoami",
+ "winreg 0.52.0",
 ]
 
 [[package]]
@@ -2472,6 +2477,8 @@ dependencies = [
  "thiserror 1.0.69",
  "users",
  "whoami",
+ "windows",
+ "winreg 0.52.0",
 ]
 
 [[package]]

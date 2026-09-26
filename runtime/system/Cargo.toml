@@ -13,3 +13,6 @@ thiserror = { workspace = true }
 anyhow = { workspace = true }
 chrono = { workspace = true }
 whoami = "1.5"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.52"

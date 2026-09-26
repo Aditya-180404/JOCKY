@@ -24,7 +24,6 @@ pub use entities::{
 pub use ioc::{Indicator, IndicatorMatch, IndicatorType, IocEngine, MatchType};
 pub use rules::{JockeyRule, RuleCondition, RuleEngine, RuleFinding, RuleSeverity};
 
-
 /// Represents a forensic entity that can be correlated across sources
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Entity {
@@ -282,9 +281,7 @@ impl CorrelationEngine {
     /// Ingest evidence records directly and build correlations
     pub fn ingest_records(&mut self, records: &[serde_json::Value], host: &str) {
         // First pass: build timeline
-        self.timeline = Some(jockey_runtime_timeline::build_timeline(
-            records, host, None,
-        ));
+        self.timeline = Some(jockey_runtime_timeline::build_timeline(records, host, None));
 
         // Second pass: extract entities and build indices
         self.extract_entities(records, host);
@@ -309,8 +306,6 @@ impl CorrelationEngine {
         self.ingest_records(records, &host);
         Ok(())
     }
-
-
 
     pub fn into_graph(self) -> CorrelationGraph {
         self.graph
@@ -644,7 +639,7 @@ impl CorrelationEngine {
 
     fn correlate_file_hashes(&mut self) {
         // Find files with matching hashes (potential duplicates or same file)
-        for (_hash, refs) in &self.file_by_hash {
+        for refs in self.file_by_hash.values() {
             if refs.len() > 1 {
                 // Multiple files with same hash - could indicate duplication or same file
                 // We'd need actual file records to link them properly
@@ -660,7 +655,7 @@ impl CorrelationEngine {
 
     fn correlate_network_endpoints(&mut self) {
         // Find processes that communicated with same remote endpoint
-        for (_endpoint, refs) in &self.network_by_endpoint {
+        for refs in self.network_by_endpoint.values() {
             if refs.len() > 1 {
                 // Multiple connections to same endpoint - correlate the processes
                 // This would need process info from network records
@@ -692,7 +687,7 @@ impl CorrelationEngine {
                         let e2 = window[1];
 
                         let time_diff = (e2.timestamp - e1.timestamp).num_seconds();
-                        if time_diff >= 0 && time_diff <= 300 {
+                        if (0..=300).contains(&time_diff) {
                             // Within 5 minutes
                             let rel_type = infer_relationship_type(e1, e2);
                             if let Some(rt) = rel_type {
@@ -820,7 +815,7 @@ impl CorrelationEngine {
             for event in &timeline.events {
                 if event.source == "network" {
                     if let Some(endpoint) = &event.network_endpoint {
-                        if let Some(port_str) = endpoint.split(':').last() {
+                        if let Some(port_str) = endpoint.split(':').next_back() {
                             if let Ok(port) = port_str.parse::<u16>() {
                                 if suspicious_ports.contains(&port)
                                     && event.event_type.contains("established")

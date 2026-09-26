@@ -194,6 +194,170 @@ fn file_owner_gid(_: &fs::Metadata) -> u32 {
     0
 }
 
+/// Alternate Data Streams (ADS) detector
+pub fn detect_alternate_data_streams(
+    target_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut results = Vec::new();
+    let p = if target_path == "." || target_path.is_empty() {
+        std::env::current_dir()?.display().to_string()
+    } else {
+        target_path.to_string()
+    };
+
+    #[cfg(target_os = "windows")]
+    {
+        let output = std::process::Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                &format!(
+                    r#"Get-Item -LiteralPath '{}' -Stream * -ErrorAction SilentlyContinue | Select-Object Stream, Length | ConvertTo-Json -Compress"#,
+                    p.replace('\'', "''")
+                ),
+            ])
+            .output();
+
+        if let Ok(output) = output {
+            if output.status.success() {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                if let Ok(val) = serde_json::from_str::<serde_json::Value>(&stdout) {
+                    let items = match val {
+                        serde_json::Value::Array(arr) => arr,
+                        serde_json::Value::Object(_) => vec![val],
+                        _ => vec![],
+                    };
+                    for item in items {
+                        let stream_name = item.get("Stream").and_then(|v| v.as_str()).unwrap_or("");
+                        let length = item.get("Length").and_then(|v| v.as_u64()).unwrap_or(0);
+                        if stream_name != ":$DATA" {
+                            results.push(serde_json::json!({
+                                "collector": "filesystem",
+                                "artifact_type": "alternate_data_stream",
+                                "target_path": p,
+                                "stream_name": stream_name,
+                                "size_bytes": length,
+                                "is_zone_identifier": stream_name.contains("Zone.Identifier"),
+                                "status": "success",
+                            }));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(output) = std::process::Command::new("getfattr").args(["-d", "-m", "-", &p]).output() {
+            if output.status.success() {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                for line in stdout.lines() {
+                    if let Some((attr, val)) = line.split_once('=') {
+                        results.push(serde_json::json!({
+                            "collector": "filesystem",
+                            "artifact_type": "extended_attribute",
+                            "target_path": p,
+                            "attribute": attr.trim(),
+                            "value": val.trim(),
+                            "status": "success",
+                        }));
+                    }
+                }
+            }
+        }
+    }
+
+    if results.is_empty() {
+        results.push(serde_json::json!({
+            "collector": "filesystem",
+            "artifact_type": "alternate_data_stream",
+            "target_path": p,
+            "status": "no_artifacts_found",
+            "note": "No alternate data streams or extended attributes detected on target path",
+        }));
+    }
+
+    Ok(results)
+}
+
+/// Enumerate mount points / mounted filesystems
+pub fn enumerate_mounts() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut results = Vec::new();
+
+    #[cfg(target_os = "windows")]
+    {
+        let output = std::process::Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                r#"Get-Volume | Select-Object DriveLetter, FileSystemLabel, FileSystem, Size, SizeRemaining, DriveType | ConvertTo-Json -Compress"#,
+            ])
+            .output();
+
+        if let Ok(output) = output {
+            if output.status.success() {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                if let Ok(val) = serde_json::from_str::<serde_json::Value>(&stdout) {
+                    let items = match val {
+                        serde_json::Value::Array(arr) => arr,
+                        serde_json::Value::Object(_) => vec![val],
+                        _ => vec![],
+                    };
+                    for item in items {
+                        let drive = item.get("DriveLetter").and_then(|v| v.as_str()).unwrap_or("");
+                        let label = item.get("FileSystemLabel").and_then(|v| v.as_str()).unwrap_or("");
+                        let fs_type = item.get("FileSystem").and_then(|v| v.as_str()).unwrap_or("");
+                        let size = item.get("Size").and_then(|v| v.as_u64()).unwrap_or(0);
+                        let free = item.get("SizeRemaining").and_then(|v| v.as_u64()).unwrap_or(0);
+                        results.push(serde_json::json!({
+                            "collector": "filesystem",
+                            "artifact_type": "mount_point",
+                            "mount_point": if drive.is_empty() { String::new() } else { format!("{}:\\", drive) },
+                            "device": drive,
+                            "filesystem": fs_type,
+                            "label": label,
+                            "size_bytes": size,
+                            "free_bytes": free,
+                            "status": "success",
+                        }));
+                    }
+                }
+            }
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(content) = std::fs::read_to_string("/proc/mounts") {
+            for line in content.lines() {
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                if parts.len() >= 4 {
+                    results.push(serde_json::json!({
+                        "collector": "filesystem",
+                        "artifact_type": "mount_point",
+                        "device": parts[0],
+                        "mount_point": parts[1],
+                        "filesystem": parts[2],
+                        "options": parts[3],
+                        "status": "success",
+                    }));
+                }
+            }
+        }
+    }
+
+    if results.is_empty() {
+        results.push(serde_json::json!({
+            "collector": "filesystem",
+            "artifact_type": "mount_point",
+            "status": "no_artifacts_found",
+        }));
+    }
+
+    Ok(results)
+}
+
 #[cfg(test)]
 mod tests {
     use super::calculate_hash;

@@ -119,10 +119,19 @@ fn test_ioc_matching_engine_all_operators() {
 
     assert!(!matches.is_empty(), "Expected multiple IOC matches");
     let matched_ids: Vec<&str> = matches.iter().map(|m| m.indicator_id.as_str()).collect();
-    assert!(matched_ids.contains(&"ioc-sha-01"), "SHA256 exact match failed");
-    assert!(matched_ids.contains(&"ioc-proc-01"), "Process contains match failed");
+    assert!(
+        matched_ids.contains(&"ioc-sha-01"),
+        "SHA256 exact match failed"
+    );
+    assert!(
+        matched_ids.contains(&"ioc-proc-01"),
+        "Process contains match failed"
+    );
     assert!(matched_ids.contains(&"ioc-ip-01"), "IP prefix match failed");
-    assert!(matched_ids.contains(&"ioc-path-01"), "Path regex match failed");
+    assert!(
+        matched_ids.contains(&"ioc-path-01"),
+        "Path regex match failed"
+    );
 }
 
 #[test]
@@ -137,10 +146,19 @@ fn test_jockey_native_rule_engine() {
             "Process named nc or ncat spawned with -e argument indicative of reverse shell",
             RuleCondition::And(vec![
                 RuleCondition::Or(vec![
-                    RuleCondition::Contains { field: "process.name".to_string(), value: "nc".to_string() },
-                    RuleCondition::Contains { field: "process.name".to_string(), value: "ncat".to_string() },
+                    RuleCondition::Contains {
+                        field: "process.name".to_string(),
+                        value: "nc".to_string(),
+                    },
+                    RuleCondition::Contains {
+                        field: "process.name".to_string(),
+                        value: "ncat".to_string(),
+                    },
                 ]),
-                RuleCondition::Contains { field: "process.command_line".to_string(), value: "-e".to_string() },
+                RuleCondition::Contains {
+                    field: "process.command_line".to_string(),
+                    value: "-e".to_string(),
+                },
             ]),
             RuleSeverity::Critical,
         )
@@ -171,23 +189,14 @@ fn test_jockey_native_rule_engine() {
 fn test_rule_evaluation_on_timeline_events() {
     let engine = RuleEngine::new(); // Includes builtin rules
 
-    let mut event = TimelineEvent::new(
-        Utc::now(),
-        "win-client-04",
-        "process",
-        "process_observed",
-    );
+    let mut event = TimelineEvent::new(Utc::now(), "win-client-04", "process", "process_observed");
     event.process_name = Some("powershell.exe".to_string());
     event.process_id = Some(5012);
     event.evidence_ref = Some("pid:5012".to_string());
 
     // Matches the builtin rule recon_system_info_discovery when process.name is whoami
-    let mut event_recon = TimelineEvent::new(
-        Utc::now(),
-        "win-client-04",
-        "process",
-        "process_observed",
-    );
+    let mut event_recon =
+        TimelineEvent::new(Utc::now(), "win-client-04", "process", "process_observed");
     event_recon.process_name = Some("whoami".to_string());
     event_recon.process_id = Some(5013);
     event_recon.evidence_ref = Some("pid:5013".to_string());

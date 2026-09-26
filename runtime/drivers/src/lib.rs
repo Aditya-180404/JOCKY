@@ -107,6 +107,102 @@ pub fn enumerate_drivers() -> Result<Vec<serde_json::Value>, Box<dyn std::error:
     }
 }
 
+/// Inspect system call table for hooking/modification (defensive, read-only)
+pub fn inspect_syscall_table() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    #[cfg(target_os = "linux")]
+    {
+        inspect_syscall_table_linux()
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        Ok(vec![serde_json::json!({
+            "status": "REQUIRES_ELEVATION",
+            "capability": "kernel.syscalls",
+            "reason": "SSDT (System Service Descriptor Table) inspection requires Ring 0 kernel driver access on Windows",
+            "required_privilege": "Kernel",
+            "platform": "windows",
+            "data": null
+        })])
+    }
+
+    #[cfg(not(any(target_os = "linux", target_os = "windows")))]
+    {
+        Ok(vec![serde_json::json!({
+            "status": "UNSUPPORTED",
+            "capability": "kernel.syscalls",
+            "reason": "System call table inspection not supported on this platform",
+            "platform": std::env::consts::OS,
+            "data": null
+        })])
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn inspect_syscall_table_linux() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut records = Vec::new();
+
+    // Check if /proc/kallsyms has unmasked addresses
+    let kallsyms_content = match std::fs::read_to_string("/proc/kallsyms") {
+        Ok(c) => c,
+        Err(e) => {
+            return Ok(vec![serde_json::json!({
+                "status": "REQUIRES_ELEVATION",
+                "capability": "kernel.syscalls",
+                "reason": format!("Unable to read /proc/kallsyms: {}", e),
+                "required_privilege": "Kernel",
+                "platform": "linux",
+                "data": null
+            })]);
+        }
+    };
+
+    let mut masked_count = 0;
+    for line in kallsyms_content.lines() {
+        if line.contains("sys_call_table") || line.contains("__x64_sys_") || line.contains("sys_enter") {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() >= 3 {
+                let addr = parts[0];
+                let sym_type = parts[1];
+                let sym_name = parts[2];
+                let is_masked = addr == "0000000000000000" || addr == "00000000";
+                if is_masked {
+                    masked_count += 1;
+                }
+                records.push(serde_json::json!({
+                    "address": addr,
+                    "type": sym_type,
+                    "symbol": sym_name,
+                    "masked": is_masked,
+                    "collected_at": Utc::now()
+                }));
+            }
+        }
+    }
+
+    if !records.is_empty() && masked_count == records.len() {
+        return Ok(vec![serde_json::json!({
+            "status": "REQUIRES_ELEVATION",
+            "capability": "kernel.syscalls",
+            "reason": "Kernel addresses are masked (kptr_restrict active). Requires root/CAP_SYSLOG privilege.",
+            "required_privilege": "Kernel",
+            "platform": "linux",
+            "data": null
+        })]);
+    }
+
+    if records.is_empty() {
+        records.push(serde_json::json!({
+            "status": "PARTIAL",
+            "capability": "kernel.syscalls",
+            "reason": "kallsyms accessible but sys_call_table symbol unexported in current kernel config",
+            "collected_at": Utc::now()
+        }));
+    }
+
+    Ok(records)
+}
+
 #[cfg(target_os = "linux")]
 fn enumerate_linux_modules() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     let mut records = Vec::new();

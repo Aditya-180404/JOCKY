@@ -21,6 +21,7 @@ pub enum CollectionStatus {
     NotFound,
     Unsupported,
     PermissionDenied,
+    RequiresElevation,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -176,7 +177,11 @@ impl EvidenceCollector {
         self.evidence_origin = origin;
     }
 
-    pub fn set_build_provenance(&mut self, source_hash: Option<String>, artifact_hash: Option<String>) {
+    pub fn set_build_provenance(
+        &mut self,
+        source_hash: Option<String>,
+        artifact_hash: Option<String>,
+    ) {
         self.source_hash = source_hash;
         self.artifact_hash = artifact_hash;
     }
@@ -221,19 +226,49 @@ impl EvidenceCollector {
         if self.collector_results.is_empty() {
             return CollectionStatus::Success;
         }
-        let has_success = self.collector_results.iter().any(|r| r.status == CollectionStatus::Success);
-        let has_failure = self.collector_results.iter().any(|r| matches!(
-            r.status,
-            CollectionStatus::Failed | CollectionStatus::NotFound | CollectionStatus::Unsupported | CollectionStatus::PermissionDenied
-        ));
-        let has_partial = self.collector_results.iter().any(|r| r.status == CollectionStatus::Partial);
+        let has_success = self
+            .collector_results
+            .iter()
+            .any(|r| r.status == CollectionStatus::Success);
+        let has_failure = self.collector_results.iter().any(|r| {
+            matches!(
+                r.status,
+                CollectionStatus::Failed
+                    | CollectionStatus::NotFound
+                    | CollectionStatus::Unsupported
+                    | CollectionStatus::PermissionDenied
+                    | CollectionStatus::RequiresElevation
+            )
+        });
+        let has_partial = self
+            .collector_results
+            .iter()
+            .any(|r| r.status == CollectionStatus::Partial);
         if has_failure && !has_success {
-            if self.collector_results.iter().all(|r| r.status == CollectionStatus::NotFound) {
+            if self
+                .collector_results
+                .iter()
+                .all(|r| r.status == CollectionStatus::NotFound)
+            {
                 CollectionStatus::NotFound
-            } else if self.collector_results.iter().all(|r| r.status == CollectionStatus::Unsupported) {
+            } else if self
+                .collector_results
+                .iter()
+                .all(|r| r.status == CollectionStatus::Unsupported)
+            {
                 CollectionStatus::Unsupported
-            } else if self.collector_results.iter().all(|r| r.status == CollectionStatus::PermissionDenied) {
+            } else if self
+                .collector_results
+                .iter()
+                .all(|r| r.status == CollectionStatus::PermissionDenied)
+            {
                 CollectionStatus::PermissionDenied
+            } else if self
+                .collector_results
+                .iter()
+                .all(|r| r.status == CollectionStatus::RequiresElevation)
+            {
+                CollectionStatus::RequiresElevation
             } else {
                 CollectionStatus::Failed
             }
@@ -248,12 +283,24 @@ impl EvidenceCollector {
         match jockey_runtime_system::collect_system_info() {
             Ok(info) => {
                 self.data.push(info);
-                self.record_collector_result("system_info", CollectionStatus::Success, 1, None, None);
+                self.record_collector_result(
+                    "system_info",
+                    CollectionStatus::Success,
+                    1,
+                    None,
+                    None,
+                );
                 Ok(())
             }
             Err(e) => {
                 let err_str = e.to_string();
-                self.record_collector_result("system_info", CollectionStatus::Failed, 0, Some(err_str), None);
+                self.record_collector_result(
+                    "system_info",
+                    CollectionStatus::Failed,
+                    0,
+                    Some(err_str),
+                    None,
+                );
                 Err(e)
             }
         }
@@ -269,12 +316,24 @@ impl EvidenceCollector {
                 for proc in processes {
                     self.data.push(proc);
                 }
-                self.record_collector_result("processes", CollectionStatus::Success, count, None, None);
+                self.record_collector_result(
+                    "processes",
+                    CollectionStatus::Success,
+                    count,
+                    None,
+                    None,
+                );
                 Ok(())
             }
             Err(e) => {
                 let err_str = e.to_string();
-                self.record_collector_result("processes", CollectionStatus::Failed, 0, Some(err_str), None);
+                self.record_collector_result(
+                    "processes",
+                    CollectionStatus::Failed,
+                    0,
+                    Some(err_str),
+                    None,
+                );
                 Err(e)
             }
         }
@@ -287,12 +346,24 @@ impl EvidenceCollector {
                 for conn in connections {
                     self.data.push(conn);
                 }
-                self.record_collector_result("network", CollectionStatus::Success, count, None, None);
+                self.record_collector_result(
+                    "network",
+                    CollectionStatus::Success,
+                    count,
+                    None,
+                    None,
+                );
                 Ok(())
             }
             Err(e) => {
                 let err_str = e.to_string();
-                self.record_collector_result("network", CollectionStatus::Failed, 0, Some(err_str), None);
+                self.record_collector_result(
+                    "network",
+                    CollectionStatus::Failed,
+                    0,
+                    Some(err_str),
+                    None,
+                );
                 Err(e)
             }
         }
@@ -315,7 +386,13 @@ impl EvidenceCollector {
             }
             Err(e) => {
                 let err_str = e.to_string();
-                self.record_collector_result("files", CollectionStatus::Failed, 0, Some(err_str), None);
+                self.record_collector_result(
+                    "files",
+                    CollectionStatus::Failed,
+                    0,
+                    Some(err_str),
+                    None,
+                );
                 Err(e)
             }
         }
@@ -333,7 +410,13 @@ impl EvidenceCollector {
             }
             Err(e) => {
                 let err_str = e.to_string();
-                self.record_collector_result("logs", CollectionStatus::Failed, 0, Some(err_str), None);
+                self.record_collector_result(
+                    "logs",
+                    CollectionStatus::Failed,
+                    0,
+                    Some(err_str),
+                    None,
+                );
                 Err(e)
             }
         }
@@ -346,12 +429,24 @@ impl EvidenceCollector {
                 for d in drivers {
                     self.data.push(d);
                 }
-                self.record_collector_result("drivers", CollectionStatus::Success, count, None, None);
+                self.record_collector_result(
+                    "drivers",
+                    CollectionStatus::Success,
+                    count,
+                    None,
+                    None,
+                );
                 Ok(())
             }
             Err(e) => {
                 let err_str = e.to_string();
-                self.record_collector_result("drivers", CollectionStatus::Failed, 0, Some(err_str), None);
+                self.record_collector_result(
+                    "drivers",
+                    CollectionStatus::Failed,
+                    0,
+                    Some(err_str),
+                    None,
+                );
                 Err(e)
             }
         }
@@ -367,12 +462,24 @@ impl EvidenceCollector {
                 for region in regions {
                     self.data.push(region);
                 }
-                self.record_collector_result("memory_regions", CollectionStatus::Success, count, None, None);
+                self.record_collector_result(
+                    "memory_regions",
+                    CollectionStatus::Success,
+                    count,
+                    None,
+                    None,
+                );
                 Ok(())
             }
             Err(e) => {
                 let err_str = e.to_string();
-                self.record_collector_result("memory_regions", CollectionStatus::Failed, 0, Some(err_str), None);
+                self.record_collector_result(
+                    "memory_regions",
+                    CollectionStatus::Failed,
+                    0,
+                    Some(err_str),
+                    None,
+                );
                 Err(e)
             }
         }
@@ -389,12 +496,24 @@ impl EvidenceCollector {
                 for entry in entries {
                     self.data.push(entry);
                 }
-                self.record_collector_result("registry", CollectionStatus::Success, count, None, None);
+                self.record_collector_result(
+                    "registry",
+                    CollectionStatus::Success,
+                    count,
+                    None,
+                    None,
+                );
                 Ok(())
             }
             Err(e) => {
                 let err_str = e.to_string();
-                self.record_collector_result("registry", CollectionStatus::Failed, 0, Some(err_str), None);
+                self.record_collector_result(
+                    "registry",
+                    CollectionStatus::Failed,
+                    0,
+                    Some(err_str),
+                    None,
+                );
                 Err(e)
             }
         }
@@ -411,12 +530,24 @@ impl EvidenceCollector {
                 for artifact in artifacts {
                     self.data.push(artifact);
                 }
-                self.record_collector_result("artifacts", CollectionStatus::Success, count, None, None);
+                self.record_collector_result(
+                    "artifacts",
+                    CollectionStatus::Success,
+                    count,
+                    None,
+                    None,
+                );
                 Ok(())
             }
             Err(e) => {
                 let err_str = e.to_string();
-                self.record_collector_result("artifacts", CollectionStatus::Failed, 0, Some(err_str), None);
+                self.record_collector_result(
+                    "artifacts",
+                    CollectionStatus::Failed,
+                    0,
+                    Some(err_str),
+                    None,
+                );
                 Err(e)
             }
         }
@@ -441,6 +572,23 @@ impl EvidenceCollector {
         self.data = timeline_records;
         self.metadata
             .insert("timeline_generated".to_string(), serde_json::json!(true));
+        Ok(())
+    }
+
+    pub fn generate_chain_of_custody(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let host = self.host_identifier.clone();
+        let inv = self.investigation_name.clone();
+        let hash = self.compute_hash("sha256")?;
+        let merkle = self.metadata.get("merkle_root").and_then(|v| v.as_str()).map(|s| s.to_string());
+        let coc = generate_chain_of_custody(&inv, &host, &hash, merkle.as_deref());
+        self.data.push(serde_json::to_value(&coc)?);
+        self.record_collector_result(
+            "chain_of_custody",
+            CollectionStatus::Success,
+            1,
+            None,
+            None,
+        );
         Ok(())
     }
 
@@ -875,12 +1023,24 @@ fn test_security_analysis_returns_evidence_backed_findings() {
 #[test]
 fn test_bundle_preserves_partial_and_unsupported_collection_status() {
     let mut partial = EvidenceCollector::new("partial-status-test");
-    partial.record_collector_result("parser", CollectionStatus::Partial, 1, None, Some("malformed record".into()));
-    assert_eq!(partial.to_bundle().evidence_status, CollectionStatus::Partial);
+    partial.record_collector_result(
+        "parser",
+        CollectionStatus::Partial,
+        1,
+        None,
+        Some("malformed record".into()),
+    );
+    assert_eq!(
+        partial.to_bundle().evidence_status,
+        CollectionStatus::Partial
+    );
 
     let mut unsupported = EvidenceCollector::new("unsupported-status-test");
     unsupported.record_collector_result("collector", CollectionStatus::Unsupported, 0, None, None);
-    assert_eq!(unsupported.to_bundle().evidence_status, CollectionStatus::Unsupported);
+    assert_eq!(
+        unsupported.to_bundle().evidence_status,
+        CollectionStatus::Unsupported
+    );
 }
 
 #[test]
@@ -1364,6 +1524,63 @@ fn format_hash(bytes: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(bytes);
     format!("{:x}", hasher.finalize())
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustodyEvent {
+    pub timestamp: DateTime<Utc>,
+    pub action: String,
+    pub actor: String,
+    pub host_id: String,
+    pub details: String,
+    pub integrity_hash: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChainOfCustody {
+    pub investigation_id: String,
+    pub evidence_id: String,
+    pub acquired_at: DateTime<Utc>,
+    pub acquired_by: String,
+    pub host_identifier: String,
+    pub evidence_hash: String,
+    pub merkle_root: Option<String>,
+    pub events: Vec<CustodyEvent>,
+}
+
+pub fn generate_chain_of_custody(
+    investigation_id: &str,
+    host_id: &str,
+    evidence_hash: &str,
+    merkle_root: Option<&str>,
+) -> ChainOfCustody {
+    let now = Utc::now();
+    let current_user = std::env::var("USERNAME")
+        .or_else(|_| std::env::var("USER"))
+        .unwrap_or_else(|_| "forensic_analyst".to_string());
+
+    let initial_event = CustodyEvent {
+        timestamp: now,
+        action: "ACQUISITION".to_string(),
+        actor: current_user.clone(),
+        host_id: host_id.to_string(),
+        details: format!(
+            "Initial forensic acquisition sealed under investigation '{}'",
+            investigation_id
+        ),
+        integrity_hash: evidence_hash.to_string(),
+    };
+
+    ChainOfCustody {
+        investigation_id: investigation_id.to_string(),
+        evidence_id: format!("coc-{}", uuid::Uuid::new_v4().simple()),
+        acquired_at: now,
+        acquired_by: current_user,
+        host_identifier: host_id.to_string(),
+        evidence_hash: evidence_hash.to_string(),
+        merkle_root: merkle_root.map(|s| s.to_string()),
+        events: vec![initial_event],
+    }
 }
 
 /// Development blockchain adapter (local JSON ledger, NOT a real blockchain)

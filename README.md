@@ -207,12 +207,14 @@ jockey --version
 
 ### Step 6 — Run Your First Investigation
 
+JOCKEY source files use the `.jy` extension.
+
 ```powershell
-# Validate a .tfg file
-jockey validate examples\process_triage.tfg
+# Validate a .jy file
+jockey validate examples\process_triage.jy
 
 # Compile + execute (auto-detects Windows target)
-jockey run examples\process_triage.tfg
+jockey run examples\process_triage.jy
 
 # Verify the evidence file integrity
 jockey verify process_triage_evidence.json
@@ -237,7 +239,7 @@ Navigate to **http://localhost:5173/ide** in your browser, or run:
 jockey ide
 ```
 
-Write `.tfg` code in the Monaco editor, click **Check** to validate, or **Execute** to run live forensic collection through the API.
+Write `.jy` code in the Monaco editor, click **Check** to validate, or **Execute** to run live forensic collection through the API.
 
 ---
 

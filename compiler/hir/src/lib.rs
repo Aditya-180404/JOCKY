@@ -378,9 +378,7 @@ impl HirLowering {
                     span,
                 })
             }
-            CollectTarget::ProcessTree => {
-                Ok(HirOperation::CollectProcessTree { span })
-            }
+            CollectTarget::ProcessTree => Ok(HirOperation::CollectProcessTree { span }),
             CollectTarget::ProcessModules { pid } => {
                 Ok(HirOperation::CollectProcessModules { pid: *pid, span })
             }
@@ -1075,15 +1073,22 @@ mod tests {
     fn test_hir_maps_core_collectors_to_runtime_capability_ids() {
         use jockey_ir::{IrCollectOperation, IrInvestigation, IrOperation};
 
-        let operations = ["system.info", "process.enumerate", "network.connections", "filesystem.enumerate"]
-            .into_iter()
-            .map(|operation| IrOperation::Collect(IrCollectOperation {
+        let operations = [
+            "system.info",
+            "process.enumerate",
+            "network.connections",
+            "filesystem.enumerate",
+        ]
+        .into_iter()
+        .map(|operation| {
+            IrOperation::Collect(IrCollectOperation {
                 operation: operation.to_string(),
                 fields: vec![],
                 options: serde_json::Map::new(),
                 span: Span::new(1, 1, 1, 20),
-            }))
-            .collect();
+            })
+        })
+        .collect();
         let ir = IrInvestigation {
             name: "core_capabilities".to_string(),
             target: None,
@@ -1094,10 +1099,24 @@ mod tests {
         };
 
         let hir = HirInvestigation::from(&ir);
-        let ids = hir.operations.iter().filter_map(|operation| match operation {
-            HirOperation::InvokeCapability { capability_id, .. } => Some(capability_id.as_str()),
-            _ => None,
-        }).collect::<Vec<_>>();
-        assert_eq!(ids, ["system.info.basic", "process.enumerate", "network.connections", "filesystem.enumerate"]);
+        let ids = hir
+            .operations
+            .iter()
+            .filter_map(|operation| match operation {
+                HirOperation::InvokeCapability { capability_id, .. } => {
+                    Some(capability_id.as_str())
+                }
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(
+            ids,
+            [
+                "system.info.basic",
+                "process.enumerate",
+                "network.connections",
+                "filesystem.enumerate"
+            ]
+        );
     }
 }

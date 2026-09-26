@@ -175,7 +175,9 @@ impl SystemInfo {
                 .unwrap_or(0.0) as u64;
 
             // Extended fields - Linux
-            let machine_id = fs::read_to_string("/etc/machine-id").ok().map(|s| s.trim().to_string());
+            let machine_id = fs::read_to_string("/etc/machine-id")
+                .ok()
+                .map(|s| s.trim().to_string());
 
             let cpu_info = fs::read_to_string("/proc/cpuinfo")?;
             let cpu_model = cpu_info
@@ -185,17 +187,38 @@ impl SystemInfo {
             let cpu_cores = cpu_info
                 .lines()
                 .filter(|l| l.starts_with("cpu cores"))
-                .map(|l| l.split(':').nth(1).unwrap_or("").trim().parse::<usize>().unwrap_or(0))
+                .map(|l| {
+                    l.split(':')
+                        .nth(1)
+                        .unwrap_or("")
+                        .trim()
+                        .parse::<usize>()
+                        .unwrap_or(0)
+                })
                 .next();
             let cpu_threads = cpu_info
                 .lines()
                 .filter(|l| l.starts_with("siblings"))
-                .map(|l| l.split(':').nth(1).unwrap_or("").trim().parse::<usize>().unwrap_or(0))
+                .map(|l| {
+                    l.split(':')
+                        .nth(1)
+                        .unwrap_or("")
+                        .trim()
+                        .parse::<usize>()
+                        .unwrap_or(0)
+                })
                 .next();
             let cpu_frequency_mhz = cpu_info
                 .lines()
                 .find(|l| l.starts_with("cpu MHz"))
-                .map(|l| l.split(':').nth(1).unwrap_or("").trim().parse::<u64>().unwrap_or(0));
+                .map(|l| {
+                    l.split(':')
+                        .nth(1)
+                        .unwrap_or("")
+                        .trim()
+                        .parse::<u64>()
+                        .unwrap_or(0)
+                });
 
             let virtualization = detect_virtualization();
 
@@ -381,7 +404,10 @@ impl SystemInfo {
 fn detect_virtualization() -> Option<String> {
     use std::fs;
     // Check for common virtualization indicators
-    if fs::read_to_string("/proc/cpuinfo").unwrap_or_default().contains("hypervisor") {
+    if fs::read_to_string("/proc/cpuinfo")
+        .unwrap_or_default()
+        .contains("hypervisor")
+    {
         return Some("hypervisor".to_string());
     }
     if fs::metadata("/.dockerenv").is_ok() {
@@ -389,7 +415,12 @@ fn detect_virtualization() -> Option<String> {
     }
     if let Ok(content) = fs::read_to_string("/sys/class/dmi/id/product_name") {
         let content = content.to_lowercase();
-        if content.contains("vmware") || content.contains("virtualbox") || content.contains("qemu") || content.contains("kvm") || content.contains("xen") {
+        if content.contains("vmware")
+            || content.contains("virtualbox")
+            || content.contains("qemu")
+            || content.contains("kvm")
+            || content.contains("xen")
+        {
             return Some(content.trim().to_string());
         }
     }
@@ -399,9 +430,15 @@ fn detect_virtualization() -> Option<String> {
 #[cfg(target_os = "linux")]
 fn read_firmware_info() -> (Option<String>, Option<String>, Option<String>) {
     use std::fs;
-    let vendor = fs::read_to_string("/sys/class/dmi/id/bios_vendor").ok().map(|s| s.trim().to_string());
-    let version = fs::read_to_string("/sys/class/dmi/id/bios_version").ok().map(|s| s.trim().to_string());
-    let date = fs::read_to_string("/sys/class/dmi/id/bios_date").ok().map(|s| s.trim().to_string());
+    let vendor = fs::read_to_string("/sys/class/dmi/id/bios_vendor")
+        .ok()
+        .map(|s| s.trim().to_string());
+    let version = fs::read_to_string("/sys/class/dmi/id/bios_version")
+        .ok()
+        .map(|s| s.trim().to_string());
+    let date = fs::read_to_string("/sys/class/dmi/id/bios_date")
+        .ok()
+        .map(|s| s.trim().to_string());
     (vendor, version, date)
 }
 
@@ -409,7 +446,10 @@ fn read_firmware_info() -> (Option<String>, Option<String>, Option<String>) {
 fn read_secure_boot() -> Option<bool> {
     use std::fs;
     // Check UEFI secure boot status via mokutil or /sys/firmware/efi
-    fs::read_to_string("/sys/firmware/efi/secureboot").ok().and_then(|s| s.trim().parse::<u8>().ok()).map(|v| v == 1)
+    fs::read_to_string("/sys/firmware/efi/secureboot")
+        .ok()
+        .and_then(|s| s.trim().parse::<u8>().ok())
+        .map(|v| v == 1)
 }
 
 #[cfg(target_os = "linux")]
@@ -421,13 +461,21 @@ fn collect_disks() -> Vec<DiskInfo> {
         for entry in block_devices.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();
             // Skip loop, ram, and virtual devices
-            if name.starts_with("loop") || name.starts_with("ram") || name.starts_with("dm-") || name.starts_with("md") {
+            if name.starts_with("loop")
+                || name.starts_with("ram")
+                || name.starts_with("dm-")
+                || name.starts_with("md")
+            {
                 continue;
             }
 
             let device_path = format!("/dev/{}", name);
-            let model = fs::read_to_string(format!("/sys/block/{}/device/model", name)).ok().map(|s| s.trim().to_string());
-            let serial = fs::read_to_string(format!("/sys/block/{}/device/serial", name)).ok().map(|s| s.trim().to_string());
+            let model = fs::read_to_string(format!("/sys/block/{}/device/model", name))
+                .ok()
+                .map(|s| s.trim().to_string());
+            let serial = fs::read_to_string(format!("/sys/block/{}/device/serial", name))
+                .ok()
+                .map(|s| s.trim().to_string());
             let size_bytes = fs::read_to_string(format!("/sys/block/{}/size", name))
                 .ok()
                 .and_then(|s| s.trim().parse::<u64>().ok())
@@ -437,7 +485,13 @@ fn collect_disks() -> Vec<DiskInfo> {
             let type_ = fs::read_to_string(format!("/sys/block/{}/queue/rotational", name))
                 .ok()
                 .and_then(|s| s.trim().parse::<u8>().ok())
-                .map(|r| if r == 0 { "SSD/NVMe".to_string() } else { "HDD".to_string() })
+                .map(|r| {
+                    if r == 0 {
+                        "SSD/NVMe".to_string()
+                    } else {
+                        "HDD".to_string()
+                    }
+                })
                 .unwrap_or_else(|| "Unknown".to_string());
 
             let mut partitions = Vec::new();
@@ -479,7 +533,23 @@ fn collect_partitions() -> Vec<PartitionInfo> {
             let filesystem = parts[2].to_string();
 
             // Skip virtual filesystems
-            if filesystem == "proc" || filesystem == "sysfs" || filesystem == "devtmpfs" || filesystem == "tmpfs" || filesystem == "devpts" || filesystem == "cgroup" || filesystem == "cgroup2" || filesystem == "pstore" || filesystem == "efivarfs" || filesystem == "mqueue" || filesystem == "hugetlbfs" || filesystem == "configfs" || filesystem == "autofs" || filesystem == "fuse.gvfsd-fuse" || filesystem == "fusectl" || filesystem == "tracefs" {
+            if filesystem == "proc"
+                || filesystem == "sysfs"
+                || filesystem == "devtmpfs"
+                || filesystem == "tmpfs"
+                || filesystem == "devpts"
+                || filesystem == "cgroup"
+                || filesystem == "cgroup2"
+                || filesystem == "pstore"
+                || filesystem == "efivarfs"
+                || filesystem == "mqueue"
+                || filesystem == "hugetlbfs"
+                || filesystem == "configfs"
+                || filesystem == "autofs"
+                || filesystem == "fuse.gvfsd-fuse"
+                || filesystem == "fusectl"
+                || filesystem == "tracefs"
+            {
                 continue;
             }
 
@@ -513,13 +583,26 @@ fn collect_network_interfaces() -> Vec<NetworkInterface> {
     if let Ok(net_dir) = fs::read_dir("/sys/class/net") {
         for entry in net_dir.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();
-            if name == "lo" { continue; }
+            if name == "lo" {
+                continue;
+            }
 
-            let mac_address = fs::read_to_string(format!("/sys/class/net/{}/address", name)).ok().map(|s| s.trim().to_string());
-            let mtu = fs::read_to_string(format!("/sys/class/net/{}/mtu", name)).ok().and_then(|s| s.trim().parse::<u32>().ok());
-            let flags = fs::read_to_string(format!("/sys/class/net/{}/flags", name)).ok().map(|s| s.trim().to_string());
-            let speed_mbps = fs::read_to_string(format!("/sys/class/net/{}/speed", name)).ok().and_then(|s| s.trim().parse::<u64>().ok());
-            let driver = fs::read_to_string(format!("/sys/class/net/{}/device/driver/module/name", name)).ok().map(|s| s.trim().to_string());
+            let mac_address = fs::read_to_string(format!("/sys/class/net/{}/address", name))
+                .ok()
+                .map(|s| s.trim().to_string());
+            let mtu = fs::read_to_string(format!("/sys/class/net/{}/mtu", name))
+                .ok()
+                .and_then(|s| s.trim().parse::<u32>().ok());
+            let flags = fs::read_to_string(format!("/sys/class/net/{}/flags", name))
+                .ok()
+                .map(|s| s.trim().to_string());
+            let speed_mbps = fs::read_to_string(format!("/sys/class/net/{}/speed", name))
+                .ok()
+                .and_then(|s| s.trim().parse::<u64>().ok());
+            let driver =
+                fs::read_to_string(format!("/sys/class/net/{}/device/driver/module/name", name))
+                    .ok()
+                    .map(|s| s.trim().to_string());
 
             // Get IP addresses from ip command or /proc/net/if_inet6
             let (ipv4_addresses, ipv6_addresses) = get_interface_ips(&name);
@@ -545,7 +628,10 @@ fn get_interface_ips(interface: &str) -> (Vec<String>, Vec<String>) {
     let mut ipv4 = Vec::new();
     let mut ipv6 = Vec::new();
 
-    if let Ok(output) = Command::new("ip").args(["-4", "addr", "show", "dev", interface]).output() {
+    if let Ok(output) = Command::new("ip")
+        .args(["-4", "addr", "show", "dev", interface])
+        .output()
+    {
         let stdout = String::from_utf8_lossy(&output.stdout);
         for line in stdout.lines() {
             if line.contains("inet ") {
@@ -556,7 +642,10 @@ fn get_interface_ips(interface: &str) -> (Vec<String>, Vec<String>) {
         }
     }
 
-    if let Ok(output) = Command::new("ip").args(["-6", "addr", "show", "dev", interface]).output() {
+    if let Ok(output) = Command::new("ip")
+        .args(["-6", "addr", "show", "dev", interface])
+        .output()
+    {
         let stdout = String::from_utf8_lossy(&output.stdout);
         for line in stdout.lines() {
             if line.contains("inet6 ") {
@@ -582,7 +671,13 @@ fn collect_packages_linux() -> Vec<PackageInfo> {
     let mut packages = Vec::new();
 
     // Try dpkg (Debian/Ubuntu)
-    if let Ok(output) = Command::new("dpkg-query").args(["-W", "-f=${Package}\t${Version}\t${Architecture}\t${Description}\n"]).output() {
+    if let Ok(output) = Command::new("dpkg-query")
+        .args([
+            "-W",
+            "-f=${Package}\t${Version}\t${Architecture}\t${Description}\n",
+        ])
+        .output()
+    {
         let stdout = String::from_utf8_lossy(&output.stdout);
         for line in stdout.lines() {
             let parts: Vec<&str> = line.split('\t').collect();
@@ -603,7 +698,14 @@ fn collect_packages_linux() -> Vec<PackageInfo> {
     }
 
     // Try rpm (RHEL/Fedora)
-    if let Ok(output) = Command::new("rpm").args(["-qa", "--queryformat", "%{NAME}\t%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SUMMARY}\n"]).output() {
+    if let Ok(output) = Command::new("rpm")
+        .args([
+            "-qa",
+            "--queryformat",
+            "%{NAME}\t%{VERSION}-%{RELEASE}\t%{ARCH}\t%{SUMMARY}\n",
+        ])
+        .output()
+    {
         let stdout = String::from_utf8_lossy(&output.stdout);
         for line in stdout.lines() {
             let parts: Vec<&str> = line.split('\t').collect();
@@ -647,9 +749,9 @@ fn collect_users_and_groups_linux() -> (Vec<UserInfo>, Vec<GroupInfo>) {
                     home_dir: Some(parts[5].to_string()),
                     shell: Some(parts[6].to_string()),
                     full_name: Some(parts[4].to_string()),
-                    last_login: None, // Would need lastlog or similar
+                    last_login: None,      // Would need lastlog or similar
                     password_status: None, // Would need /etc/shadow
-                    groups: Vec::new(), // Will be populated from groups
+                    groups: Vec::new(),    // Will be populated from groups
                     is_system_account: is_system,
                 });
             }
@@ -740,9 +842,18 @@ fn get_cpu_info_windows() -> (Option<String>, Option<usize>, Option<usize>, Opti
                 _ => vec![],
             };
             if let Some(first) = items.first() {
-                let name = first.get("Name").and_then(|v| v.as_str()).map(|s| s.to_string());
-                let cores = first.get("NumberOfCores").and_then(|v| v.as_u64()).map(|v| v as usize);
-                let threads = first.get("NumberOfLogicalProcessors").and_then(|v| v.as_u64()).map(|v| v as usize);
+                let name = first
+                    .get("Name")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                let cores = first
+                    .get("NumberOfCores")
+                    .and_then(|v| v.as_u64())
+                    .map(|v| v as usize);
+                let threads = first
+                    .get("NumberOfLogicalProcessors")
+                    .and_then(|v| v.as_u64())
+                    .map(|v| v as usize);
                 let freq = first.get("MaxClockSpeed").and_then(|v| v.as_u64());
                 return (name, cores, threads, freq);
             }
@@ -754,16 +865,30 @@ fn get_cpu_info_windows() -> (Option<String>, Option<usize>, Option<usize>, Opti
 #[cfg(target_os = "windows")]
 fn detect_virtualization_windows() -> Option<String> {
     let output = std::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", "(Get-CimInstance Win32_ComputerSystem).Manufacturer"])
+        .args([
+            "-NoProfile",
+            "-Command",
+            "(Get-CimInstance Win32_ComputerSystem).Manufacturer",
+        ])
         .output();
 
     if let Ok(output) = output {
         let stdout = String::from_utf8_lossy(&output.stdout).to_lowercase();
-        if stdout.contains("vmware") { return Some("VMware".to_string()); }
-        if stdout.contains("virtualbox") { return Some("VirtualBox".to_string()); }
-        if stdout.contains("qemu") { return Some("QEMU/KVM".to_string()); }
-        if stdout.contains("xen") { return Some("Xen".to_string()); }
-        if stdout.contains("microsoft corporation") && stdout.contains("virtual machine") { return Some("Hyper-V".to_string()); }
+        if stdout.contains("vmware") {
+            return Some("VMware".to_string());
+        }
+        if stdout.contains("virtualbox") {
+            return Some("VirtualBox".to_string());
+        }
+        if stdout.contains("qemu") {
+            return Some("QEMU/KVM".to_string());
+        }
+        if stdout.contains("xen") {
+            return Some("Xen".to_string());
+        }
+        if stdout.contains("microsoft corporation") && stdout.contains("virtual machine") {
+            return Some("Hyper-V".to_string());
+        }
     }
     None
 }
@@ -783,9 +908,18 @@ fn get_firmware_info_windows() -> (Option<String>, Option<String>, Option<String
                 _ => vec![],
             };
             if let Some(first) = items.first() {
-                let vendor = first.get("Manufacturer").and_then(|v| v.as_str()).map(|s| s.to_string());
-                let version = first.get("SMBIOSBIOSVersion").and_then(|v| v.as_str()).map(|s| s.to_string());
-                let date = first.get("ReleaseDate").and_then(|v| v.as_str()).map(|s| s.to_string());
+                let vendor = first
+                    .get("Manufacturer")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                let version = first
+                    .get("SMBIOSBIOSVersion")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
+                let date = first
+                    .get("ReleaseDate")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string());
                 return (vendor, version, date);
             }
         }
@@ -800,7 +934,9 @@ fn get_secure_boot_windows() -> Option<bool> {
         .output();
 
     if let Ok(output) = output {
-        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_lowercase();
+        let stdout = String::from_utf8_lossy(&output.stdout)
+            .trim()
+            .to_lowercase();
         return Some(stdout == "true");
     }
     None
@@ -823,11 +959,25 @@ fn collect_disks_windows() -> Vec<DiskInfo> {
             };
             for item in items {
                 disks.push(DiskInfo {
-                    device: item.get("DeviceID").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                    model: item.get("Model").and_then(|v| v.as_str()).map(|s| s.to_string()),
-                    serial: item.get("SerialNumber").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    device: item
+                        .get("DeviceID")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
+                    model: item
+                        .get("Model")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    serial: item
+                        .get("SerialNumber")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
                     size_bytes: item.get("Size").and_then(|v| v.as_u64()).unwrap_or(0),
-                    type_: item.get("MediaType").and_then(|v| v.as_str()).unwrap_or("Unknown").to_string(),
+                    type_: item
+                        .get("MediaType")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("Unknown")
+                        .to_string(),
                     partitions: Vec::new(), // Could be populated separately
                 });
             }
@@ -855,14 +1005,27 @@ fn collect_partitions_windows() -> Vec<PartitionInfo> {
                 let size = item.get("Size").and_then(|v| v.as_u64()).unwrap_or(0);
                 let free = item.get("FreeSpace").and_then(|v| v.as_u64()).unwrap_or(0);
                 partitions.push(PartitionInfo {
-                    device: item.get("DeviceID").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                    device: item
+                        .get("DeviceID")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
                     mount_point: None,
-                    filesystem: item.get("FileSystem").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    filesystem: item
+                        .get("FileSystem")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
                     size_bytes: size,
                     used_bytes: size.saturating_sub(free),
                     free_bytes: free,
-                    label: item.get("VolumeName").and_then(|v| v.as_str()).map(|s| s.to_string()),
-                    uuid: item.get("VolumeSerialNumber").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    label: item
+                        .get("VolumeName")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    uuid: item
+                        .get("VolumeSerialNumber")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
                 });
             }
         }
@@ -887,14 +1050,27 @@ fn collect_network_interfaces_windows() -> Vec<NetworkInterface> {
             };
             for item in items {
                 interfaces.push(NetworkInterface {
-                    name: item.get("Name").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                    mac_address: item.get("MacAddress").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    name: item
+                        .get("Name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
+                    mac_address: item
+                        .get("MacAddress")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
                     ipv4_addresses: Vec::new(), // Would need separate query
                     ipv6_addresses: Vec::new(),
                     mtu: None,
                     flags: Vec::new(),
-                    speed_mbps: item.get("LinkSpeed").and_then(|v| v.as_u64()).map(|s| s / 1_000_000),
-                    driver: item.get("InterfaceDescription").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    speed_mbps: item
+                        .get("LinkSpeed")
+                        .and_then(|v| v.as_u64())
+                        .map(|s| s / 1_000_000),
+                    driver: item
+                        .get("InterfaceDescription")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
                 });
             }
         }
@@ -919,12 +1095,31 @@ fn collect_installed_software_windows() -> Vec<SoftwareInfo> {
             };
             for item in items {
                 software.push(SoftwareInfo {
-                    name: item.get("DisplayName").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                    version: item.get("DisplayVersion").and_then(|v| v.as_str()).map(|s| s.to_string()),
-                    publisher: item.get("Publisher").and_then(|v| v.as_str()).map(|s| s.to_string()),
-                    install_date: item.get("InstallDate").and_then(|v| v.as_str()).map(|s| s.to_string()),
-                    install_location: item.get("InstallLocation").and_then(|v| v.as_str()).map(|s| s.to_string()),
-                    uninstall_string: item.get("UninstallString").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                    name: item
+                        .get("DisplayName")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
+                    version: item
+                        .get("DisplayVersion")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    publisher: item
+                        .get("Publisher")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    install_date: item
+                        .get("InstallDate")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    install_location: item
+                        .get("InstallLocation")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    uninstall_string: item
+                        .get("UninstallString")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
                 });
             }
         }
@@ -955,14 +1150,32 @@ fn collect_users_and_groups_windows() -> (Vec<UserInfo>, Vec<GroupInfo>) {
             };
             for item in items {
                 users.push(UserInfo {
-                    username: item.get("Name").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                    username: item
+                        .get("Name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
                     uid: None,
                     gid: None,
                     home_dir: None,
                     shell: None,
-                    full_name: item.get("Description").and_then(|v| v.as_str()).map(|s| s.to_string()),
-                    last_login: item.get("LastLogon").and_then(|v| v.as_str()).map(|s| s.to_string()),
-                    password_status: if item.get("PasswordRequired").and_then(|v| v.as_bool()).unwrap_or(true) { Some("required".to_string()) } else { Some("none".to_string()) },
+                    full_name: item
+                        .get("Description")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    last_login: item
+                        .get("LastLogon")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    password_status: if item
+                        .get("PasswordRequired")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(true)
+                    {
+                        Some("required".to_string())
+                    } else {
+                        Some("none".to_string())
+                    },
                     groups: Vec::new(),
                     is_system_account: false,
                 });
@@ -971,7 +1184,11 @@ fn collect_users_and_groups_windows() -> (Vec<UserInfo>, Vec<GroupInfo>) {
     }
 
     let output = std::process::Command::new("powershell")
-        .args(["-NoProfile", "-Command", "Get-LocalGroup | Select-Object Name,SID,Description | ConvertTo-Json -Compress"])
+        .args([
+            "-NoProfile",
+            "-Command",
+            "Get-LocalGroup | Select-Object Name,SID,Description | ConvertTo-Json -Compress",
+        ])
         .output();
 
     let mut groups = Vec::new();
@@ -985,7 +1202,11 @@ fn collect_users_and_groups_windows() -> (Vec<UserInfo>, Vec<GroupInfo>) {
             };
             for item in items {
                 groups.push(GroupInfo {
-                    name: item.get("Name").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                    name: item
+                        .get("Name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
                     gid: None,
                     members: Vec::new(),
                 });
@@ -1027,4 +1248,94 @@ pub fn collect_system_info() -> Result<serde_json::Value, Box<dyn std::error::Er
 pub fn collect_system_info_detailed() -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     // Same as collect_system_info for now - the detailed info is in SystemInfo
     collect_system_info()
+}
+
+/// Collect boot configuration parameters
+pub fn collect_boot_config() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut results = Vec::new();
+
+    #[cfg(target_os = "windows")]
+    {
+        let mut secure_boot = None;
+        let output = std::process::Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                r#"Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecureBoot\State' -Name UEFISecureBootEnabled -ErrorAction SilentlyContinue | Select-Object -ExpandProperty UEFISecureBootEnabled"#,
+            ])
+            .output();
+        if let Ok(output) = output {
+            if output.status.success() {
+                let s = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                if let Ok(val) = s.parse::<i32>() {
+                    secure_boot = Some(val == 1);
+                }
+            }
+        }
+
+        let mut firmware_type = "Unknown".to_string();
+        if let Ok(output) = std::process::Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                r#"[System.Environment]::GetEnvironmentVariable("firmware_type")"#,
+            ])
+            .output()
+        {
+            let s = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !s.is_empty() {
+                firmware_type = s;
+            }
+        }
+
+        let bcd_output = std::process::Command::new("cmd")
+            .args(["/c", "bcdedit /enum"])
+            .output();
+
+        let (bcd_status, bcd_entries) = match bcd_output {
+            Ok(output) if output.status.success() => {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                ("success", Some(stdout.to_string()))
+            }
+            _ => ("requires_elevation", None),
+        };
+
+        results.push(serde_json::json!({
+            "collector": "system",
+            "artifact_type": "boot_config",
+            "firmware_type": firmware_type,
+            "secure_boot_enabled": secure_boot,
+            "bcd_status": bcd_status,
+            "bcd_data": bcd_entries,
+            "system_root": std::env::var("SystemRoot").unwrap_or_else(|_| r"C:\Windows".to_string()),
+            "system_drive": std::env::var("SystemDrive").unwrap_or_else(|_| "C:".to_string()),
+            "status": "success",
+        }));
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let cmdline = std::fs::read_to_string("/proc/cmdline").unwrap_or_default().trim().to_string();
+        let is_uefi = std::path::Path::new("/sys/firmware/efi").exists();
+        let secure_boot = std::path::Path::new("/sys/firmware/efi/efivars").exists();
+
+        results.push(serde_json::json!({
+            "collector": "system",
+            "artifact_type": "boot_config",
+            "kernel_cmdline": cmdline,
+            "is_uefi": is_uefi,
+            "secure_boot_supported": secure_boot,
+            "status": "success",
+        }));
+    }
+
+    if results.is_empty() {
+        results.push(serde_json::json!({
+            "collector": "system",
+            "artifact_type": "boot_config",
+            "status": "no_artifacts_found",
+        }));
+    }
+
+    Ok(results)
 }

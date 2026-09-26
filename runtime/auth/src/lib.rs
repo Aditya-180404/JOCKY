@@ -2,7 +2,7 @@
 //!
 //! Collects authentication events, credential artifacts, and authentication policies.
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -225,6 +225,12 @@ pub struct LogonEventsResult {
     pub errors: Vec<String>,
 }
 
+impl Default for LogonEventsResult {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LogonEventsResult {
     pub fn new() -> Self {
         Self {
@@ -242,6 +248,12 @@ pub struct CredentialArtifactsResult {
     pub artifacts: Vec<CredentialArtifact>,
     pub collection_time: DateTime<Utc>,
     pub errors: Vec<String>,
+}
+
+impl Default for CredentialArtifactsResult {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl CredentialArtifactsResult {
@@ -262,6 +274,12 @@ pub struct AuthPolicyResult {
     pub errors: Vec<String>,
 }
 
+impl Default for AuthPolicyResult {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AuthPolicyResult {
     pub fn new() -> Self {
         Self {
@@ -275,118 +293,96 @@ impl AuthPolicyResult {
 /// Collect Windows logon events from Security Event Log
 #[cfg(target_os = "windows")]
 pub fn collect_windows_logon_events() -> Result<LogonEventsResult> {
-    use windows::Win32::Foundation::*;
-    use windows::Win32::System::EventLog::*;
-    use windows::Win32::System::Diagnostics::EventLog::*;
+    use std::process::Command;
 
     let mut result = LogonEventsResult::new();
     result.sources.push(AuthSource::WindowsSecurityLog);
 
-    // Open Security log
-    let log_name = "Security\0".encode_utf16().collect::<Vec<_>>();
-    let handle = unsafe { EvtOpenLog(HANDLE::default(), PCWSTR(log_name.as_ptr()), EvtOpenLogFlags::default())? };
+    let output = Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-Command",
+            "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4624,4625,4634,4647,4672} -MaxEvents 500 -ErrorAction SilentlyContinue | Select-Object TimeCreated,Id,Message | ConvertTo-Json -Compress",
+        ])
+        .output();
 
-    // Query for logon events (4624, 4625, 4634, 4647, 4672, 4800, 4801, 4802, 4803)
-    let query = "*[System[(EventID=4624 or EventID=4625 or EventID=4634 or EventID=4647 or EventID=4672 or EventID=4800 or EventID=4801 or EventID=4802 or EventID=4803)]]\0"
-        .encode_utf16().collect::<Vec<_>>();
+    if let Ok(out) = output {
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&stdout) {
+            let items = match val {
+                serde_json::Value::Array(arr) => arr,
+                serde_json::Value::Object(obj) => vec![serde_json::Value::Object(obj)],
+                _ => vec![],
+            };
 
-    let results = unsafe { EvtQuery(HANDLE::default(), PCWSTR(log_name.as_ptr()), PCWSTR(query.as_ptr()), EvtQueryFlags::EvtQueryReverseDirection | EvtQueryFlags::EvtQueryTolerateQueryErrors) }?;
+            for item in items {
+                let id = item.get("Id").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                let timestamp_str = item
+                    .get("TimeCreated")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
+                let msg = item.get("Message").and_then(|v| v.as_str()).unwrap_or("");
 
-    let mut events_read = 0;
-    loop {
-        let mut events = [HANDLE::default(); 10];
-        let mut returned = 0u32;
-        let hr = unsafe { EvtNext(results, 10, &mut events as *mut _ as *mut _, -1, 0, &mut returned) };
-        if hr.is_err() || returned == 0 {
-            break;
-        }
+                let timestamp = DateTime::parse_from_rfc3339(timestamp_str)
+                    .map(|dt| dt.with_timezone(&Utc))
+                    .unwrap_or_else(|_| Utc::now());
 
-        for i in 0..returned as usize {
-            let event = events[i];
-            if let Ok(event_data) = parse_windows_logon_event(event) {
-                result.events.push(event_data);
+                result.events.push(LogonEvent {
+                    timestamp,
+                    event_id: id,
+                    logon_type: LogonType::Unknown,
+                    account_name: String::new(),
+                    account_domain: String::new(),
+                    logon_id: String::new(),
+                    source_ip: None,
+                    source_port: None,
+                    workstation: None,
+                    process_name: None,
+                    process_id: None,
+                    auth_package: None,
+                    key_length: None,
+                    success: id == 4624,
+                    failure_reason: if id == 4625 {
+                        Some(msg.to_string())
+                    } else {
+                        None
+                    },
+                    sub_status: None,
+                    logon_guid: None,
+                    transmitted_services: None,
+                    package_name: None,
+                    source: AuthSource::WindowsSecurityLog,
+                });
             }
-            events_read += 1;
-            if events_read >= 1000 { // Limit to 1000 most recent
-                break;
-            }
-        }
-        if events_read >= 1000 {
-            break;
         }
     }
 
-    // Sort by timestamp descending
-    result.events.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-
+    result
+        .events
+        .sort_by_key(|a| std::cmp::Reverse(a.timestamp));
     Ok(result)
-}
-
-/// Parse a Windows logon event
-#[cfg(target_os = "windows")]
-fn parse_windows_logon_event(event: HANDLE) -> Result<LogonEvent> {
-    use windows::Win32::Foundation::*;
-    use windows::Win32::System::Diagnostics::EventLog::*;
-    use std::ptr;
-
-    // Get event ID
-    let mut event_id = 0u32;
-    unsafe {
-        let mut size = 0u32;
-        EvtGetEventInfo(event, EvtEventInfoId, 4, &mut event_id as *mut _ as *mut _, &mut size);
-    }
-
-    // Get time created
-    let mut system_time = SYSTEMTIME::default();
-    unsafe {
-        let mut size = 0u32;
-        EvtGetEventInfo(event, EvtEventInfoTimeCreated, std::mem::size_of::<SYSTEMTIME>() as u32, &mut system_time as *mut _ as *mut _, &mut size);
-    }
-    let timestamp = DateTime::from_timestamp(system_time.wYear as i64, 0).unwrap_or_default(); // Simplified
-
-    // Extract event data using XPath queries
-    // This is simplified - in production would use EvtRender with EvtRenderEventXml
-
-    Ok(LogonEvent {
-        timestamp,
-        event_id,
-        logon_type: LogonType::Unknown(0),
-        account_name: String::new(),
-        account_domain: String::new(),
-        logon_id: String::new(),
-        source_ip: None,
-        source_port: None,
-        workstation: None,
-        process_name: None,
-        process_id: None,
-        auth_package: None,
-        key_length: None,
-        success: event_id == 4624,
-        failure_reason: None,
-        sub_status: None,
-        logon_guid: None,
-        transmitted_services: None,
-        package_name: None,
-        source: AuthSource::WindowsSecurityLog,
-    })
 }
 
 /// Collect Linux auth.log events
 #[cfg(target_os = "linux")]
 pub fn collect_linux_logon_events() -> Result<LogonEventsResult> {
-    use std::fs;
     use regex::Regex;
+    use std::fs;
 
     let mut result = LogonEventsResult::new();
     result.sources.push(AuthSource::LinuxAuthLog);
 
     // Read /var/log/auth.log
-    let auth_log = fs::read_to_string("/var/log/auth.log")
-        .context("Failed to read /var/log/auth.log")?;
+    let auth_log =
+        fs::read_to_string("/var/log/auth.log").context("Failed to read /var/log/auth.log")?;
 
     // Parse SSH logon events
-    let ssh_accepted = Regex::new(r"(\w+\s+\d+\s+\d+:\d+:\d+).*sshd\[\d+\]: Accepted (\w+) for (\w+) from ([\d\.]+) port (\d+)")?;
-    let ssh_failed = Regex::new(r"(\w+\s+\d+\s+\d+:\d+:\d+).*sshd\[\d+\]: Failed (\w+) for (\w+) from ([\d\.]+) port (\d+)")?;
+    let ssh_accepted = Regex::new(
+        r"(\w+\s+\d+\s+\d+:\d+:\d+).*sshd\[\d+\]: Accepted (\w+) for (\w+) from ([\d\.]+) port (\d+)",
+    )?;
+    let ssh_failed = Regex::new(
+        r"(\w+\s+\d+\s+\d+:\d+:\d+).*sshd\[\d+\]: Failed (\w+) for (\w+) from ([\d\.]+) port (\d+)",
+    )?;
     let sudo_log = Regex::new(r"(\w+\s+\d+\s+\d+:\d+:\d+).*sudo:.*: USER=(\w+) ; COMMAND=(.+)")?;
 
     for line in auth_log.lines() {
@@ -491,14 +487,18 @@ pub fn collect_linux_logon_events() -> Result<LogonEventsResult> {
 }
 
 /// Parse syslog timestamp (e.g., "Sep 25 10:30:45")
+#[allow(dead_code)]
 fn parse_syslog_timestamp(ts: &str) -> DateTime<Utc> {
     use chrono::Datelike;
 
     let now = Utc::now();
     let year = now.year();
-    DateTime::parse_from_str(&format!("{} {} {}", year, ts, now.offset()), "%Y %b %d %H:%M:%S %z")
-        .map(|dt| dt.with_timezone(&Utc))
-        .unwrap_or_else(|_| Utc::now())
+    DateTime::parse_from_str(
+        &format!("{} {} {}", year, ts, now.offset()),
+        "%Y %b %d %H:%M:%S %z",
+    )
+    .map(|dt| dt.with_timezone(&Utc))
+    .unwrap_or_else(|_| Utc::now())
 }
 
 /// Collect credential artifacts
@@ -525,10 +525,26 @@ fn collect_linux_credential_artifacts(result: &mut CredentialArtifactsResult) ->
     use std::os::unix::fs::MetadataExt;
 
     let artifacts_to_check = [
-        ("/etc/shadow", CredentialArtifactType::ShadowFile, RiskLevel::Critical),
-        ("/etc/passwd", CredentialArtifactType::PasswdFile, RiskLevel::Medium),
-        ("/etc/sudoers", CredentialArtifactType::SudoersFile, RiskLevel::High),
-        ("/etc/sudoers.d", CredentialArtifactType::SudoersFile, RiskLevel::High),
+        (
+            "/etc/shadow",
+            CredentialArtifactType::ShadowFile,
+            RiskLevel::Critical,
+        ),
+        (
+            "/etc/passwd",
+            CredentialArtifactType::PasswdFile,
+            RiskLevel::Medium,
+        ),
+        (
+            "/etc/sudoers",
+            CredentialArtifactType::SudoersFile,
+            RiskLevel::High,
+        ),
+        (
+            "/etc/sudoers.d",
+            CredentialArtifactType::SudoersFile,
+            RiskLevel::High,
+        ),
     ];
 
     for (path, artifact_type, risk_level) in artifacts_to_check {
@@ -565,7 +581,11 @@ fn collect_linux_credential_artifacts(result: &mut CredentialArtifactsResult) ->
                     if name.ends_with(".pub") {
                         continue;
                     }
-                    if name == "id_rsa" || name == "id_ed25519" || name == "id_ecdsa" || name == "id_dsa" {
+                    if name == "id_rsa"
+                        || name == "id_ed25519"
+                        || name == "id_ecdsa"
+                        || name == "id_dsa"
+                    {
                         if let Ok(metadata) = fs::metadata(&path) {
                             result.artifacts.push(CredentialArtifact {
                                 artifact_type: CredentialArtifactType::SshPrivateKey,
@@ -617,13 +637,25 @@ fn collect_linux_credential_artifacts(result: &mut CredentialArtifactsResult) ->
 fn collect_windows_credential_artifacts(result: &mut CredentialArtifactsResult) -> Result<()> {
     use std::fs;
     use std::path::Path;
-    use winreg::RegKey;
     use winreg::enums::*;
+    use winreg::RegKey;
 
     let artifacts_to_check = [
-        (r"C:\Windows\System32\config\SAM", CredentialArtifactType::SamFile, RiskLevel::Critical),
-        (r"C:\Windows\System32\config\SYSTEM", CredentialArtifactType::RegistrySystem, RiskLevel::Critical),
-        (r"C:\Windows\System32\config\SECURITY", CredentialArtifactType::RegistrySecurity, RiskLevel::Critical),
+        (
+            r"C:\Windows\System32\config\SAM",
+            CredentialArtifactType::SamFile,
+            RiskLevel::Critical,
+        ),
+        (
+            r"C:\Windows\System32\config\SYSTEM",
+            CredentialArtifactType::RegistrySystem,
+            RiskLevel::Critical,
+        ),
+        (
+            r"C:\Windows\System32\config\SECURITY",
+            CredentialArtifactType::RegistrySecurity,
+            RiskLevel::Critical,
+        ),
     ];
 
     for (path, artifact_type, risk_level) in artifacts_to_check {
@@ -634,7 +666,7 @@ fn collect_windows_credential_artifacts(result: &mut CredentialArtifactsResult) 
                     artifact_type,
                     path: path.to_string(),
                     size: Some(metadata.len()),
-                    modified: metadata.modified().ok().map(|t| DateTime::from(t)),
+                    modified: metadata.modified().ok().map(DateTime::from),
                     owner: Some("SYSTEM".to_string()),
                     permissions: None,
                     sha256: Some(compute_file_hash(path_buf)?),
@@ -660,7 +692,7 @@ fn collect_windows_credential_artifacts(result: &mut CredentialArtifactsResult) 
                     artifact_type: CredentialArtifactType::LsassDump,
                     path: path.to_string(),
                     size: Some(metadata.len()),
-                    modified: metadata.modified().ok().map(|t| DateTime::from(t)),
+                    modified: metadata.modified().ok().map(DateTime::from),
                     owner: None,
                     permissions: None,
                     sha256: Some(compute_file_hash(path_buf)?),
@@ -673,7 +705,7 @@ fn collect_windows_credential_artifacts(result: &mut CredentialArtifactsResult) 
 
     // Check Credential Manager via registry
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    if let Ok(creds_key) = hkcu.open_subkey("Software\\Microsoft\\Credentials") {
+    if let Ok(_creds_key) = hkcu.open_subkey("Software\\Microsoft\\Credentials") {
         result.artifacts.push(CredentialArtifact {
             artifact_type: CredentialArtifactType::CredentialManager,
             path: "HKCU\\Software\\Microsoft\\Credentials".to_string(),
@@ -746,11 +778,22 @@ fn collect_linux_auth_policies(result: &mut AuthPolicyResult) -> Result<()> {
                 let (policy_type, desc) = match parts[0] {
                     "PASS_MAX_DAYS" => (AuthPolicyType::MaxPasswordAge, "Maximum password age"),
                     "PASS_MIN_DAYS" => (AuthPolicyType::MinPasswordAge, "Minimum password age"),
-                    "PASS_MIN_LEN" => (AuthPolicyType::MinPasswordLength, "Minimum password length"),
-                    "PASS_WARN_AGE" => (AuthPolicyType::Custom("PASS_WARN_AGE".to_string()), "Password warning age"),
+                    "PASS_MIN_LEN" => {
+                        (AuthPolicyType::MinPasswordLength, "Minimum password length")
+                    }
+                    "PASS_WARN_AGE" => (
+                        AuthPolicyType::Custom("PASS_WARN_AGE".to_string()),
+                        "Password warning age",
+                    ),
                     "LOGIN_RETRIES" => (AuthPolicyType::LockoutThreshold, "Login retry limit"),
-                    "LOGIN_TIMEOUT" => (AuthPolicyType::Custom("LOGIN_TIMEOUT".to_string()), "Login timeout"),
-                    "FAIL_DELAY" => (AuthPolicyType::Custom("FAIL_DELAY".to_string()), "Failed login delay"),
+                    "LOGIN_TIMEOUT" => (
+                        AuthPolicyType::Custom("LOGIN_TIMEOUT".to_string()),
+                        "Login timeout",
+                    ),
+                    "FAIL_DELAY" => (
+                        AuthPolicyType::Custom("FAIL_DELAY".to_string()),
+                        "Failed login delay",
+                    ),
                     _ => continue,
                 };
 
@@ -797,10 +840,21 @@ fn collect_linux_auth_policies(result: &mut AuthPolicyResult) -> Result<()> {
             if parts.len() >= 2 {
                 let (policy_type, desc) = match parts[0].to_lowercase().as_str() {
                     "permitrootlogin" => (AuthPolicyType::PermitRootLogin, "Root login permission"),
-                    "passwordauthentication" => (AuthPolicyType::PasswordAuthentication, "Password authentication"),
-                    "pubkeyauthentication" => (AuthPolicyType::PubkeyAuthentication, "Public key authentication"),
-                    "permitemptypasswords" => (AuthPolicyType::PermitEmptyPasswords, "Empty password permission"),
-                    "maxauthtries" => (AuthPolicyType::MaxAuthTries, "Maximum authentication tries"),
+                    "passwordauthentication" => (
+                        AuthPolicyType::PasswordAuthentication,
+                        "Password authentication",
+                    ),
+                    "pubkeyauthentication" => (
+                        AuthPolicyType::PubkeyAuthentication,
+                        "Public key authentication",
+                    ),
+                    "permitemptypasswords" => (
+                        AuthPolicyType::PermitEmptyPasswords,
+                        "Empty password permission",
+                    ),
+                    "maxauthtries" => {
+                        (AuthPolicyType::MaxAuthTries, "Maximum authentication tries")
+                    }
                     _ => continue,
                 };
 
@@ -846,8 +900,8 @@ fn collect_linux_auth_policies(result: &mut AuthPolicyResult) -> Result<()> {
 /// Collect Windows authentication policies
 #[cfg(target_os = "windows")]
 fn collect_windows_auth_policies(result: &mut AuthPolicyResult) -> Result<()> {
-    use winreg::RegKey;
     use winreg::enums::*;
+    use winreg::RegKey;
 
     // Password policy from registry
     let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
@@ -855,9 +909,21 @@ fn collect_windows_auth_policies(result: &mut AuthPolicyResult) -> Result<()> {
     // System access policies
     if let Ok(policy_key) = hklm.open_subkey("SYSTEM\\CurrentControlSet\\Control\\Lsa") {
         let policies_to_check = [
-            ("LmCompatibilityLevel", AuthPolicyType::LmCompatibilityLevel, "LAN Manager authentication level"),
-            ("RestrictAnonymous", AuthPolicyType::RestrictAnonymous, "Anonymous access restriction"),
-            ("NoLMHash", AuthPolicyType::Custom("NoLMHash".to_string()), "Disable LM hash storage"),
+            (
+                "LmCompatibilityLevel",
+                AuthPolicyType::LmCompatibilityLevel,
+                "LAN Manager authentication level",
+            ),
+            (
+                "RestrictAnonymous",
+                AuthPolicyType::RestrictAnonymous,
+                "Anonymous access restriction",
+            ),
+            (
+                "NoLMHash",
+                AuthPolicyType::Custom("NoLMHash".to_string()),
+                "Disable LM hash storage",
+            ),
         ];
 
         for (name, policy_type, desc) in policies_to_check {
@@ -875,7 +941,9 @@ fn collect_windows_auth_policies(result: &mut AuthPolicyResult) -> Result<()> {
     }
 
     // Account lockout policy
-    if let Ok(policy_key) = hklm.open_subkey("SYSTEM\\CurrentControlSet\\Services\\RemoteAccess\\Policy") {
+    if let Ok(_policy_key) =
+        hklm.open_subkey("SYSTEM\\CurrentControlSet\\Services\\RemoteAccess\\Policy")
+    {
         // Not the right key - would need to use NetUserGetInfo or similar
     }
 

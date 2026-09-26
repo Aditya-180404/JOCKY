@@ -84,7 +84,7 @@ interface CheckResponse {
 const EXAMPLES = [
   {
     id: 'basic_system_triage',
-    filename: 'basic_system_triage.tfg',
+    filename: 'basic_system_triage.jy',
     name: 'Basic System Triage',
     description: 'Collect system information and running processes into verifiable JSON.',
     code: `investigation "basic_system_triage" {
@@ -97,7 +97,7 @@ const EXAMPLES = [
   },
   {
     id: 'process_investigation',
-    filename: 'process_investigation.tfg',
+    filename: 'process_investigation.jy',
     name: 'Process Investigation',
     description: 'Inspect processes with parent PID, command line, user, and SHA-256 binary hash.',
     code: `investigation "process_investigation" {
@@ -115,7 +115,7 @@ const EXAMPLES = [
   },
   {
     id: 'network_investigation',
-    filename: 'network_investigation.tfg',
+    filename: 'network_investigation.jy',
     name: 'Network Investigation',
     description: 'Capture active socket listening ports, protocols, and endpoints alongside host info.',
     code: `investigation "network_investigation" {
@@ -128,7 +128,7 @@ const EXAMPLES = [
   },
   {
     id: 'user_investigation',
-    filename: 'user_investigation.tfg',
+    filename: 'user_investigation.jy',
     name: 'User Investigation',
     description: 'Filter process tree specifically for privileged account activity.',
     code: `investigation "user_investigation" {
@@ -145,7 +145,7 @@ const EXAMPLES = [
   },
   {
     id: 'filesystem_investigation',
-    filename: 'filesystem_investigation.tfg',
+    filename: 'filesystem_investigation.jy',
     name: 'Filesystem Investigation',
     description: 'Inspect critical configuration directories with recursive SHA-256 hashes.',
     code: `investigation "filesystem_investigation" {
@@ -161,7 +161,7 @@ const EXAMPLES = [
   },
   {
     id: 'evidence_hashing',
-    filename: 'evidence_hashing.tfg',
+    filename: 'evidence_hashing.jy',
     name: 'Evidence Hashing',
     description: 'Deterministic binary hashing of active processes for malware triage.',
     code: `investigation "evidence_hashing" {
@@ -176,7 +176,7 @@ const EXAMPLES = [
   },
   {
     id: 'complete_basic_triage',
-    filename: 'complete_basic_triage.tfg',
+    filename: 'complete_basic_triage.jy',
     name: 'Complete Basic Triage',
     description: 'Full multi-collector incident response triage with metadata tags.',
     code: `investigation "complete_basic_triage" {
@@ -204,7 +204,7 @@ const EXAMPLES = [
   },
   {
     id: 'memory_process_triage',
-    filename: 'memory_process_triage.tfg',
+    filename: 'memory_process_triage.jy',
     name: 'Memory Region Triage',
     description: 'Dump virtual memory maps of a target process to detect injected shellcode or hollowed sections.',
     code: `investigation "memory_process_triage" {
@@ -226,7 +226,7 @@ const EXAMPLES = [
   },
   {
     id: 'windows_registry_audit',
-    filename: 'windows_registry_audit.tfg',
+    filename: 'windows_registry_audit.jy',
     name: 'Windows Registry Audit',
     description: 'Enumerate persistence keys in the Windows Registry (Run, Services).',
     code: `investigation "windows_registry_audit" {
@@ -243,7 +243,7 @@ const EXAMPLES = [
   },
   {
     id: 'artifact_carving',
-    filename: 'artifact_carving.tfg',
+    filename: 'artifact_carving.jy',
     name: 'Forensic Artifact Carving',
     description: 'Extract Prefetch, Shimcache, and Event Log artifacts to reconstruct execution history.',
     code: `investigation "artifact_carving" {
@@ -261,7 +261,7 @@ const EXAMPLES = [
   },
   {
     id: 'log_threat_hunt',
-    filename: 'log_threat_hunt.tfg',
+    filename: 'log_threat_hunt.jy',
     name: 'Log-Based Threat Hunt',
     description: 'Correlate auth logs with privileged process activity to detect privilege escalation.',
     code: `investigation "log_threat_hunt" {
@@ -283,7 +283,7 @@ const EXAMPLES = [
   },
   {
     id: 'driver_rootkit_hunt',
-    filename: 'driver_rootkit_hunt.tfg',
+    filename: 'driver_rootkit_hunt.jy',
     name: 'Driver & Rootkit Hunt',
     description: 'Enumerate and hash loaded kernel modules to detect unsigned or injected rootkit drivers.',
     code: `investigation "driver_rootkit_hunt" {
@@ -297,7 +297,7 @@ const EXAMPLES = [
   },
   {
     id: 'full_incident_triage',
-    filename: 'full_incident_triage.tfg',
+    filename: 'full_incident_triage.jy',
     name: 'Full Incident Response Triage',
     description: 'Comprehensive sweep covering system, processes, network, filesystem, and logs.',
     code: `investigation "full_incident_triage" {
@@ -338,7 +338,7 @@ export function WebIDE() {
   const [showExplorer, setShowExplorer] = useState(true);
   const [showInspector, setShowInspector] = useState(true);
   const [showBottomPanel, setShowBottomPanel] = useState(true);
-  const [bottomPanelTab, setBottomPanelTab] = useState<'problems' | 'output' | 'evidence' | 'integrity'>('output');
+  const [bottomPanelTab, setBottomPanelTab] = useState<'problems' | 'output' | 'evidence' | 'integrity' | 'artifact'>('output');
   const [inspectorTab, setInspectorTab] = useState<'diagnostics' | 'capabilities' | 'artifact'>('diagnostics');
 
   // Compiler state
@@ -364,17 +364,19 @@ export function WebIDE() {
         const availableTargets = (response.data as Array<{ id: string; name: string; supported: boolean; host_compatible: boolean; toolchain_required?: string }>).map((target) => ({
           id: target.id,
           name: target.name,
-          status: target.id === 'sandbox'
-            ? 'Supported'
-            : target.supported && target.host_compatible
-              ? 'Available here'
-              : target.supported
-                ? 'Supported elsewhere'
-                : 'Unsupported',
+          status: target.supported && target.host_compatible
+            ? 'Available here'
+            : target.supported
+              ? 'Supported elsewhere'
+              : 'Unsupported',
         }));
         setTargets(availableTargets);
+        const defaultTarget = availableTargets.find((t) => t.status === 'Available here') || availableTargets[0];
+        if (defaultTarget) {
+          setSelectedTarget(defaultTarget.id);
+        }
       })
-      .catch(() => setTargets([{ id: 'sandbox', name: 'jockey server sandbox', status: 'Unavailable' }]));
+      .catch(() => setTargets([{ id: 'windows-x64', name: 'Windows x64', status: 'Available here' }]));
   }, []);
 
   // Configure Monaco Editor
@@ -384,7 +386,7 @@ export function WebIDE() {
 
     // Register jockey language definition
     if (!monaco.languages.getLanguages().some((l: any) => l.id === 'jockey')) {
-      monaco.languages.register({ id: 'jockey' });
+      monaco.languages.register({ id: 'jockey', extensions: ['.jy'], aliases: ['JOCKEY', 'jockey', 'jy'] });
 
       monaco.languages.setMonarchTokensProvider('jockey', {
         keywords: ALL_KEYWORDS,
@@ -622,37 +624,119 @@ export function WebIDE() {
     }
   };
 
-  const handleRunExecution = async () => {
-    if (selectedTarget !== 'linux-x64') {
-      setStatusMessage('Hosted compilation produces Linux x86_64 artifacts. Download the local compiler for Windows builds.');
-      setBottomPanelTab('problems');
-      setShowBottomPanel(true);
-      return;
-    }
-    setIsRunning(true);
-    setStatusMessage('Compiling Linux x86_64 artifact...');
-    setBottomPanelTab('output');
+  const handleCompileCode = async () => {
+    setIsLoading(true);
+    setStatusMessage(`Compiling for ${selectedTarget}...`);
+    setBottomPanelTab('artifact');
     setShowBottomPanel(true);
     try {
-      const res = await api.post('/api/compiler/compile', {
-        source,
-        target: selectedTarget,
-      }, {
-        responseType: 'blob',
-      });
+      const res = await api.post(
+        '/api/compiler/compile',
+        { source, target: selectedTarget },
+        { responseType: 'blob' }
+      );
       const disposition = res.headers['content-disposition'] || '';
-      const filename = disposition.match(/filename="?([^";]+)"?/)?.[1] || 'jockey-investigation-linux-x64';
+      const filename =
+        disposition.match(/filename="?([^";]+)"?/)?.[1] ||
+        (selectedTarget.includes('windows')
+          ? 'investigation-windows-x64.exe'
+          : 'investigation-linux-x64');
       const url = URL.createObjectURL(res.data);
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
       link.click();
       URL.revokeObjectURL(url);
-      setExecutionResult(null);
-      setStatusMessage(`Compiled ${filename}. Run it locally to collect real evidence.`);
+      setStatusMessage(`✓ Compiled & downloaded ${filename}`);
     } catch (err: any) {
-      setStatusMessage('Compilation request failed');
-      setDiagnostics([{ severity: 'error', message: err.response?.data?.message || 'Unable to compile this source.', line: 1, column: 1 }]);
+      setStatusMessage('Compilation failed');
+      setBottomPanelTab('problems');
+      setShowBottomPanel(true);
+      setDiagnostics([
+        {
+          severity: 'error',
+          message:
+            err.response?.data?.message ||
+            err.message ||
+            'Compiler service connection error during compilation',
+          line: 1,
+          column: 1,
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRunExecution = async () => {
+    setIsRunning(true);
+    setStatusMessage(`Running live investigation on ${selectedTarget}...`);
+    setBottomPanelTab('output');
+    setShowBottomPanel(true);
+    try {
+      const res = await api.post('/api/compiler/run', {
+        source,
+        target: selectedTarget,
+      });
+      const data = res.data;
+      if (data.success) {
+        setStatusMessage(`✓ Execution complete in ${data.duration_ms}ms (Exit 0)`);
+        if (data.evidence) {
+          // Normalize evidence array
+          const evidenceArr = Array.isArray(data.evidence)
+            ? data.evidence
+            : [data.evidence];
+          const items: EvidenceItem[] = evidenceArr.map((ev: any, idx: number) => ({
+            id: `rec-${idx + 1}`,
+            collector: ev.collector || ev.type || 'system_triage',
+            timestamp: ev.timestamp || new Date().toISOString(),
+            source: ev.source || 'host',
+            origin: 'REAL',
+            data: ev,
+            sha256: data.verification?.sha256 || '',
+            integrity: data.verification?.status || 'VALID',
+          }));
+          setExecutionResult({
+            success: true,
+            investigation_name: data.artifact_name || 'investigation',
+            execution_target: selectedTarget,
+            execution_time_ms: data.duration_ms,
+            collectors_executed: requiredCapabilities,
+            evidence_count: items.length,
+            sha256: data.verification?.sha256 || '',
+            integrity: data.verification?.status || 'VALID',
+            evidence_items: items,
+            output_log: (data.stdout || '').split('\n').filter(Boolean),
+          });
+        }
+      } else {
+        setStatusMessage(`Execution exited with error code ${data.exit_code}`);
+        setExecutionResult({
+          success: false,
+          investigation_name: data.artifact_name || 'investigation',
+          execution_target: selectedTarget,
+          execution_time_ms: data.duration_ms || 0,
+          collectors_executed: requiredCapabilities,
+          evidence_count: 0,
+          sha256: '',
+          integrity: 'EXECUTION_FAILED',
+          evidence_items: [],
+          output_log: (data.stderr || data.stdout || 'Execution failed').split('\n').filter(Boolean),
+        });
+      }
+    } catch (err: any) {
+      setStatusMessage('Execution request failed');
+      setDiagnostics([
+        {
+          severity: 'error',
+          message:
+            err.response?.data?.message ||
+            err.message ||
+            'Unable to execute investigation on backend server',
+          line: 1,
+          column: 1,
+        },
+      ]);
       setBottomPanelTab('problems');
     } finally {
       setIsRunning(false);
@@ -673,12 +757,12 @@ export function WebIDE() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadTfg = () => {
+  const handleDownloadJy = () => {
     const blob = new Blob([source], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${selectedExample}.tfg`;
+    link.download = `${selectedExample}.jy`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -721,10 +805,10 @@ export function WebIDE() {
             New
           </button>
           <button
-            onClick={handleDownloadTfg}
+            onClick={handleDownloadJy}
             className="text-slate-400 hover:text-slate-100 px-2 py-1 rounded hover:bg-slate-800 transition-colors"
           >
-            Download .tfg
+            Download .jy
           </button>
           <button
             onClick={handleCopyCode}
@@ -757,16 +841,29 @@ export function WebIDE() {
             onClick={handleCheckCode}
             disabled={isLoading}
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition-colors disabled:opacity-50"
+            title="Check syntax and semantic validity"
           >
             <CheckCircle2 className="h-3.5 w-3.5 text-blue-400" />
             <span>Check</span>
           </button>
 
+          {/* Compile Button */}
+          <button
+            onClick={handleCompileCode}
+            disabled={isLoading || isRunning}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition-colors disabled:opacity-50"
+            title="Compile into standalone native binary"
+          >
+            <Download className="h-3.5 w-3.5 text-amber-400" />
+            <span>Compile</span>
+          </button>
+
           {/* Run Button */}
           <button
             onClick={handleRunExecution}
-            disabled={isRunning}
+            disabled={isRunning || isLoading}
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors disabled:opacity-50"
+            title="Execute live investigation against target"
           >
             <Play className="h-3.5 w-3.5 fill-current" />
             <span>{isRunning ? 'Running...' : 'Run'}</span>
@@ -873,7 +970,7 @@ export function WebIDE() {
             <div className="flex items-center gap-2">
               <span className="font-mono text-xs text-slate-200 flex items-center gap-1.5">
                 <FileCode className="h-3.5 w-3.5 text-blue-400" />
-                {EXAMPLES.find((e) => e.id === selectedExample)?.filename || 'investigation.tfg'}
+                {EXAMPLES.find((e) => e.id === selectedExample)?.filename || 'investigation.jy'}
               </span>
               {checkPassed !== null && (
                 <span
@@ -986,6 +1083,22 @@ export function WebIDE() {
                   <Hash className="h-3.5 w-3.5" />
                   <span>Integrity</span>
                 </button>
+
+                <button
+                  onClick={() => {
+                    setBottomPanelTab('artifact');
+                    setShowBottomPanel(true);
+                  }}
+                  className={clsx(
+                    'px-2.5 py-1 rounded text-xs font-medium transition-colors flex items-center gap-1.5',
+                    bottomPanelTab === 'artifact' && showBottomPanel
+                      ? 'bg-slate-800 text-amber-400 border border-slate-700'
+                      : 'text-slate-400 hover:text-slate-200'
+                  )}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>Artifact</span>
+                </button>
               </div>
 
               {/* Panel Toggle */}
@@ -1026,9 +1139,34 @@ export function WebIDE() {
                       </>
                     ) : (
                       <div className="text-slate-400">
-                        No execution log yet. Click [Check] to validate with the compiler or [Run] to execute against the target.
+                        No execution log yet. Click [Check] to validate with the compiler, [Compile] to build a native binary, or [Run] to execute against the target.
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Artifact Tab */}
+                {bottomPanelTab === 'artifact' && (
+                  <div className="space-y-2">
+                    <div className="text-slate-400">=== COMPILED NATIVE ARTIFACT ===</div>
+                    <div>Target Platform: <span className="text-slate-100">{selectedTarget}</span></div>
+                    <div>Status: <span className="text-emerald-400">{statusMessage}</span></div>
+                    <div className="pt-2 flex items-center gap-2">
+                      <button
+                        onClick={handleCompileCode}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition-colors"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        <span>Download Binary ({selectedTarget.includes('windows') ? '.exe' : 'native'})</span>
+                      </button>
+                      <button
+                        onClick={handleDownloadJy}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 transition-colors"
+                      >
+                        <FileCode className="h-3.5 w-3.5" />
+                        <span>Download Source (.jy)</span>
+                      </button>
+                    </div>
                   </div>
                 )}
 

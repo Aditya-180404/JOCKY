@@ -121,13 +121,22 @@ impl NormalizedEntities {
 
         for record in records {
             let source = record.get("source").and_then(|s| s.as_str()).unwrap_or("");
-            let event_type = record.get("event_type").and_then(|s| s.as_str()).unwrap_or("");
+            let event_type = record
+                .get("event_type")
+                .and_then(|s| s.as_str())
+                .unwrap_or("");
 
             match (source, event_type) {
                 ("system", _) | (_, "system_info_collected") => {
-                    let hostname = record.get("hostname").and_then(|v| v.as_str()).unwrap_or(default_host);
+                    let hostname = record
+                        .get("hostname")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or(default_host);
                     let os = record.get("os").and_then(|v| v.as_str()).unwrap_or("Linux");
-                    let arch = record.get("arch").and_then(|v| v.as_str()).unwrap_or("x86_64");
+                    let arch = record
+                        .get("arch")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("x86_64");
                     result.hosts.push(HostArtifact {
                         id: format!("host-{}", hostname),
                         hostname: hostname.to_string(),
@@ -140,24 +149,29 @@ impl NormalizedEntities {
                 ("process", _) | ("processes", _) | (_, "process_observed") => {
                     let pid = record.get("pid").and_then(|v| v.as_i64()).unwrap_or(0);
                     let ppid = record.get("ppid").and_then(|v| v.as_i64());
-                    let name = record.get("process_name")
+                    let name = record
+                        .get("process_name")
                         .or_else(|| record.get("name"))
                         .and_then(|v| v.as_str())
                         .unwrap_or("unknown")
                         .to_string();
-                    let path = record.get("path")
+                    let path = record
+                        .get("path")
                         .or_else(|| record.get("executable"))
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string());
-                    let cmdline = record.get("command_line")
+                    let cmdline = record
+                        .get("command_line")
                         .or_else(|| record.get("cmdline"))
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string());
-                    let user = record.get("user")
+                    let user = record
+                        .get("user")
                         .or_else(|| record.get("username"))
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string());
-                    let hash = record.get("sha256")
+                    let hash = record
+                        .get("sha256")
                         .or_else(|| record.get("hash"))
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string());
@@ -174,18 +188,36 @@ impl NormalizedEntities {
                     });
                 }
                 _ if source == "network" || event_type.starts_with("connection_") => {
-                    let local = record.get("local_address")
+                    let local = record
+                        .get("local_address")
                         .or_else(|| record.get("network_endpoint"))
                         .and_then(|v| v.as_str())
                         .unwrap_or("0.0.0.0:0");
-                    let remote = record.get("remote_address").and_then(|v| v.as_str()).unwrap_or("0.0.0.0:0");
-                    let proto = record.get("protocol").and_then(|v| v.as_str()).unwrap_or("TCP");
-                    let state = record.get("state").and_then(|v| v.as_str()).unwrap_or("ESTABLISHED");
-                    let pid = record.get("pid").or_else(|| record.get("process_id")).and_then(|v| v.as_i64());
-                    let proc_name = record.get("process_name").and_then(|v| v.as_str()).map(|s| s.to_string());
+                    let remote = record
+                        .get("remote_address")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("0.0.0.0:0");
+                    let proto = record
+                        .get("protocol")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("TCP");
+                    let state = record
+                        .get("state")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("ESTABLISHED");
+                    let pid = record
+                        .get("pid")
+                        .or_else(|| record.get("process_id"))
+                        .and_then(|v| v.as_i64());
+                    let proc_name = record
+                        .get("process_name")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string());
 
                     let parse_port = |addr: &str| -> u16 {
-                        addr.rsplit_once(':').and_then(|(_, p)| p.parse().ok()).unwrap_or(0)
+                        addr.rsplit_once(':')
+                            .and_then(|(_, p)| p.parse().ok())
+                            .unwrap_or(0)
                     };
 
                     result.network_connections.push(NetworkConnectionArtifact {
@@ -201,14 +233,26 @@ impl NormalizedEntities {
                     });
                 }
                 ("filesystem", _) | ("files", _) | (_, "file_observed") => {
-                    let path = record.get("path")
+                    let path = record
+                        .get("path")
                         .or_else(|| record.get("file_path"))
                         .and_then(|v| v.as_str())
                         .unwrap_or("/unknown")
                         .to_string();
-                    let size = record.get("size").or_else(|| record.get("size_bytes")).and_then(|v| v.as_u64()).unwrap_or(0);
-                    let sha256 = record.get("sha256").and_then(|v| v.as_str()).map(|s| s.to_string());
-                    let owner = record.get("owner").or_else(|| record.get("user")).and_then(|v| v.as_str()).map(|s| s.to_string());
+                    let size = record
+                        .get("size")
+                        .or_else(|| record.get("size_bytes"))
+                        .and_then(|v| v.as_u64())
+                        .unwrap_or(0);
+                    let sha256 = record
+                        .get("sha256")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string());
+                    let owner = record
+                        .get("owner")
+                        .or_else(|| record.get("user"))
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string());
 
                     result.files.push(FileArtifact {
                         path,

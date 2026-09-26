@@ -3,6 +3,37 @@
 use jockey_ast::{Capability, Span};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use std::path::Path;
+
+/// Canonical file extension for JOCKEY DSL source files (without dot).
+pub const JOCKEY_SOURCE_EXTENSION: &str = "jy";
+
+/// Canonical file extension for JOCKEY DSL source files (with dot).
+pub const JOCKEY_SOURCE_EXTENSION_DOT: &str = ".jy";
+
+/// Check if a path has the official `.jy` JOCKEY source extension.
+pub fn is_jockey_source_file(path: &Path) -> bool {
+    path.extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| ext.eq_ignore_ascii_case(JOCKEY_SOURCE_EXTENSION))
+        .unwrap_or(false)
+}
+
+/// Validate that a path has the official `.jy` JOCKEY source extension,
+/// returning a clear diagnostic error message if not.
+pub fn validate_source_extension(path: &Path) -> Result<(), String> {
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some(ext) if ext.eq_ignore_ascii_case(JOCKEY_SOURCE_EXTENSION) => Ok(()),
+        Some(ext) => Err(format!(
+            "Unsupported JOCKEY source extension '.{}'.\nExpected a '.jy' source file.\n\nExample:\n  jockey check examples/complete_forensic_triage.jy",
+            ext
+        )),
+        None => Err(format!(
+            "Missing file extension on '{}'.\nExpected a '.jy' source file.\n\nExample:\n  jockey check examples/complete_forensic_triage.jy",
+            path.display()
+        )),
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IrInvestigation {
@@ -197,4 +228,52 @@ pub struct ArtifactMetadata {
     pub artifact_hash: String,
     pub required_capabilities: Vec<String>,
     pub ir_version: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+
+    #[test]
+    fn test_canonical_extension_constants() {
+        assert_eq!(JOCKEY_SOURCE_EXTENSION, "jy");
+        assert_eq!(JOCKEY_SOURCE_EXTENSION_DOT, ".jy");
+    }
+
+    #[test]
+    fn test_is_jockey_source_file() {
+        assert!(is_jockey_source_file(Path::new("test.jy")));
+        assert!(is_jockey_source_file(Path::new(
+            "examples/complete_forensic_triage.jy"
+        )));
+        assert!(is_jockey_source_file(Path::new("TEST.JY")));
+        assert!(!is_jockey_source_file(Path::new("test.tfg")));
+        assert!(!is_jockey_source_file(Path::new("test.rs")));
+        assert!(!is_jockey_source_file(Path::new("test")));
+    }
+
+    #[test]
+    fn test_validate_source_extension_accepted() {
+        assert!(validate_source_extension(Path::new("investigation.jy")).is_ok());
+        assert!(validate_source_extension(Path::new("path/to/my_tool.jy")).is_ok());
+    }
+
+    #[test]
+    fn test_validate_source_extension_rejected_tfg() {
+        let result = validate_source_extension(Path::new("legacy.tfg"));
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.contains("Unsupported JOCKEY source extension '.tfg'"));
+        assert!(err.contains("Expected a '.jy' source file"));
+    }
+
+    #[test]
+    fn test_validate_source_extension_rejected_no_ext() {
+        let result = validate_source_extension(Path::new("no_extension"));
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.contains("Missing file extension"));
+        assert!(err.contains("Expected a '.jy' source file"));
+    }
 }

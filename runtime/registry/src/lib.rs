@@ -281,8 +281,12 @@ mod tests {
 
     #[test]
     fn test_enumerate_registry_does_not_panic() {
-        // On Linux this maps to /proc/sys/kernel
-        let result = enumerate_registry("HKLM", "kernel");
+        #[cfg(target_os = "windows")]
+        let key = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
+        #[cfg(not(target_os = "windows"))]
+        let key = "kernel";
+
+        let result = enumerate_registry("HKLM", key);
         assert!(
             result.is_ok(),
             "enumerate_registry failed: {:?}",

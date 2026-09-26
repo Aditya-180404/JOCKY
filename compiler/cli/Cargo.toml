@@ -30,3 +30,7 @@ uuid = { workspace = true }
 sha2 = { workspace = true }
 whoami = "1.6.1"
 ureq = { version = "2.10", features = ["json"] }
+
+[features]
+default = []
+llvm = ["jockey-backend/llvm"]

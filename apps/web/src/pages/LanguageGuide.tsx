@@ -35,7 +35,7 @@ Unlike ad-hoc shell scripts, jockey programs compile into secure, tamper-evident
 No Rust compiler or development tools are required on target endpoint machines.`,
     codeSnippet: `# Verify and run CLI
 jockey --version
-jockey check investigation.tfg`,
+jockey check investigation.jy`,
   },
   {
     id: 'first_program',

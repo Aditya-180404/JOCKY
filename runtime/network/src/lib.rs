@@ -141,13 +141,28 @@ pub fn enumerate_interfaces() -> Result<Vec<serde_json::Value>, Box<dyn std::err
         if let Ok(net_dir) = fs::read_dir("/sys/class/net") {
             for entry in net_dir.flatten() {
                 let name = entry.file_name().to_string_lossy().to_string();
-                if name == "lo" { continue; }
+                if name == "lo" {
+                    continue;
+                }
 
-                let mac_address = fs::read_to_string(format!("/sys/class/net/{}/address", name)).ok().map(|s| s.trim().to_string());
-                let mtu = fs::read_to_string(format!("/sys/class/net/{}/mtu", name)).ok().and_then(|s| s.trim().parse::<u32>().ok());
-                let flags = fs::read_to_string(format!("/sys/class/net/{}/flags", name)).ok().map(|s| s.trim().to_string());
-                let speed_mbps = fs::read_to_string(format!("/sys/class/net/{}/speed", name)).ok().and_then(|s| s.trim().parse::<u64>().ok());
-                let driver = fs::read_to_string(format!("/sys/class/net/{}/device/driver/module/name", name)).ok().map(|s| s.trim().to_string());
+                let mac_address = fs::read_to_string(format!("/sys/class/net/{}/address", name))
+                    .ok()
+                    .map(|s| s.trim().to_string());
+                let mtu = fs::read_to_string(format!("/sys/class/net/{}/mtu", name))
+                    .ok()
+                    .and_then(|s| s.trim().parse::<u32>().ok());
+                let flags = fs::read_to_string(format!("/sys/class/net/{}/flags", name))
+                    .ok()
+                    .map(|s| s.trim().to_string());
+                let speed_mbps = fs::read_to_string(format!("/sys/class/net/{}/speed", name))
+                    .ok()
+                    .and_then(|s| s.trim().parse::<u64>().ok());
+                let driver = fs::read_to_string(format!(
+                    "/sys/class/net/{}/device/driver/module/name",
+                    name
+                ))
+                .ok()
+                .map(|s| s.trim().to_string());
 
                 // Get IP addresses
                 let (ipv4_addresses, ipv6_addresses) = get_interface_ips(&name);
@@ -217,8 +232,18 @@ pub fn enumerate_routes() -> Result<Vec<serde_json::Value>, Box<dyn std::error::
             for line in stdout.lines() {
                 let parts: Vec<&str> = line.split_whitespace().collect();
                 if parts.len() >= 3 {
-                    let gateway = parts.iter().position(|&p| p == "via").and_then(|i| parts.get(i + 1)).copied().unwrap_or("");
-                    let interface = parts.iter().position(|&p| p == "dev").and_then(|i| parts.get(i + 1)).copied().unwrap_or("");
+                    let gateway = parts
+                        .iter()
+                        .position(|&p| p == "via")
+                        .and_then(|i| parts.get(i + 1))
+                        .copied()
+                        .unwrap_or("");
+                    let interface = parts
+                        .iter()
+                        .position(|&p| p == "dev")
+                        .and_then(|i| parts.get(i + 1))
+                        .copied()
+                        .unwrap_or("");
                     results.push(serde_json::json!({
                         "destination": parts[0],
                         "gateway": gateway,
@@ -497,9 +522,13 @@ pub fn enumerate_hosts() -> Result<Vec<serde_json::Value>, Box<dyn std::error::E
 pub fn enumerate_listening_ports() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     // Filter connections for LISTEN state
     let connections = enumerate_connections()?;
-    let listening: Vec<_> = connections.into_iter()
+    let listening: Vec<_> = connections
+        .into_iter()
         .filter(|c| {
-            c.get("state").and_then(|v| v.as_str()).map(|s| s.eq_ignore_ascii_case("LISTEN")).unwrap_or(false)
+            c.get("state")
+                .and_then(|v| v.as_str())
+                .map(|s| s.eq_ignore_ascii_case("LISTEN"))
+                .unwrap_or(false)
         })
         .collect();
     Ok(listening)
@@ -510,34 +539,43 @@ pub fn enumerate_firewall_policy() -> Result<Vec<serde_json::Value>, Box<dyn std
     #[cfg(target_os = "linux")]
     {
         let mut results = Vec::new();
-        
+
         // Check iptables
-        if let Ok(output) = std::process::Command::new("iptables").args(["-L", "-n", "-v"]).output() {
+        if let Ok(output) = std::process::Command::new("iptables")
+            .args(["-L", "-n", "-v"])
+            .output()
+        {
             let stdout = String::from_utf8_lossy(&output.stdout);
             results.push(serde_json::json!({
                 "type": "iptables",
                 "rules": stdout.lines().collect::<Vec<_>>(),
             }));
         }
-        
+
         // Check nftables
-        if let Ok(output) = std::process::Command::new("nft").args(["list", "ruleset"]).output() {
+        if let Ok(output) = std::process::Command::new("nft")
+            .args(["list", "ruleset"])
+            .output()
+        {
             let stdout = String::from_utf8_lossy(&output.stdout);
             results.push(serde_json::json!({
                 "type": "nftables",
                 "rules": stdout.lines().collect::<Vec<_>>(),
             }));
         }
-        
+
         // Check ufw
-        if let Ok(output) = std::process::Command::new("ufw").args(["status", "verbose"]).output() {
+        if let Ok(output) = std::process::Command::new("ufw")
+            .args(["status", "verbose"])
+            .output()
+        {
             let stdout = String::from_utf8_lossy(&output.stdout);
             results.push(serde_json::json!({
                 "type": "ufw",
                 "rules": stdout.lines().collect::<Vec<_>>(),
             }));
         }
-        
+
         if results.is_empty() {
             results.push(serde_json::json!({
                 "collector": "network",
@@ -546,7 +584,7 @@ pub fn enumerate_firewall_policy() -> Result<Vec<serde_json::Value>, Box<dyn std
                 "note": "No firewall rules found (iptables, nftables, ufw)",
             }));
         }
-        
+
         Ok(results)
     }
 
@@ -595,16 +633,19 @@ pub fn enumerate_shares() -> Result<Vec<serde_json::Value>, Box<dyn std::error::
     #[cfg(target_os = "linux")]
     {
         let mut results = Vec::new();
-        
+
         // Check Samba shares
-        if let Ok(output) = std::process::Command::new("smbstatus").args(["-S"]).output() {
+        if let Ok(output) = std::process::Command::new("smbstatus")
+            .args(["-S"])
+            .output()
+        {
             let stdout = String::from_utf8_lossy(&output.stdout);
             results.push(serde_json::json!({
                 "type": "samba",
                 "shares": stdout.lines().collect::<Vec<_>>(),
             }));
         }
-        
+
         // Check NFS exports
         if let Ok(exports) = std::fs::read_to_string("/etc/exports") {
             results.push(serde_json::json!({
@@ -612,7 +653,7 @@ pub fn enumerate_shares() -> Result<Vec<serde_json::Value>, Box<dyn std::error::
                 "exports": exports.lines().collect::<Vec<_>>(),
             }));
         }
-        
+
         if results.is_empty() {
             results.push(serde_json::json!({
                 "collector": "network",
@@ -621,7 +662,7 @@ pub fn enumerate_shares() -> Result<Vec<serde_json::Value>, Box<dyn std::error::
                 "note": "No network shares found (Samba, NFS)",
             }));
         }
-        
+
         Ok(results)
     }
 
@@ -629,7 +670,11 @@ pub fn enumerate_shares() -> Result<Vec<serde_json::Value>, Box<dyn std::error::
     {
         let mut results = Vec::new();
         let output = std::process::Command::new("powershell")
-            .args(["-NoProfile", "-Command", "Get-SmbShare | Select-Object Name,Path,Description | ConvertTo-Json -Compress"])
+            .args([
+                "-NoProfile",
+                "-Command",
+                "Get-SmbShare | Select-Object Name,Path,Description | ConvertTo-Json -Compress",
+            ])
             .output();
 
         if let Ok(output) = output {
@@ -663,33 +708,45 @@ pub fn enumerate_listeners() -> Result<Vec<serde_json::Value>, Box<dyn std::erro
     // Get listening ports and flag suspicious ones
     let listening = enumerate_listening_ports()?;
     let mut results = Vec::new();
-    
+
     for listener in listening {
-        let port = listener.get("local_port").and_then(|v| v.as_u64()).unwrap_or(0);
-        let process = listener.get("process_name").and_then(|v| v.as_str()).unwrap_or("");
-        
+        let port = listener
+            .get("local_port")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0);
+        let process = listener
+            .get("process_name")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+
         // Flag suspicious ports
-        let suspicious = matches!(port, 4444 | 5555 | 6666 | 7777 | 8888 | 9999 | 31337 | 12345 | 54321)
-            || process.to_lowercase().contains("nc")
+        let suspicious = matches!(
+            port,
+            4444 | 5555 | 6666 | 7777 | 8888 | 9999 | 31337 | 12345 | 54321
+        ) || process.to_lowercase().contains("nc")
             || process.to_lowercase().contains("netcat")
             || process.to_lowercase().contains("meterpreter");
-        
+
         results.push(serde_json::json!({
             "listener": listener,
             "suspicious": suspicious,
             "reason": if suspicious { "Common backdoor port or suspicious process" } else { "" },
         }));
     }
-    
+
     Ok(results)
 }
 
+#[allow(dead_code)]
 fn get_interface_ips(interface: &str) -> (Vec<String>, Vec<String>) {
     use std::process::Command;
     let mut ipv4 = Vec::new();
     let mut ipv6 = Vec::new();
 
-    if let Ok(output) = Command::new("ip").args(["-4", "addr", "show", "dev", interface]).output() {
+    if let Ok(output) = Command::new("ip")
+        .args(["-4", "addr", "show", "dev", interface])
+        .output()
+    {
         let stdout = String::from_utf8_lossy(&output.stdout);
         for line in stdout.lines() {
             if line.contains("inet ") {
@@ -700,7 +757,10 @@ fn get_interface_ips(interface: &str) -> (Vec<String>, Vec<String>) {
         }
     }
 
-    if let Ok(output) = Command::new("ip").args(["-6", "addr", "show", "dev", interface]).output() {
+    if let Ok(output) = Command::new("ip")
+        .args(["-6", "addr", "show", "dev", interface])
+        .output()
+    {
         let stdout = String::from_utf8_lossy(&output.stdout);
         for line in stdout.lines() {
             if line.contains("inet6 ") {

@@ -396,10 +396,22 @@ impl SecurityAnalyzer {
     /// Analyze memory regions for injection indicators such as writable + executable + anonymous pages.
     pub fn analyze_memory_anomalies(&mut self, regions: &[serde_json::Value]) {
         for region in regions {
-            let executable = region.get("executable").and_then(|v| v.as_bool()).unwrap_or(false);
-            let writable = region.get("writable").and_then(|v| v.as_bool()).unwrap_or(false);
-            let anonymous = region.get("anonymous").and_then(|v| v.as_bool()).unwrap_or(false);
-            let mapped_file = region.get("mapped_file").and_then(|v| v.as_str()).unwrap_or("[anon]");
+            let executable = region
+                .get("executable")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let writable = region
+                .get("writable")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let anonymous = region
+                .get("anonymous")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let mapped_file = region
+                .get("mapped_file")
+                .and_then(|v| v.as_str())
+                .unwrap_or("[anon]");
             let pid = region.get("pid").and_then(|v| v.as_i64()).map(|v| v as i32);
 
             if executable && writable && anonymous {
@@ -424,7 +436,10 @@ impl SecurityAnalyzer {
     /// Analyze loaded driver records for BYOVD or kernel abuse indicators.
     pub fn analyze_driver_anomalies(&mut self, drivers: &[serde_json::Value]) {
         for driver in drivers {
-            let name = driver.get("name").and_then(|v| v.as_str()).unwrap_or("unknown");
+            let name = driver
+                .get("name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown");
             let vulns = driver
                 .get("vulnerability_indicators")
                 .and_then(|v| v.as_array())
@@ -437,7 +452,10 @@ impl SecurityAnalyzer {
 
             let mut highest = FindingSeverity::Medium;
             for vuln in &vulns {
-                let severity = vuln.get("severity").and_then(|v| v.as_str()).unwrap_or("MEDIUM");
+                let severity = vuln
+                    .get("severity")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("MEDIUM");
                 if severity == "CRITICAL" {
                     highest = FindingSeverity::Critical;
                     break;
@@ -451,8 +469,13 @@ impl SecurityAnalyzer {
             self.findings.push(SecurityFinding {
                 indicator: format!("Driver vulnerability indicator: {}", name),
                 severity: highest,
-                evidence: format!("{}: {}", name, serde_json::to_string(&vulns).unwrap_or_default()),
-                reason: "Loaded driver matches a known vulnerable-driver or BYOVD signature set".to_string(),
+                evidence: format!(
+                    "{}: {}",
+                    name,
+                    serde_json::to_string(&vulns).unwrap_or_default()
+                ),
+                reason: "Loaded driver matches a known vulnerable-driver or BYOVD signature set"
+                    .to_string(),
                 timestamp: chrono::Utc::now(),
                 host: self.hostname.clone(),
                 process: None,
@@ -709,7 +732,9 @@ pub fn collect_app_control() -> Result<Vec<serde_json::Value>, Box<dyn std::erro
     Ok(results)
 }
 
-pub fn analyze_shell_scripts(search_path: &str) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+pub fn analyze_shell_scripts(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     let path = std::path::Path::new(search_path);
     if !path.exists() {
         return Ok(vec![serde_json::json!({
@@ -732,7 +757,11 @@ pub fn analyze_shell_scripts(search_path: &str) -> Result<Vec<serde_json::Value>
         "powershell -enc",
     ];
 
-    fn scan_script(path: &std::path::Path, suspicious_patterns: &[&str], results: &mut Vec<serde_json::Value>) {
+    fn scan_script(
+        path: &std::path::Path,
+        suspicious_patterns: &[&str],
+        results: &mut Vec<serde_json::Value>,
+    ) {
         let content = std::fs::read_to_string(path).unwrap_or_default();
         let matches: Vec<&str> = suspicious_patterns
             .iter()
@@ -790,16 +819,23 @@ pub fn detect_rootkit_indicators(
     }
 
     let mut findings = Vec::new();
-    let mut completed_checks = Vec::new();
+    #[allow(unused_mut)]
+    let mut completed_checks: Vec<String> = Vec::new();
 
     #[cfg(target_os = "linux")]
     {
         let preload_path = std::path::Path::new("/etc/ld.so.preload");
         if let Ok(contents) = std::fs::read_to_string(preload_path) {
             completed_checks.push("ld_preload".to_string());
-            for line in contents.lines().map(str::trim).filter(|line| !line.is_empty() && !line.starts_with('#')) {
+            for line in contents
+                .lines()
+                .map(str::trim)
+                .filter(|line| !line.is_empty() && !line.starts_with('#'))
+            {
                 let library = std::path::Path::new(line);
-                let suspicious_location = line.starts_with("/tmp/") || line.starts_with("/dev/shm/") || line.starts_with("/home/");
+                let suspicious_location = line.starts_with("/tmp/")
+                    || line.starts_with("/dev/shm/")
+                    || line.starts_with("/home/");
                 if !library.exists() || suspicious_location {
                     findings.push(serde_json::json!({
                         "collector": "rootkit_indicators",
@@ -813,10 +849,19 @@ pub fn detect_rootkit_indicators(
             }
         }
 
-        if let (Ok(proc_modules), Ok(sys_modules)) = (std::fs::read_to_string("/proc/modules"), std::fs::read_dir("/sys/module")) {
+        if let (Ok(proc_modules), Ok(sys_modules)) = (
+            std::fs::read_to_string("/proc/modules"),
+            std::fs::read_dir("/sys/module"),
+        ) {
             completed_checks.push("module_visibility_cross_check".to_string());
-            let loaded = proc_modules.lines().filter_map(|line| line.split_whitespace().next()).collect::<std::collections::HashSet<_>>();
-            let exposed = sys_modules.flatten().map(|entry| entry.file_name().to_string_lossy().into_owned()).collect::<std::collections::HashSet<_>>();
+            let loaded = proc_modules
+                .lines()
+                .filter_map(|line| line.split_whitespace().next())
+                .collect::<std::collections::HashSet<_>>();
+            let exposed = sys_modules
+                .flatten()
+                .map(|entry| entry.file_name().to_string_lossy().into_owned())
+                .collect::<std::collections::HashSet<_>>();
             for module in loaded {
                 if !exposed.contains(module) {
                     findings.push(serde_json::json!({
@@ -832,7 +877,9 @@ pub fn detect_rootkit_indicators(
         if let Ok(proc_entries) = std::fs::read_dir("/proc") {
             completed_checks.push("deleted_running_executables".to_string());
             for entry in proc_entries.flatten() {
-                let Ok(pid) = entry.file_name().to_string_lossy().parse::<u32>() else { continue };
+                let Ok(pid) = entry.file_name().to_string_lossy().parse::<u32>() else {
+                    continue;
+                };
                 let exe_link = format!("/proc/{}/exe", pid);
                 if let Ok(target) = std::fs::read_link(&exe_link) {
                     let target = target.to_string_lossy();
@@ -850,15 +897,26 @@ pub fn detect_rootkit_indicators(
         }
     }
 
-    let unsupported_checks = ["hidden_processes", "hidden_files", "hidden_ports", "ssdt_hooks", "idt_hooks", "dkom", "system_call_table_integrity"];
-    findings.insert(0, serde_json::json!({
-        "collector": "rootkit_indicators",
-        "status": "partial",
-        "host_platform": std::env::consts::OS,
-        "completed_checks": completed_checks,
-        "unavailable_checks": unsupported_checks,
-        "finding_count": findings.len(),
-    }));
+    let unsupported_checks = [
+        "hidden_processes",
+        "hidden_files",
+        "hidden_ports",
+        "ssdt_hooks",
+        "idt_hooks",
+        "dkom",
+        "system_call_table_integrity",
+    ];
+    findings.insert(
+        0,
+        serde_json::json!({
+            "collector": "rootkit_indicators",
+            "status": "partial",
+            "host_platform": std::env::consts::OS,
+            "completed_checks": completed_checks,
+            "unavailable_checks": unsupported_checks,
+            "finding_count": findings.len(),
+        }),
+    );
     let results = findings;
     Ok(results)
 }
@@ -975,7 +1033,12 @@ fn walkdir_max_depth(dir: &std::path::Path, max_depth: usize) -> Vec<std::path::
     results
 }
 
-fn walk_recursive(dir: &std::path::Path, depth: usize, max_depth: usize, out: &mut Vec<std::path::PathBuf>) {
+fn walk_recursive(
+    dir: &std::path::Path,
+    depth: usize,
+    max_depth: usize,
+    out: &mut Vec<std::path::PathBuf>,
+) {
     if depth > max_depth {
         return;
     }
@@ -1076,8 +1139,16 @@ mod tests {
     fn test_rootkit_checks_report_partial_kernel_coverage() {
         let records = detect_rootkit_indicators("/").unwrap();
         assert_eq!(records[0]["status"], "partial");
-        assert!(records[0]["completed_checks"].as_array().unwrap().iter().any(|check| check == "deleted_running_executables"));
-        assert!(records[0]["unavailable_checks"].as_array().unwrap().iter().any(|check| check == "ssdt_hooks"));
+        assert!(records[0]["completed_checks"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|check| check == "deleted_running_executables"));
+        assert!(records[0]["unavailable_checks"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|check| check == "ssdt_hooks"));
     }
 
     #[test]
@@ -1109,7 +1180,10 @@ mod tests {
         })];
         analyzer.analyze_memory_anomalies(&regions);
         assert_eq!(analyzer.findings().len(), 1);
-        assert_eq!(analyzer.findings()[0].category, FindingCategory::MemoryAnomaly);
+        assert_eq!(
+            analyzer.findings()[0].category,
+            FindingCategory::MemoryAnomaly
+        );
     }
 
     #[test]
@@ -1123,7 +1197,10 @@ mod tests {
         })];
         analyzer.analyze_driver_anomalies(&drivers);
         assert_eq!(analyzer.findings().len(), 1);
-        assert_eq!(analyzer.findings()[0].category, FindingCategory::DriverAnomaly);
+        assert_eq!(
+            analyzer.findings()[0].category,
+            FindingCategory::DriverAnomaly
+        );
         assert_eq!(analyzer.findings()[0].severity, FindingSeverity::Critical);
     }
 
@@ -1181,7 +1258,10 @@ mod tests {
     #[test]
     fn test_collect_audit_policy_and_app_control() {
         let result = collect_audit_policy();
-        assert!(result.is_ok(), "audit policy collection should work on Linux");
+        assert!(
+            result.is_ok(),
+            "audit policy collection should work on Linux"
+        );
 
         let app = collect_app_control();
         assert!(app.is_ok(), "app control collection should work on Linux");
@@ -1190,7 +1270,10 @@ mod tests {
     #[test]
     fn test_collect_firewall_rules_and_security_inventory() {
         let firewall = collect_firewall_rules();
-        assert!(firewall.is_ok(), "firewall collection should return a result");
+        assert!(
+            firewall.is_ok(),
+            "firewall collection should return a result"
+        );
 
         let edr = detect_av_edr();
         assert!(edr.is_ok(), "AV/EDR inventory should return a result");

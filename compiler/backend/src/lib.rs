@@ -58,6 +58,7 @@ pub struct Backend {
     kind: BackendKind,
 }
 
+#[allow(dead_code)]
 fn command_exists(executable: &str) -> bool {
     std::process::Command::new(executable)
         .arg("--version")
@@ -66,6 +67,7 @@ fn command_exists(executable: &str) -> bool {
         .unwrap_or(false)
 }
 
+#[allow(dead_code)]
 fn rustup_target_installed(target: &str) -> bool {
     let output = match std::process::Command::new("rustup")
         .args(["target", "list", "--installed"])
@@ -86,6 +88,7 @@ fn rustup_target_installed(target: &str) -> bool {
         .any(|installed_target| installed_target == target)
 }
 
+#[allow(dead_code)]
 fn windows_cross_compile_requirement_message(
     mingw_available: bool,
     target_installed: bool,
@@ -641,7 +644,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
                     .unwrap_or("none");
 
                 code.push_str(&format!(
-                    "    evidence.collect_files(\"{}\", {}, \"{}\")?;\n",
+                    "    evidence.collect_files(r#\"{}\"#, {}, \"{}\")?;\n",
                     path, recursive, hash
                 ));
             }
@@ -651,7 +654,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
                     .get("source")
                     .and_then(|v| v.as_str())
                     .unwrap_or("system");
-                code.push_str(&format!("    evidence.collect_logs(\"{}\")?;\n", source));
+                code.push_str(&format!("    evidence.collect_logs(r#\"{}\"#)?;\n", source));
             }
             "evidence.export" => {
                 let format = collect
@@ -659,7 +662,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
                     .get("format")
                     .and_then(|v| v.as_str())
                     .unwrap_or("json");
-                code.push_str(&format!("    evidence.export_evidence(\"{}\")?;\n", format));
+                code.push_str(&format!(
+                    "    evidence.export_evidence(r#\"{}\"#)?;\n",
+                    format
+                ));
             }
             "drivers.enumerate" => {
                 code.push_str("    evidence.collect_drivers()?;\n");
@@ -694,7 +700,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
                     .and_then(|v| v.as_str())
                     .unwrap_or("SOFTWARE");
                 code.push_str(&format!(
-                    "    evidence.collect_registry(\"{}\", \"{}\")?;\n",
+                    "    evidence.collect_registry(r#\"{}\"#, r#\"{}\"#)?;\n",
                     hive, key_path
                 ));
             }
@@ -710,7 +716,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
                     .and_then(|v| v.as_str())
                     .unwrap_or("");
                 code.push_str(&format!(
-                    "    evidence.collect_artifacts(\"{}\", \"{}\")?;\n",
+                    "    evidence.collect_artifacts(r#\"{}\"#, r#\"{}\"#)?;\n",
                     artifact_type, path
                 ));
             }

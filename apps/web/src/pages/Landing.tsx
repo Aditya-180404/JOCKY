@@ -83,7 +83,7 @@ export function Landing() {
             {/* Left: Code Box */}
             <div className="rounded border border-slate-800 bg-[#0c111c] overflow-hidden">
               <div className="h-9 bg-[#111827] border-b border-slate-800 px-4 flex items-center justify-between">
-                <span className="font-mono text-xs text-slate-300">process_triage.tfg</span>
+                <span className="font-mono text-xs text-slate-300">process_triage.jy</span>
                 <span className="font-mono text-[11px] text-emerald-400">Validated</span>
               </div>
               <pre className="p-4 font-mono text-xs leading-relaxed text-slate-300 overflow-x-auto">
@@ -114,7 +114,7 @@ export function Landing() {
               <div>
                 <h2 className="text-xl font-bold text-white mb-2">Local-First Execution Model</h2>
                 <p className="text-sm text-slate-400 leading-relaxed">
-                  jockey is an offline-first forensic compiler. Write .tfg source, compile to a standalone native binary,
+                  jockey is an offline-first forensic compiler. Write .jy source, compile to a standalone native binary,
                   execute on the target host, and verify evidence integrity with SHA-256.
                 </p>
               </div>
@@ -125,7 +125,7 @@ export function Landing() {
                     <span>LOCAL STANDALONE COMPILER</span>
                   </div>
                   <p className="text-xs text-slate-300 font-mono">
-                    Write .tfg → jockey compile → Standalone executable → Execute on target host → SHA-256 sidecar
+                    Write .jy → jockey compile → Standalone executable → Execute on target host → SHA-256 sidecar
                   </p>
                   <p className="text-xs text-slate-400 mt-1">
                     Zero external runtime dependencies. Runs offline on air-gapped systems.
@@ -163,7 +163,7 @@ export function Landing() {
             {/* 1. Language */}
             <div className="p-5 rounded border border-slate-800 bg-[#111827]">
               <Code2 className="h-5 w-5 text-blue-400 mb-3" />
-              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Forensic Language (.tfg)</h3>
+              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Forensic Language (.jy)</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Declarative syntax designed for digital evidence collection. Define metadata, target forensic
                 artifacts, apply field projections, and specify strict export paths without procedural boilerplate.

@@ -27,6 +27,7 @@ jockey-runtime-filesystem = { path = "../../runtime/filesystem" }
 jockey-runtime-logs = { path = "../../runtime/logs" }
 jockey-runtime-security = { path = "../../runtime/security" }
 jockey-runtime-correlation = { path = "../../runtime/correlation" }
+jockey-runtime-capabilities = { path = "../../runtime/capabilities" }
 jockey-runtime-timeline = { path = "../../runtime/timeline" }
 anyhow = { workspace = true }
 axum = { workspace = true, features = ["multipart"] }

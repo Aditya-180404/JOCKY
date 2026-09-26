@@ -58,20 +58,21 @@ impl RuleCondition {
     {
         match self {
             RuleCondition::Equals { field, value } => {
-                resolver(field).map_or(false, |v| v.eq_ignore_ascii_case(value))
+                resolver(field).is_some_and(|v| v.eq_ignore_ascii_case(value))
             }
             RuleCondition::NotEquals { field, value } => {
-                resolver(field).map_or(true, |v| !v.eq_ignore_ascii_case(value))
+                resolver(field).is_none_or(|v| !v.eq_ignore_ascii_case(value))
             }
-            RuleCondition::Contains { field, value } => {
-                resolver(field).map_or(false, |v| v.to_ascii_lowercase().contains(&value.to_ascii_lowercase()))
-            }
-            RuleCondition::StartsWith { field, value } => {
-                resolver(field).map_or(false, |v| v.to_ascii_lowercase().starts_with(&value.to_ascii_lowercase()))
-            }
-            RuleCondition::EndsWith { field, value } => {
-                resolver(field).map_or(false, |v| v.to_ascii_lowercase().ends_with(&value.to_ascii_lowercase()))
-            }
+            RuleCondition::Contains { field, value } => resolver(field)
+                .is_some_and(|v| v.to_ascii_lowercase().contains(&value.to_ascii_lowercase())),
+            RuleCondition::StartsWith { field, value } => resolver(field).is_some_and(|v| {
+                v.to_ascii_lowercase()
+                    .starts_with(&value.to_ascii_lowercase())
+            }),
+            RuleCondition::EndsWith { field, value } => resolver(field).is_some_and(|v| {
+                v.to_ascii_lowercase()
+                    .ends_with(&value.to_ascii_lowercase())
+            }),
             RuleCondition::RegexMatch { field, pattern } => {
                 if let (Some(val), Ok(re)) = (resolver(field), Regex::new(pattern)) {
                     re.is_match(val)
@@ -79,12 +80,12 @@ impl RuleCondition {
                     false
                 }
             }
-            RuleCondition::GreaterThan { field, value } => {
-                resolver(field).and_then(|v| v.parse::<f64>().ok()).map_or(false, |n| n > *value)
-            }
-            RuleCondition::LessThan { field, value } => {
-                resolver(field).and_then(|v| v.parse::<f64>().ok()).map_or(false, |n| n < *value)
-            }
+            RuleCondition::GreaterThan { field, value } => resolver(field)
+                .and_then(|v| v.parse::<f64>().ok())
+                .is_some_and(|n| n > *value),
+            RuleCondition::LessThan { field, value } => resolver(field)
+                .and_then(|v| v.parse::<f64>().ok())
+                .is_some_and(|n| n < *value),
             RuleCondition::Exists { field } => resolver(field).is_some(),
             RuleCondition::And(conditions) => conditions.iter().all(|c| c.evaluate(resolver)),
             RuleCondition::Or(conditions) => conditions.iter().any(|c| c.evaluate(resolver)),

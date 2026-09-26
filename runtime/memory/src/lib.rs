@@ -208,8 +208,15 @@ pub fn classify_memory_regions(regions: &[serde_json::Value]) -> Vec<serde_json:
             .get("mapped_file")
             .and_then(|v| v.as_str())
             .unwrap_or("");
-        let pid = region.get("pid").and_then(|v| v.as_i64()).unwrap_or_default() as i32;
-        let start_address = region.get("start_address").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+        let pid = region
+            .get("pid")
+            .and_then(|v| v.as_i64())
+            .unwrap_or_default() as i32;
+        let start_address = region
+            .get("start_address")
+            .and_then(|v| v.as_str())
+            .unwrap_or("unknown")
+            .to_string();
 
         let mut indicators = Vec::new();
         if executable && anonymous {
@@ -244,9 +251,15 @@ pub fn find_suspicious_regions(regions: &[serde_json::Value]) -> Vec<serde_json:
     regions
         .iter()
         .filter(|r| {
-            let executable = r.get("executable").and_then(|v| v.as_bool()).unwrap_or(false);
+            let executable = r
+                .get("executable")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
             let writable = r.get("writable").and_then(|v| v.as_bool()).unwrap_or(false);
-            let anonymous = r.get("anonymous").and_then(|v| v.as_bool()).unwrap_or(false);
+            let anonymous = r
+                .get("anonymous")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
             executable && (anonymous || writable)
         })
         .cloned()
@@ -328,6 +341,10 @@ mod tests {
         let findings = classify_memory_regions(&regions);
         assert!(!findings.is_empty());
         assert!(findings.iter().any(|r| r["indicator"] == "memory.injected"));
-        assert!(findings.iter().any(|r| r["reasons"].as_array().unwrap().iter().any(|v| v == "memory.rwx")));
+        assert!(findings.iter().any(|r| r["reasons"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|v| v == "memory.rwx")));
     }
 }

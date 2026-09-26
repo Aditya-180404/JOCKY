@@ -1,7 +1,7 @@
 //! Full Native End-to-End Pipeline & Semantic Behavioral Tests
 //!
 //! Tests the complete compiler lifecycle:
-//! `.tfg` DSL source
+//! `.jy` DSL source
 //!   ↓
 //! Lexer → Parser → Semantic Analysis → HIR → MIR → Programmatic LLVM → Native Executable
 //!   ↓
@@ -12,6 +12,8 @@
 //! SHA-256 + Merkle inclusion integrity verified
 //!   ↓
 //! Tamper detection tested
+
+#![cfg(feature = "llvm")]
 
 use std::fs;
 use std::process::Command;
@@ -144,7 +146,10 @@ investigation "native_semantic_triage" {
             || r.get("local_address").is_some()
             || r.get("protocol").is_some()
             || r.get("family").is_some()
-            || r.get("event_type").and_then(|t| t.as_str()).map(|t| t.starts_with("connection_")).unwrap_or(false)
+            || r.get("event_type")
+                .and_then(|t| t.as_str())
+                .map(|t| t.starts_with("connection_"))
+                .unwrap_or(false)
     });
     assert!(
         has_network,
@@ -170,16 +175,17 @@ investigation "native_semantic_triage" {
         meta_path.exists(),
         "Sidecar metadata file must be created alongside evidence"
     );
-    let metadata_json: serde_json::Value = serde_json::from_slice(
-        &fs::read(&meta_path).expect("Failed to read evidence metadata"),
-    ).expect("Evidence metadata must be valid JSON");
+    let metadata_json: serde_json::Value =
+        serde_json::from_slice(&fs::read(&meta_path).expect("Failed to read evidence metadata"))
+            .expect("Evidence metadata must be valid JSON");
     assert_eq!(metadata_json["source_hash"], mir.provenance.source_hash);
     assert_eq!(metadata_json["artifact_hash"], metadata.artifact_hash);
 
     let bundle_path = temp_dir.join("native_evidence.json.bundle.json");
     let bundle_json: serde_json::Value = serde_json::from_slice(
         &fs::read(&bundle_path).expect("Failed to read canonical evidence bundle"),
-    ).expect("Evidence bundle must be valid JSON");
+    )
+    .expect("Evidence bundle must be valid JSON");
     assert_eq!(bundle_json["source_hash"], mir.provenance.source_hash);
     assert_eq!(bundle_json["artifact_hash"], metadata.artifact_hash);
 

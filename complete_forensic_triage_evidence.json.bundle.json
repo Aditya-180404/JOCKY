@@ -1,0 +1,2950 @@
+{
+  "bundle_id": "bundle-2211e75f88e0458cb0a71e82b889c3bf",
+  "investigation_id": "complete_forensic_triage",
+  "host_id": "DESKTOP-9C230F9",
+  "collector_version": "0.1.0",
+  "compiler_version": "0.1.0",
+  "source_hash": null,
+  "artifact_hash": null,
+  "created_at": "2026-09-26T20:42:31.071810400Z",
+  "collection_started_at": "2026-09-26T20:42:25.205175Z",
+  "collection_finished_at": "2026-09-26T20:42:31.071810Z",
+  "execution_mode": "native",
+  "evidence_status": "SUCCESS",
+  "records": [
+    {
+      "evidence_id": "rec-0000-d58f3f82951d462381668742131378be",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071514Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "architecture": "x86_64",
+        "boot_time": null,
+        "cpu_cores": 8,
+        "cpu_count": 16,
+        "cpu_frequency_mhz": 4501,
+        "cpu_model": "AMD Ryzen 7 7700X 8-Core Processor             ",
+        "cpu_threads": 16,
+        "disks": [
+          {
+            "device": "\\\\.\\PHYSICALDRIVE0",
+            "model": "ST1000DM010-2EP102",
+            "partitions": [],
+            "serial": "            ZN1TTGSS",
+            "size_bytes": 1000202273280,
+            "type_": "Fixed hard disk media"
+          },
+          {
+            "device": "\\\\.\\PHYSICALDRIVE1",
+            "model": "CT1000E100SSD8",
+            "partitions": [],
+            "serial": "0000_0000_0000_0000_00A0_7501_EAD6_25F5.",
+            "size_bytes": 1000202273280,
+            "type_": "Fixed hard disk media"
+          }
+        ],
+        "environment_variables": [
+          {
+            "name": "ALLUSERSPROFILE",
+            "value": "C:\\ProgramData"
+          },
+          {
+            "name": "AMDRMPATH",
+            "value": "C:\\Program Files\\AMD\\RyzenMaster\\"
+          },
+          {
+            "name": "ANTIGRAVITY_AGENT",
+            "value": "1"
+          },
+          {
+            "name": "ANTIGRAVITY_AGENTAPI_EXE",
+            "value": "c:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Antigravity IDE\\resources\\app\\extensions\\antigravity\\bin\\language_server_windows_x64.exe"
+          },
+          {
+            "name": "ANTIGRAVITY_CONVERSATION_ID",
+            "value": "2b16495d-82e4-4ec2-b2c0-532821063c7a"
+          },
+          {
+            "name": "ANTIGRAVITY_CSRF_TOKEN",
+            "value": "1e467f0d-6fd5-4467-a3c1-bbf6c71297ca"
+          },
+          {
+            "name": "ANTIGRAVITY_EDITOR_APP_ROOT",
+            "value": "c:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Antigravity IDE\\resources\\app"
+          },
+          {
+            "name": "ANTIGRAVITY_LS_ADDRESS",
+            "value": "localhost:58950"
+          },
+          {
+            "name": "ANTIGRAVITY_LS_VERSION",
+            "value": "ide-2.4.5"
+          },
+          {
+            "name": "ANTIGRAVITY_SAFECLIS_SOURCE",
+            "value": "C:/Users/SAMARESH/.gemini/antigravity-ide/bin/safeclis/src"
+          },
+          {
+            "name": "ANTIGRAVITY_SOURCE_METADATA",
+            "value": "{\"tool\":{\"conversationId\":\"2b16495d-82e4-4ec2-b2c0-532821063c7a\",\"stepIndex\":2339,\"toolCall\":{\"id\":\"toolu_vrtx_01Dvk7NZTvjg1YYVouMrNU7G\",\"name\":\"run_command\",\"argumentsJson\":\"{\\\"CommandLine\\\":\\\".\\\\\\\\build\\\\\\\\complete_forensic_triage-windows-x64.exe 2\\\\u003e\\\\u00261 | Select-Object -Last 20\\\",\\\"Cwd\\\":\\\"G:\\\\\\\\jockey\\\",\\\"IsDaemon\\\":false,\\\"WaitMsBeforeAsync\\\":30000,\\\"toolAction\\\":\\\"Running artifact\\\",\\\"toolSummary\\\":\\\"Execute compiled investigation\\\"}\",\"originalName\":\"run_command\"}}}"
+          },
+          {
+            "name": "ANTIGRAVITY_TRAJECTORY_ID",
+            "value": "365d5dc7-a7fc-4ca5-9b35-fd498d96fce9"
+          },
+          {
+            "name": "APPDATA",
+            "value": "C:\\Users\\SAMARESH\\AppData\\Roaming"
+          },
+          {
+            "name": "ChocolateyInstall",
+            "value": "C:\\ProgramData\\chocolatey"
+          },
+          {
+            "name": "ChocolateyLastPathUpdate",
+            "value": "134275462743457434"
+          },
+          {
+            "name": "CHROME_CRASHPAD_PIPE_NAME",
+            "value": "\\\\.\\pipe\\crashpad_14956_LPNHVLZUYONGERTY"
+          },
+          {
+            "name": "CommonProgramFiles",
+            "value": "C:\\Program Files\\Common Files"
+          },
+          {
+            "name": "CommonProgramFiles(x86)",
+            "value": "C:\\Program Files (x86)\\Common Files"
+          },
+          {
+            "name": "CommonProgramW6432",
+            "value": "C:\\Program Files\\Common Files"
+          },
+          {
+            "name": "COMPUTERNAME",
+            "value": "DESKTOP-9C230F9"
+          },
+          {
+            "name": "ComSpec",
+            "value": "C:\\Windows\\system32\\cmd.exe"
+          },
+          {
+            "name": "DriverData",
+            "value": "C:\\Windows\\System32\\Drivers\\DriverData"
+          },
+          {
+            "name": "EFC_9756_1592913036",
+            "value": "1"
+          },
+          {
+            "name": "EFC_9756_4126798990",
+            "value": "1"
+          },
+          {
+            "name": "HOMEDRIVE",
+            "value": "C:"
+          },
+          {
+            "name": "HOMEPATH",
+            "value": "\\Users\\SAMARESH"
+          },
+          {
+            "name": "INTEL_DEV_REDIST",
+            "value": "C:\\Program Files (x86)\\Common Files\\Intel\\Shared Libraries\\"
+          },
+          {
+            "name": "LOCALAPPDATA",
+            "value": "C:\\Users\\SAMARESH\\AppData\\Local"
+          },
+          {
+            "name": "LOGONSERVER",
+            "value": "\\\\DESKTOP-9C230F9"
+          },
+          {
+            "name": "MIC_LD_LIBRARY_PATH",
+            "value": "C:\\Program Files (x86)\\Common Files\\Intel\\Shared Libraries\\compiler\\lib\\mic"
+          },
+          {
+            "name": "NUMBER_OF_PROCESSORS",
+            "value": "16"
+          },
+          {
+            "name": "OneDrive",
+            "value": "C:\\Users\\SAMARESH\\OneDrive"
+          },
+          {
+            "name": "OneDriveConsumer",
+            "value": "C:\\Users\\SAMARESH\\OneDrive"
+          },
+          {
+            "name": "OS",
+            "value": "Windows_NT"
+          },
+          {
+            "name": "PATH",
+            "value": "C:/Users/SAMARESH/.gemini/antigravity-ide/bin;C:\\app\\SAMARESH\\product\\21c\\dbhomeXE\\bin;C:\\Program Files (x86)\\Common Files\\Intel\\Shared Libraries\\redist\\intel64\\compiler;C:\\Python314\\Scripts\\;C:\\Python314\\;C:\\Program Files\\Common Files\\Oracle\\Java\\javapath;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\Git\\cmd;C:\\MinGW\\bin;C:\\Program Files\\MATLAB\\R2016a\\runtime\\win64;C:\\Program Files\\MATLAB\\R2016a\\bin;C:\\Program Files\\MATLAB\\R2016a\\polyspace\\bin;C:\\Program Files\\nodejs\\;C:\\ProgramData\\chocolatey\\bin;C:\\Users\\SAMARESH\\.local\\bin\\claude.exe;C:\\Users\\SAMARESH\\.cargo\\bin;C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Python\\Python312\\Scripts\\;C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Python\\Python312\\;C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Python\\Python313\\Scripts\\;C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Python\\Python313\\;C:\\Users\\SAMARESH\\anaconda3;C:\\Users\\SAMARESH\\anaconda3\\Library\\mingw-w64\\bin;C:\\Users\\SAMARESH\\anaconda3\\Library\\usr\\bin;C:\\Users\\SAMARESH\\anaconda3\\Library\\bin;C:\\Users\\SAMARESH\\anaconda3\\Scripts;C:\\Users\\SAMARESH\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Antigravity IDE\\bin;C:\\Program Files\\JetBrains\\PyCharm 2026.1.3\\bin;C:\\Users\\SAMARESH\\AppData\\Roaming\\npm;C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Kiro\\bin;C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Ollama;C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin"
+          },
+          {
+            "name": "PATHEXT",
+            "value": ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW;.CPL"
+          },
+          {
+            "name": "PROCESSOR_ARCHITECTURE",
+            "value": "AMD64"
+          },
+          {
+            "name": "PROCESSOR_IDENTIFIER",
+            "value": "AMD64 Family 25 Model 97 Stepping 2, AuthenticAMD"
+          },
+          {
+            "name": "PROCESSOR_LEVEL",
+            "value": "25"
+          },
+          {
+            "name": "PROCESSOR_REVISION",
+            "value": "6102"
+          },
+          {
+            "name": "ProgramData",
+            "value": "C:\\ProgramData"
+          },
+          {
+            "name": "ProgramFiles",
+            "value": "C:\\Program Files"
+          },
+          {
+            "name": "ProgramFiles(x86)",
+            "value": "C:\\Program Files (x86)"
+          },
+          {
+            "name": "ProgramW6432",
+            "value": "C:\\Program Files"
+          },
+          {
+            "name": "PSModulePath",
+            "value": "C:\\Users\\SAMARESH\\OneDrive\\Documents\\WindowsPowerShell\\Modules;C:\\Program Files\\WindowsPowerShell\\Modules;C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\Modules"
+          },
+          {
+            "name": "PUBLIC",
+            "value": "C:\\Users\\Public"
+          },
+          {
+            "name": "PyCharm",
+            "value": "C:\\Program Files\\JetBrains\\PyCharm 2026.1.3\\bin"
+          },
+          {
+            "name": "SESSIONNAME",
+            "value": "Console"
+          },
+          {
+            "name": "SystemDrive",
+            "value": "C:"
+          },
+          {
+            "name": "SystemRoot",
+            "value": "C:\\Windows"
+          },
+          {
+            "name": "TEMP",
+            "value": "C:\\Users\\SAMARESH\\AppData\\Local\\Temp"
+          },
+          {
+            "name": "TMP",
+            "value": "C:\\Users\\SAMARESH\\AppData\\Local\\Temp"
+          },
+          {
+            "name": "USERDOMAIN",
+            "value": "DESKTOP-9C230F9"
+          },
+          {
+            "name": "USERDOMAIN_ROAMINGPROFILE",
+            "value": "DESKTOP-9C230F9"
+          },
+          {
+            "name": "USERNAME",
+            "value": "SAMARESH"
+          },
+          {
+            "name": "USERPROFILE",
+            "value": "C:\\Users\\SAMARESH"
+          },
+          {
+            "name": "VSCODE_CODE_CACHE_PATH",
+            "value": "C:\\Users\\SAMARESH\\AppData\\Roaming\\Antigravity IDE\\CachedData\\ecfbad74d93962fc8ca485d93ab9b4f3d4cb6cf8"
+          },
+          {
+            "name": "VSCODE_CWD",
+            "value": "C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Antigravity IDE"
+          },
+          {
+            "name": "VSCODE_IPC_HOOK",
+            "value": "\\\\.\\pipe\\273b1199-1.107.0-main-sock"
+          },
+          {
+            "name": "VSCODE_NLS_CONFIG",
+            "value": "{\"userLocale\":\"en-us\",\"osLocale\":\"en-in\",\"resolvedLanguage\":\"en\",\"defaultMessagesFile\":\"C:\\\\Users\\\\SAMARESH\\\\AppData\\\\Local\\\\Programs\\\\Antigravity IDE\\\\resources\\\\app\\\\out\\\\nls.messages.json\",\"locale\":\"en-us\",\"availableLanguages\":{}}"
+          },
+          {
+            "name": "VSCODE_PID",
+            "value": "14956"
+          },
+          {
+            "name": "windir",
+            "value": "C:\\Windows"
+          }
+        ],
+        "firmware_date": "/Date(1763596800000)/",
+        "firmware_vendor": "American Megatrends International, LLC.",
+        "firmware_version": "F4",
+        "groups": [
+          {
+            "gid": null,
+            "members": [],
+            "name": "CodexSandboxUsers"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_ASMADMIN"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_ASMDBA"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_ASMOPER"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_CLIENT_LISTENERS"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_DBA"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_DBSVCACCTS"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_GRID_LISTENERS"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_INSTALL"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_OPER"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_OraDB21Home1_DBA"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_OraDB21Home1_OPER"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_OraDB21Home1_SVCACCTS"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_OraDB21Home1_SYSBACKUP"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_OraDB21Home1_SYSDG"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "ORA_OraDB21Home1_SYSKM"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "__vmware__"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Access Control Assistance Operators"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Administrators"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Backup Operators"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Cryptographic Operators"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Device Owners"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Distributed COM Users"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Event Log Readers"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Guests"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Hyper-V Administrators"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "IIS_IUSRS"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Network Configuration Operators"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "OpenSSH Users"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Performance Log Users"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Performance Monitor Users"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Power Users"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Remote Desktop Users"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Remote Management Users"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Replicator"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "System Managed Accounts Group"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "User Mode Hardware Operators"
+          },
+          {
+            "gid": null,
+            "members": [],
+            "name": "Users"
+          }
+        ],
+        "hostname": "DESKTOP-9C230F9",
+        "installed_software": [
+          {
+            "install_date": null,
+            "install_location": "C:\\Program Files\\AMD\\CIM\\BIN64",
+            "name": "AMD Software",
+            "publisher": "Advanced Micro Devices, Inc.",
+            "uninstall_string": "\"C:\\Program Files\\AMD\\CIM\\BIN64\\AMDSoftwareInstaller.exe\" /EXPRESS_UNINSTALL /IGNORE_UPGRADE /ON_REBOOT_MESSAGE:NO",
+            "version": "2026.04.15"
+          },
+          {
+            "install_date": null,
+            "install_location": "C:\\Program Files\\AMD\\RyzenMaster\\",
+            "name": "AMD Ryzen Master",
+            "publisher": "Advanced Micro Devices, Inc.",
+            "uninstall_string": "C:\\Program Files\\AMD\\RyzenMaster\\bin\\Setup.exe /U {48D68A32-75A8-49F8-9A3D-7C4939B35F4E}",
+            "version": "3.1.0.5185"
+          },
+          {
+            "install_date": null,
+            "install_location": null,
+            "name": "GIGABYTE Installer",
+            "publisher": "GIGA-BYTE TECHNOLOGY CO., LTD.",
+            "uninstall_string": "C:\\Program Files\\GIGABYTE\\AmdX3DInstaller\\uninst.exe",
+            "version": "26.01.06.01"
+          },
+          {
+            "install_date": null,
+            "install_location": null,
+            "name": "GBT_Dynamic_Lighting_Lib_UC 25.07.21.01",
+            "publisher": "GIGABYTE",
+            "uninstall_string": "C:\\Program Files\\GIGABYTE\\Control Center\\Lib\\GBT_Dynamic_Lighting_Lib_UC\\uninst.exe",
+            "version": "25.07.21.01"
+          },
+          {
+            "install_date": null,
+            "install_location": null,
+            "name": "GBT_MB_Update",
+            "publisher": "GIGABYTE",
+            "uninstall_string": "C:\\Program Files\\GIGABYTE\\Control Center\\Lib\\GBT_MB_Update\\uninst.exe",
+            "version": "26.01.14.01"
+          },
+          {
+            "install_date": null,
+            "install_location": null,
+            "name": "GBT_rgbMotherboard_UC 26.03.25.01",
+            "publisher": "GIGABYTE",
+            "uninstall_string": "C:\\Program Files\\GIGABYTE\\Control Center\\Lib\\GBT_rgbMotherboard_UC\\uninst.exe",
+            "version": "26.03.25.01"
+          },
+          {
+            "install_date": null,
+            "install_location": null,
+            "name": "GBT_RGB_Sync_Control 26.03.25.01",
+            "publisher": "GIGABYTE",
+            "uninstall_string": "C:\\Program Files\\GIGABYTE\\Control Center\\Lib\\GBT_RGB_Sync_Control\\uninst.exe",
+            "version": "26.03.25.01"
+          },
+          {
+            "install_date": null,
+            "install_location": null,
+            "name": "GBT_VGA 26.06.11.01",
+            "publisher": "GIGABYTE",
+            "uninstall_string": "C:\\Program Files\\GIGABYTE\\Control Center\\Lib\\GBT_VGA\\uninst.exe",
+            "version": "26.06.11.01"
+          },
+          {
+            "install_date": null,
+            "install_location": null,
+            "name": "GIGABYTE Control Center 26.03.26.01",
+            "publisher": "GIGABYTE",
+            "uninstall_string": "C:\\Program Files\\GIGABYTE\\Control Center\\uninst.exe",
+            "version": "26.03.26.01"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "C:\\Program Files\\Git\\",
+            "name": "Git",
+            "publisher": "The Git Development Community",
+            "uninstall_string": "\"C:\\Program Files\\Git\\unins000.exe\"",
+            "version": "2.55.0"
+          },
+          {
+            "install_date": null,
+            "install_location": "C:\\Program Files\\KMPlayer 64X",
+            "name": "KMPlayer 64X (remove only)",
+            "publisher": "PandoraTV",
+            "uninstall_string": "\"C:\\Program Files\\KMPlayer 64X\\uninstall.exe\"",
+            "version": "2022.1.27.13"
+          },
+          {
+            "install_date": null,
+            "install_location": "C:\\Program Files\\MATLAB\\R2016a",
+            "name": "MATLAB R2016a",
+            "publisher": "MathWorks",
+            "uninstall_string": "C:\\Program Files\\MATLAB\\R2016a\\uninstall\\bin\\win64\\uninstall.exe C:\\Program Files\\MATLAB\\R2016a",
+            "version": "9.0"
+          },
+          {
+            "install_date": "20260719",
+            "install_location": "C:\\Program Files\\Maxon Cinema 4D R22",
+            "name": "Maxon Cinema 4D 22",
+            "publisher": "Maxon",
+            "uninstall_string": "\"C:\\Program Files\\Maxon Cinema 4D R22\\uninstall.exe\"",
+            "version": "S22"
+          },
+          {
+            "install_date": null,
+            "install_location": null,
+            "name": "GIGABYTE Performance Library",
+            "publisher": "GIGABYTE",
+            "uninstall_string": "C:\\Program Files\\GIGABYTE\\Control Center\\Lib\\MBEasyTune\\uninst.exe",
+            "version": "26.03.19.01"
+          },
+          {
+            "install_date": null,
+            "install_location": null,
+            "name": "GIGABYTE Storage Library",
+            "publisher": "GIGABYTE",
+            "uninstall_string": "C:\\Program Files\\GIGABYTE\\Control Center\\Lib\\MBStorage\\uninst.exe",
+            "version": "26.04.27.02"
+          },
+          {
+            "install_date": null,
+            "install_location": "C:\\Program Files\\Mozilla Firefox",
+            "name": "Mozilla Firefox (x64 en-US)",
+            "publisher": "Mozilla",
+            "uninstall_string": "\"C:\\Program Files\\Mozilla Firefox\\uninstall\\helper.exe\"",
+            "version": "152.0.5"
+          },
+          {
+            "install_date": null,
+            "install_location": null,
+            "name": "Mozilla Maintenance Service",
+            "publisher": "Mozilla",
+            "uninstall_string": "\"C:\\Program Files (x86)\\Mozilla Maintenance Service\\uninstall.exe\"",
+            "version": "127.0"
+          },
+          {
+            "install_date": null,
+            "install_location": "C:\\Program Files\\Microsoft Office",
+            "name": "Microsoft Office Professional Plus 2019 - en-us",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "\"C:\\Program Files\\Common Files\\Microsoft Shared\\ClickToRun\\OfficeClickToRun.exe\" scenario=install scenariosubtype=ARP sourcetype=None productstoremove=ProPlus2019Volume.16_en-us_x-none culture=en-us version.16=16.0",
+            "version": "16.0.10417.20208"
+          },
+          {
+            "install_date": null,
+            "install_location": "C:\\Program Files\\JetBrains\\PyCharm 2026.1.3",
+            "name": "PyCharm 2026.1.3",
+            "publisher": "JetBrains s.r.o.",
+            "uninstall_string": "\"C:\\Program Files\\JetBrains\\PyCharm 2026.1.3\\bin\\Uninstall.exe\"",
+            "version": "261.25134.203"
+          },
+          {
+            "install_date": null,
+            "install_location": "C:\\Program Files\\VideoLAN\\VLC",
+            "name": "VLC media player",
+            "publisher": "VideoLAN",
+            "uninstall_string": "\"C:\\Program Files\\VideoLAN\\VLC\\uninstall.exe\"",
+            "version": "3.0.11"
+          },
+          {
+            "install_date": null,
+            "install_location": "C:\\Program Files\\WinRAR\\",
+            "name": "WinRAR 6.21 (64-bit)",
+            "publisher": "win.rar GmbH",
+            "uninstall_string": "C:\\Program Files\\WinRAR\\uninstall.exe",
+            "version": "6.21.0"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "C:\\xampp",
+            "name": "XAMPP",
+            "publisher": "Apache Friends",
+            "uninstall_string": "\"C:\\xampp\\uninstall.exe\"",
+            "version": "8.0.30-0"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Python 3.14.6 Documentation (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{015A3DED-40A7-45D3-B59A-444C8C78BCDB}",
+            "version": "3.14.6150.0"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "",
+            "name": "ENE_AIC_Marvell_HAL",
+            "publisher": "ENE TECHNOLOGY INC.",
+            "uninstall_string": "MsiExec.exe /I{085E2365-0A70-4230-B664-02D5E4FE7E9C}",
+            "version": "1.0.7.0"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Microsoft Visual C++ 2022 X64 Debug Runtime - 14.51.36247",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /I{090EA6FF-A1A4-454A-8334-1DFCBA68D075}",
+            "version": "14.51.36247"
+          },
+          {
+            "install_date": null,
+            "install_location": null,
+            "name": "Canon G2010 series MP Drivers",
+            "publisher": "Canon Inc.",
+            "uninstall_string": "\"C:\\Program Files\\CanonBJ\\CanonIJ Uninstaller Information\\{1199FAD5-9546-44f3-81CF-FFDB8040B7BF}_Canon_G2010_series\\DELDRV64.exe\" /U:{1199FAD5-9546-44f3-81CF-FFDB8040B7BF}_Canon_G2010_series /L0x0009 /QB:Canon_G2010_series",
+            "version": "1.04"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Python 3.14.6 Tcl/Tk Support (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{1234BCB8-4DB4-4334-8076-D011C34FDA24}",
+            "version": "3.14.6150.0"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Application Verifier x64 External Package (DesktopEditions)",
+            "publisher": "Microsoft",
+            "uninstall_string": "MsiExec.exe /I{16DE7B1B-89DE-63EF-7DCB-4ACE8011BEF7}",
+            "version": "10.1.26100.8249"
+          },
+          {
+            "install_date": "20260916",
+            "install_location": "",
+            "name": "Python 3.12.9 Development Libraries (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{17CB40BC-AC95-47EF-9CFD-7D9C3F9EEB41}",
+            "version": "3.12.9150.0"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Python 3.14.6 Standard Library (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{1A737309-F1BA-492F-8E67-CF02EABA1F32}",
+            "version": "3.14.6150.0"
+          },
+          {
+            "install_date": "20260916",
+            "install_location": "",
+            "name": "Python 3.12.9 Core Interpreter (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{1B1A3A1E-3CCF-4A0E-A544-0B94E8E51156}",
+            "version": "3.12.9150.0"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "",
+            "name": "Microsoft Visual C++ 2010  x64 Redistributable - 10.0.40219",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /X{1D8E6291-B0D5-35EC-8441-6616F567A0F7}",
+            "version": "10.0.40219"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Python 3.13.14 Core Interpreter (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{1E897E54-A9F8-4146-A531-9B4E7093AC92}",
+            "version": "3.13.14150.0"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Python 3.14.6 Executables (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{2126CF36-9D80-48AC-83E6-F391C7192987}",
+            "version": "3.14.6150.0"
+          },
+          {
+            "install_date": null,
+            "install_location": null,
+            "name": "Microsoft Windows Application Compatibility Fix Database",
+            "publisher": null,
+            "uninstall_string": "C:\\Windows\\system32\\sdbinst.exe -u \"C:\\Windows\\AppPatch\\CustomSDB\\{22221111-1111-1111-1111-111111111111}.sdb\"",
+            "version": null
+          },
+          {
+            "install_date": "20260916",
+            "install_location": "",
+            "name": "Python 3.12.9 Documentation (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{285AE535-C59C-401B-9407-7E1B7136C2E4}",
+            "version": "3.12.9150.0"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "",
+            "name": "ENE_External_Device_HAL",
+            "publisher": "ENE Tech",
+            "uninstall_string": "MsiExec.exe /I{2B8E611F-0B51-4FAC-87BB-AF50D82E7DDA}",
+            "version": "1.0.12.7"
+          },
+          {
+            "install_date": "20260916",
+            "install_location": "",
+            "name": "Python 3.12.9 Standard Library (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{312BF73C-2417-4636-A1C8-2DE2EAE1AD68}",
+            "version": "3.12.9150.0"
+          },
+          {
+            "install_date": "20260916",
+            "install_location": "",
+            "name": "Python 3.12.9 Tcl/Tk Support (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{35132CCC-6F41-40CF-8045-FDD16269C0D4}",
+            "version": "3.12.9150.0"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "",
+            "name": "Verbatim_SureFireGaming_Product",
+            "publisher": "Verbatim",
+            "uninstall_string": "MsiExec.exe /I{35CB65C6-A7E3-4EE7-AD40-738D70A72164}",
+            "version": "1.0.3.11"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Python 3.13.14 Executables (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{377B613A-310E-45FF-9E16-63876BF37A30}",
+            "version": "3.13.14150.0"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "",
+            "name": "ENE_EHD_M2_HAL",
+            "publisher": "ENE TECHNOLOGY INC.",
+            "uninstall_string": "MsiExec.exe /I{37A48B7F-D4EA-4863-844E-A284E2AA3C5D}",
+            "version": "1.0.17.0"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Microsoft Visual C++ 2012 x64 Additional Runtime - 11.0.61030",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /X{37B8F9C7-03FB-3253-8781-2517C99D7C00}",
+            "version": "11.0.61030"
+          },
+          {
+            "install_date": "20260916",
+            "install_location": "",
+            "name": "Python 3.12.9 pip Bootstrap (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{3896B2CF-1393-4CDF-A6B6-8FAFF1E5FB03}",
+            "version": "3.12.9150.0"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "C:\\Program Files\\AMD\\RyzenMaster\\",
+            "name": "AMD Ryzen Master",
+            "publisher": "Advanced Micro Devices, Inc.",
+            "uninstall_string": "MsiExec.exe /X{48D68A32-75A8-49F8-9A3D-7C4939B35F4E}",
+            "version": "3.1.0.5185"
+          },
+          {
+            "install_date": "20260808",
+            "install_location": "",
+            "name": "Windows Subsystem for Linux",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /X{497CB23D-8747-4047-A079-DD98E0EDFC18}",
+            "version": "2.7.11.0"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Application Verifier x64 External Package (OnecoreUAP)",
+            "publisher": "Microsoft",
+            "uninstall_string": "MsiExec.exe /I{4E0840D9-12FD-E314-C73A-B8975923EB18}",
+            "version": "10.1.26100.8249"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Python 3.13.14 Documentation (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{4F4A15BF-B55E-4A32-A9A7-32E649C2E9BD}",
+            "version": "3.13.14150.0"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Microsoft Visual C++ 2013 x64 Additional Runtime - 12.0.40660",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /X{5740BD44-B58D-321A-AFC0-6D3D4556DD6C}",
+            "version": "12.0.40660"
+          },
+          {
+            "install_date": "20260916",
+            "install_location": "",
+            "name": "Python 3.12.9 Add to Path (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{59FFA9E4-7873-481E-B795-184D9BD82CCD}",
+            "version": "3.12.9150.0"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Microsoft Visual C++ 2008 Redistributable - x64 9.0.30729.6161",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /X{5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4}",
+            "version": "9.0.30729.6161"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Node.js",
+            "publisher": "Node.js Foundation",
+            "uninstall_string": "MsiExec.exe /I{6178C0C7-8EA8-458F-8060-E49E500A666F}",
+            "version": "24.18.0"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "\"C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\"",
+            "name": "Microsoft Visual Studio Installer",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "\"C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\setup.exe\" /uninstall",
+            "version": "4.7.25.22189"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Python 3.14.6 Core Interpreter (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{6F812B39-6738-4CF8-8BA0-19FB99506239}",
+            "version": "3.14.6150.0"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Microsoft Visual C++ 2022 X64 Additional Runtime - 14.51.36247",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /I{6FA797CF-6B76-4B6D-87EE-768F92008720}",
+            "version": "14.51.36247"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Python 3.14.6 Development Libraries (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{7A1E2A4B-6DF2-40F6-A825-4216422085F2}",
+            "version": "3.14.6150.0"
+          },
+          {
+            "install_date": "20260916",
+            "install_location": "",
+            "name": "Python 3.12.9 Test Suite (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{7B927FDC-8F38-4DF7-9EF2-F34ED59CE33D}",
+            "version": "3.12.9150.0"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "C:\\Program Files\\Corsair\\Corsair Device Control Service\\",
+            "name": "Corsair Device Control Service",
+            "publisher": "Corsair",
+            "uninstall_string": "MsiExec.exe /X{7DABA693-C23D-4B86-B506-3B941CEDF1FF}",
+            "version": "1.9.9"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Windows App Certification Kit Native Components",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /I{7EB88CFE-8E4D-3AF0-CDE7-36D9CDCB53E5}",
+            "version": "10.1.26100.8249"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Python 3.13.14 Test Suite (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{81624098-AE39-415B-A02F-3647169A0A13}",
+            "version": "3.13.14150.0"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Microsoft Visual C++ 2008 Redistributable - x64 9.0.30729.17",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /X{8220EEFE-38CD-377E-8595-13398D740ACE}",
+            "version": "9.0.30729"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Python 3.13.14 pip Bootstrap (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{82676C9E-1943-4D0B-AFB4-EB6C5F5F10C8}",
+            "version": "3.13.14150.0"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "VMware Workstation",
+            "publisher": "VMware, Inc.",
+            "uninstall_string": "MsiExec.exe /I{86B6E794-CF20-4939-A2B4-1CD53C370315}",
+            "version": "26.0.0"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Python 3.13.14 Tcl/Tk Support (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{88AE664F-B464-40D0-9DCE-35D367D20EBB}",
+            "version": "3.13.14150.0"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "",
+            "name": "Patriot Viper M2 SSD RGB",
+            "publisher": "Patriot Memory",
+            "uninstall_string": "MsiExec.exe /I{8B4C0A3D-C135-4E1F-98D8-3926494B4D61}",
+            "version": "1.1.0.3"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Universal CRT Tools x64",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /I{8BCF5387-D185-9391-68F1-11203E6A0BFE}",
+            "version": "10.1.26100.8249"
+          },
+          {
+            "install_date": "20260916",
+            "install_location": "",
+            "name": "Python 3.12.9 Executables (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{8F708501-AF68-42E7-8A6E-D239CA6DA1A8}",
+            "version": "3.12.9150.0"
+          },
+          {
+            "install_date": "20260919",
+            "install_location": "",
+            "name": "Office 16 Click-to-Run Licensing Component",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /I{90160000-007E-0000-1000-0000000FF1CE}",
+            "version": "16.0.10417.20208"
+          },
+          {
+            "install_date": "20260919",
+            "install_location": "",
+            "name": "Office 16 Click-to-Run Extensibility Component",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /X{90160000-008C-0000-1000-0000000FF1CE}",
+            "version": "16.0.10417.20208"
+          },
+          {
+            "install_date": "20260919",
+            "install_location": "",
+            "name": "Office 16 Click-to-Run Localization Component",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /X{90160000-008C-0409-1000-0000000FF1CE}",
+            "version": "16.0.10417.20208"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Microsoft Visual C++ 2022 X64 Minimum Runtime - 14.51.36247",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /I{931A2CF0-2404-45EA-82F5-345735AE6A90}",
+            "version": "14.51.36247"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Windows SDK DirectX x64 Remote",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /I{987FE098-8280-50F9-C911-4733FDB0A750}",
+            "version": "10.1.26100.8249"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "",
+            "name": "ENE_MousePad_HAL",
+            "publisher": "ENE TECHNOLOGY INC.",
+            "uninstall_string": "MsiExec.exe /I{9E97178A-ADB8-4778-BE60-7E28E2A72721}",
+            "version": "1.0.1.8"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "",
+            "name": "ENE Video Capture Box HAL",
+            "publisher": "Ene Tech.",
+            "uninstall_string": "MsiExec.exe /I{A096611D-BA11-4A1A-8D09-0A0462D7C8F2}",
+            "version": "1.0.5.15"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Python 3.14.6 Test Suite (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{A130DED0-0143-4D81-A094-415C87A44D42}",
+            "version": "3.14.6150.0"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Python 3.13.14 Add to Path (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{A27E846A-8ADA-4B89-935D-64E8C3579303}",
+            "version": "3.13.14150.0"
+          },
+          {
+            "install_date": "20260919",
+            "install_location": "C:\\Program Files\\Adobe\\Acrobat DC\\",
+            "name": "Adobe Acrobat (64-bit)",
+            "publisher": "Adobe",
+            "uninstall_string": "MsiExec.exe /I{AC76BA86-1033-1033-7760-BC15014EA700}",
+            "version": "26.002.21931"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Microsoft Visual C++ 2005 Redistributable (x64)",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /X{ad8a2fa1-06e7-4b0d-927d-6e54b3d31028}",
+            "version": "8.0.61000"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Python 3.14.6 Add to Path (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{AF4ED0C1-A3D7-450B-A163-62CD3C7BBB27}",
+            "version": "3.14.6150.0"
+          },
+          {
+            "install_date": "20260702",
+            "install_location": "C:\\Program Files\\NVIDIA Corporation\\Installer2\\Display.Driver.{C24F1937-C5D7-4261-B571-995A70CD687E}",
+            "name": "NVIDIA Graphics Driver 591.86",
+            "publisher": "NVIDIA Corporation",
+            "uninstall_string": "\"C:\\Windows\\SysWOW64\\RunDll32.EXE\" \"C:\\Program Files\\NVIDIA Corporation\\Installer2\\InstallerCore\\NVI2.DLL\",UninstallPackage Display.Driver",
+            "version": "591.86"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX",
+            "name": "NVIDIA PhysX System Software 9.23.1019",
+            "publisher": "NVIDIA Corporation",
+            "uninstall_string": "\"C:\\Windows\\SysWOW64\\RunDll32.EXE\" \"C:\\Program Files\\NVIDIA Corporation\\Installer2\\InstallerCore\\NVI2.DLL\",UninstallPackage Display.PhysX",
+            "version": "9.23.1019"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "C:\\Program Files\\NVIDIA Corporation\\FrameViewSDK",
+            "name": "NVIDIA FrameView SDK 1.5.10920.35420203",
+            "publisher": "NVIDIA Corporation",
+            "uninstall_string": "\"C:\\Windows\\SysWOW64\\RunDll32.EXE\" \"C:\\Program Files\\NVIDIA Corporation\\Installer2\\InstallerCore\\NVI2.DLL\",UninstallPackage FrameViewSdk",
+            "version": "1.5.10920.35420203"
+          },
+          {
+            "install_date": "20260702",
+            "install_location": "C:\\Program Files\\NVIDIA Corporation\\Installer2\\InstallerCore",
+            "name": "NVIDIA Install Application",
+            "publisher": "NVIDIA Corporation",
+            "uninstall_string": null,
+            "version": "2.1002.438.0"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "C:\\Program Files\\Java\\jdk-26.0.1\\",
+            "name": "Java(TM) SE Development Kit 26.0.1 (64-bit)",
+            "publisher": "Oracle Corporation",
+            "uninstall_string": "MsiExec.exe /X{B3BA1B26-1283-5B52-B265-A312288982B1}",
+            "version": "26.0.1.0"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "BlueJ",
+            "publisher": "BlueJ Team",
+            "uninstall_string": "MsiExec.exe /X{BAF3564F-5DE4-48AC-8CC4-260BFFD56D30}",
+            "version": "6.0.0"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "C:\\Program Files\\GIGABYTE\\Smart Backup\\",
+            "name": "Smart Backup (x64)",
+            "publisher": "Gigabyte",
+            "uninstall_string": "MsiExec.exe /I{BC1FA5CF-A36F-4C61-9638-09D0B431B006}",
+            "version": "3.24.0829.1"
+          },
+          {
+            "install_date": "20260826",
+            "install_location": "C:\\app\\SAMARESH\\product\\21c\\",
+            "name": "Oracle Database 21c Express Edition",
+            "publisher": "Oracle Corporation",
+            "uninstall_string": "MsiExec.exe /X{C220B7FD-3095-47FC-A0C0-AE49DE6E320A}",
+            "version": "21.0.0.0"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Microsoft Visual C++ 2013 x64 Minimum Runtime - 12.0.40660",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /X{CB0836EC-B072-368D-82B2-D3470BF95707}",
+            "version": "12.0.40660"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Microsoft Visual C++ 2012 x64 Minimum Runtime - 11.0.61030",
+            "publisher": "Microsoft Corporation",
+            "uninstall_string": "MsiExec.exe /X{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}",
+            "version": "11.0.61030"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "",
+            "name": "ENE_X_AIC_HAL",
+            "publisher": "ENE TECHNOLOGY INC.",
+            "uninstall_string": "MsiExec.exe /I{CF703694-01C6-4062-B797-84DB215662BC}",
+            "version": "1.0.6.3"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Python 3.13.14 Development Libraries (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{D22E5A19-BCA7-4438-904E-54CEB910C054}",
+            "version": "3.13.14150.0"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "",
+            "name": "ENE_DRAM_RGB_AIO",
+            "publisher": "Ene Tech.",
+            "uninstall_string": "MsiExec.exe /I{DFAD06E0-C5FC-4154-8F95-65871D5AB5BF}",
+            "version": "1.0.23.1"
+          },
+          {
+            "install_date": "20260703",
+            "install_location": "",
+            "name": "Python 3.14.6 pip Bootstrap (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{DFE0CDBE-EC8A-48E7-ACBE-893E81FE0169}",
+            "version": "3.14.6150.0"
+          },
+          {
+            "install_date": "20260630",
+            "install_location": "",
+            "name": "WD P40 Game Drive",
+            "publisher": "Western Digital Corporation",
+            "uninstall_string": "MsiExec.exe /I{EE55DBAE-ECDD-4ADD-AAB5-23DE848B0996}",
+            "version": "1.0.2.18"
+          },
+          {
+            "install_date": "20260701",
+            "install_location": "",
+            "name": "Python 3.13.14 Standard Library (64-bit)",
+            "publisher": "Python Software Foundation",
+            "uninstall_string": "MsiExec.exe /I{FAF06E78-33D1-49DC-BDA8-626BC5C4A408}",
+            "version": "3.13.14150.0"
+          }
+        ],
+        "kernel_version": "NT",
+        "locale": "en-US",
+        "machine_id": "5b15c447-e903-40d5-ab89-b9bb9fdc4de4",
+        "network_interfaces": [
+          {
+            "driver": "Hyper-V Virtual Ethernet Adapter",
+            "flags": [],
+            "ipv4_addresses": [],
+            "ipv6_addresses": [],
+            "mac_address": "00-15-5D-CD-F4-B6",
+            "mtu": null,
+            "name": "vEthernet (WSL (Hyper-V firewall))",
+            "speed_mbps": null
+          },
+          {
+            "driver": "VMware Virtual Ethernet Adapter for VMnet1",
+            "flags": [],
+            "ipv4_addresses": [],
+            "ipv6_addresses": [],
+            "mac_address": "00-50-56-C0-00-01",
+            "mtu": null,
+            "name": "VMware Network Adapter VMnet1",
+            "speed_mbps": null
+          },
+          {
+            "driver": "VMware Virtual Ethernet Adapter for VMnet8",
+            "flags": [],
+            "ipv4_addresses": [],
+            "ipv6_addresses": [],
+            "mac_address": "00-50-56-C0-00-08",
+            "mtu": null,
+            "name": "VMware Network Adapter VMnet8",
+            "speed_mbps": null
+          },
+          {
+            "driver": "Realtek 8821CE Wireless LAN 802.11ac PCI-E NIC",
+            "flags": [],
+            "ipv4_addresses": [],
+            "ipv6_addresses": [],
+            "mac_address": "9C-C7-D3-39-0D-D5",
+            "mtu": null,
+            "name": "Wi-Fi",
+            "speed_mbps": null
+          }
+        ],
+        "os": "Windows",
+        "os_version": "Microsoft Windows [Version 10.0.26200.9457]",
+        "packages": [],
+        "partitions": [
+          {
+            "device": "C:",
+            "filesystem": "NTFS",
+            "free_bytes": 64392056832,
+            "label": "OS SSD",
+            "mount_point": null,
+            "size_bytes": 319699283968,
+            "used_bytes": 255307227136,
+            "uuid": "2265B3CA"
+          },
+          {
+            "device": "D:",
+            "filesystem": "NTFS",
+            "free_bytes": 266659569664,
+            "label": "PROJECT MISSON",
+            "mount_point": null,
+            "size_bytes": 346030075904,
+            "used_bytes": 79370506240,
+            "uuid": "66F2DC0B"
+          },
+          {
+            "device": "E:",
+            "filesystem": "NTFS",
+            "free_bytes": 292982542336,
+            "label": "WORK SPACE",
+            "mount_point": null,
+            "size_bytes": 335544315904,
+            "used_bytes": 42561773568,
+            "uuid": "18020384"
+          },
+          {
+            "device": "F:",
+            "filesystem": "NTFS",
+            "free_bytes": 317481369600,
+            "label": "New Volume",
+            "mount_point": null,
+            "size_bytes": 317589229568,
+            "used_bytes": 107859968,
+            "uuid": "A8487042"
+          },
+          {
+            "device": "G:",
+            "filesystem": "NTFS",
+            "free_bytes": 142307684352,
+            "label": "New Volume",
+            "mount_point": null,
+            "size_bytes": 339670462464,
+            "used_bytes": 197362778112,
+            "uuid": "F4A72D85"
+          },
+          {
+            "device": "H:",
+            "filesystem": "NTFS",
+            "free_bytes": 223442747392,
+            "label": "New Volume",
+            "mount_point": null,
+            "size_bytes": 224327831552,
+            "used_bytes": 885084160,
+            "uuid": "16E5EAD0"
+          }
+        ],
+        "secure_boot": false,
+        "system_paths": [
+          "C:\\Windows",
+          "C:\\Windows\\System32",
+          "C:\\Windows\\SysWOW64",
+          "C:\\Program Files",
+          "C:\\Program Files (x86)",
+          "C:\\ProgramData",
+          "C:\\Users",
+          "C:\\Temp",
+          "C:\\Windows\\Temp"
+        ],
+        "timezone": "UTC",
+        "total_memory_bytes": 16229388288,
+        "uptime_seconds": 15749,
+        "users": [
+          {
+            "full_name": "Built-in account for administering the computer/domain",
+            "gid": null,
+            "groups": [],
+            "home_dir": null,
+            "is_system_account": false,
+            "last_login": null,
+            "password_status": "required",
+            "shell": null,
+            "uid": null,
+            "username": "Administrator"
+          },
+          {
+            "full_name": "",
+            "gid": null,
+            "groups": [],
+            "home_dir": null,
+            "is_system_account": false,
+            "last_login": "/Date(1789667804366)/",
+            "password_status": "required",
+            "shell": null,
+            "uid": null,
+            "username": "CodexSandboxOffline"
+          },
+          {
+            "full_name": "",
+            "gid": null,
+            "groups": [],
+            "home_dir": null,
+            "is_system_account": false,
+            "last_login": null,
+            "password_status": "required",
+            "shell": null,
+            "uid": null,
+            "username": "CodexSandboxOnline"
+          },
+          {
+            "full_name": "A user account managed by the system.",
+            "gid": null,
+            "groups": [],
+            "home_dir": null,
+            "is_system_account": false,
+            "last_login": null,
+            "password_status": "none",
+            "shell": null,
+            "uid": null,
+            "username": "DefaultAccount"
+          },
+          {
+            "full_name": "Built-in account for guest access to the computer/domain",
+            "gid": null,
+            "groups": [],
+            "home_dir": null,
+            "is_system_account": false,
+            "last_login": null,
+            "password_status": "none",
+            "shell": null,
+            "uid": null,
+            "username": "Guest"
+          },
+          {
+            "full_name": "",
+            "gid": null,
+            "groups": [],
+            "home_dir": null,
+            "is_system_account": false,
+            "last_login": "/Date(1784440461582)/",
+            "password_status": "none",
+            "shell": null,
+            "uid": null,
+            "username": "SAMARESH"
+          },
+          {
+            "full_name": "A user account managed and used by the system for Windows Defender Application Guard scenarios.",
+            "gid": null,
+            "groups": [],
+            "home_dir": null,
+            "is_system_account": false,
+            "last_login": null,
+            "password_status": "required",
+            "shell": null,
+            "uid": null,
+            "username": "WDAGUtilityAccount"
+          }
+        ],
+        "virtualization": null
+      },
+      "hash": "f981db2aa26b9c1c2278de8ea8b2d38a93ac5655e1eaea63abd21c081af59956",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071510800Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0001-2756cc081a144d619d78bb65973cdef5",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071708300Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "omtsreco.exe"
+        ],
+        "name": "omtsreco.exe",
+        "pid": 6612,
+        "user": "SAMARESH"
+      },
+      "hash": "f71514adef0ae8db615b9240672570180804c01d356d6a8f2a542beb3db573a3",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071707900Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0002-77defe54b8bb4379a3b0b69d53b7d36f",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071710100Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Program Files\\Adobe\\Acrobat DC\\Acrobat\\AdobeCollabSync.exe\"  --type=collab-renderer --proc=14584"
+        ],
+        "name": "AdobeCollabSync.exe",
+        "pid": 15596,
+        "user": "SAMARESH"
+      },
+      "hash": "f0a2a2cdb55aae5001e661990b3f52346e8d7aff8ed5c17a198d0f1663b0e6e0",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071709900Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0003-4fb2b9fedbbb452ea8c10adaf976956d",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071711500Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "Secure System"
+        ],
+        "name": "Secure System",
+        "pid": 236,
+        "user": "SAMARESH"
+      },
+      "hash": "01b20b6a6d4d4726d379bd4ff61ccf466529e61a1ff3941decfb48888b5baa6f",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071711400Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0004-37c8cb8cd6474761b4c9c00cf908b839",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071712900Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "svchost.exe"
+        ],
+        "name": "svchost.exe",
+        "pid": 3116,
+        "user": "SAMARESH"
+      },
+      "hash": "c2bc19d01e1f1390a5002be80abcaf1f506bd315d1c54b31f4afd2c15d223bb4",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071712700Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0005-6fc477b873154646b2e8180568793f32",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071714100Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\153.0.4234.48\\msedgewebview2.exe\" --type=crashpad-handler --user-data-dir=C:\\Users\\SAMARESH\\AppData\\Local\\Packages\\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\\LocalCache\\EBWebView /prefetch:4 /pfhostedapp:a9bf2166f22b21b6fd3f5eab491a095a775356bf --monitor-self-annotation=ptype=crashpad-handler --database=C:\\Users\\SAMARESH\\AppData\\Local\\Packages\\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\\LocalCache\\EBWebView\\Crashpad --metrics-dir=C:\\Users\\SAMARESH\\AppData\\Local\\Packages\\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\\LocalCache\\EBWebView --annotation=IsOfficialBuild=1 --annotation=channel= --annotation=chromium-version=153.0.8010.53 \"--annotation=exe=C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\153.0.4234.48\\msedgewebview2.exe\" --annotation=plat=Win64 \"--annotation=prod=Edge WebView2\" --annotation=ver=153.0.4234.48 --initial-client-data=0x170,0x174,0x178,0x14c,0x180,0x7ffb0cec3360,0x7ffb0cec3370,0x7ffb0cec3380"
+        ],
+        "name": "msedgewebview2.exe",
+        "pid": 22476,
+        "user": "SAMARESH"
+      },
+      "hash": "4e9a317930f8e4d04e0668a4150bdb1f6622c0d47326121ec35460fb69240f5b",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071713900Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0006-837ea578af4042a382a2093510f55087",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071717800Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Antigravity IDE\\Antigravity IDE.exe\" --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-US --service-sandbox-type=none --video-capture-use-gpu-memory-buffer --user-data-dir=\"C:\\Users\\SAMARESH\\AppData\\Roaming\\Antigravity IDE\" --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --field-trial-handle=1804,i,14257723158383038444,11841539065416059119,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EnableTransparentHwndEnlargement,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --trace-process-track-uuid=3190708993808206286 --mojo-platform-channel-handle=4488 /prefetch:14"
+        ],
+        "name": "Antigravity IDE.exe",
+        "pid": 19384,
+        "user": "SAMARESH"
+      },
+      "hash": "9455f633f68466bd0d78b4793eacd1be42a745a67ba1c729d6596be7f5879694",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071717700Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0007-7a75f06f50a24dc89997b5cd2fa1da13",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071725500Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "svchost.exe"
+        ],
+        "name": "svchost.exe",
+        "pid": 5684,
+        "user": "SAMARESH"
+      },
+      "hash": "11f3779c3a469eb57e591d5151d713cc14e46bed9b72b32509ea481d6515bd30",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071724600Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0008-80a2188b95474dbd9d916120dd9b0ce8",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071727400Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "C:\\Windows\\system32\\svchost.exe -k UnistackSvcGroup -s WpnUserService"
+        ],
+        "name": "svchost.exe",
+        "pid": 9760,
+        "user": "SAMARESH"
+      },
+      "hash": "5ea18e4dc63400e279cb31089a65ec886c49ac42bfb98abea84092223eaa2617",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071727100Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0009-cb252d860ddc42209b7212ae953f571b",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071729100Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "C:\\Windows\\system32\\svchost.exe -k LocalService -p -s NPSMSvc"
+        ],
+        "name": "svchost.exe",
+        "pid": 23044,
+        "user": "SAMARESH"
+      },
+      "hash": "2f61638cf9c5f019d8979d58b2cc7b19daf2973d86d804330873eee4c646b8ad",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071728900Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0010-368e2202dbff4f3586e7fb45bfada529",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071730900Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "C:\\Windows\\system32\\DllHost.exe /Processid:{B21858C6-9711-4257-99C8-5C0084BEBCE1}"
+        ],
+        "name": "dllhost.exe",
+        "pid": 29584,
+        "user": "SAMARESH"
+      },
+      "hash": "74ee4448cc3e84276cf75fb5f822c3b27219cec2c04e58df7ce12f239059955a",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071730600Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0011-1c07c184c8244158812aad54d35f4f5b",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071732700Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "System Idle Process"
+        ],
+        "name": "System Idle Process",
+        "pid": 0,
+        "user": "SYSTEM"
+      },
+      "hash": "c656665fd338bd0cf5f8df081f085159c59ae260a5a8d562bb139fb0a34cc34f",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071732600Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0012-623125d5c99a4b949da782efe446f373",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071734900Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "svchost.exe"
+        ],
+        "name": "svchost.exe",
+        "pid": 8952,
+        "user": "SAMARESH"
+      },
+      "hash": "4714c0e145cf1a44785d123c4e788968a0bea1b2213eb978e01dbf119f31e8d5",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071734600Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0013-5de8982b36b74362b5e3ad9e4f47280b",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071737100Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "C:\\Windows\\System32\\DataExchangeHost.exe -Embedding"
+        ],
+        "name": "DataExchangeHost.exe",
+        "pid": 20828,
+        "user": "SAMARESH"
+      },
+      "hash": "24b70d6f28752efecb76ed7cd74a0cea801a4321614a590de4d8f253d22de4e8",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071736800Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0014-d6c7f17c90b149b5b5ac21d8886227ed",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071738600Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "svchost.exe"
+        ],
+        "name": "svchost.exe",
+        "pid": 29248,
+        "user": "SAMARESH"
+      },
+      "hash": "90481d5a2cc830a096df2491ef6afb7430b0172b59f158effd89e92803309ee9",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071738300Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0015-f112255b5a724b6a9e60e9049ef160a2",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071740Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\DockerDesktop\\frontend\\Docker Desktop.exe\" --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=none --user-data-dir=\"C:\\Users\\SAMARESH\\AppData\\Roaming\\Docker Desktop\" --standard-schemes=app --enable-sandbox --secure-schemes=app --cors-schemes=dd --fetch-schemes=dd --code-cache-schemes=app --field-trial-handle=1808,i,898071684678975924,3318253720572715162,262144 --enable-features=PdfUseShowSaveFilePicker --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,NetworkServiceSandbox,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1800,i,4206608239908337929,9513456456867598311,4 --trace-process-track-uuid=3190708989122997041 --mojo-platform-channel-handle=2068 /prefetch:11"
+        ],
+        "name": "Docker Desktop.exe",
+        "pid": 31096,
+        "user": "SAMARESH"
+      },
+      "hash": "21526dbcfd02050e4366de5e062dccbd39b39baf0c38e62361ee44fd439b4ebd",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071739600Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0016-bcb74c01648c489baed7d919a843ada9",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071742800Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Windows\\System32\\ShellHost.exe\""
+        ],
+        "name": "ShellHost.exe",
+        "pid": 32408,
+        "user": "SAMARESH"
+      },
+      "hash": "62d3f3b3273ce7e8d14fdb0f074ef3fefe3794cdbbf3c3fd5cf692b3733767dc",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071742600Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0017-c74526a32f8145e392142d91aade3bd4",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071744Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "services.exe"
+        ],
+        "name": "services.exe",
+        "pid": 1804,
+        "user": "SAMARESH"
+      },
+      "hash": "74d7294c1b0cf8a1353b3ab607e855110b241c1c04e00797228605739e44f95e",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071743900Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0018-d7f2d0936bf7481da0c14b9a56c220c9",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071745500Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\153.0.4234.48\\msedgewebview2.exe\" --type=renderer --noerrdialogs --user-data-dir=\"C:\\Users\\SAMARESH\\AppData\\Local\\Packages\\Microsoft.MicrosoftOfficeHub_8wekyb3d8bbwe\\LocalState\\EBWebView\" --webview-exe-name=M365Copilot.exe --webview-exe-version=19.2609.52011.0 --embedded-browser-webview=1 --embedded-browser-webview-dpi-awareness=2 --video-capture-use-gpu-memory-buffer --lang=en-US --js-flags --device-scale-factor=1 --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=5 --js-flags=--ms-user-locale=en_IN --launch-time-ticks=63405244 --ssd-no-pressure-read-main-dll --metrics-shmem-handle=4004,i,3523019184081862079,5563078731405871978,1048576 --field-trial-handle=1912,i,13698119097822559262,2768123911732045103,262144 --enable-features=msSingleSignOnOSForPrimaryAccountIsShared --disable-features=msEnhancedTrackingPreventionEnabled --variations-seed-version --pseudonymization-salt-handle=1944,i,13293958132245631401,2981814661274360338,4 --trace-process-track-uuid=3190708990997080739 --mojo-platform-channel-handle=3968 /pfhostedapp:655c63095e5e4073e3f71c216f40daacb4a03ef1 /prefetch:1"
+        ],
+        "name": "msedgewebview2.exe",
+        "pid": 24484,
+        "user": "SAMARESH"
+      },
+      "hash": "9f85161f7a6876473e9d591c0a5777189ebffdb5af63bf1f7e9f22336fc4eebc",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071745300Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0019-f3002776d20d47a2aa7f0144c1399837",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071749200Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "svchost.exe"
+        ],
+        "name": "svchost.exe",
+        "pid": 7112,
+        "user": "SAMARESH"
+      },
+      "hash": "7cc8ba245127224c971b3f975a13c8dcdb2c72ed95f63d9c1fcdd1fed18f95a1",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071748900Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0020-2fa2ededa8534eccbc21fad83a05512c",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071750400Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "svchost.exe"
+        ],
+        "name": "svchost.exe",
+        "pid": 1552,
+        "user": "SAMARESH"
+      },
+      "hash": "9a466f02a3e23fbebd4bfeb880dddcc4feef104d36ec633ed5c00fc3e9bfae85",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071750200Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0021-970e7871d1af401fb044168457799060",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071751700Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"c:\\Users\\SAMARESH\\AppData\\Local\\Programs\\Antigravity IDE\\resources\\app\\extensions\\antigravity\\bin\\language_server_windows_x64.exe\" --csrf_token 1e467f0d-6fd5-4467-a3c1-bbf6c71297ca --extension_server_port 58946 --extension_server_csrf_token 9a204cb7-5af0-468c-824d-1bdd646d4311 --app_data_dir antigravity-ide --subclient_type ide --cloud_code_endpoint https://cloudcode-pa.googleapis.com"
+        ],
+        "name": "language_server_windows_x64.exe",
+        "pid": 25992,
+        "user": "SAMARESH"
+      },
+      "hash": "4f259328c2c59f1b418715aed47fcd9ee733e0f86dac6ded815e0a655e719490",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071751500Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0022-0aa87a05dbb3471497e1e79eba4ab238",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071753800Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\DockerDesktop\\resources\\com.docker.backend.exe\""
+        ],
+        "name": "com.docker.backend.exe",
+        "pid": 13704,
+        "user": "SAMARESH"
+      },
+      "hash": "2c48ff73c91b380c8e82dbac5518960038cfe6bb9407caa22b2e5ccd24084259",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071753500Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0023-bcff3fe275b24c8eb773e196fd02982d",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071756300Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\\??\\C:\\Windows\\system32\\conhost.exe 0x4"
+        ],
+        "name": "conhost.exe",
+        "pid": 29616,
+        "user": "SAMARESH"
+      },
+      "hash": "77b9403640f0d537dd215e809ebb8e881e1911043f3b9a8ec9dda33b330a0d38",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071755900Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0024-b1bfbc6281854d638517582ef4cbe34c",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071759800Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --type=renderer --user-data-dir=\"C:\\Users\\SAMARESH\\.gemini\\antigravity-browser-profile\" --no-pre-read-main-dll --remote-debugging-port=9222 --video-capture-use-gpu-memory-buffer --lang=en-US --device-scale-factor=1 --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=50 --launch-time-ticks=12973302164 --metrics-shmem-handle=4816,i,6518086618196995744,9980810531931536532,1572864 --field-trial-handle=1984,i,8415907917414785546,16672263688567651282,262144 --disable-features=OfferMigrationToDiceUsers,OptGuideOnDeviceModel --variations-seed-version=20260917-010036.011000-production --pseudonymization-salt-handle=2032,i,12863024051718052092,15892035510626575283,4 --trace-process-track-uuid=3190709033163963944 --mojo-platform-channel-handle=7604 /prefetch:1"
+        ],
+        "name": "chrome.exe",
+        "pid": 30176,
+        "user": "SAMARESH"
+      },
+      "hash": "89fafc8a906c312f525c4ea6dbdaf7a1dd59a216c44546787b683fd51e69b5ea",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071759600Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0025-8e5cc80dc72243f7b20ca3e2c489ac17",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071763Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\153.0.4234.48\\msedgewebview2.exe\" --type=utility --utility-sub-type=storage.mojom.StorageService --lang=en-US --service-sandbox-type=service --noerrdialogs --user-data-dir=\"C:\\Users\\SAMARESH\\AppData\\Local\\Packages\\5319275A.51895FA4EA97F_cv1g1gvanyjgm\\LocalCache\\EBWebView\" --webview-exe-name=WhatsApp.Root.exe --webview-exe-version=1.0.0 --embedded-browser-webview=1 --startup-read-main-dll --metrics-shmem-handle=2604,i,8388298520731986570,10450091399176179598,524288 --field-trial-handle=1936,i,11484238102820483845,5925924935148584985,262144 --variations-seed-version --pseudonymization-salt-handle=1948,i,5172447013622908708,14742229477180592067,4 --trace-process-track-uuid=3190708990060038890 --mojo-platform-channel-handle=2516 /prefetch:13 /pfhostedapp:09a387f04e9ccd296d74fd160e8809a10d44c670"
+        ],
+        "name": "msedgewebview2.exe",
+        "pid": 16752,
+        "user": "SAMARESH"
+      },
+      "hash": "f64fc80a873a93fe62c9da2673a94d96b8703453ed16fc41575ff89693cb4be9",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071762800Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0026-f744aa1f9b4043b9a1eb6bc696d2c0ef",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071765300Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "powershell -Command \"curl.exe -s -X POST http://localhost:8080/api/compiler/check -H \\\"Content-Type: application/json\\\" -d \\\"{\\\\\\\"source\\\\\\\":\\\\\\\"investigation \\\\\\\\\\\\\\\"test\\\\\\\\\\\\\\\" {}\\\\\\\",\\\\\\\"target\\\\\\\":\\\\\\\"windows-x64\\\\\\\"}\\\"\""
+        ],
+        "name": "powershell.exe",
+        "pid": 12988,
+        "user": "SAMARESH"
+      },
+      "hash": "105f1695c08f3afad8b8f59a43b0f17c6a1d0a191c1028f1c9c174212670627c",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071765100Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0027-b4e90cecf96a4576831aa4f76d79bb14",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071767100Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\DockerDesktop\\frontend\\Docker Desktop.exe\" --type=renderer --user-data-dir=\"C:\\Users\\SAMARESH\\AppData\\Roaming\\Docker Desktop\" --standard-schemes=app --enable-sandbox --secure-schemes=app --cors-schemes=dd --fetch-schemes=dd --code-cache-schemes=app --app-user-model-id=Docker.DockerForWindows.Settings --app-path=\"C:\\Users\\SAMARESH\\AppData\\Local\\Programs\\DockerDesktop\\frontend\\resources\\app.asar\" --enable-sandbox --video-capture-use-gpu-memory-buffer --lang=en-US --device-scale-factor=1 --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=4 --time-ticks-at-unix-epoch=-1790439596119717 --launch-time-ticks=7348888692 --field-trial-handle=1808,i,898071684678975924,3318253720572715162,262144 --enable-features=PdfUseShowSaveFilePicker --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,NetworkServiceSandbox,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1800,i,4206608239908337929,9513456456867598311,4 --trace-process-track-uuid=3190708990060038890 --mojo-platform-channel-handle=2760 --desktop-ui-preload-params=\"{\\\"needsBackendErrorsIpcClient\\\":true,\\\"needsPrimaryIpcClient\\\":true}\" /prefetch:1"
+        ],
+        "name": "Docker Desktop.exe",
+        "pid": 10636,
+        "user": "SAMARESH"
+      },
+      "hash": "47d18fa4539f61ec637cb1b708dd1e11b9b5e633e3c3b69cab166cd2d2e07e62",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071766800Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0028-9668439912014cabb8b7b37f0c7f9160",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071770300Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "svchost.exe"
+        ],
+        "name": "svchost.exe",
+        "pid": 2968,
+        "user": "SAMARESH"
+      },
+      "hash": "af098800218ed6bc7cc64fd70010b64cabd31e687621f111bf5824fb645fb954",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071770Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0029-b142c268aea742128599adce09e8b550",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071771400Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "C:\\Windows\\system32\\svchost.exe -k LocalSystemNetworkRestricted -p -s webthreatdefusersvc"
+        ],
+        "name": "svchost.exe",
+        "pid": 9720,
+        "user": "SAMARESH"
+      },
+      "hash": "ba947111c76ebab4bc6978cb8e7b1c1cfa715f2ac77007e5903d9dc1164d9c59",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071771300Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0030-7ef55cc01da5452db1067fe5334e2766",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071773400Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "svchost.exe"
+        ],
+        "name": "svchost.exe",
+        "pid": 5724,
+        "user": "SAMARESH"
+      },
+      "hash": "b337b7e8add4ab33f347f8430a6d630da248d271efca7b3d346cc1ba570d5afb",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071773100Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0031-30a1efb1f69a4b9aa1b5717df75f0ed7",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071774900Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "C:\\Windows\\system32\\cmd.exe /d /s /c chrome-devtools-mcp --autoConnect --no-usage-statistics --no-performance-crux"
+        ],
+        "name": "cmd.exe",
+        "pid": 6048,
+        "user": "SAMARESH"
+      },
+      "hash": "0c1349e5882c5360c978cd6633c8f15951401100305671c678821e7f631dfe22",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071774600Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0032-efb8f7fe4b78419fbd0b8c2981a02f49",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071776200Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Program Files\\Adobe\\Acrobat DC\\Acrobat\\AdobeCollabSync.exe\" "
+        ],
+        "name": "AdobeCollabSync.exe",
+        "pid": 14584,
+        "user": "SAMARESH"
+      },
+      "hash": "ce6946ec06155278f87725b9ff4537bb6e2d45163fa8a000760a269e4075e080",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071776Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0033-396e6e0e21df4bef93aad7845718fb60",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071777500Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "ctfmon.exe"
+        ],
+        "name": "ctfmon.exe",
+        "pid": 13732,
+        "user": "SAMARESH"
+      },
+      "hash": "1fbed7be5b1076e6f6d15002af58d7025cc7fb7d00cc373c30a462a723056f7e",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071777400Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0034-a7fcc9ead7384694875c7d51eb693936",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071779600Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --type=utility --utility-sub-type=storage.mojom.StorageService --lang=en-US --service-sandbox-type=service --no-pre-read-main-dll --metrics-shmem-handle=2584,i,10654765034355924257,18137867295693931811,524288 --field-trial-handle=1964,i,6931654671464187216,11827310839377712958,262144 --variations-seed-version=20260926-030042.050000-production --pseudonymization-salt-handle=2000,i,8877874099122718659,6584029635620766475,4 --trace-process-track-uuid=3190708990060038890 --mojo-platform-channel-handle=2604 /prefetch:13"
+        ],
+        "name": "chrome.exe",
+        "pid": 17532,
+        "user": "SAMARESH"
+      },
+      "hash": "11df4852768ea47d335dcf5fdb4fc1b3cfb85a54b97cf3b4b0b150174f5fd78a",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071779300Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0035-aa55bee0e5054443b79e453171cd7886",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071782100Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Windows\\system32\\curl.exe\" -s -X POST http://localhost:8080/api/compiler/check -H \"Content-Type: application/json\" -d {\\ source\\:\\investigation \\\\\\test\\\\\\ -encodedCommand  \\,\\target\\:\\windows-x64\\} -inputFormat xml -outputFormat text"
+        ],
+        "name": "curl.exe",
+        "pid": 2132,
+        "user": "SAMARESH"
+      },
+      "hash": "db003885faedffa04886533f79ebc97a4c2dc7beecf395b6764716b31084accd",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071781900Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0036-94861dd96eb74fe0a0d297a6c36bbc97",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071784100Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "powershell -Command \".\\build\\complete_forensic_triage-windows-x64.exe 2>&1 | Select-Object -Last 20\""
+        ],
+        "name": "powershell.exe",
+        "pid": 2976,
+        "user": "SAMARESH"
+      },
+      "hash": "de5dee926dd2a38af772798a8e6858aee18947c3d0283be98d4c533c246af703",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071783900Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0037-9e22684430084a378f0e6f2f8cadbd35",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071785600Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "C:\\Windows\\system32\\svchost.exe -k UnistackSvcGroup -s CDPUserSvc"
+        ],
+        "name": "svchost.exe",
+        "pid": 9660,
+        "user": "SAMARESH"
+      },
+      "hash": "838a75452c384c51e2316b1cbc1c7b3a0fc33a05948a5c79af2bc5254a2731f8",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071785400Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0038-de2c8484948e4d1292e6245514820a24",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071786900Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "svchost.exe"
+        ],
+        "name": "svchost.exe",
+        "pid": 5776,
+        "user": "SAMARESH"
+      },
+      "hash": "edbe3cea339e59799927bb5fadd5aef9e3b541e58b61d831fb443acd2d815751",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071786700Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0039-242d00958a0048318c87c5e0c8d797a6",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071788100Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\153.0.4234.48\\msedgewebview2.exe\" --type=utility --utility-sub-type=storage.mojom.StorageService --lang=en-US --service-sandbox-type=service --noerrdialogs --user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64; Cortana 1.18.9.23723; 10.0.0.0.26200.9457) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.26200 IsWebView2/True (WebView2Version 153.0.4234.48)\" --user-data-dir=\"C:\\Users\\SAMARESH\\AppData\\Local\\Packages\\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\\LocalState\\EBWebView\" --webview-exe-name=SearchHost.exe --webview-exe-version=2607.28006.200.0 --embedded-browser-webview=1 --always-read-main-dll --metrics-shmem-handle=2584,i,2431576445037243422,15850591231298660839,524288 --field-trial-handle=2028,i,7725172992329152356,16010832950093423821,262144 --enable-features=msEdgeFluentOverlayScrollbar --disable-features=msSmartScreenProtection --variations-seed-version --pseudonymization-salt-handle=1964,i,9607668522084325448,11152139824854436069,4 --trace-process-track-uuid=3190708990060038890 --mojo-platform-channel-handle=2604 /prefetch:13 /pfhostedapp:91e4b61628981e3bdf428fbe3e7f58de234c9089"
+        ],
+        "name": "msedgewebview2.exe",
+        "pid": 13532,
+        "user": "SAMARESH"
+      },
+      "hash": "4638870be25ba5b28248a101852bf41cd5b9954872013e9a379d66522e642e68",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071787800Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0040-0a7cba7bf85d426fa2d7169db5e4bc90",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071790900Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "smss.exe"
+        ],
+        "name": "smss.exe",
+        "pid": 888,
+        "user": "SAMARESH"
+      },
+      "hash": "638832d6d9a8f7232625fb66080b9028eb822238b85fc8b91710de1579353eb7",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071790700Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0041-b8f15a9c0bd448548ffd2a962242cf34",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071792Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "svchost.exe"
+        ],
+        "name": "svchost.exe",
+        "pid": 4024,
+        "user": "SAMARESH"
+      },
+      "hash": "15eaff3458af2748d66c1cc5631c9009d813421227157a877fbb356058156f4f",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071791800Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0042-fa1d06961fb74744a94e5c0dee9d572f",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071793100Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "GBT_DL_LIB.exe"
+        ],
+        "name": "GBT_DL_LIB.exe",
+        "pid": 14976,
+        "user": "SAMARESH"
+      },
+      "hash": "a81dcf2926a894196230da9aaf4b86b121deb0455594885ab2615ff4e819c718",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071793Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0043-af08bdfbbe5c46518e4c3339f46b474f",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071794800Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "C:\\Windows\\system32\\svchost.exe -k DevicesFlow -s DevicesFlowUserSvc"
+        ],
+        "name": "svchost.exe",
+        "pid": 12460,
+        "user": "SAMARESH"
+      },
+      "hash": "a0eb4ebeb4cce9fdae6a95e0cebfdc175b6a32da58256358834ebe2bdfd9198a",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071794400Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0044-2b010a7ed71e4f3aae458955cbff31a3",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071796400Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "svchost.exe"
+        ],
+        "name": "svchost.exe",
+        "pid": 5752,
+        "user": "SAMARESH"
+      },
+      "hash": "262834acc0f610e862c766f970a66729babf82f4e7d4900bc341aba0388f9bce",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071796100Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0045-62e89c052a6147ceb9bc43f2f7165b42",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071797800Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --type=renderer --no-pre-read-main-dll --video-capture-use-gpu-memory-buffer --lang=en-US --device-scale-factor=1 --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=174 --launch-time-ticks=4674989218 --metrics-shmem-handle=7336,i,8863121016288849259,8301567762176262076,1572864 --field-trial-handle=1964,i,6931654671464187216,11827310839377712958,262144 --variations-seed-version=20260926-030042.050000-production --pseudonymization-salt-handle=2000,i,8877874099122718659,6584029635620766475,4 --trace-process-track-uuid=3190709149357153220 --mojo-platform-channel-handle=7984 /prefetch:1"
+        ],
+        "name": "chrome.exe",
+        "pid": 28320,
+        "user": "SAMARESH"
+      },
+      "hash": "d8faed0e3cd0507ceed51d445072ca57964ef543f2ba45e64f3f517f7d831f24",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071797500Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0046-7fc123ae4ee148a08c01c885e7d1c914",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071800400Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "dwm.exe"
+        ],
+        "name": "dwm.exe",
+        "pid": 2096,
+        "user": "SAMARESH"
+      },
+      "hash": "2ab4b045fc5444a68950c4498f5e3ba27635bfd9a293d85f7d58d68488d7d9e3",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071800300Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0047-0c7eed6b4c6d4b089dc23703894c8b44",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071801700Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "C:\\Windows\\System32\\RuntimeBroker.exe -Embedding"
+        ],
+        "name": "RuntimeBroker.exe",
+        "pid": 9908,
+        "user": "SAMARESH"
+      },
+      "hash": "68e10f629da1c6ed5934fc71c950534047ce169ad7e9286690097a38eea45453",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071801400Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0048-f9c76482ab2d43cfbcee33c190e52801",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071805400Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"node\"   \"C:\\Users\\SAMARESH\\AppData\\Local\\npm-cache\\_npx\\15c61037b1978c83\\node_modules\\.bin\\\\..\\chrome-devtools-mcp\\build\\src\\bin\\chrome-devtools-mcp.js\" --autoConnect --no-usage-statistics --no-performance-crux"
+        ],
+        "name": "node.exe",
+        "pid": 25344,
+        "user": "SAMARESH"
+      },
+      "hash": "5f592ea6a291f9bcd814d48cf476fab15aeb8307811c22e1d6a0d0892985b011",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071805200Z"
+      }
+    },
+    {
+      "evidence_id": "rec-0049-b0056dcb38da43ee907fd36498fb876e",
+      "host_id": "DESKTOP-9C230F9",
+      "timestamp": "2026-09-26T20:42:31.071807600Z",
+      "source": "collector",
+      "collector": "record",
+      "record_type": "record",
+      "payload": {
+        "command_line": [
+          "\"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\" --type=utility --utility-sub-type=edge_search_indexer.mojom.SearchIndexerInterfaceBroker --lang=en-US --service-sandbox-type=search_indexer --message-loop-type-ui --video-capture-use-gpu-memory-buffer --skip-read-main-dll --metrics-shmem-handle=8808,i,10720255784404130006,15338710820486340589,524288 --field-trial-handle=2516,i,17913616494114801273,2280880818548684324,262144 --variations-seed-version --pseudonymization-salt-handle=2532,i,2423468417871006878,1745355681665625446,4 --trace-process-track-uuid=3190709009737917719 --mojo-platform-channel-handle=7820 /prefetch:14"
+        ],
+        "name": "msedge.exe",
+        "pid": 12568,
+        "user": "SAMARESH"
+      },
+      "hash": "f961c04d0abd235c83a2d2410b66742302574d9c0412a9f321ac466fc1b8c3c4",
+      "provenance": {
+        "origin": "REAL",
+        "host_id": "DESKTOP-9C230F9",
+        "collector": "record",
+        "collector_version": "0.1.0",
+        "compiler_version": "0.1.0",
+        "source_hash": null,
+        "artifact_hash": null,
+        "execution_mode": "native",
+        "captured_at": "2026-09-26T20:42:31.071807400Z"
+      }
+    }
+  ],
+  "manifest": {
+    "bundle_id": "bundle-2211e75f88e0458cb0a71e82b889c3bf",
+    "total_records": 50,
+    "record_hashes": [
+      "f981db2aa26b9c1c2278de8ea8b2d38a93ac5655e1eaea63abd21c081af59956",
+      "f71514adef0ae8db615b9240672570180804c01d356d6a8f2a542beb3db573a3",
+      "f0a2a2cdb55aae5001e661990b3f52346e8d7aff8ed5c17a198d0f1663b0e6e0",
+      "01b20b6a6d4d4726d379bd4ff61ccf466529e61a1ff3941decfb48888b5baa6f",
+      "c2bc19d01e1f1390a5002be80abcaf1f506bd315d1c54b31f4afd2c15d223bb4",
+      "4e9a317930f8e4d04e0668a4150bdb1f6622c0d47326121ec35460fb69240f5b",
+      "9455f633f68466bd0d78b4793eacd1be42a745a67ba1c729d6596be7f5879694",
+      "11f3779c3a469eb57e591d5151d713cc14e46bed9b72b32509ea481d6515bd30",
+      "5ea18e4dc63400e279cb31089a65ec886c49ac42bfb98abea84092223eaa2617",
+      "2f61638cf9c5f019d8979d58b2cc7b19daf2973d86d804330873eee4c646b8ad",
+      "74ee4448cc3e84276cf75fb5f822c3b27219cec2c04e58df7ce12f239059955a",
+      "c656665fd338bd0cf5f8df081f085159c59ae260a5a8d562bb139fb0a34cc34f",
+      "4714c0e145cf1a44785d123c4e788968a0bea1b2213eb978e01dbf119f31e8d5",
+      "24b70d6f28752efecb76ed7cd74a0cea801a4321614a590de4d8f253d22de4e8",
+      "90481d5a2cc830a096df2491ef6afb7430b0172b59f158effd89e92803309ee9",
+      "21526dbcfd02050e4366de5e062dccbd39b39baf0c38e62361ee44fd439b4ebd",
+      "62d3f3b3273ce7e8d14fdb0f074ef3fefe3794cdbbf3c3fd5cf692b3733767dc",
+      "74d7294c1b0cf8a1353b3ab607e855110b241c1c04e00797228605739e44f95e",
+      "9f85161f7a6876473e9d591c0a5777189ebffdb5af63bf1f7e9f22336fc4eebc",
+      "7cc8ba245127224c971b3f975a13c8dcdb2c72ed95f63d9c1fcdd1fed18f95a1",
+      "9a466f02a3e23fbebd4bfeb880dddcc4feef104d36ec633ed5c00fc3e9bfae85",
+      "4f259328c2c59f1b418715aed47fcd9ee733e0f86dac6ded815e0a655e719490",
+      "2c48ff73c91b380c8e82dbac5518960038cfe6bb9407caa22b2e5ccd24084259",
+      "77b9403640f0d537dd215e809ebb8e881e1911043f3b9a8ec9dda33b330a0d38",
+      "89fafc8a906c312f525c4ea6dbdaf7a1dd59a216c44546787b683fd51e69b5ea",
+      "f64fc80a873a93fe62c9da2673a94d96b8703453ed16fc41575ff89693cb4be9",
+      "105f1695c08f3afad8b8f59a43b0f17c6a1d0a191c1028f1c9c174212670627c",
+      "47d18fa4539f61ec637cb1b708dd1e11b9b5e633e3c3b69cab166cd2d2e07e62",
+      "af098800218ed6bc7cc64fd70010b64cabd31e687621f111bf5824fb645fb954",
+      "ba947111c76ebab4bc6978cb8e7b1c1cfa715f2ac77007e5903d9dc1164d9c59",
+      "b337b7e8add4ab33f347f8430a6d630da248d271efca7b3d346cc1ba570d5afb",
+      "0c1349e5882c5360c978cd6633c8f15951401100305671c678821e7f631dfe22",
+      "ce6946ec06155278f87725b9ff4537bb6e2d45163fa8a000760a269e4075e080",
+      "1fbed7be5b1076e6f6d15002af58d7025cc7fb7d00cc373c30a462a723056f7e",
+      "11df4852768ea47d335dcf5fdb4fc1b3cfb85a54b97cf3b4b0b150174f5fd78a",
+      "db003885faedffa04886533f79ebc97a4c2dc7beecf395b6764716b31084accd",
+      "de5dee926dd2a38af772798a8e6858aee18947c3d0283be98d4c533c246af703",
+      "838a75452c384c51e2316b1cbc1c7b3a0fc33a05948a5c79af2bc5254a2731f8",
+      "edbe3cea339e59799927bb5fadd5aef9e3b541e58b61d831fb443acd2d815751",
+      "4638870be25ba5b28248a101852bf41cd5b9954872013e9a379d66522e642e68",
+      "638832d6d9a8f7232625fb66080b9028eb822238b85fc8b91710de1579353eb7",
+      "15eaff3458af2748d66c1cc5631c9009d813421227157a877fbb356058156f4f",
+      "a81dcf2926a894196230da9aaf4b86b121deb0455594885ab2615ff4e819c718",
+      "a0eb4ebeb4cce9fdae6a95e0cebfdc175b6a32da58256358834ebe2bdfd9198a",
+      "262834acc0f610e862c766f970a66729babf82f4e7d4900bc341aba0388f9bce",
+      "d8faed0e3cd0507ceed51d445072ca57964ef543f2ba45e64f3f517f7d831f24",
+      "2ab4b045fc5444a68950c4498f5e3ba27635bfd9a293d85f7d58d68488d7d9e3",
+      "68e10f629da1c6ed5934fc71c950534047ce169ad7e9286690097a38eea45453",
+      "5f592ea6a291f9bcd814d48cf476fab15aeb8307811c22e1d6a0d0892985b011",
+      "f961c04d0abd235c83a2d2410b66742302574d9c0412a9f321ac466fc1b8c3c4"
+    ],
+    "collector_results": [
+      {
+        "collector": "system_info",
+        "status": "SUCCESS",
+        "records_count": 1,
+        "error": null,
+        "warning": null,
+        "timestamp": "2026-09-26T20:42:29.671552200Z"
+      },
+      {
+        "collector": "processes",
+        "status": "SUCCESS",
+        "records_count": 352,
+        "error": null,
+        "warning": null,
+        "timestamp": "2026-09-26T20:42:30.018694900Z"
+      },
+      {
+        "collector": "network",
+        "status": "SUCCESS",
+        "records_count": 240,
+        "error": null,
+        "warning": null,
+        "timestamp": "2026-09-26T20:42:31.062772400Z"
+      },
+      {
+        "collector": "files",
+        "status": "SUCCESS",
+        "records_count": 7,
+        "error": null,
+        "warning": null,
+        "timestamp": "2026-09-26T20:42:31.070505Z"
+      }
+    ],
+    "created_at": "2026-09-26T20:42:31.071810400Z",
+    "sha256": "c4c43a4b43c1577ece7d0889354e9cfe6cea3e6c0f01694a09a728354fd166a2",
+    "merkle_root": "84eaa7bcda9b658924589dec0b0feff8697cf0b81e5b56e4c9ec2bee9d802c3c"
+  },
+  "sha256": "c4c43a4b43c1577ece7d0889354e9cfe6cea3e6c0f01694a09a728354fd166a2",
+  "merkle_root": "84eaa7bcda9b658924589dec0b0feff8697cf0b81e5b56e4c9ec2bee9d802c3c"
+}

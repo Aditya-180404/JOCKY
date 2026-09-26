@@ -283,7 +283,7 @@ export function Editor() {
         {/* Editor Pane */}
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex items-center justify-between px-4 py-2 border-b border-forensic-800 bg-forensic-900/50">
-            <span className="text-sm text-forensic-400 font-mono">investigation.tfg</span>
+            <span className="text-sm text-forensic-400 font-mono">investigation.jy</span>
             <div className="flex items-center gap-2">
               <span className="text-xs text-forensic-500">jockey</span>
             </div>

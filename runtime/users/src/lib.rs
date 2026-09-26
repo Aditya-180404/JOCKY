@@ -6,7 +6,6 @@
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -107,6 +106,12 @@ pub struct UsersResult {
     pub errors: Vec<String>,
 }
 
+impl Default for UsersResult {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl UsersResult {
     pub fn new() -> Self {
         Self {
@@ -127,15 +132,13 @@ pub fn enumerate_users() -> Result<UsersResult> {
     let mut result = UsersResult::new();
 
     // Read /etc/passwd for all users
-    let passwd_content = fs::read_to_string("/etc/passwd")
-        .context("Failed to read /etc/passwd")?;
+    let passwd_content = fs::read_to_string("/etc/passwd").context("Failed to read /etc/passwd")?;
 
     // Read /etc/shadow for password info (requires root)
     let shadow_content = fs::read_to_string("/etc/shadow").ok();
 
     // Read /etc/group for all groups
-    let group_content = fs::read_to_string("/etc/group")
-        .context("Failed to read /etc/group")?;
+    let group_content = fs::read_to_string("/etc/group").context("Failed to read /etc/group")?;
 
     // Parse groups first
     let mut groups = HashMap::new();
@@ -175,7 +178,17 @@ pub fn enumerate_users() -> Result<UsersResult> {
                 let inactive_days = parts[6].parse::<i64>().ok();
                 let expire_date = parts[7].parse::<i64>().ok();
 
-                shadow_map.insert(username, (last_change, min_age, max_age, warn_days, inactive_days, expire_date));
+                shadow_map.insert(
+                    username,
+                    (
+                        last_change,
+                        min_age,
+                        max_age,
+                        warn_days,
+                        inactive_days,
+                        expire_date,
+                    ),
+                );
             }
         }
     }
@@ -202,22 +215,35 @@ pub fn enumerate_users() -> Result<UsersResult> {
 
             // Get password info from shadow
             let (last_logon, password_last_set, expires, password_never_expires, password_required) =
-                if let Some((last_change, _min_age, max_age, _warn_days, _inactive_days, expire_date)) = shadow_map.get(&name) {
-                    let password_last_set = last_change.map(|days| {
-                        DateTime::from_timestamp(days * 86400, 0).unwrap_or_default()
-                    });
-                    let expires = expire_date.map(|days| {
-                        DateTime::from_timestamp(days * 86400, 0).unwrap_or_default()
-                    });
+                if let Some((
+                    last_change,
+                    _min_age,
+                    max_age,
+                    _warn_days,
+                    _inactive_days,
+                    expire_date,
+                )) = shadow_map.get(&name)
+                {
+                    let password_last_set = last_change
+                        .map(|days| DateTime::from_timestamp(days * 86400, 0).unwrap_or_default());
+                    let expires = expire_date
+                        .map(|days| DateTime::from_timestamp(days * 86400, 0).unwrap_or_default());
                     let password_never_expires = max_age.map_or(false, |m| m == -1 || m == 99999);
                     let password_required = true; // If in shadow, password is required
-                    (None, password_last_set, expires, password_never_expires, password_required)
+                    (
+                        None,
+                        password_last_set,
+                        expires,
+                        password_never_expires,
+                        password_required,
+                    )
                 } else {
                     (None, None, None, false, false)
                 };
 
             // Determine status
-            let disabled = shell == "/usr/sbin/nologin" || shell == "/sbin/nologin" || shell == "/bin/false";
+            let disabled =
+                shell == "/usr/sbin/nologin" || shell == "/sbin/nologin" || shell == "/bin/false";
             let locked = false; // Would need to check /etc/shadow for ! or * prefix
 
             // Get group memberships
@@ -233,9 +259,17 @@ pub fn enumerate_users() -> Result<UsersResult> {
                 name: name.clone(),
                 full_name,
                 description: None,
-                home_dir: if home_dir.is_empty() { None } else { Some(home_dir) },
+                home_dir: if home_dir.is_empty() {
+                    None
+                } else {
+                    Some(home_dir)
+                },
                 shell: if shell.is_empty() { None } else { Some(shell) },
-                status: if disabled { UserStatus::Disabled } else { UserStatus::Active },
+                status: if disabled {
+                    UserStatus::Disabled
+                } else {
+                    UserStatus::Active
+                },
                 disabled,
                 locked,
                 password_never_expires,
@@ -262,27 +296,24 @@ pub fn enumerate_users() -> Result<UsersResult> {
 /// Enumerate all local users and groups on Windows
 #[cfg(target_os = "windows")]
 pub fn enumerate_users() -> Result<UsersResult> {
-    use std::ffi::OsString;
-    use windows::Win32::Foundation::*;
-    use windows::Win32::System::Threading::*;
-    use windows::Win32::Security::*;
-    use windows::Win32::System::SystemServices::*;
-    use windows::Win32::Security::Authorization::*;
-    use winreg::RegKey;
     use winreg::enums::*;
+    use winreg::RegKey;
 
     let mut result = UsersResult::new();
 
     // Use NetUserEnum equivalent via WMI or direct API
     // For now, use registry enumeration of user profiles
     let hkcu = RegKey::predef(HKEY_LOCAL_MACHINE);
-    let profiles_key = hkcu.open_subkey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList")
+    let profiles_key = hkcu
+        .open_subkey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList")
         .context("Failed to open ProfileList key")?;
 
     for sid_str in profiles_key.enum_keys().flatten() {
         if let Ok(profile_key) = profiles_key.open_subkey(&sid_str) {
-            let profile_path: String = profile_key.get_value("ProfileImagePath").unwrap_or_default();
-            let sid = sid_str.to_string_lossy().to_string();
+            let profile_path: String = profile_key
+                .get_value("ProfileImagePath")
+                .unwrap_or_default();
+            let sid = sid_str.clone();
 
             // Skip system profiles
             if profile_path.contains("System32") || profile_path.contains("ServiceProfiles") {
@@ -290,7 +321,11 @@ pub fn enumerate_users() -> Result<UsersResult> {
             }
 
             // Extract username from profile path
-            let username = profile_path.split('\\').last().unwrap_or(&sid).to_string();
+            let username = profile_path
+                .split('\\')
+                .next_back()
+                .unwrap_or(&sid)
+                .to_string();
 
             let user = UserInfo {
                 id: sid,

@@ -29,20 +29,8 @@ fn test_canonical_evidence_bundle_generation_and_tamper_detection() {
         "pid": 412
     }));
 
-    collector.record_collector_result(
-        "process",
-        CollectionStatus::Success,
-        1,
-        None,
-        None,
-    );
-    collector.record_collector_result(
-        "network",
-        CollectionStatus::Success,
-        1,
-        None,
-        None,
-    );
+    collector.record_collector_result("process", CollectionStatus::Success, 1, None, None);
+    collector.record_collector_result("network", CollectionStatus::Success, 1, None, None);
 
     // 2. Build canonical EvidenceBundle
     let bundle = collector.to_bundle();
@@ -52,8 +40,14 @@ fn test_canonical_evidence_bundle_generation_and_tamper_detection() {
     assert_eq!(bundle.records.len(), 2);
     assert_eq!(bundle.manifest.total_records, 2);
     assert_eq!(bundle.evidence_status, CollectionStatus::Success);
-    assert!(!bundle.merkle_root.is_empty(), "Merkle root must be computed");
-    assert!(!bundle.sha256.is_empty(), "Bundle payload SHA-256 must be computed");
+    assert!(
+        !bundle.merkle_root.is_empty(),
+        "Merkle root must be computed"
+    );
+    assert!(
+        !bundle.sha256.is_empty(),
+        "Bundle payload SHA-256 must be computed"
+    );
 
     // 3. Verify untouched bundle
     let res = bundle.verify();
@@ -69,30 +63,44 @@ fn test_canonical_evidence_bundle_generation_and_tamper_detection() {
     let json_bytes = serde_json::to_vec_pretty(&bundle).expect("Serialization failed");
     let restored_res = EvidenceBundle::verify_json(std::str::from_utf8(&json_bytes).unwrap())
         .expect("Verification of restored bundle failed");
-    assert!(restored_res.valid, "Restored bundle from JSON must pass verification");
+    assert!(
+        restored_res.valid,
+        "Restored bundle from JSON must pass verification"
+    );
 
     // 5. Mutate one byte in a record's payload (Tamper test)
     let mut tampered_bundle = bundle.clone();
     tampered_bundle.records[0].payload["path"] = json!("/usr/sbin/sshd_backdoored");
 
     let tampered_res = tampered_bundle.verify();
-    assert!(!tampered_res.valid, "Tampered payload MUST fail verification");
+    assert!(
+        !tampered_res.valid,
+        "Tampered payload MUST fail verification"
+    );
     assert_eq!(tampered_res.status, "TAMPERED");
     assert_eq!(tampered_res.mismatched_records.len(), 1);
     assert!(tampered_res.failure_reason.is_some());
 
     // 6. Mutate Merkle root in bundle
     let mut tampered_merkle = bundle.clone();
-    tampered_merkle.merkle_root = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef".to_string();
+    tampered_merkle.merkle_root =
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef".to_string();
     let merkle_res = tampered_merkle.verify();
-    assert!(!merkle_res.valid, "Tampered Merkle root MUST fail verification");
+    assert!(
+        !merkle_res.valid,
+        "Tampered Merkle root MUST fail verification"
+    );
     assert!(!merkle_res.merkle_root_matches);
 
     // 7. Mutate bundle SHA-256
     let mut tampered_sha = bundle.clone();
-    tampered_sha.sha256 = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210".to_string();
+    tampered_sha.sha256 =
+        "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210".to_string();
     let sha_res = tampered_sha.verify();
-    assert!(!sha_res.valid, "Tampered bundle SHA-256 MUST fail verification");
+    assert!(
+        !sha_res.valid,
+        "Tampered bundle SHA-256 MUST fail verification"
+    );
     assert!(!sha_res.sha256_matches);
 }
 

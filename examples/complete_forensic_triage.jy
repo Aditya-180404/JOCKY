@@ -1,0 +1,27 @@
+investigation "complete_forensic_triage" {
+    metadata {
+        author = "JOCKEY DFIR Team"
+        priority = "High"
+        category = "Full Triage"
+    }
+
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        parent
+        command_line
+        user
+        hash.sha256
+    }
+
+    collect network_connections
+
+    collect files "C:\\Windows\\System32\\drivers\\etc" {
+        recursive
+        hash.sha256
+    } limit 50
+
+    export evidence "complete_forensic_triage_evidence.json"
+}

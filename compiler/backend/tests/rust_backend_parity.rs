@@ -1,3 +1,5 @@
+#![cfg(feature = "llvm")]
+
 use jockey_ast::Capability;
 use jockey_backend::llvm::LlvmBackend;
 use jockey_backend::{Backend, BackendKind};

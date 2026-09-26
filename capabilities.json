@@ -3,13 +3,16 @@
     "category": "ApplicationArtifact",
     "collector_function": "carve_browser_artifacts",
     "description": "Collect browser artifacts: history, downloads, cookies, cache, extensions, login data, bookmarks",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1555"
     ],
     "name": "Browser Artifacts",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "app.browser.cookies": {
     "category": "ApplicationArtifact",
@@ -21,7 +24,10 @@
     ],
     "name": "Browser Cookies",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "app.browser.downloads": {
     "category": "ApplicationArtifact",
@@ -33,7 +39,10 @@
     ],
     "name": "Browser Downloads",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "app.browser.extensions": {
     "category": "ApplicationArtifact",
@@ -45,7 +54,10 @@
     ],
     "name": "Browser Extensions",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "app.browser.history": {
     "category": "ApplicationArtifact",
@@ -57,7 +69,10 @@
     ],
     "name": "Browser History",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "app.browser.inventory": {
     "category": "ApplicationArtifact",
@@ -69,43 +84,55 @@
     ],
     "name": "Browser Inventory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "app.email": {
     "category": "ApplicationArtifact",
     "collector_function": "carve_email_artifacts",
     "description": "Collect email client artifacts: Outlook OST/PST, Thunderbird profiles, mail indexes",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1114"
     ],
     "name": "Email Client Artifacts",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "app.office": {
     "category": "ApplicationArtifact",
     "collector_function": "carve_office_artifacts",
     "description": "Collect Microsoft Office artifacts: recent files, trusted locations, macros, document metadata",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1137"
     ],
     "name": "Office Artifacts",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.amcache": {
     "category": "WindowsArtifact",
     "collector_function": "carve_amcache",
     "description": "Parse Amcache registry hive: file execution history, SHA-1 hashes, publisher info, file paths",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1057"
     ],
     "name": "Amcache.hve",
     "platforms": "Windows",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "REQUIRES_ELEVATION",
+    "status_reason": "Access to locked Amcache.hve requires Administrator privilege; dynamic fallback supported",
+    "version": "0.1.0"
   },
   "artifact.auditd": {
     "category": "LinuxArtifact",
@@ -117,7 +144,10 @@
     ],
     "name": "Auditd Inventory",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.auth.logs": {
     "category": "LinuxArtifact",
@@ -129,7 +159,10 @@
     ],
     "name": "Auth Logs",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.bash.history": {
     "category": "LinuxArtifact",
@@ -141,19 +174,25 @@
     ],
     "name": "Bash History",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.container": {
     "category": "LinuxArtifact",
     "collector_function": "carve_container_artifacts",
     "description": "Detect container runtime artifacts: Docker, containerd, podman images, containers, volumes, networks",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1610"
     ],
     "name": "Container Artifacts",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.cron": {
     "category": "LinuxArtifact",
@@ -165,19 +204,25 @@
     ],
     "name": "Cron Jobs",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.etw": {
     "category": "WindowsArtifact",
     "collector_function": "collect_etw_logs",
     "description": "Collect Windows Event Tracing for Windows logs",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1562"
     ],
     "name": "ETW Logs",
     "platforms": "Windows",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "REQUIRES_ELEVATION",
+    "status_reason": "Querying active kernel ETW sessions requires Administrator privilege",
+    "version": "0.1.0"
   },
   "artifact.event.logs": {
     "category": "WindowsArtifact",
@@ -189,7 +234,10 @@
     ],
     "name": "Event Logs",
     "platforms": "Windows",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.journal": {
     "category": "LinuxArtifact",
@@ -201,7 +249,10 @@
     ],
     "name": "Journal Inventory",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.jump.lists": {
     "category": "WindowsArtifact",
@@ -213,19 +264,25 @@
     ],
     "name": "Jump Lists",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.jumplists": {
     "category": "WindowsArtifact",
     "collector_function": "carve_jumplists",
     "description": "Parse Jump List files: recent files, application destinations, timestamps",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1057"
     ],
     "name": "Jump Lists",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.lnk": {
     "category": "WindowsArtifact",
@@ -237,7 +294,10 @@
     ],
     "name": "LNK Shortcut Files",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.login.config": {
     "category": "LinuxArtifact",
@@ -249,7 +309,10 @@
     ],
     "name": "Login Configuration",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.prefetch": {
     "category": "WindowsArtifact",
@@ -261,7 +324,10 @@
     ],
     "name": "Prefetch Files",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.recent.files": {
     "category": "WindowsArtifact",
@@ -273,7 +339,10 @@
     ],
     "name": "Recent Files",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.recycle.bin": {
     "category": "WindowsArtifact",
@@ -285,7 +354,10 @@
     ],
     "name": "Recycle Bin Inventory",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.recycle_bin": {
     "category": "WindowsArtifact",
@@ -297,7 +369,10 @@
     ],
     "name": "Recycle Bin",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.shell.history": {
     "category": "LinuxArtifact",
@@ -309,7 +384,10 @@
     ],
     "name": "Shell History",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.shell_history": {
     "category": "LinuxArtifact",
@@ -321,31 +399,40 @@
     ],
     "name": "Shell History",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.shellbags": {
     "category": "WindowsArtifact",
     "collector_function": "carve_shellbags",
     "description": "Parse Shellbag registry keys: folder paths, view settings, timestamps indicating folder access",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1083"
     ],
     "name": "Shellbags",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.srum": {
     "category": "WindowsArtifact",
     "collector_function": "carve_srum",
     "description": "Parse System Resource Usage Monitor: application resource usage, network data, energy usage",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1057"
     ],
     "name": "SRUM Database",
     "platforms": "Windows",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "REQUIRES_ELEVATION",
+    "status_reason": "Access to SRUDB.dat database requires Administrator privilege; dynamic fallback supported",
+    "version": "0.1.0"
   },
   "artifact.ssh": {
     "category": "LinuxArtifact",
@@ -357,19 +444,25 @@
     ],
     "name": "SSH Artifacts",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.ssh_config": {
     "category": "LinuxArtifact",
     "collector_function": "carve_ssh_config",
     "description": "Parse SSH client/server configs: authorized_keys, known_hosts, config files, agent sockets",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1552"
     ],
     "name": "SSH Configuration",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.sudo": {
     "category": "LinuxArtifact",
@@ -381,7 +474,10 @@
     ],
     "name": "Sudo Logs",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.systemd": {
     "category": "LinuxArtifact",
@@ -393,7 +489,10 @@
     ],
     "name": "Systemd Units",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "artifact.zsh.history": {
     "category": "LinuxArtifact",
@@ -405,20 +504,26 @@
     ],
     "name": "Zsh History",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.credential_artifacts": {
     "category": "Authentication",
     "collector_function": "collect_credential_artifacts",
     "description": "Detect credential-related artifacts: LSASS dump indicators, SAM/NTDS access, keychain access, SSH keys, credential manager entries",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1003",
       "T1555"
     ],
     "name": "Credential Artifacts",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.failed.logins": {
     "category": "Authentication",
@@ -430,7 +535,10 @@
     ],
     "name": "Failed Logins",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.logon.events": {
     "category": "Authentication",
@@ -442,20 +550,26 @@
     ],
     "name": "Logon Events",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.logon_events": {
     "category": "Authentication",
     "collector_function": "collect_logon_events",
     "description": "Collect authentication events: successful/failed logons, logon types, source IP, logon time, account used (Windows Security Event Log, Linux auth.log)",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1003",
       "T1110"
     ],
     "name": "Logon Events",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.pam": {
     "category": "Authentication",
@@ -467,7 +581,10 @@
     ],
     "name": "PAM Configuration",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.password.policy": {
     "category": "Authentication",
@@ -479,19 +596,25 @@
     ],
     "name": "Password Policy",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.policy": {
     "category": "Authentication",
     "collector_function": "collect_auth_policy",
     "description": "Collect authentication policies: password policy, lockout policy, Kerberos config, sudoers, PAM config",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1210"
     ],
     "name": "Authentication Policy",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.remote.sessions": {
     "category": "Authentication",
@@ -503,7 +626,10 @@
     ],
     "name": "Remote Sessions",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.ssh.authorized.keys": {
     "category": "Authentication",
@@ -515,7 +641,10 @@
     ],
     "name": "Authorized Keys",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.ssh.config": {
     "category": "Authentication",
@@ -527,7 +656,10 @@
     ],
     "name": "SSH Configuration",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.ssh.known.hosts": {
     "category": "Authentication",
@@ -539,7 +671,10 @@
     ],
     "name": "Known Hosts",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.successful.logins": {
     "category": "Authentication",
@@ -551,7 +686,10 @@
     ],
     "name": "Successful Logins",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.sudoers": {
     "category": "Authentication",
@@ -563,7 +701,10 @@
     ],
     "name": "Sudoers",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "auth.windows.logon": {
     "category": "Authentication",
@@ -575,32 +716,41 @@
     ],
     "name": "Windows Logons",
     "platforms": "Windows",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "backdoor.binary_anomalies": {
     "category": "BackdoorRootkit",
     "collector_function": "detect_binary_anomalies",
     "description": "Detect binary anomalies: unsigned binaries, packing, entropy anomalies, timestamp anomalies, import anomalies",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1027",
       "T1036"
     ],
     "name": "Binary Anomalies",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "backdoor.rootkit_indicators": {
     "category": "BackdoorRootkit",
     "collector_function": "detect_rootkit_indicators",
     "description": "Detect rootkit indicators: hidden processes, hidden files, hidden ports, SSDT hooks, IDT hooks, DKOM",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1014"
     ],
     "name": "Rootkit Indicators",
     "platforms": "Both",
-    "privilege": "Kernel"
+    "privilege": "Kernel",
+    "status": "PARTIAL",
+    "status_reason": "Heuristic rootkit detection implemented; full SSDT/DKOM verification requires Ring 0 driver",
+    "version": "0.1.0"
   },
   "evidence.blockchain_anchor": {
     "category": "EvidenceIntegrity",
@@ -610,17 +760,23 @@
     "mitre_attack_ids": [],
     "name": "Blockchain Anchoring",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "UNSUPPORTED",
+    "status_reason": "Anchoring to public blockchain requires external funded wallet & JSON-RPC node; local development ledger active",
+    "version": "0.1.0"
   },
   "evidence.chain_of_custody": {
     "category": "EvidenceIntegrity",
     "collector_function": "generate_chain_of_custody",
     "description": "Generate chain of custody records: collector, timestamp, hash, custody transfers",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [],
     "name": "Chain of Custody",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "evidence.collector.status": {
     "category": "EvidenceIntegrity",
@@ -630,7 +786,10 @@
     "mitre_attack_ids": [],
     "name": "Collector Status",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "evidence.merkle": {
     "category": "EvidenceIntegrity",
@@ -640,7 +799,10 @@
     "mitre_attack_ids": [],
     "name": "Merkle Tree Construction",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "evidence.origin": {
     "category": "EvidenceIntegrity",
@@ -650,7 +812,10 @@
     "mitre_attack_ids": [],
     "name": "Evidence Origin",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "evidence.provenance": {
     "category": "EvidenceIntegrity",
@@ -660,7 +825,10 @@
     "mitre_attack_ids": [],
     "name": "Provenance Metadata",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "evidence.sha256": {
     "category": "EvidenceIntegrity",
@@ -670,19 +838,25 @@
     "mitre_attack_ids": [],
     "name": "SHA-256 Hashing",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "file.code_signature": {
     "category": "FileBinaryMetadata",
     "collector_function": "verify_code_signature",
     "description": "Verify code signatures: Authenticode (Windows), signed ELF (Linux), certificate chain, revocation status",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1553"
     ],
     "name": "Code Signature Verification",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "file.elf.metadata": {
     "category": "FileBinaryMetadata",
@@ -694,7 +868,10 @@
     ],
     "name": "ELF Metadata",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "file.elf_metadata": {
     "category": "FileBinaryMetadata",
@@ -706,19 +883,25 @@
     ],
     "name": "ELF Metadata",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "PLATFORM_SPECIFIC",
+    "status_reason": "ELF metadata parser is primary for Linux targets",
+    "version": "0.1.0"
   },
   "file.entropy": {
     "category": "FileBinaryMetadata",
     "collector_function": "analyze_file_entropy",
     "description": "Calculate Shannon entropy per file/section for packing/encryption detection",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1027"
     ],
     "name": "File Entropy Analysis",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "file.hash.sha256": {
     "category": "FileBinaryMetadata",
@@ -730,7 +913,10 @@
     ],
     "name": "PE/ELF SHA-256",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "file.pe.metadata": {
     "category": "FileBinaryMetadata",
@@ -742,19 +928,25 @@
     ],
     "name": "PE Metadata",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "file.pe_metadata": {
     "category": "FileBinaryMetadata",
     "collector_function": "parse_pe_metadata",
     "description": "Parse PE headers: imports, exports, sections, resources, certificates, debug info, rich header",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1027"
     ],
     "name": "PE Metadata",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "file.signature": {
     "category": "FileBinaryMetadata",
@@ -766,7 +958,10 @@
     ],
     "name": "Signature Metadata",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.alternate.data.streams": {
     "category": "Filesystem",
@@ -778,19 +973,25 @@
     ],
     "name": "ADS Metadata",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.alternate_data_streams": {
     "category": "Filesystem",
     "collector_function": "detect_alternate_data_streams",
     "description": "Detect NTFS alternate data streams on Windows files",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1564"
     ],
     "name": "Alternate Data Streams",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.deleted.open": {
     "category": "Filesystem",
@@ -802,7 +1003,10 @@
     ],
     "name": "Deleted-But-Open Files",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.enumerate": {
     "category": "Filesystem",
@@ -814,7 +1018,10 @@
     ],
     "name": "Filesystem Enumeration",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.executable": {
     "category": "Filesystem",
@@ -826,7 +1033,10 @@
     ],
     "name": "Executable Detection",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.hash.md5": {
     "category": "Filesystem",
@@ -838,7 +1048,10 @@
     ],
     "name": "MD5 Hashes",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.hash.sha1": {
     "category": "Filesystem",
@@ -850,7 +1063,10 @@
     ],
     "name": "SHA-1 Hashes",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.hash.sha256": {
     "category": "Filesystem",
@@ -862,7 +1078,10 @@
     ],
     "name": "SHA-256 Hashes",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.hidden": {
     "category": "Filesystem",
@@ -874,7 +1093,10 @@
     ],
     "name": "Hidden Files",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.links": {
     "category": "Filesystem",
@@ -886,19 +1108,25 @@
     ],
     "name": "Symlinks",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.mounts": {
     "category": "Filesystem",
     "collector_function": "enumerate_mounts",
     "description": "Enumerate mounted filesystems: device, mount point, type, options, labels",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1083"
     ],
     "name": "Mount Points",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.owner": {
     "category": "Filesystem",
@@ -910,7 +1138,10 @@
     ],
     "name": "Ownership",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.path": {
     "category": "Filesystem",
@@ -922,7 +1153,10 @@
     ],
     "name": "File Paths",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.permissions": {
     "category": "Filesystem",
@@ -934,7 +1168,10 @@
     ],
     "name": "Permissions",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.recent": {
     "category": "Filesystem",
@@ -946,7 +1183,10 @@
     ],
     "name": "Recent Files",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.size": {
     "category": "Filesystem",
@@ -958,7 +1198,10 @@
     ],
     "name": "File Sizes",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.timestamps": {
     "category": "Filesystem",
@@ -970,7 +1213,10 @@
     ],
     "name": "File Timestamps",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "filesystem.type": {
     "category": "Filesystem",
@@ -982,19 +1228,25 @@
     ],
     "name": "File Type",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "kernel.boot_config": {
     "category": "KernelDriver",
     "collector_function": "collect_boot_config",
     "description": "Collect boot parameters: kernel cmdline, bootloader config, initramfs, secure boot status",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1542"
     ],
     "name": "Boot Configuration",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "kernel.module.hashes": {
     "category": "KernelDriver",
@@ -1006,7 +1258,10 @@
     ],
     "name": "Kernel Hashes",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "kernel.module.params": {
     "category": "KernelDriver",
@@ -1018,7 +1273,10 @@
     ],
     "name": "Module Parameters",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "kernel.module.paths": {
     "category": "KernelDriver",
@@ -1030,7 +1288,10 @@
     ],
     "name": "Module Paths",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "kernel.module.signatures": {
     "category": "KernelDriver",
@@ -1042,7 +1303,10 @@
     ],
     "name": "Module Signatures",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "kernel.module.version": {
     "category": "KernelDriver",
@@ -1054,7 +1318,10 @@
     ],
     "name": "Module Versions",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "kernel.modules": {
     "category": "KernelDriver",
@@ -1066,19 +1333,25 @@
     ],
     "name": "Kernel Modules",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "kernel.syscalls": {
     "category": "KernelDriver",
     "collector_function": "inspect_syscall_table",
     "description": "Inspect system call table for hooking/modification (requires kernel access)",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1014"
     ],
     "name": "System Call Table",
     "platforms": "Linux",
-    "privilege": "Kernel"
+    "privilege": "Kernel",
+    "status": "REQUIRES_ELEVATION",
+    "status_reason": "Inspection of system call table / SSDT requires Kernel/root privilege",
+    "version": "0.1.0"
   },
   "network.arp": {
     "category": "Network",
@@ -1090,19 +1363,25 @@
     ],
     "name": "ARP Table",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.arp_table": {
     "category": "Network",
     "collector_function": "collect_arp_table",
     "description": "Collect ARP table (IPv4) or neighbor table (IPv6): IP, MAC, interface, state",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1016"
     ],
     "name": "ARP/Neighbor Table",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.connections": {
     "category": "Network",
@@ -1114,7 +1393,10 @@
     ],
     "name": "Network Connections",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.connections.active": {
     "category": "Network",
@@ -1126,7 +1408,10 @@
     ],
     "name": "Active Connections",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.dns.cache": {
     "category": "Network",
@@ -1138,7 +1423,10 @@
     ],
     "name": "DNS Cache",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.dns.servers": {
     "category": "Network",
@@ -1150,31 +1438,40 @@
     ],
     "name": "DNS Servers",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.dns_cache": {
     "category": "Network",
     "collector_function": "collect_dns_cache",
     "description": "Collect DNS resolver cache entries: domain, IP, TTL, record type",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1016"
     ],
     "name": "DNS Cache",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.firewall": {
     "category": "Network",
     "collector_function": "collect_firewall_rules",
     "description": "Collect firewall configuration: rules, profiles, logging settings, allowed/blocked applications",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1562"
     ],
     "name": "Firewall Rules",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.firewall.policy": {
     "category": "Network",
@@ -1186,7 +1483,10 @@
     ],
     "name": "Firewall Policy",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.hosts": {
     "category": "Network",
@@ -1198,7 +1498,10 @@
     ],
     "name": "Hosts File",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.interface.addresses": {
     "category": "Network",
@@ -1210,7 +1513,10 @@
     ],
     "name": "Interface Addresses",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.interfaces": {
     "category": "Network",
@@ -1222,7 +1528,10 @@
     ],
     "name": "Interface Inventory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.listeners": {
     "category": "Network",
@@ -1234,7 +1543,10 @@
     ],
     "name": "Suspicious Listeners",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.listening.ports": {
     "category": "Network",
@@ -1246,19 +1558,25 @@
     ],
     "name": "Listening Ports",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.listening_ports": {
     "category": "Network",
     "collector_function": "enumerate_listening_ports",
     "description": "Enumerate listening ports with associated process, binding address, and protocol",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1049"
     ],
     "name": "Listening Ports",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.mac": {
     "category": "Network",
@@ -1270,7 +1588,10 @@
     ],
     "name": "MAC Addresses",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.process.relationships": {
     "category": "Network",
@@ -1282,7 +1603,10 @@
     ],
     "name": "Process Relationships",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.proxy": {
     "category": "Network",
@@ -1294,7 +1618,10 @@
     ],
     "name": "Proxy Configuration",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.routes": {
     "category": "Network",
@@ -1306,19 +1633,25 @@
     ],
     "name": "Route Table",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.routing_table": {
     "category": "Network",
     "collector_function": "collect_routing_table",
     "description": "Collect routing table: destination, gateway, interface, metric, protocol",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1016"
     ],
     "name": "Routing Table",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.shares": {
     "category": "Network",
@@ -1330,7 +1663,10 @@
     ],
     "name": "Network Shares",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.tcp": {
     "category": "Network",
@@ -1342,7 +1678,10 @@
     ],
     "name": "TCP Connections",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.udp": {
     "category": "Network",
@@ -1354,7 +1693,10 @@
     ],
     "name": "UDP Connections",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "network.vpn": {
     "category": "Network",
@@ -1366,7 +1708,10 @@
     ],
     "name": "VPN Metadata",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.appinit": {
     "category": "Persistence",
@@ -1378,19 +1723,25 @@
     ],
     "name": "AppInit",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.autostart": {
     "category": "Persistence",
     "collector_function": "collect_autostart_entries",
     "description": "Collect autostart entries: Run/RunOnce keys, startup folder, scheduled tasks, services, WMI subscriptions, login items, systemd timers, cron",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1547"
     ],
     "name": "Autostart Entries",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.cron": {
     "category": "Persistence",
@@ -1402,7 +1753,10 @@
     ],
     "name": "Cron Entries",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.ifeo": {
     "category": "Persistence",
@@ -1414,7 +1768,10 @@
     ],
     "name": "IFEO",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.run": {
     "category": "Persistence",
@@ -1426,7 +1783,10 @@
     ],
     "name": "Run Keys",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.scheduled.task": {
     "category": "Persistence",
@@ -1438,19 +1798,25 @@
     ],
     "name": "Scheduled Tasks",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.scheduled_tasks": {
     "category": "Persistence",
     "collector_function": "enumerate_scheduled_tasks",
     "description": "Enumerate scheduled tasks/cron jobs: task name, trigger, action, command, run as user, status, history",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1053"
     ],
     "name": "Scheduled Tasks",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.shell.profile": {
     "category": "Persistence",
@@ -1462,7 +1828,10 @@
     ],
     "name": "Shell Profiles",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.ssh": {
     "category": "Persistence",
@@ -1474,7 +1843,10 @@
     ],
     "name": "SSH Persistence",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.startup.folder": {
     "category": "Persistence",
@@ -1486,7 +1858,10 @@
     ],
     "name": "Startup Folder",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.systemd.timer": {
     "category": "Persistence",
@@ -1498,7 +1873,10 @@
     ],
     "name": "Systemd Timers",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.winlogon": {
     "category": "Persistence",
@@ -1510,19 +1888,25 @@
     ],
     "name": "Winlogon",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "persistence.wmi": {
     "category": "Persistence",
     "collector_function": "enumerate_wmi_subscriptions",
     "description": "Enumerate WMI event consumers, filters, and bindings used for persistence",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1546"
     ],
     "name": "WMI Event Subscriptions",
     "platforms": "Windows",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.cgroup": {
     "category": "Process",
@@ -1534,7 +1918,10 @@
     ],
     "name": "CGroup",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.child.pids": {
     "category": "Process",
@@ -1546,7 +1933,10 @@
     ],
     "name": "Child PIDs",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.command_line": {
     "category": "Process",
@@ -1558,7 +1948,10 @@
     ],
     "name": "Command Line",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.container": {
     "category": "Process",
@@ -1570,7 +1963,10 @@
     ],
     "name": "Container ID",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.cwd": {
     "category": "Process",
@@ -1582,7 +1978,10 @@
     ],
     "name": "Working Directory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.deleted.exe": {
     "category": "Process",
@@ -1594,7 +1993,10 @@
     ],
     "name": "Deleted Executable",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.deleted_exe": {
     "category": "Process",
@@ -1606,7 +2008,10 @@
     ],
     "name": "Deleted Executable Detection",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.enumerate": {
     "category": "Process",
@@ -1618,7 +2023,10 @@
     ],
     "name": "Process Enumeration",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.env": {
     "category": "Process",
@@ -1630,7 +2038,10 @@
     ],
     "name": "Environment",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.executable_path": {
     "category": "Process",
@@ -1642,7 +2053,10 @@
     ],
     "name": "Executable Path",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.group": {
     "category": "Process",
@@ -1654,7 +2068,10 @@
     ],
     "name": "Process Group",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.handles": {
     "category": "Process",
@@ -1666,7 +2083,10 @@
     ],
     "name": "Process Open Handles",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.hash": {
     "category": "Process",
@@ -1678,7 +2098,10 @@
     ],
     "name": "Executable Hash",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.integrity": {
     "category": "Process",
@@ -1690,7 +2113,10 @@
     ],
     "name": "Integrity Level",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.memory": {
     "category": "Process",
@@ -1702,7 +2128,10 @@
     ],
     "name": "Process Memory Regions",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.memory.map": {
     "category": "Process",
@@ -1714,7 +2143,10 @@
     ],
     "name": "Memory Regions",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.memory.rss": {
     "category": "Process",
@@ -1726,7 +2158,10 @@
     ],
     "name": "RSS Memory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.memory.vms": {
     "category": "Process",
@@ -1738,7 +2173,10 @@
     ],
     "name": "Virtual Memory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.module.list": {
     "category": "Process",
@@ -1750,7 +2188,10 @@
     ],
     "name": "Loaded Modules",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.module.path": {
     "category": "Process",
@@ -1762,7 +2203,10 @@
     ],
     "name": "Module Paths",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.module.signature": {
     "category": "Process",
@@ -1774,7 +2218,10 @@
     ],
     "name": "Module Signatures",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.module.version": {
     "category": "Process",
@@ -1786,7 +2233,10 @@
     ],
     "name": "Module Versions",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.modules": {
     "category": "Process",
@@ -1799,7 +2249,10 @@
     ],
     "name": "Process Modules/DLLs",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.name": {
     "category": "Process",
@@ -1811,7 +2264,10 @@
     ],
     "name": "Process Name",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.network.connections": {
     "category": "Process",
@@ -1823,7 +2279,10 @@
     ],
     "name": "Process Network",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.nice": {
     "category": "Process",
@@ -1835,7 +2294,10 @@
     ],
     "name": "Nice Value",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.open.files": {
     "category": "Process",
@@ -1847,7 +2309,10 @@
     ],
     "name": "Open Files",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.parent.name": {
     "category": "Process",
@@ -1859,7 +2324,10 @@
     ],
     "name": "Parent Name",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.pid": {
     "category": "Process",
@@ -1871,7 +2339,10 @@
     ],
     "name": "Process ID",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.ppid": {
     "category": "Process",
@@ -1883,7 +2354,10 @@
     ],
     "name": "Parent PID",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.priority": {
     "category": "Process",
@@ -1895,7 +2369,10 @@
     ],
     "name": "Priority",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.session": {
     "category": "Process",
@@ -1907,7 +2384,10 @@
     ],
     "name": "Session ID",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.start_time": {
     "category": "Process",
@@ -1919,7 +2399,10 @@
     ],
     "name": "Start Time",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.state": {
     "category": "Process",
@@ -1931,7 +2414,10 @@
     ],
     "name": "Process State",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.terminal": {
     "category": "Process",
@@ -1943,7 +2429,10 @@
     ],
     "name": "Terminal",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.threads": {
     "category": "Process",
@@ -1955,7 +2444,10 @@
     ],
     "name": "Thread Count",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.tree": {
     "category": "Process",
@@ -1967,7 +2459,10 @@
     ],
     "name": "Process Tree & Relationships",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "process.user": {
     "category": "Process",
@@ -1979,7 +2474,10 @@
     ],
     "name": "Process User",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.bash.metadata": {
     "category": "MaliciousScript",
@@ -1991,7 +2489,10 @@
     ],
     "name": "Bash Metadata",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.cmd.metadata": {
     "category": "MaliciousScript",
@@ -2003,7 +2504,10 @@
     ],
     "name": "CMD Metadata",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.environment.indicators": {
     "category": "MaliciousScript",
@@ -2015,7 +2519,10 @@
     ],
     "name": "Environment Indicators",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.execution": {
     "category": "MaliciousScript",
@@ -2027,7 +2534,10 @@
     ],
     "name": "Execution Indicators",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.file.indicators": {
     "category": "MaliciousScript",
@@ -2039,7 +2549,10 @@
     ],
     "name": "File Path Indicators",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.ip.indicators": {
     "category": "MaliciousScript",
@@ -2051,7 +2564,10 @@
     ],
     "name": "IP Indicators",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.javascript.metadata": {
     "category": "MaliciousScript",
@@ -2063,7 +2579,10 @@
     ],
     "name": "JavaScript Metadata",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.obfuscation": {
     "category": "MaliciousScript",
@@ -2075,7 +2594,10 @@
     ],
     "name": "Obfuscation Indicators",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.persistence": {
     "category": "MaliciousScript",
@@ -2087,19 +2609,25 @@
     ],
     "name": "Persistence Indicators",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.powershell": {
     "category": "MaliciousScript",
     "collector_function": "analyze_powershell_scripts",
     "description": "Analyze PowerShell scripts: encoded commands, obfuscation, suspicious APIs, AMSI bypass, script block logging",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1059.001"
     ],
     "name": "PowerShell Script Analysis",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.powershell.metadata": {
     "category": "MaliciousScript",
@@ -2111,19 +2639,25 @@
     ],
     "name": "PowerShell Metadata",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.python": {
     "category": "MaliciousScript",
     "collector_function": "analyze_python_scripts",
     "description": "Analyze Python scripts: obfuscation, suspicious imports, encoded payloads, C2 patterns",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1059.006"
     ],
     "name": "Python Script Analysis",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.python.metadata": {
     "category": "MaliciousScript",
@@ -2135,19 +2669,25 @@
     ],
     "name": "Python Metadata",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.shell": {
     "category": "MaliciousScript",
     "collector_function": "analyze_shell_scripts",
     "description": "Analyze shell scripts: obfuscation, suspicious commands, embedded payloads, reverse shells",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1059.004"
     ],
     "name": "Shell Script Analysis",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.url.indicators": {
     "category": "MaliciousScript",
@@ -2159,19 +2699,25 @@
     ],
     "name": "URL Indicators",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "script.wmi": {
     "category": "MaliciousScript",
     "collector_function": "analyze_wmi_scripts",
     "description": "Analyze WMI queries and VBScript: suspicious queries, consumer bindings, encoded scripts",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1059.005"
     ],
     "name": "WMI/VBScript Analysis",
     "platforms": "Windows",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "security.antivirus": {
     "category": "SecurityConfig",
@@ -2183,19 +2729,25 @@
     ],
     "name": "AV Inventory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "security.app_control": {
     "category": "SecurityConfig",
     "collector_function": "collect_app_control",
     "description": "Collect AppLocker, WDAC, SELinux, AppArmor policies and enforcement status",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1562"
     ],
     "name": "Application Control",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "security.apparmor": {
     "category": "SecurityConfig",
@@ -2207,7 +2759,10 @@
     ],
     "name": "AppArmor State",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "security.audit.policy": {
     "category": "SecurityConfig",
@@ -2219,31 +2774,40 @@
     ],
     "name": "Audit Policy",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "security.audit_policy": {
     "category": "SecurityConfig",
     "collector_function": "collect_audit_policy",
     "description": "Collect audit policy configuration: audit rules, flags, log retention, auditd config",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1562"
     ],
     "name": "Audit Policy",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "security.av_status": {
     "category": "SecurityConfig",
     "collector_function": "detect_av_edr",
     "description": "Detect AV/EDR products: running processes, services, drivers, signature versions, exclusions",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1562"
     ],
     "name": "Antivirus/EDR Status",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "security.firewall": {
     "category": "SecurityConfig",
@@ -2255,7 +2819,10 @@
     ],
     "name": "Firewall State",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "security.policy": {
     "category": "SecurityConfig",
@@ -2267,7 +2834,10 @@
     ],
     "name": "Security Policy",
     "platforms": "Both",
-    "privilege": "Admin"
+    "privilege": "Admin",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "security.selinux": {
     "category": "SecurityConfig",
@@ -2279,7 +2849,10 @@
     ],
     "name": "SELinux State",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "security.update.state": {
     "category": "SecurityConfig",
@@ -2291,7 +2864,10 @@
     ],
     "name": "Update State",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "service.account": {
     "category": "Service",
@@ -2303,7 +2879,10 @@
     ],
     "name": "Service Account",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "service.binary.path": {
     "category": "Service",
@@ -2315,7 +2894,10 @@
     ],
     "name": "Service Binary",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "service.dependencies": {
     "category": "Service",
@@ -2327,7 +2909,10 @@
     ],
     "name": "Service Dependencies",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "service.driver.list": {
     "category": "Service",
@@ -2339,7 +2924,10 @@
     ],
     "name": "Driver Inventory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "service.drivers": {
     "category": "Service",
@@ -2351,19 +2939,25 @@
     ],
     "name": "Kernel Drivers",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "service.enumerate": {
     "category": "Service",
     "collector_function": "enumerate_services",
     "description": "Enumerate all services: name, display name, status, startup type, binary path, service account, dependencies, description",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1543"
     ],
     "name": "Service Enumeration",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "service.list": {
     "category": "Service",
@@ -2375,7 +2969,10 @@
     ],
     "name": "Service Inventory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "service.name": {
     "category": "Service",
@@ -2387,7 +2984,10 @@
     ],
     "name": "Service Name",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "service.start.mode": {
     "category": "Service",
@@ -2399,7 +2999,10 @@
     ],
     "name": "Service Start Mode",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "service.state": {
     "category": "Service",
@@ -2411,19 +3014,25 @@
     ],
     "name": "Service State",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "service.systemd": {
     "category": "Service",
     "collector_function": "enumerate_systemd_units",
     "description": "Enumerate systemd units: service, timer, socket, path, mount units with full configuration and drop-in files",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1543"
     ],
     "name": "Systemd Units",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "service.systemd.units": {
     "category": "Service",
@@ -2435,7 +3044,10 @@
     ],
     "name": "Systemd Units",
     "platforms": "Linux",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.architecture": {
     "category": "SystemInfo",
@@ -2447,7 +3059,10 @@
     ],
     "name": "Architecture",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.boot.time": {
     "category": "SystemInfo",
@@ -2459,7 +3074,10 @@
     ],
     "name": "Boot Time",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.cpu.cores": {
     "category": "SystemInfo",
@@ -2471,7 +3089,10 @@
     ],
     "name": "CPU Cores",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.cpu.count": {
     "category": "SystemInfo",
@@ -2483,7 +3104,10 @@
     ],
     "name": "CPU Count",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.cpu.frequency": {
     "category": "SystemInfo",
@@ -2495,7 +3119,10 @@
     ],
     "name": "CPU Frequency",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.cpu.model": {
     "category": "SystemInfo",
@@ -2507,7 +3134,10 @@
     ],
     "name": "CPU Model",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.disks": {
     "category": "SystemInfo",
@@ -2519,7 +3149,10 @@
     ],
     "name": "Disk Inventory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.environment": {
     "category": "SystemInfo",
@@ -2531,7 +3164,10 @@
     ],
     "name": "Environment Variables",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.firmware.vendor": {
     "category": "SystemInfo",
@@ -2543,7 +3179,10 @@
     ],
     "name": "Firmware Vendor",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.firmware.version": {
     "category": "SystemInfo",
@@ -2555,7 +3194,10 @@
     ],
     "name": "Firmware Version",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.groups": {
     "category": "SystemInfo",
@@ -2567,7 +3209,10 @@
     ],
     "name": "System Groups",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.hostname": {
     "category": "SystemInfo",
@@ -2579,7 +3224,10 @@
     ],
     "name": "Hostname",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.info.basic": {
     "category": "SystemInfo",
@@ -2591,32 +3239,41 @@
     ],
     "name": "System Basic Info",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.info.detailed": {
     "category": "SystemInfo",
     "collector_function": "collect_system_info_detailed",
     "description": "Extended system information: machine ID, system paths, disk/partition layout, detailed CPU info, virtualization detection, firmware/BIOS info, installed software/packages",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1082",
       "T1012"
     ],
     "name": "System Detailed Info",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.info.users": {
     "category": "SystemInfo",
     "collector_function": "collect_system_users",
     "description": "Enumerate local users and groups with details: UID/GID, home directory, shell, last login, password status, group memberships",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1087"
     ],
     "name": "System Users & Groups",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.kernel.version": {
     "category": "SystemInfo",
@@ -2628,7 +3285,10 @@
     ],
     "name": "Kernel Version",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.locale": {
     "category": "SystemInfo",
@@ -2640,7 +3300,10 @@
     ],
     "name": "Locale",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.machine.id": {
     "category": "SystemInfo",
@@ -2652,7 +3315,10 @@
     ],
     "name": "Machine ID",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.memory.boot": {
     "category": "SystemInfo",
@@ -2664,7 +3330,10 @@
     ],
     "name": "Boot Memory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.memory.total": {
     "category": "SystemInfo",
@@ -2676,7 +3345,10 @@
     ],
     "name": "Total Memory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.mounts": {
     "category": "SystemInfo",
@@ -2688,7 +3360,10 @@
     ],
     "name": "Mount Inventory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.network.interfaces": {
     "category": "SystemInfo",
@@ -2700,7 +3375,10 @@
     ],
     "name": "Network Interfaces",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.os.name": {
     "category": "SystemInfo",
@@ -2712,7 +3390,10 @@
     ],
     "name": "OS Name",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.os.version": {
     "category": "SystemInfo",
@@ -2724,7 +3405,10 @@
     ],
     "name": "OS Version",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.packages": {
     "category": "SystemInfo",
@@ -2736,7 +3420,10 @@
     ],
     "name": "Package Inventory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.partitions": {
     "category": "SystemInfo",
@@ -2748,7 +3435,10 @@
     ],
     "name": "Partition Inventory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.paths": {
     "category": "SystemInfo",
@@ -2760,7 +3450,10 @@
     ],
     "name": "System Paths",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.secure.boot": {
     "category": "SystemInfo",
@@ -2772,7 +3465,10 @@
     ],
     "name": "Secure Boot",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.software.inventory": {
     "category": "SystemInfo",
@@ -2784,7 +3480,10 @@
     ],
     "name": "Software Inventory",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.timezone": {
     "category": "SystemInfo",
@@ -2796,7 +3495,10 @@
     ],
     "name": "Timezone",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.uptime": {
     "category": "SystemInfo",
@@ -2808,7 +3510,10 @@
     ],
     "name": "Uptime",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.users": {
     "category": "SystemInfo",
@@ -2820,7 +3525,10 @@
     ],
     "name": "System Users",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "system.virtualization": {
     "category": "SystemInfo",
@@ -2832,7 +3540,10 @@
     ],
     "name": "Virtualization",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "user.admin": {
     "category": "User",
@@ -2844,19 +3555,25 @@
     ],
     "name": "Privileged Users",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "user.enumerate": {
     "category": "User",
     "collector_function": "enumerate_users",
     "description": "Enumerate all local and domain users with attributes: SID/UID, status, last logon, password age, group memberships",
-    "is_implemented": false,
+    "is_implemented": true,
     "mitre_attack_ids": [
       "T1087"
     ],
     "name": "User Enumeration",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "user.group.membership": {
     "category": "User",
@@ -2868,7 +3585,10 @@
     ],
     "name": "Group Membership",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "user.home": {
     "category": "User",
@@ -2880,7 +3600,10 @@
     ],
     "name": "Home Directories",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "user.last.login": {
     "category": "User",
@@ -2892,7 +3615,10 @@
     ],
     "name": "Last Login",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "user.list": {
     "category": "User",
@@ -2904,7 +3630,10 @@
     ],
     "name": "User List",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "user.service.accounts": {
     "category": "User",
@@ -2916,7 +3645,10 @@
     ],
     "name": "Service Accounts",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "user.shell": {
     "category": "User",
@@ -2928,7 +3660,10 @@
     ],
     "name": "User Shell",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "user.sid": {
     "category": "User",
@@ -2940,7 +3675,10 @@
     ],
     "name": "User IDs",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   },
   "user.status": {
     "category": "User",
@@ -2952,6 +3690,9 @@
     ],
     "name": "Account Status",
     "platforms": "Both",
-    "privilege": "User"
+    "privilege": "User",
+    "status": "IMPLEMENTED",
+    "status_reason": null,
+    "version": "0.1.0"
   }
 }

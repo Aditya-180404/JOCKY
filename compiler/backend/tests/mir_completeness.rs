@@ -1,3 +1,5 @@
+#![cfg(feature = "llvm")]
+
 use jockey_backend::llvm::LlvmBackend;
 use jockey_ir::BuildConfig;
 use jockey_mir::{

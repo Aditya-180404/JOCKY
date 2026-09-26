@@ -1,8 +1,10 @@
-//! End-to-end pipeline test: `.tfg` source → Lexer → Parser → AST →
+//! End-to-end pipeline test: `.jy` source → Lexer → Parser → AST →
 //! Semantic → IrInvestigation → HIR → MIR → LLVM IR text.
 //!
 //! These tests drive the **full** compilation stack at the IR-generation level
 //! without the runtime linker step, making them fast and suitable for CI.
+
+#![cfg(feature = "llvm")]
 
 use jockey_backend::llvm::LlvmBackend;
 use jockey_ir::BuildConfig;
