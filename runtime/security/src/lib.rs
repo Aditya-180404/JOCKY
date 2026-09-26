@@ -689,6 +689,166 @@ pub fn analyze_shell_scripts(search_path: &str) -> Result<Vec<serde_json::Value>
     Ok(results)
 }
 
+/// Rootkit indicator detector
+pub fn detect_rootkit_indicators(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = std::path::Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "rootkit_indicators",
+            "status": "path_not_found",
+            "path": search_path,
+        })]);
+    }
+
+    let mut results = Vec::new();
+    
+    // Check for common rootkit indicators
+    results.push(serde_json::json!({
+        "collector": "rootkit_indicators",
+        "status": "not_implemented",
+        "note": "Rootkit detection requires kernel-level access and is not fully implemented",
+        "checks": [
+            "hidden_processes",
+            "hidden_files",
+            "hidden_ports",
+            "ssdt_hooks",
+            "idt_hooks",
+            "dkom",
+            "kernel_module_integrity",
+            "system_call_table_integrity",
+        ],
+    }));
+    
+    // On Linux, check for some user-space indicators
+    #[cfg(target_os = "linux")]
+    {
+        // Check for hidden processes (processes not in /proc but visible via other means)
+        // This is a simplified check
+        if let Ok(proc_dir) = std::fs::read_dir("/proc") {
+            let mut pids = Vec::new();
+            for entry in proc_dir.flatten() {
+                if let Ok(pid) = entry.file_name().to_string_lossy().parse::<i32>() {
+                    pids.push(pid);
+                }
+            }
+            results.push(serde_json::json!({
+                "collector": "rootkit_indicators",
+                "check": "process_count",
+                "visible_processes": pids.len(),
+            }));
+        }
+    }
+    
+    Ok(results)
+}
+
+/// Binary anomaly detector
+pub fn detect_binary_anomalies(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = std::path::Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "binary_anomalies",
+            "status": "path_not_found",
+            "path": search_path,
+        })]);
+    }
+
+    let mut results = Vec::new();
+    
+    for entry in walkdir_max_depth(path, 3) {
+        if entry.is_file() {
+            let ext = entry.extension().and_then(|e| e.to_str()).unwrap_or("");
+            if ext == "exe" || ext == "dll" || ext == "so" || ext == "bin" || ext == "sys" {
+                let bytes = std::fs::read(&entry).unwrap_or_default();
+                if bytes.is_empty() {
+                    continue;
+                }
+                
+                // Calculate entropy
+                let mut freq = [0u64; 256];
+                for &b in &bytes {
+                    freq[b as usize] += 1;
+                }
+                let len = bytes.len() as f64;
+                let mut entropy = 0.0;
+                for &count in &freq {
+                    if count > 0 {
+                        let p = count as f64 / len;
+                        entropy -= p * p.log2();
+                    }
+                }
+                
+                let sha256 = sha256_file(&entry);
+                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                
+                let suspicious = entropy > 7.0;
+                
+                results.push(serde_json::json!({
+                    "collector": "binary_anomalies",
+                    "path": entry.display().to_string(),
+                    "size_bytes": size,
+                    "sha256": sha256,
+                    "entropy": entropy,
+                    "file_type": ext,
+                    "anomalies": if suspicious { vec!["high_entropy"] } else { vec![] },
+                    "suspicious": suspicious,
+                }));
+            }
+        }
+    }
+    
+    if results.is_empty() {
+        results.push(serde_json::json!({
+            "collector": "binary_anomalies",
+            "status": "no_artifacts_found",
+            "path": search_path,
+        }));
+    }
+    
+    Ok(results)
+}
+
+/// Simple directory walker limited to max_depth (avoids pulling in walkdir crate)
+fn walkdir_max_depth(dir: &std::path::Path, max_depth: usize) -> Vec<std::path::PathBuf> {
+    let mut results = Vec::new();
+    walk_recursive(dir, 0, max_depth, &mut results);
+    results
+}
+
+fn walk_recursive(dir: &std::path::Path, depth: usize, max_depth: usize, out: &mut Vec<std::path::PathBuf>) {
+    if depth > max_depth {
+        return;
+    }
+    let entries = match std::fs::read_dir(dir) {
+        Ok(e) => e,
+        Err(_) => return,
+    };
+    for entry in entries.filter_map(|e| e.ok()) {
+        let path = entry.path();
+        if path.is_file() {
+            out.push(path);
+        } else if path.is_dir() && depth < max_depth {
+            walk_recursive(&path, depth + 1, max_depth, out);
+        }
+    }
+}
+
+/// Compute SHA-256 of a file (returns hex string, or "error:<msg>" on failure)
+fn sha256_file(path: &std::path::Path) -> String {
+    use sha2::{Digest, Sha256};
+    let bytes = match std::fs::read(path) {
+        Ok(b) => b,
+        Err(e) => return format!("error:{}", e),
+    };
+    let mut hasher = Sha256::new();
+    hasher.update(&bytes);
+    format!("{:x}", hasher.finalize())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -121,7 +121,7 @@ fn modified_at(path: &Path) -> Option<String> {
 
 /// Scan for Windows Prefetch files (*.pf)
 /// On Linux/macOS this scans the provided path for any .pf files
-fn carve_prefetch(search_path: &str) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+pub fn carve_prefetch(search_path: &str) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     let path = Path::new(search_path);
     let mut results = Vec::new();
 
@@ -224,7 +224,7 @@ fn is_suspicious_prefetch(exec_name: &str) -> bool {
 }
 
 /// Scan for Windows LNK shortcut files
-fn carve_lnk_files(
+pub fn carve_lnk_files(
     search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     let path = Path::new(search_path);
@@ -273,7 +273,7 @@ fn carve_lnk_files(
 }
 
 /// Scan Recycle Bin ($RECYCLE.BIN style entries)
-fn carve_recycle_bin(
+pub fn carve_recycle_bin(
     search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     let path = Path::new(search_path);
@@ -504,7 +504,7 @@ pub fn collect_autostart_entries(
 }
 
 /// Collect cron job entries from system and user crontabs
-fn carve_cron_entries(
+pub fn carve_cron_entries(
     _search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     #[cfg(target_os = "linux")]
@@ -595,7 +595,7 @@ fn carve_linux_cron() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Erro
 }
 
 /// Collect systemd unit files (persistence mechanism on Linux)
-fn carve_systemd_units(
+pub fn carve_systemd_units(
     _search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     #[cfg(target_os = "linux")]
@@ -698,6 +698,997 @@ fn walk_recursive(dir: &Path, depth: usize, max_depth: usize, out: &mut Vec<std:
         } else if path.is_dir() && depth < max_depth {
             walk_recursive(&path, depth + 1, max_depth, out);
         }
+    }
+}
+
+/// Windows Amcache.hve parser
+pub fn carve_amcache(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "amcache",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // Amcache.hve is typically at C:\Windows\AppCompat\Programs\Amcache.hve
+        let amcache_path = Path::new(r"C:\Windows\AppCompat\Programs\Amcache.hve");
+        if amcache_path.exists() {
+            // TODO: Implement actual Amcache parsing
+            return Ok(vec![serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "amcache",
+                "status": "not_implemented",
+                "note": "Amcache parsing not yet implemented",
+                "path": amcache_path.display().to_string(),
+            })]);
+        }
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "amcache",
+        "status": "platform_note",
+        "note": "Amcache is Windows-specific",
+    })])
+}
+
+/// Windows SRUM database parser
+pub fn carve_srum(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "srum",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // SRUM is typically at C:\Windows\System32\sru\SRUDB.dat
+        let srum_path = Path::new(r"C:\Windows\System32\sru\SRUDB.dat");
+        if srum_path.exists() {
+            return Ok(vec![serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "srum",
+                "status": "not_implemented",
+                "note": "SRUM parsing not yet implemented",
+                "path": srum_path.display().to_string(),
+            })]);
+        }
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "srum",
+        "status": "platform_note",
+        "note": "SRUM is Windows-specific",
+    })])
+}
+
+/// Windows Jump Lists parser
+pub fn carve_jumplists(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "jumplists",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // Jump Lists are typically at C:\Users\<user>\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations\
+        let jumplist_dir = Path::new(r"C:\Users");
+        if jumplist_dir.exists() {
+            return Ok(vec![serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "jumplists",
+                "status": "not_implemented",
+                "note": "Jump Lists parsing not yet implemented",
+                "path": jumplist_dir.display().to_string(),
+            })]);
+        }
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "jumplists",
+        "status": "platform_note",
+        "note": "Jump Lists are Windows-specific",
+    })])
+}
+
+/// Windows Shellbags parser
+pub fn carve_shellbags(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "shellbags",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // Shellbags are in registry: HKCU\Software\Microsoft\Windows\Shell\Bags
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "shellbags",
+            "status": "not_implemented",
+            "note": "Shellbags parsing not yet implemented (requires registry access)",
+        })]);
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "shellbags",
+        "status": "platform_note",
+        "note": "Shellbags are Windows-specific",
+    })])
+}
+
+/// Windows ETW logs collector
+pub fn collect_etw_logs(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "etw",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "windows")]
+    {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "etw",
+            "status": "not_implemented",
+            "note": "ETW log collection not yet implemented",
+        })]);
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "etw",
+        "status": "platform_note",
+        "note": "ETW is Windows-specific",
+    })])
+}
+
+/// Windows Event Logs collector
+pub fn carve_event_logs(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "event_logs",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // Event logs are typically at C:\Windows\System32\winevt\Logs\
+        let evt_dir = Path::new(r"C:\Windows\System32\winevt\Logs");
+        if evt_dir.exists() {
+            return Ok(vec![serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "event_logs",
+                "status": "not_implemented",
+                "note": "Event log parsing not yet implemented",
+                "path": evt_dir.display().to_string(),
+            })]);
+        }
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "event_logs",
+        "status": "platform_note",
+        "note": "Event logs are Windows-specific",
+    })])
+}
+
+/// Windows Recent Files collector
+pub fn carve_recent_files(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "recent_files",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // Recent files are in C:\Users\<user>\AppData\Roaming\Microsoft\Windows\Recent\
+        let recent_dir = Path::new(r"C:\Users");
+        if recent_dir.exists() {
+            return Ok(vec![serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "recent_files",
+                "status": "not_implemented",
+                "note": "Recent files parsing not yet implemented",
+                "path": recent_dir.display().to_string(),
+            })]);
+        }
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "recent_files",
+        "status": "platform_note",
+        "note": "Recent files are Windows-specific",
+    })])
+}
+
+/// Linux Container artifacts collector
+pub fn carve_container_artifacts(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "container",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "linux")]
+    {
+        // Check for Docker, containerd, podman artifacts
+        let docker_path = Path::new("/var/lib/docker");
+        let containerd_path = Path::new("/var/lib/containerd");
+        let podman_path = Path::new("/var/lib/containers");
+        
+        let mut found = false;
+        if docker_path.exists() || containerd_path.exists() || podman_path.exists() {
+            found = true;
+        }
+        
+        if found {
+            return Ok(vec![serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "container",
+                "status": "not_implemented",
+                "note": "Container artifact parsing not yet implemented",
+                "paths": vec![
+                    docker_path.display().to_string(),
+                    containerd_path.display().to_string(),
+                    podman_path.display().to_string(),
+                ],
+            })]);
+        }
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "container",
+        "status": "platform_note",
+        "note": "Container artifacts are Linux-specific",
+    })])
+}
+
+/// Linux SSH config collector
+pub fn carve_ssh_config(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "ssh_config",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "linux")]
+    {
+        // SSH config files: /etc/ssh/sshd_config, ~/.ssh/config, ~/.ssh/authorized_keys, ~/.ssh/known_hosts
+        let ssh_dir = Path::new("/etc/ssh");
+        let mut results = Vec::new();
+        
+        if ssh_dir.exists() {
+            for entry in walkdir_max_depth(ssh_dir, 2) {
+                if entry.is_file() {
+                    let sha256 = sha256_file(&entry);
+                    let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                    results.push(serde_json::to_value(CarvedArtifact {
+                        artifact_type: "ssh_config".to_string(),
+                        path: entry.display().to_string(),
+                        size_bytes: size,
+                        sha256,
+                        modified_at: modified_at(&entry),
+                        metadata: serde_json::json!({
+                            "file_type": "ssh_config",
+                        }),
+                        suspicious: false,
+                        suspicious_reason: None,
+                    })?);
+                }
+            }
+        }
+        
+        // Also check user home directories for .ssh
+        let home_dir = Path::new("/home");
+        if home_dir.exists() {
+            for entry in std::fs::read_dir(home_dir).unwrap_or_else(|_| std::fs::read_dir("/").unwrap()) {
+                if let Ok(entry) = entry {
+                    let ssh_path = entry.path().join(".ssh");
+                    if ssh_path.exists() {
+                        for ssh_entry in walkdir_max_depth(&ssh_path, 2) {
+                            if ssh_entry.is_file() {
+                                let sha256 = sha256_file(&ssh_entry);
+                                let size = ssh_entry.metadata().map(|m| m.len()).unwrap_or(0);
+                                results.push(serde_json::to_value(CarvedArtifact {
+                                    artifact_type: "ssh_config".to_string(),
+                                    path: ssh_entry.display().to_string(),
+                                    size_bytes: size,
+                                    sha256,
+                                    modified_at: modified_at(&ssh_entry),
+                                    metadata: serde_json::json!({
+                                        "file_type": "ssh_user_config",
+                                    }),
+                                    suspicious: false,
+                                    suspicious_reason: None,
+                                })?);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        if results.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "ssh_config",
+                "status": "no_artifacts_found",
+            }));
+        }
+        
+        return Ok(results);
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "ssh_config",
+        "status": "platform_note",
+        "note": "SSH config is Linux-specific",
+    })])
+}
+
+/// PowerShell script analyzer
+pub fn analyze_powershell_scripts(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "powershell_script",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // Find .ps1 files
+        let mut results = Vec::new();
+        for entry in walkdir_max_depth(path, 3) {
+            if entry.extension().and_then(|e| e.to_str()) == Some("ps1") {
+                let content = std::fs::read_to_string(&entry).unwrap_or_default();
+                let sha256 = sha256_file(&entry);
+                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                
+                // Simple analysis
+                let suspicious = content.to_lowercase().contains("invoke-expression")
+                    || content.to_lowercase().contains("iex")
+                    || content.to_lowercase().contains("downloadstring")
+                    || content.to_lowercase().contains("bypass")
+                    || content.to_lowercase().contains("encodedcommand")
+                    || content.to_lowercase().contains("amsi");
+                
+                results.push(serde_json::to_value(CarvedArtifact {
+                    artifact_type: "powershell_script".to_string(),
+                    path: entry.display().to_string(),
+                    size_bytes: size,
+                    sha256,
+                    modified_at: modified_at(&entry),
+                    metadata: serde_json::json!({
+                        "suspicious_patterns": if suspicious { vec!["potential_obfuscation", "amsi_bypass", "download_execute"] } else { vec![] },
+                    }),
+                    suspicious,
+                    suspicious_reason: if suspicious {
+                        Some("PowerShell script contains suspicious patterns".to_string())
+                    } else {
+                        None
+                    },
+                })?);
+            }
+        }
+        
+        if results.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "powershell_script",
+                "status": "no_artifacts_found",
+            }));
+        }
+        
+        return Ok(results);
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "powershell_script",
+        "status": "platform_note",
+        "note": "PowerShell script analysis is Windows-specific",
+    })])
+}
+
+/// WMI/VBScript analyzer
+pub fn analyze_wmi_scripts(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "wmi_script",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // Find .vbs files
+        let mut results = Vec::new();
+        for entry in walkdir_max_depth(path, 3) {
+            if entry.extension().and_then(|e| e.to_str()) == Some("vbs") {
+                let content = std::fs::read_to_string(&entry).unwrap_or_default();
+                let sha256 = sha256_file(&entry);
+                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                
+                let suspicious = content.to_lowercase().contains("wscript.shell")
+                    || content.to_lowercase().contains("wmi")
+                    || content.to_lowercase().contains("execquery")
+                    || content.to_lowercase().contains("createobject");
+                
+                results.push(serde_json::to_value(CarvedArtifact {
+                    artifact_type: "wmi_script".to_string(),
+                    path: entry.display().to_string(),
+                    size_bytes: size,
+                    sha256,
+                    modified_at: modified_at(&entry),
+                    metadata: serde_json::json!({
+                        "suspicious_patterns": if suspicious { vec!["wmi_query", "shell_execution"] } else { vec![] },
+                    }),
+                    suspicious,
+                    suspicious_reason: if suspicious {
+                        Some("VBScript contains suspicious WMI/shell patterns".to_string())
+                    } else {
+                        None
+                    },
+                })?);
+            }
+        }
+        
+        if results.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "wmi_script",
+                "status": "no_artifacts_found",
+            }));
+        }
+        
+        return Ok(results);
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "wmi_script",
+        "status": "platform_note",
+        "note": "WMI/VBScript analysis is Windows-specific",
+    })])
+}
+
+/// Shell script analyzer
+pub fn analyze_shell_scripts(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "shell_script",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "linux")]
+    {
+        // Find .sh files
+        let mut results = Vec::new();
+        for entry in walkdir_max_depth(path, 3) {
+            if entry.extension().and_then(|e| e.to_str()) == Some("sh") {
+                let content = std::fs::read_to_string(&entry).unwrap_or_default();
+                let sha256 = sha256_file(&entry);
+                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                
+                let suspicious = content.to_lowercase().contains("base64")
+                    || content.to_lowercase().contains("wget")
+                    || content.to_lowercase().contains("curl")
+                    || content.to_lowercase().contains("nc ")
+                    || content.to_lowercase().contains("/dev/tcp")
+                    || content.to_lowercase().contains("chmod +x")
+                    || content.to_lowercase().contains("python -c")
+                    || content.to_lowercase().contains("perl -e")
+                    || content.to_lowercase().contains("bash -i");
+                
+                results.push(serde_json::to_value(CarvedArtifact {
+                    artifact_type: "shell_script".to_string(),
+                    path: entry.display().to_string(),
+                    size_bytes: size,
+                    sha256,
+                    modified_at: modified_at(&entry),
+                    metadata: serde_json::json!({
+                        "suspicious_patterns": if suspicious { vec!["obfuscation", "download_execute", "reverse_shell"] } else { vec![] },
+                    }),
+                    suspicious,
+                    suspicious_reason: if suspicious {
+                        Some("Shell script contains suspicious patterns".to_string())
+                    } else {
+                        None
+                    },
+                })?);
+            }
+        }
+        
+        if results.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "shell_script",
+                "status": "no_artifacts_found",
+            }));
+        }
+        
+        return Ok(results);
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "shell_script",
+        "status": "platform_note",
+        "note": "Shell script analysis is Linux-specific",
+    })])
+}
+
+/// Python script analyzer
+pub fn analyze_python_scripts(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "python_script",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    {
+        // Find .py files
+        let mut results = Vec::new();
+        for entry in walkdir_max_depth(path, 3) {
+            if entry.extension().and_then(|e| e.to_str()) == Some("py") {
+                let content = std::fs::read_to_string(&entry).unwrap_or_default();
+                let sha256 = sha256_file(&entry);
+                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                
+                let suspicious = content.to_lowercase().contains("base64")
+                    || content.to_lowercase().contains("exec(")
+                    || content.to_lowercase().contains("eval(")
+                    || content.to_lowercase().contains("subprocess")
+                    || content.to_lowercase().contains("os.system")
+                    || content.to_lowercase().contains("socket")
+                    || content.to_lowercase().contains("requests")
+                    || content.to_lowercase().contains("urllib");
+                
+                results.push(serde_json::to_value(CarvedArtifact {
+                    artifact_type: "python_script".to_string(),
+                    path: entry.display().to_string(),
+                    size_bytes: size,
+                    sha256,
+                    modified_at: modified_at(&entry),
+                    metadata: serde_json::json!({
+                        "suspicious_patterns": if suspicious { vec!["code_execution", "network_access", "obfuscation"] } else { vec![] },
+                    }),
+                    suspicious,
+                    suspicious_reason: if suspicious {
+                        Some("Python script contains suspicious patterns".to_string())
+                    } else {
+                        None
+                    },
+                })?);
+            }
+        }
+        
+        if results.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "python_script",
+                "status": "no_artifacts_found",
+            }));
+        }
+        
+        return Ok(results);
+    }
+}
+
+/// PE metadata parser
+pub fn parse_pe_metadata(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "pe_metadata",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // Find .exe, .dll files
+        let mut results = Vec::new();
+        for entry in walkdir_max_depth(path, 3) {
+            let ext = entry.extension().and_then(|e| e.to_str()).unwrap_or("");
+            if ext == "exe" || ext == "dll" || ext == "sys" {
+                let sha256 = sha256_file(&entry);
+                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                
+                results.push(serde_json::to_value(CarvedArtifact {
+                    artifact_type: "pe_metadata".to_string(),
+                    path: entry.display().to_string(),
+                    size_bytes: size,
+                    sha256,
+                    modified_at: modified_at(&entry),
+                    metadata: serde_json::json!({
+                        "file_type": ext,
+                        "note": "PE parsing not fully implemented",
+                    }),
+                    suspicious: false,
+                    suspicious_reason: None,
+                })?);
+            }
+        }
+        
+        if results.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "pe_metadata",
+                "status": "no_artifacts_found",
+            }));
+        }
+        
+        return Ok(results);
+    }
+    Ok(vec![serde_json::json!({
+        "collector": "artifacts",
+        "artifact_type": "pe_metadata",
+        "status": "platform_note",
+        "note": "PE metadata parsing is Windows-specific",
+    })])
+}
+
+/// ELF metadata parser
+pub fn parse_elf_metadata(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "elf_metadata",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    #[cfg(target_os = "linux")]
+    {
+        // Find ELF files
+        let mut results = Vec::new();
+        for entry in walkdir_max_depth(path, 3) {
+            if entry.is_file() {
+                // Check if it's an ELF file by reading magic bytes
+                if let Ok(bytes) = std::fs::read(&entry) {
+                    if bytes.len() >= 4 && &bytes[0..4] == b"\x7fELF" {
+                        let sha256 = sha256_file(&entry);
+                        let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                        
+                        results.push(serde_json::to_value(CarvedArtifact {
+                            artifact_type: "elf_metadata".to_string(),
+                            path: entry.display().to_string(),
+                            size_bytes: size,
+                            sha256,
+                            modified_at: modified_at(&entry),
+                            metadata: serde_json::json!({
+                                "file_type": "elf",
+                                "note": "ELF parsing not fully implemented",
+                            }),
+                            suspicious: false,
+                            suspicious_reason: None,
+                        })?);
+                    }
+                }
+            }
+        }
+        
+        if results.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "elf_metadata",
+                "status": "no_artifacts_found",
+            }));
+        }
+        
+        Ok(results)
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "elf_metadata",
+            "status": "platform_note",
+            "note": "ELF metadata parsing is Linux-specific",
+        })])
+    }
+}
+
+/// Code signature verifier
+pub fn verify_code_signature(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "code_signature",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    {
+        let mut results = Vec::new();
+        for entry in walkdir_max_depth(path, 3) {
+            if entry.is_file() {
+                let sha256 = sha256_file(&entry);
+                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                
+                results.push(serde_json::to_value(CarvedArtifact {
+                    artifact_type: "code_signature".to_string(),
+                    path: entry.display().to_string(),
+                    size_bytes: size,
+                    sha256,
+                    modified_at: modified_at(&entry),
+                    metadata: serde_json::json!({
+                        "note": "Code signature verification not fully implemented",
+                    }),
+                    suspicious: false,
+                    suspicious_reason: None,
+                })?);
+            }
+        }
+        
+        if results.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "code_signature",
+                "status": "no_artifacts_found",
+            }));
+        }
+        
+        return Ok(results);
+    }
+}
+
+/// File entropy analyzer
+pub fn analyze_file_entropy(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "file_entropy",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    {
+        let mut results = Vec::new();
+        for entry in walkdir_max_depth(path, 3) {
+            if entry.is_file() {
+                let bytes = std::fs::read(&entry).unwrap_or_default();
+                if bytes.is_empty() {
+                    continue;
+                }
+                
+                // Calculate Shannon entropy
+                let mut freq = [0u64; 256];
+                for &b in &bytes {
+                    freq[b as usize] += 1;
+                }
+                let len = bytes.len() as f64;
+                let mut entropy = 0.0;
+                for &count in &freq {
+                    if count > 0 {
+                        let p = count as f64 / len;
+                        entropy -= p * p.log2();
+                    }
+                }
+                
+                let sha256 = sha256_file(&entry);
+                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                
+                let suspicious = entropy > 7.0; // High entropy suggests packing/encryption
+                
+                results.push(serde_json::to_value(CarvedArtifact {
+                    artifact_type: "file_entropy".to_string(),
+                    path: entry.display().to_string(),
+                    size_bytes: size,
+                    sha256,
+                    modified_at: modified_at(&entry),
+                    metadata: serde_json::json!({
+                        "entropy": entropy,
+                        "max_entropy": 8.0,
+                    }),
+                    suspicious,
+                    suspicious_reason: if suspicious {
+                        Some(format!("High entropy ({:.2}) suggests packing or encryption", entropy))
+                    } else {
+                        None
+                    },
+                })?);
+            }
+        }
+        
+        if results.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "file_entropy",
+                "status": "no_artifacts_found",
+            }));
+        }
+        
+        return Ok(results);
+    }
+}
+
+/// Rootkit indicator detector
+pub fn detect_rootkit_indicators(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "rootkit_indicators",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    {
+        let mut results = Vec::new();
+        
+        // Check for common rootkit indicators
+        results.push(serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "rootkit_indicators",
+            "status": "not_implemented",
+            "note": "Rootkit detection requires kernel-level access and is not fully implemented",
+            "checks": [
+                "hidden_processes",
+                "hidden_files",
+                "hidden_ports",
+                "ssdt_hooks",
+                "idt_hooks",
+                "dkom",
+            ],
+        }));
+        
+        return Ok(results);
+    }
+}
+
+/// Binary anomaly detector
+pub fn detect_binary_anomalies(
+    search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let path = Path::new(search_path);
+    if !path.exists() {
+        return Ok(vec![serde_json::json!({
+            "collector": "artifacts",
+            "artifact_type": "binary_anomalies",
+            "status": "path_not_found",
+            "search_path": search_path,
+        })]);
+    }
+    {
+        let mut results = Vec::new();
+        for entry in walkdir_max_depth(path, 3) {
+            if entry.is_file() {
+                let ext = entry.extension().and_then(|e| e.to_str()).unwrap_or("");
+                if ext == "exe" || ext == "dll" || ext == "so" || ext == "bin" {
+                    let bytes = std::fs::read(&entry).unwrap_or_default();
+                    if bytes.is_empty() {
+                        continue;
+                    }
+                    
+                    // Calculate entropy
+                    let mut freq = [0u64; 256];
+                    for &b in &bytes {
+                        freq[b as usize] += 1;
+                    }
+                    let len = bytes.len() as f64;
+                    let mut entropy = 0.0;
+                    for &count in &freq {
+                        if count > 0 {
+                            let p = count as f64 / len;
+                            entropy -= p * p.log2();
+                        }
+                    }
+                    
+                    let sha256 = sha256_file(&entry);
+                    let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                    
+                    let suspicious = entropy > 7.0;
+                    
+                    results.push(serde_json::to_value(CarvedArtifact {
+                        artifact_type: "binary_anomalies".to_string(),
+                        path: entry.display().to_string(),
+                        size_bytes: size,
+                        sha256,
+                        modified_at: modified_at(&entry),
+                        metadata: serde_json::json!({
+                            "entropy": entropy,
+                            "file_type": ext,
+                            "anomalies": if suspicious { vec!["high_entropy"] } else { vec![] },
+                        }),
+                        suspicious,
+                        suspicious_reason: if suspicious {
+                            Some(format!("Binary has high entropy ({:.2})", entropy))
+                        } else {
+                            None
+                        },
+                    })?);
+                }
+            }
+        }
+        
+        if results.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "artifacts",
+                "artifact_type": "binary_anomalies",
+                "status": "no_artifacts_found",
+            }));
+        }
+        
+        return Ok(results);
     }
 }
 
