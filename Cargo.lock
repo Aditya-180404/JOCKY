@@ -2257,6 +2257,17 @@ name = "jockey-runtime-capabilities"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "jockey-runtime-artifacts",
+ "jockey-runtime-auth",
+ "jockey-runtime-evidence",
+ "jockey-runtime-filesystem",
+ "jockey-runtime-logs",
+ "jockey-runtime-network",
+ "jockey-runtime-process",
+ "jockey-runtime-security",
+ "jockey-runtime-services",
+ "jockey-runtime-system",
+ "jockey-runtime-users",
  "serde",
  "serde_json",
  "thiserror 1.0.69",

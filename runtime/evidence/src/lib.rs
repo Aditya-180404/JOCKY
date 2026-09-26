@@ -189,6 +189,16 @@ impl EvidenceCollector {
         &self.collector_results
     }
 
+    /// Get the collected evidence data
+    pub fn data(&self) -> &[serde_json::Value] {
+        &self.data
+    }
+
+    /// Get mutable reference to collected evidence data
+    pub fn data_mut(&mut self) -> &mut Vec<serde_json::Value> {
+        &mut self.data
+    }
+
     pub fn started_at(&self) -> DateTime<Utc> {
         self.started_at
     }
