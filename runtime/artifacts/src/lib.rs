@@ -2652,65 +2652,53 @@ pub fn parse_elf_metadata(
             "search_path": search_path,
         })]);
     }
-    #[cfg(target_os = "linux")]
-    {
-        let mut results = Vec::new();
-        let entries = if path.is_file() {
-            vec![path.to_path_buf()]
-        } else {
-            walkdir_max_depth(path, 3)
-        };
-        for entry in entries {
-            if entry.is_file() {
-                if let Ok(bytes) = std::fs::read(&entry) {
-                    if bytes.starts_with(b"\x7fELF") {
-                        let sha256 = sha256_file(&entry);
-                        let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-                        match parse_elf_bytes(&bytes) {
-                            Ok(metadata) => results.push(serde_json::to_value(CarvedArtifact {
-                                artifact_type: "elf_metadata".to_string(),
-                                path: entry.display().to_string(),
-                                size_bytes: size,
-                                sha256,
-                                modified_at: modified_at(&entry),
-                                metadata,
-                                suspicious: false,
-                                suspicious_reason: None,
-                            })?),
-                            Err(error) => results.push(serde_json::json!({
-                                "collector": "artifacts",
-                                "artifact_type": "elf_metadata",
-                                "path": entry.display().to_string(),
-                                "size_bytes": size,
-                                "sha256": sha256,
-                                "status": "partial",
-                                "parse_error": error,
-                            })),
-                        }
+    let mut results = Vec::new();
+    let entries = if path.is_file() {
+        vec![path.to_path_buf()]
+    } else {
+        walkdir_max_depth(path, 3)
+    };
+    for entry in entries {
+        if entry.is_file() {
+            if let Ok(bytes) = std::fs::read(&entry) {
+                if bytes.starts_with(b"\x7fELF") {
+                    let sha256 = sha256_file(&entry);
+                    let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                    match parse_elf_bytes(&bytes) {
+                        Ok(metadata) => results.push(serde_json::to_value(CarvedArtifact {
+                            artifact_type: "elf_metadata".to_string(),
+                            path: entry.display().to_string(),
+                            size_bytes: size,
+                            sha256,
+                            modified_at: modified_at(&entry),
+                            metadata,
+                            suspicious: false,
+                            suspicious_reason: None,
+                        })?),
+                        Err(error) => results.push(serde_json::json!({
+                            "collector": "artifacts",
+                            "artifact_type": "elf_metadata",
+                            "path": entry.display().to_string(),
+                            "size_bytes": size,
+                            "sha256": sha256,
+                            "status": "partial",
+                            "parse_error": error,
+                        })),
                     }
                 }
             }
         }
-
-        if results.is_empty() {
-            results.push(serde_json::json!({
-                "collector": "artifacts",
-                "artifact_type": "elf_metadata",
-                "status": "no_artifacts_found",
-            }));
-        }
-
-        Ok(results)
     }
-    #[cfg(not(target_os = "linux"))]
-    {
-        Ok(vec![serde_json::json!({
+
+    if results.is_empty() {
+        results.push(serde_json::json!({
             "collector": "artifacts",
             "artifact_type": "elf_metadata",
-            "status": "platform_note",
-            "note": "ELF metadata parsing is Linux-specific",
-        })])
+            "status": "no_artifacts_found",
+        }));
     }
+
+    Ok(results)
 }
 
 fn read_elf_uint(

@@ -897,6 +897,43 @@ pub fn detect_rootkit_indicators(
         }
     }
 
+    #[cfg(target_os = "windows")]
+    {
+        completed_checks.push("appinit_dlls".to_string());
+        if let Ok(output) = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-Command", r#"Get-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Windows' -Name AppInit_DLLs -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AppInit_DLLs"#])
+            .output()
+        {
+            let val = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !val.is_empty() {
+                findings.push(serde_json::json!({
+                    "collector": "rootkit_indicators",
+                    "indicator": "appinit_dll_persistence",
+                    "value": val,
+                    "reason": "AppInit_DLLs configured to inject into user-mode processes",
+                }));
+            }
+        }
+
+        completed_checks.push("suspicious_driver_locations".to_string());
+        if let Ok(output) = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-Command", r#"Get-CimInstance Win32_SystemDriver -ErrorAction SilentlyContinue | Where-Object { $_.State -eq 'Running' -and ($_.PathName -like '*\Temp\*' -or $_.PathName -like '*\AppData\*') } | Select-Object Name, PathName, State | ConvertTo-Json -Compress"#])
+            .output()
+        {
+            let val = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !val.is_empty() {
+                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&val) {
+                    findings.push(serde_json::json!({
+                        "collector": "rootkit_indicators",
+                        "indicator": "suspicious_driver_path",
+                        "drivers": json,
+                        "reason": "Kernel driver running from temporary or user directory",
+                    }));
+                }
+            }
+        }
+    }
+
     let unsupported_checks = [
         "hidden_processes",
         "hidden_files",

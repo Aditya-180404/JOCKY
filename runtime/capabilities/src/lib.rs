@@ -1441,7 +1441,7 @@ impl CapabilityRegistry {
                 runtime_module: "jockey_runtime_artifacts",
                 runtime_handler: "parse_elf_metadata",
                 abi_symbol: Some("jockey_rt_collect_artifacts"),
-                platform: Platform::Linux,
+                platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_elf_metadata",
             },
@@ -1450,7 +1450,7 @@ impl CapabilityRegistry {
                 runtime_module: "jockey_runtime_artifacts",
                 runtime_handler: "parse_elf_metadata",
                 abi_symbol: Some("jockey_rt_invoke_capability"),
-                platform: Platform::Linux,
+                platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_elf_metadata",
             },
@@ -2301,7 +2301,7 @@ impl CapabilityRegistry {
                 "Memory Regions",
                 "Enumerate memory mappings and executable memory regions.",
                 CapabilityCategory::Process,
-                Platform::Linux,
+                Platform::Both,
                 PrivilegeLevel::User,
                 &["T1055"],
                 "enumerate_memory_regions",
@@ -4663,22 +4663,11 @@ impl CapabilityRegistry {
             "ELF Metadata",
             "Parse ELF headers: sections, symbols, dynamic entries, notes, build ID, interpreter",
             CapabilityCategory::FileBinaryMetadata,
-            Platform::Linux,
+            Platform::Both,
             PrivilegeLevel::User,
             &["T1027"],
             "parse_elf_metadata",
             true,
-        ).with_status(
-            if cfg!(target_os = "windows") {
-                ImplementationStatus::PlatformSpecific
-            } else {
-                ImplementationStatus::Implemented
-            },
-            if cfg!(target_os = "windows") {
-                Some("ELF metadata parser is primary for Linux targets")
-            } else {
-                None
-            },
         ));
 
         self.register(Capability::new(
@@ -5054,9 +5043,32 @@ impl CapabilityRegistry {
             ));
         }
 
-        // Privilege validation (simplified - in real implementation would check actual privileges)
-        // For now, we'll just note the requirement but not enforce it
-        // TODO: Implement actual privilege checking
+        // Privilege validation against host environment
+        let is_elevated_process = {
+            #[cfg(target_os = "windows")]
+            {
+                std::process::Command::new("net")
+                    .args(["session"])
+                    .output()
+                    .map(|o| o.status.success())
+                    .unwrap_or(false)
+            }
+            #[cfg(target_os = "linux")]
+            {
+                unsafe { libc::geteuid() == 0 }
+            }
+            #[cfg(not(any(target_os = "windows", target_os = "linux")))]
+            {
+                false
+            }
+        };
+
+        if (binding.privilege == PrivilegeLevel::Admin || binding.privilege == PrivilegeLevel::Kernel) && !is_elevated_process {
+            eprintln!(
+                "[WARN] Capability '{}' requires {:?} privileges; running with current user privileges",
+                capability.id, binding.privilege
+            );
+        }
 
         // Create evidence collector
         let mut collector = EvidenceCollector::new(&format!("capability-{}", capability_id));

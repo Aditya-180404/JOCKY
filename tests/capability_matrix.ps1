@@ -24,8 +24,8 @@ try {
     $cliTable = (& .\target\release\jockey.exe capabilities) -join "`n"
     $tableHasHeader = $cliTable -match "ID" -or $cliTable -match "Capability"
     $tableHasSummary = $cliTable -match "Total: 247"
-    $test1Success = $tableHasSummary -and ($cliTable -match "Coverage: 97.2%")
-    Report-Test 1 "CLI Capabilities Table Output" $test1Success "CLI output contains Total: 247 and Coverage: 97.2%"
+    $test1Success = $tableHasSummary -and ($cliTable -match "Coverage: 97.6%")
+    Report-Test 1 "CLI Capabilities Table Output" $test1Success "CLI output contains Total: 247 and Coverage: 97.6%"
 } catch {
     Report-Test 1 "CLI Capabilities Table Output" $false $_.Exception.Message
 }
@@ -72,7 +72,7 @@ try {
     Write-Host "    -> Unsupported: $unsupported" -ForegroundColor Gray
 
     $totalAccounted = $implemented + $requiresElevation + $partial + $platformRestricted + $unsupported
-    $test4Success = ($implemented -eq 240) -and ($requiresElevation -eq 4) -and ($totalAccounted -eq 247)
+    $test4Success = ($implemented -eq 241) -and ($requiresElevation -eq 4) -and ($totalAccounted -eq 247)
     Report-Test 4 "Status Breakdown Audit" $test4Success "Implemented: $implemented, Elevation: $requiresElevation, Partial: $partial, Total: $totalAccounted"
 } catch {
     Report-Test 4 "Status Breakdown Audit" $false $_.Exception.Message
@@ -117,9 +117,9 @@ try {
 # [7] CLI Implemented Filter Flag
 try {
     $cliImplOut = (& .\target\release\jockey.exe capabilities --implemented) -join "`n"
-    $hasSummary = $cliImplOut -match "Implemented: 240"
+    $hasSummary = $cliImplOut -match "Implemented: 241"
     $test7Success = $hasSummary
-    Report-Test 7 "CLI --implemented Filter" $test7Success "Correctly reports 240 implemented capabilities"
+    Report-Test 7 "CLI --implemented Filter" $test7Success "Correctly reports 241 implemented capabilities"
 } catch {
     Report-Test 7 "CLI --implemented Filter" $false $_.Exception.Message
 }
@@ -137,8 +137,8 @@ try {
 try {
     $apiImplRes = Invoke-RestMethod -Uri "http://localhost:8080/api/compiler/capabilities?status=implemented" -Method Get
     $apiImplCount = ($apiImplRes.PSObject.Properties | Measure-Object).Count
-    $test9Success = ($apiImplCount -eq 240)
-    Report-Test 9 "API ?status=implemented Filter" $test9Success "Returned $apiImplCount implemented capabilities (expected 240)"
+    $test9Success = ($apiImplCount -eq 241)
+    Report-Test 9 "API ?status=implemented Filter" $test9Success "Returned $apiImplCount implemented capabilities (expected 241)"
 } catch {
     Report-Test 9 "API ?status=implemented Filter" $false $_.Exception.Message
 }

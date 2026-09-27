@@ -345,11 +345,22 @@ pub async fn check_handler(
                 let target_lower = target.to_lowercase();
                 let is_windows = target_lower.contains("windows");
                 let is_linux = target_lower.contains("linux");
+                if !is_windows && !is_linux {
+                    all_diags.push(DiagnosticResponse {
+                        severity: "error".to_string(),
+                        message: format!(
+                            "Unsupported target platform '{}'. Supported targets: windows-x64, linux-x64",
+                            target
+                        ),
+                        line: 1,
+                        column: 1,
+                    });
+                }
                 for cap_name in &ir.required_capabilities {
                     let cap_str = format!("{:?}", cap_name).to_lowercase();
                     if cap_str.contains("registry") && is_linux {
                         all_diags.push(DiagnosticResponse {
-                            severity: "warning".to_string(),
+                            severity: "error".to_string(),
                             message: format!(
                                 "Capability 'RegistryRead' is Windows-specific and not supported on target platform '{}'",
                                 target
@@ -371,7 +382,7 @@ pub async fn check_handler(
                         };
                         if !compatible && !cap_str.contains("registry") {
                             all_diags.push(DiagnosticResponse {
-                                severity: "warning".to_string(),
+                                severity: "error".to_string(),
                                 message: format!(
                                     "Capability '{}' is not supported on target platform '{}'",
                                     cap.name, target
