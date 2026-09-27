@@ -1,6 +1,10 @@
 # JOCKEY Automated Capability Matrix Audit & Verification Suite
 # Verifies all 247 capabilities across CLI, API, Runtime, and Target Validation
 
+param(
+    [string]$ApiBaseUrl = $(if ($env:JOCKEY_API_BASE_URL) { $env:JOCKEY_API_BASE_URL } else { "http://localhost:8080" })
+)
+
 $ErrorActionPreference = "Stop"
 $passed = 0
 $failed = 0
@@ -43,15 +47,15 @@ try {
 
 # [3] API Capabilities Endpoint Verification
 try {
-    $apiRes = Invoke-RestMethod -Uri "http://localhost:8080/api/compiler/capabilities" -Method Get
+    $apiRes = Invoke-RestMethod -Uri "$ApiBaseUrl/api/compiler/capabilities" -Method Get
     $apiCapList = @()
-    foreach ($prop in $apiRes.PSObject.Properties) {
+    foreach ($prop in $apiRes.capabilities.PSObject.Properties) {
         $capObj = $prop.Value
         $capObj | Add-Member -MemberType NoteProperty -Name "id" -Value $prop.Name -Force
         $apiCapList += $capObj
     }
-    $apiCount = $apiCapList.Count
-    $test3Success = ($apiCount -eq 247)
+    $apiCount = $apiRes.count
+    $test3Success = ($apiCount -eq $apiCapList.Count) -and ($apiCount -eq 247) -and ($apiRes.total -eq 247)
     Report-Test 3 "API Capabilities Endpoint Count" $test3Success "API returned $apiCount capabilities (expected 247)"
 } catch {
     Report-Test 3 "API Capabilities Endpoint Count" $false $_.Exception.Message
@@ -135,9 +139,9 @@ try {
 
 # [9] API Status Filter Query Parameter (?status=implemented)
 try {
-    $apiImplRes = Invoke-RestMethod -Uri "http://localhost:8080/api/compiler/capabilities?status=implemented" -Method Get
-    $apiImplCount = ($apiImplRes.PSObject.Properties | Measure-Object).Count
-    $test9Success = ($apiImplCount -eq 241)
+    $apiImplRes = Invoke-RestMethod -Uri "$ApiBaseUrl/api/compiler/capabilities?status=implemented" -Method Get
+    $apiImplCount = $apiImplRes.count
+    $test9Success = ($apiImplCount -eq 241) -and ($apiImplRes.total -eq 247) -and ($apiImplRes.implemented -eq 241)
     Report-Test 9 "API ?status=implemented Filter" $test9Success "Returned $apiImplCount implemented capabilities (expected 241)"
 } catch {
     Report-Test 9 "API ?status=implemented Filter" $false $_.Exception.Message
@@ -145,8 +149,8 @@ try {
 
 # [10] API Platform Filter Query Parameter (?platform=windows)
 try {
-    $apiWinRes = Invoke-RestMethod -Uri "http://localhost:8080/api/compiler/capabilities?platform=windows" -Method Get
-    $apiWinCount = ($apiWinRes.PSObject.Properties | Measure-Object).Count
+    $apiWinRes = Invoke-RestMethod -Uri "$ApiBaseUrl/api/compiler/capabilities?platform=windows" -Method Get
+    $apiWinCount = $apiWinRes.count
     $test10Success = ($apiWinCount -ge 200)
     Report-Test 10 "API ?platform=windows Filter" $test10Success "Returned $apiWinCount Windows-compatible capabilities"
 } catch {
@@ -158,7 +162,7 @@ try {
     # Investigation using Windows Registry targeted to linux-x64 should return validation warning or platform mismatch
     $regSource = "investigation `"reg_audit`" {`n    collect registry `"HKLM`" `"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run`"`n    export evidence `"reg.json`"`n}"
     $body = @{ source = $regSource; target = "linux-x64" } | ConvertTo-Json
-    $checkRes = Invoke-RestMethod -Uri "http://localhost:8080/api/compiler/check" -Method Post -Body $body -ContentType "application/json"
+    $checkRes = Invoke-RestMethod -Uri "$ApiBaseUrl/api/compiler/check" -Method Post -Body $body -ContentType "application/json"
     $hasDiag = ($checkRes.diagnostics.Count -gt 0)
     $test11Success = $hasDiag
     Report-Test 11 "Target Incompatibility Check" $test11Success "Targeted check produced platform incompatibility diagnostic: $($checkRes.diagnostics[0].message)"

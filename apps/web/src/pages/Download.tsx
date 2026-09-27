@@ -21,6 +21,7 @@ interface PackageInfo {
   version: string;
   size_bytes: number;
   sha256: string;
+  content_type: string;
   release_date: string;
   requirements: string;
   download_url: string;
@@ -31,6 +32,7 @@ export function DownloadPage() {
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     loadPackages();
@@ -61,28 +63,55 @@ export function DownloadPage() {
   const handleDownload = useCallback(async (pkg: PackageInfo) => {
     setDownloading(pkg.filename);
     setDownloadError(null);
+    setDownloadSuccess(null);
     try {
-      // Fetch the binary data from the API
-      const response = await fetch(pkg.download_url);
-      if (!response.ok) {
-        throw new Error(`Download failed: HTTP ${response.status}`);
+      const response = await api.get<Blob>(pkg.download_url, {
+        responseType: 'blob',
+        params: { sha256: pkg.sha256 },
+      });
+      const expectedContentType = pkg.content_type.toLowerCase();
+      if (![
+        'application/zip',
+        'application/vnd.debian.binary-package',
+        'application/vnd.microsoft.portable-executable',
+      ].includes(expectedContentType)) {
+        throw new Error('The package metadata has an unsupported MIME type');
       }
-      const blob = await response.blob();
+      const contentType = String(response.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+      if (contentType !== expectedContentType) {
+        throw new Error(`Unexpected download type: ${contentType || 'missing Content-Type'}`);
+      }
+      const disposition = String(response.headers['content-disposition'] || '');
+      const filenameMatch = disposition.match(/filename="?([^";]+)"?/i);
+      if (!/attachment/i.test(disposition) || filenameMatch?.[1] !== pkg.filename) {
+        throw new Error('The server returned an unexpected download filename');
+      }
 
-      // Create a temporary anchor with the exact filename and trigger download
-      const url = URL.createObjectURL(blob);
+      const blob = response.data;
+      const contentLength = Number(response.headers['content-length'] || 0);
+      if (blob.size === 0 || (contentLength > 0 && blob.size !== contentLength)) {
+        throw new Error('The downloaded package is empty or incomplete');
+      }
+
+      const hashBuffer = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
+      const actualHash = Array.from(new Uint8Array(hashBuffer), (byte) => byte.toString(16).padStart(2, '0')).join('');
+      if (!/^[a-f0-9]{64}$/i.test(pkg.sha256) || actualHash !== pkg.sha256.toLowerCase()) {
+        throw new Error('The downloaded package SHA-256 does not match the published metadata');
+      }
+
+      const url = URL.createObjectURL(new Blob([blob], { type: expectedContentType }));
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.download = pkg.filename; // Explicit filename on same-origin blob URL
+      anchor.download = pkg.filename;
       anchor.style.display = 'none';
       document.body.appendChild(anchor);
       anchor.click();
 
-      // Cleanup
       setTimeout(() => {
         document.body.removeChild(anchor);
         URL.revokeObjectURL(url);
       }, 100);
+      setDownloadSuccess(`Downloaded and verified ${pkg.filename}`);
     } catch (err) {
       setDownloadError(
         err instanceof Error ? err.message : 'Download failed. Try right-clicking and using "Save link as..."'
@@ -122,6 +151,11 @@ export function DownloadPage() {
               <p className="text-sm text-red-300 font-medium">Download Error</p>
               <p className="text-xs text-red-400 mt-1">{downloadError}</p>
             </div>
+          </div>
+        )}
+        {downloadSuccess && (
+          <div role="status" className="mb-6 p-4 rounded border border-emerald-500/30 bg-emerald-500/10 text-sm text-emerald-300">
+            {downloadSuccess}
           </div>
         )}
 

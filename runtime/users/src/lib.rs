@@ -128,7 +128,6 @@ impl UsersResult {
 pub fn enumerate_users() -> Result<UsersResult> {
     use std::collections::HashMap;
     use std::fs;
-    use users::{get_group_by_gid, get_user_by_uid};
 
     let mut result = UsersResult::new();
 
@@ -229,7 +228,7 @@ pub fn enumerate_users() -> Result<UsersResult> {
                         .map(|days| DateTime::from_timestamp(days * 86400, 0).unwrap_or_default());
                     let expires = expire_date
                         .map(|days| DateTime::from_timestamp(days * 86400, 0).unwrap_or_default());
-                    let password_never_expires = max_age.map_or(false, |m| m == -1 || m == 99999);
+                    let password_never_expires = max_age.is_some_and(|m| m == -1 || m == 99999);
                     let password_required = true; // If in shadow, password is required
                     (
                         None,

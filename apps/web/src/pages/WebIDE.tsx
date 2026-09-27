@@ -71,6 +71,10 @@ interface ExecutionResult {
   integrity: string;
   evidence_items: EvidenceItem[];
   output_log: string[];
+  evidence_raw?: string;
+  metadata?: Record<string, unknown>;
+  merkle_root?: string;
+  verification_method?: string;
 }
 
 interface CheckResponse {
@@ -365,6 +369,7 @@ export function WebIDE() {
   // UI states
   const [isLoading, setIsLoading] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [statusMessage, setStatusMessage] = useState('Ready');
   const [copied, setCopied] = useState(false);
   const [examplesOpen, setExamplesOpen] = useState(true);
@@ -745,19 +750,25 @@ export function WebIDE() {
             origin: 'REAL',
             data: ev,
             sha256: data.verification?.sha256 || '',
-            integrity: data.verification?.status || 'VALID',
+            integrity: data.verification?.status || 'UNVERIFIED',
           }));
           setExecutionResult({
             success: true,
-            investigation_name: data.artifact_name || 'investigation',
+            investigation_name: data.metadata?.investigation_name || data.artifact_name || 'investigation',
             execution_target: selectedTarget,
             execution_time_ms: data.duration_ms,
             collectors_executed: requiredCapabilities,
             evidence_count: items.length,
             sha256: data.verification?.sha256 || '',
-            integrity: data.verification?.status || 'VALID',
+            integrity: data.verification?.status || 'UNVERIFIED',
             evidence_items: items,
             output_log: (data.stdout || '').split('\n').filter(Boolean),
+            evidence_raw: data.verification?.evidence_raw,
+            metadata: data.metadata,
+            merkle_root: data.verification?.merkle_root || undefined,
+            verification_method: data.verification?.valid
+              ? 'SHA-256 and Merkle root verified by API during RUN'
+              : 'Not verified',
           });
         }
       } else {
@@ -791,6 +802,47 @@ export function WebIDE() {
       setBottomPanelTab('problems');
     } finally {
       setIsRunning(false);
+    }
+  };
+
+  const handleVerifyExecution = async () => {
+    if (!executionResult?.evidence_raw || !executionResult.metadata) return;
+
+    setIsVerifying(true);
+    setStatusMessage('Verifying evidence integrity...');
+    setBottomPanelTab('integrity');
+    setShowBottomPanel(true);
+    try {
+      const response = await api.post('/api/compiler/verify', {
+        evidence: executionResult.evidence_raw,
+        metadata: executionResult.metadata,
+      });
+      const result = response.data as { valid: boolean; status: string; sha256: string; merkle_root?: string };
+      setExecutionResult((previous) => previous ? {
+        ...previous,
+        success: previous.success && result.valid,
+        integrity: result.status,
+        sha256: result.sha256,
+        merkle_root: result.merkle_root || undefined,
+        verification_method: 'SHA-256 and Merkle root independently verified by API',
+        evidence_items: previous.evidence_items.map((item) => ({
+          ...item,
+          integrity: result.status,
+          sha256: result.sha256,
+        })),
+      } : previous);
+      setStatusMessage(result.valid ? 'Evidence verification passed' : 'Evidence verification failed');
+    } catch (err: any) {
+      setStatusMessage('Evidence verification request failed');
+      setDiagnostics([{
+        severity: 'error',
+        message: err.response?.data?.message || err.message || 'Unable to verify evidence with the API',
+        line: 1,
+        column: 1,
+      }]);
+      setBottomPanelTab('problems');
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -918,6 +970,16 @@ export function WebIDE() {
           >
             <Play className="h-3.5 w-3.5 fill-current" />
             <span>{isRunning ? 'Running...' : 'Run'}</span>
+          </button>
+
+          <button
+            onClick={handleVerifyExecution}
+            disabled={isVerifying || isRunning || !executionResult?.evidence_raw || !executionResult.metadata}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-medium transition-colors disabled:opacity-50"
+            title="Verify the generated evidence against its SHA-256 and Merkle metadata"
+          >
+            <ShieldCheck className="h-3.5 w-3.5" />
+            <span>{isVerifying ? 'Verifying...' : 'Verify'}</span>
           </button>
         </div>
 
@@ -1346,7 +1408,7 @@ export function WebIDE() {
                   <div className="space-y-3">
                     <div className="p-3 rounded border border-slate-800 bg-[#0c111c] space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-slate-200">Cryptographic Non-Repudiation Status</span>
+                        <span className="font-semibold text-slate-200">Evidence Integrity Status</span>
                         <span
                           className={clsx(
                             'px-2 py-0.5 rounded text-[10px]',
@@ -1361,22 +1423,30 @@ export function WebIDE() {
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                         <div>
-                          <span className="text-slate-400">Artifact SHA-256: </span>
+                          <span className="text-slate-400">Evidence SHA-256: </span>
                           <span className="text-slate-200">{executionResult?.sha256 || 'None computed'}</span>
                         </div>
                         <div>
-                          <span className="text-slate-400">Metadata Sidecar: </span>
+                          <span className="text-slate-400">Investigation: </span>
                           <span className="text-slate-200">
-                            {executionResult ? `${executionResult.investigation_name}.json.meta.json` : 'Pending'}
+                            {executionResult?.metadata?.investigation_name as string || executionResult?.investigation_name || 'Pending'}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400">Merkle Proof: </span>
-                          <span className="text-slate-200">Not returned by sandbox</span>
+                          <span className="text-slate-400">Host: </span>
+                          <span className="text-slate-200">
+                            {executionResult?.metadata?.host_identifier as string || 'Unavailable'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400">Merkle Root: </span>
+                          <span className="text-slate-200">{executionResult?.merkle_root || 'Unavailable'}</span>
                         </div>
                         <div>
                           <span className="text-slate-400">Verification: </span>
-                          <span className="text-slate-200">{executionResult ? 'Based on execution response' : 'Run an investigation to verify'}</span>
+                          <span className="text-slate-200">
+                            {executionResult?.verification_method || 'Run an investigation to verify'}
+                          </span>
                         </div>
                       </div>
                     </div>

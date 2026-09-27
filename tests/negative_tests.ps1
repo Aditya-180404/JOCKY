@@ -11,6 +11,14 @@
 # 9. Path Traversal Protection on Download API
 # 10. Nonexistent Download Filename
 
+param(
+    [string]$ApiBaseUrl = $(if ($env:JOCKEY_API_BASE_URL) { $env:JOCKEY_API_BASE_URL } else { "http://localhost:8080" })
+)
+
+$negativeRunId = [guid]::NewGuid().ToString("N")
+$cliErrorPath = Join-Path $env:TEMP "jockey-negative-cli-$negativeRunId.txt"
+$verifyErrorPath = Join-Path $env:TEMP "jockey-negative-verify-$negativeRunId.txt"
+
 $passed = 0
 $failed = 0
 
@@ -32,7 +40,7 @@ Write-Host "==================================================" -ForegroundColor
 try {
     $badSyntax = "investigation `"broken`" { invalid_keyword unknown_call; }"
     $body = @{ source = $badSyntax; target = "windows-x64" } | ConvertTo-Json
-    $res = Invoke-RestMethod -Uri "http://localhost:8080/api/compiler/check" -Method Post -Body $body -ContentType "application/json"
+    $res = Invoke-RestMethod -Uri "$ApiBaseUrl/api/compiler/check" -Method Post -Body $body -ContentType "application/json"
     $ok = ($res.valid -eq $false) -and ($res.diagnostics.Count -gt 0)
     Report-Neg 1 "Invalid Syntax Rejection" $ok "Diagnosed $($res.diagnostics.Count) errors: $($res.diagnostics[0].message)"
 } catch {
@@ -43,7 +51,7 @@ try {
 try {
     $unkCap = "investigation `"unk`" { collect non_existent_capability_xyz export evidence `"out.json`" }"
     $body = @{ source = $unkCap; target = "windows-x64" } | ConvertTo-Json
-    $res = Invoke-RestMethod -Uri "http://localhost:8080/api/compiler/check" -Method Post -Body $body -ContentType "application/json"
+    $res = Invoke-RestMethod -Uri "$ApiBaseUrl/api/compiler/check" -Method Post -Body $body -ContentType "application/json"
     $diagText = ($res.diagnostics | ForEach-Object { $_.message }) -join " "
     $ok = ($res.valid -eq $false) -and ($diagText -match "Expected collect target|unknown|unrecognized|Unknown capability|error")
     Report-Neg 2 "Unknown Capability Rejection" $ok "Compiler rejected unknown capability: $diagText"
@@ -55,7 +63,7 @@ try {
 try {
     $src = "investigation `"tgt_test`" { collect system_info export evidence `"out.json`" }"
     $body = @{ source = $src; target = "solaris-sparc" } | ConvertTo-Json
-    $res = Invoke-RestMethod -Uri "http://localhost:8080/api/compiler/check" -Method Post -Body $body -ContentType "application/json"
+    $res = Invoke-RestMethod -Uri "$ApiBaseUrl/api/compiler/check" -Method Post -Body $body -ContentType "application/json"
     $diagText = ($res.diagnostics | ForEach-Object { $_.message }) -join " "
     $ok = ($res.valid -eq $false) -and ($diagText -match "Unsupported target|target|unsupported")
     Report-Neg 3 "Unsupported Target Rejection" $ok "Rejected target 'solaris-sparc': $diagText"
@@ -67,7 +75,7 @@ try {
 try {
     $winOnly = "investigation `"win_on_linux`" { collect registry `"HKLM`" `"SOFTWARE`" export evidence `"out.json`" }"
     $body = @{ source = $winOnly; target = "linux-x64" } | ConvertTo-Json
-    $res = Invoke-RestMethod -Uri "http://localhost:8080/api/compiler/check" -Method Post -Body $body -ContentType "application/json"
+    $res = Invoke-RestMethod -Uri "$ApiBaseUrl/api/compiler/check" -Method Post -Body $body -ContentType "application/json"
     $diagText = ($res.diagnostics | ForEach-Object { $_.message }) -join " "
     $ok = ($res.valid -eq $false) -and ($diagText -match "Windows|not supported|platform")
     Report-Neg 4 "Windows-only Capability on Linux Target" $ok "Target compatibility check caught restriction: $diagText"
@@ -79,7 +87,7 @@ try {
 try {
     $noExport = "investigation `"missing_export`" { collect system_info }"
     $body = @{ source = $noExport; target = "windows-x64" } | ConvertTo-Json
-    $res = Invoke-RestMethod -Uri "http://localhost:8080/api/compiler/check" -Method Post -Body $body -ContentType "application/json"
+    $res = Invoke-RestMethod -Uri "$ApiBaseUrl/api/compiler/check" -Method Post -Body $body -ContentType "application/json"
     $diagText = ($res.diagnostics | ForEach-Object { $_.message }) -join " "
     $ok = ($res.valid -eq $false) -or ($diagText -match "export|warning|missing")
     Report-Neg 5 "Investigation Specification Validation" $ok "Result: valid=$($res.valid), Diags: $diagText"
@@ -91,7 +99,7 @@ try {
 try {
     $code = 0
     try {
-        $res = Invoke-WebRequest -Uri "http://localhost:8080/api/compiler/check" -Method Post -Body "{ not_valid_json " -ContentType "application/json" -UseBasicParsing
+        $res = Invoke-WebRequest -Uri "$ApiBaseUrl/api/compiler/check" -Method Post -Body "{ not_valid_json " -ContentType "application/json" -UseBasicParsing
         $code = [int]$res.StatusCode
     } catch {
         if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
@@ -104,9 +112,9 @@ try {
 
 # 7. Nonexistent Investigation File CLI
 try {
-    $p = Start-Process -FilePath ".\target\release\jockey.exe" -ArgumentList "check nonexistent_file_xyz.jy" -NoNewWindow -Wait -PassThru -RedirectStandardError "build/neg_cli_err.txt"
+    $p = Start-Process -FilePath ".\target\release\jockey.exe" -ArgumentList "check nonexistent_file_xyz.jy" -NoNewWindow -Wait -PassThru -RedirectStandardError $cliErrorPath
     $code = $p.ExitCode
-    $err = Get-Content "build/neg_cli_err.txt" -Raw -ErrorAction SilentlyContinue
+    $err = Get-Content $cliErrorPath -Raw -ErrorAction SilentlyContinue
     $ok = ($code -ne 0)
     Report-Neg 7 "CLI Nonexistent File Error" $ok "Exited with code ${code}: $($err.Trim())"
 } catch {
@@ -115,9 +123,9 @@ try {
 
 # 8. Missing Evidence File Verification
 try {
-    $p = Start-Process -FilePath ".\target\release\jockey.exe" -ArgumentList "verify nonexistent_evidence.json" -NoNewWindow -Wait -PassThru -RedirectStandardError "build/neg_ver_err.txt"
+    $p = Start-Process -FilePath ".\target\release\jockey.exe" -ArgumentList "verify nonexistent_evidence.json" -NoNewWindow -Wait -PassThru -RedirectStandardError $verifyErrorPath
     $code = $p.ExitCode
-    $err = Get-Content "build/neg_ver_err.txt" -Raw -ErrorAction SilentlyContinue
+    $err = Get-Content $verifyErrorPath -Raw -ErrorAction SilentlyContinue
     $ok = ($code -ne 0)
     Report-Neg 8 "Missing Evidence Verification Failure" $ok "Exited with code ${code}: $($err.Trim())"
 } catch {
@@ -128,7 +136,7 @@ try {
 try {
     $code = 0
     try {
-        $res = Invoke-WebRequest -Uri "http://localhost:8080/api/downloads/../../Cargo.toml" -Method Get -UseBasicParsing
+        $res = Invoke-WebRequest -Uri "$ApiBaseUrl/api/downloads/../../Cargo.toml" -Method Get -UseBasicParsing
         $code = [int]$res.StatusCode
     } catch {
         if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
@@ -144,7 +152,7 @@ try {
 try {
     $code = 0
     try {
-        $res = Invoke-WebRequest -Uri "http://localhost:8080/api/downloads/totally_bogus_package.xyz" -Method Get -UseBasicParsing
+        $res = Invoke-WebRequest -Uri "$ApiBaseUrl/api/downloads/totally_bogus_package.xyz" -Method Get -UseBasicParsing
         $code = [int]$res.StatusCode
     } catch {
         if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }

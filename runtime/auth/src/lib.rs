@@ -482,7 +482,9 @@ pub fn collect_linux_logon_events() -> Result<LogonEventsResult> {
     }
 
     // Sort by timestamp descending
-    result.events.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    result
+        .events
+        .sort_by_key(|event| std::cmp::Reverse(event.timestamp));
 
     Ok(result)
 }
@@ -561,7 +563,7 @@ fn collect_linux_credential_artifacts(result: &mut CredentialArtifactsResult) ->
                 artifact_type,
                 path: path.to_string(),
                 size: Some(metadata.len()),
-                modified: metadata.modified().ok().map(|t| DateTime::from(t)),
+                modified: metadata.modified().ok().map(DateTime::from),
                 owner: Some(metadata.uid().to_string()),
                 permissions: Some(format!("{:o}", metadata.mode() & 0o777)),
                 sha256,
@@ -592,7 +594,7 @@ fn collect_linux_credential_artifacts(result: &mut CredentialArtifactsResult) ->
                                 artifact_type: CredentialArtifactType::SshPrivateKey,
                                 path: path.to_string_lossy().to_string(),
                                 size: Some(metadata.len()),
-                                modified: metadata.modified().ok().map(|t| DateTime::from(t)),
+                                modified: metadata.modified().ok().map(DateTime::from),
                                 owner: Some(entry.file_name().to_string_lossy().to_string()),
                                 permissions: Some(format!("{:o}", metadata.mode() & 0o777)),
                                 sha256: Some(compute_file_hash(&path)?),
@@ -618,7 +620,7 @@ fn collect_linux_credential_artifacts(result: &mut CredentialArtifactsResult) ->
                         artifact_type: CredentialArtifactType::SshPrivateKey,
                         path: path.to_string_lossy().to_string(),
                         size: Some(metadata.len()),
-                        modified: metadata.modified().ok().map(|t| DateTime::from(t)),
+                        modified: metadata.modified().ok().map(DateTime::from),
                         owner: Some("root".to_string()),
                         permissions: Some(format!("{:o}", metadata.mode() & 0o777)),
                         sha256: Some(compute_file_hash(&path)?),
@@ -878,18 +880,16 @@ fn collect_linux_auth_policies(result: &mut AuthPolicyResult) -> Result<()> {
             if line.starts_with('#') || line.is_empty() {
                 continue;
             }
-            if line.contains("Defaults") {
-                if line.contains("timestamp_timeout") {
-                    if let Some(val) = line.split('=').nth(1) {
-                        result.policies.push(AuthPolicy {
-                            policy_type: AuthPolicyType::SudoTimeout,
-                            name: "timestamp_timeout".to_string(),
-                            value: val.trim().to_string(),
-                            enforced: true,
-                            source: "/etc/sudoers".to_string(),
-                            description: Some("Sudo timeout in minutes".to_string()),
-                        });
-                    }
+            if line.contains("Defaults") && line.contains("timestamp_timeout") {
+                if let Some(val) = line.split('=').nth(1) {
+                    result.policies.push(AuthPolicy {
+                        policy_type: AuthPolicyType::SudoTimeout,
+                        name: "timestamp_timeout".to_string(),
+                        value: val.trim().to_string(),
+                        enforced: true,
+                        source: "/etc/sudoers".to_string(),
+                        description: Some("Sudo timeout in minutes".to_string()),
+                    });
                 }
             }
         }

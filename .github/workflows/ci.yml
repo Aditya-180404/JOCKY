@@ -65,9 +65,10 @@ jobs:
         run: |
           EVIDENCE=$(ls ./ci-build/*.json | grep -v meta | grep -v manifest | head -1)
           META="${EVIDENCE}.meta.json"
-          cp "${EVIDENCE}" /tmp/tampered.json
-          echo '"tampered_field": true' >> /tmp/tampered.json
-          if ./target/release/jockey evidence verify /tmp/tampered.json --meta "${META}" 2>/dev/null; then
+          TAMPERED=/tmp/tampered.json
+          jq '.[0] |= (. + {"ci_tamper_probe": true})' "${EVIDENCE}" > "${TAMPERED}"
+          jq -e 'type == "array" and length > 0 and .[0].ci_tamper_probe == true' "${TAMPERED}" >/dev/null
+          if ./target/release/jockey evidence verify "${TAMPERED}" --meta "${META}" 2>/dev/null; then
             echo "ERROR: tampered evidence should have failed verification" && exit 1
           else
             echo "✓ Tamper detection working correctly"
@@ -137,8 +138,14 @@ jobs:
           $evidence = (Get-ChildItem .\ci-build\*.json | Where-Object { $_.Name -notmatch "meta|manifest" } | Select-Object -First 1).FullName
           $meta = "$evidence.meta.json"
           $tampered = "$env:TEMP\tampered.json"
-          Copy-Item $evidence $tampered
-          Add-Content $tampered '"tampered_field": true'
+          $records = Get-Content $evidence -Raw | ConvertFrom-Json
+          if ($records -isnot [array] -or $records.Count -eq 0) {
+            throw "Evidence must be a non-empty JSON array before tampering"
+          }
+          $records[0] | Add-Member -NotePropertyName ci_tamper_probe -NotePropertyValue $true -Force
+          $tamperedJson = ConvertTo-Json -InputObject $records -Depth 100
+          [System.IO.File]::WriteAllText($tampered, $tamperedJson, [System.Text.UTF8Encoding]::new($false))
+          $null = Get-Content $tampered -Raw | ConvertFrom-Json
           $result = .\target\release\jockey.exe evidence verify $tampered --meta $meta 2>&1
           if ($LASTEXITCODE -eq 0) {
             Write-Error "ERROR: tampered evidence should have failed"; exit 1

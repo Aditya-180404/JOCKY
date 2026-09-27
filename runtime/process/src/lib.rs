@@ -163,7 +163,7 @@ pub fn enumerate_processes(
                 io_read_bytes: proc.io().ok().map(|io| io.rchar),
                 io_write_bytes: proc.io().ok().map(|io| io.wchar),
                 io_other_bytes: proc.io().ok().map(|io| io.syscr + io.syscw),
-                page_faults: proc.stat().ok().map(|s| s.minflt as u64 + s.majflt as u64),
+                page_faults: proc.stat().ok().map(|s| s.minflt + s.majflt),
                 context_switches: None,
             };
 
@@ -625,7 +625,7 @@ fn collect_modules_linux(pid: i32) -> Vec<ProcessModule> {
                         // Only include executable mappings (likely code)
                         if perms.contains('x') {
                             modules.push(ProcessModule {
-                                name: path.split('/').last().unwrap_or(&path).to_string(),
+                                name: path.split('/').next_back().unwrap_or(&path).to_string(),
                                 path: path.clone(),
                                 base_address: addr_parts[0].to_string(),
                                 size_bytes: u64::from_str_radix(addr_parts[1], 16).unwrap_or(0)

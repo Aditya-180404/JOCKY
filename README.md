@@ -1,6 +1,6 @@
 # jockey
 
-A cloud-based digital-forensics development and distribution platform with a domain-specific language for forensic investigations.
+A local-first digital-forensics development platform with a domain-specific language for forensic investigations.
 
 ## Overview
 
@@ -15,7 +15,7 @@ jockey enables investigators to:
 ## Architecture
 
 ```
-jockey Cloud
+jockey Workspace
 ├── Web Frontend (React + TypeScript + Vite + Tailwind)
 ├── Web IDE (Monaco Editor)
 ├── jockey Language & Compiler (Rust)
@@ -69,7 +69,7 @@ jockey/
 |-------------|---------|---------|
 | [Rust](https://rustup.rs/) | 1.70+ | Compiler, API, CLI |
 | [Node.js](https://nodejs.org/) | 20+ | Web frontend |
-| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Latest | PostgreSQL, Redis, MinIO |
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Latest | Optional clean package/integration tests |
 | Git | Any | Clone repository |
 
 ---
@@ -77,54 +77,24 @@ jockey/
 ### Step 1 — Clone the Repository
 
 ```powershell
-git clone https://github.com/your-org/jockey.git
+git clone https://github.com/Aditya-180404/jockey.git
 cd jockey
 ```
 
 ---
 
-### Step 2 — Start Infrastructure (PostgreSQL + Redis + MinIO)
+### Step 2 — Start the Local API
 
 ```powershell
-# Copy environment template (only needed once)
-copy .env.example .env
-
-# Start backing services in the background
-docker compose up -d postgres redis minio
-```
-
-Wait ~10 seconds for services to be ready. Verify with:
-
-```powershell
-docker compose ps
-```
-
-All three services should show **Up** / **healthy**.
-
----
-
-### Step 3 — Start the API Server
-
-Open a new terminal and run:
-
-```powershell
-$env:DATABASE_URL = "postgres://jockey:jockey_dev@localhost:5433/jockey"
-$env:RUST_LOG = "info"
+$env:JOCKEY_API_ADDR = "0.0.0.0:8080"
 cargo run -p jockey-api
 ```
 
-You should see:
-```
-INFO  Connected to PostgreSQL
-INFO  Database migrations applied
-INFO  Connected to Redis
-INFO  Configured S3 client for MinIO
-INFO  API server listening on http://0.0.0.0:8080
-```
+The local API exposes `/health` and compiler/download endpoints on port 8080. The current API does not require PostgreSQL, Redis, or MinIO to run these local workflows.
 
 ---
 
-### Step 4 — Start the Web Frontend
+### Step 3 — Start the Web Frontend
 
 Open a new terminal and run:
 
@@ -137,52 +107,30 @@ npm run dev
 You should see:
 ```
   VITE v5.x  ready in 500ms
-  ➜  Local:   http://localhost:5173/
+  ➜  Local:   http://localhost:3000/
 ```
 
-Open **http://localhost:5173** in your browser.
+Open **http://localhost:3000** in your browser.
 
 ### Local Full-Stack Verification
 
-Use this procedure when validating the browser-to-runtime development chain:
+Use separate terminals for the API and frontend. Do not terminate an API process you did not start.
 
 ```powershell
-# 1. Start PostgreSQL, Redis, and MinIO
-docker compose up -d postgres redis minio
-docker compose ps
-
-# 2. Configure the host-side API to use the Docker-mapped services
-$env:DATABASE_URL = "postgres://jockey:jockey_dev@localhost:5433/jockey"
-$env:REDIS_URL = "redis://localhost:6379"
-$env:MINIO_ENDPOINT = "http://localhost:9000"
-$env:MINIO_ACCESS_KEY = "jockey"
-$env:MINIO_SECRET_KEY = "jockey_dev"
-$env:MINIO_BUCKET = "jockey-artifacts"
-$env:RUST_LOG = "info"
-
-# 3. If a previous API process is running, stop only that process before rebuilding
-Get-Process jockey-api -ErrorAction SilentlyContinue
-Stop-Process -Name jockey-api -Force -ErrorAction SilentlyContinue
-cargo check --workspace
-cargo build -p jockey-api
-
-# 4. Start the API in one terminal
+# Terminal 1: API
 cargo run -p jockey-api
 
-# 5. Start the frontend in another terminal
+# Terminal 2: frontend
 cd apps\web
-npm install
+npm ci
 npm run dev
 ```
 
-The API provisions the configured MinIO bucket at startup. Verify `http://localhost:8080/health`, then open
-`http://localhost:5173/ide`, load an example, and use **Check** or **Run**. The Web IDE uses the real
-`/api/compiler/check` and `/api/compiler/execute` endpoints; execution is explicitly reported as the controlled
-jockey sandbox when local native execution is unavailable.
+Verify `http://localhost:8080/health`, then open `http://localhost:3000/ide`. The IDE calls `/api/compiler/check`, `/api/compiler/compile`, `/api/compiler/run`, and `/api/compiler/verify`.
 
 ---
 
-### Step 5 — Build the CLI
+### Step 4 — Build the CLI
 
 ```powershell
 cargo build --release -p jockey-cli
@@ -205,7 +153,7 @@ jockey --version
 
 ---
 
-### Step 6 — Run Your First Investigation
+### Step 5 — Run Your First Investigation
 
 JOCKEY source files use the `.jy` extension.
 
@@ -213,7 +161,7 @@ JOCKEY source files use the `.jy` extension.
 # Validate a .jy file
 jockey validate examples\process_triage.jy
 
-# Compile + execute (auto-detects Windows target)
+# Run an investigation (requires Rust/Cargo and the runtime source tree)
 jockey run examples\process_triage.jy
 
 # Verify the evidence file integrity
@@ -231,52 +179,17 @@ Collected: 2026-09-23T...
 
 ---
 
-### Step 7 — Open the Web IDE
+### Step 6 — Open the Web IDE
 
-Navigate to **http://localhost:5173/ide** in your browser, or run:
+Navigate to **http://localhost:3000/ide** in your browser, or run:
 
 ```powershell
 jockey ide
 ```
 
-Write `.jy` code in the Monaco editor, click **Check** to validate, or **Execute** to run live forensic collection through the API.
+Write `.jy` code in the Monaco editor, click **Check** to validate, **Run** to collect evidence through the local API, and **Verify** to recheck evidence integrity. The current generated CLI run/build path still depends on the Rust toolchain and runtime source tree; packaged execution away from the source checkout is not yet release-ready.
 
 ---
-
-### Quick-Start Script (All-in-One)
-
-Save as `start.ps1` and run from the repo root:
-
-```powershell
-# start.ps1 — Start all jockey services
-
-Write-Host "Starting infrastructure..." -ForegroundColor Cyan
-docker compose up -d postgres redis minio
-
-Write-Host "Waiting for services to be ready..."
-Start-Sleep -Seconds 8
-
-Write-Host "Starting API server (background)..." -ForegroundColor Cyan
-Start-Process powershell -ArgumentList `
-  '-NoExit', '-Command', `
-  '$env:DATABASE_URL="postgres://jockey:jockey_dev@localhost:5433/jockey"; $env:RUST_LOG="info"; cargo run -p jockey-api'
-
-Write-Host "Starting web frontend (background)..." -ForegroundColor Cyan
-Start-Process powershell -ArgumentList `
-  '-NoExit', '-Command', `
-  'cd apps\web; npm run dev'
-
-Write-Host ""
-Write-Host "jockey is starting up!" -ForegroundColor Green
-Write-Host "  Web UI:  http://localhost:5173"
-Write-Host "  Web IDE: http://localhost:5173/ide"
-Write-Host "  API:     http://localhost:8080"
-```
-
-```powershell
-.\start.ps1
-```
-
 
 ## Language Example
 
@@ -318,6 +231,8 @@ All operations are explicit, auditable, permission-controlled, and reproducible.
 - [Development](docs/development.md)
 - [Deployment](docs/deployment.md)
 - [Threat Model](docs/threat-model.md)
+- [Capability Implementation Status](docs/capability-implementation-report.md)
+- [Release Readiness Audit](docs/release-readiness-audit.md)
 
 ## License
 

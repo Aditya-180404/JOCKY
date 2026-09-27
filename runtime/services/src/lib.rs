@@ -468,7 +468,6 @@ pub fn enumerate_systemd_units() -> Result<Vec<SystemdUnitInfo>> {
 #[cfg(target_os = "linux")]
 pub fn enumerate_systemd_units() -> Result<Vec<SystemdUnitInfo>> {
     use std::fs;
-    use std::path::Path;
 
     let mut units = Vec::new();
 
@@ -626,7 +625,7 @@ fn parse_systemd_unit_file(path: &std::path::Path) -> Result<SystemdUnitInfo> {
                 _ => {}
             },
             "Timer" => {
-                let mut timer = unit.timer_properties.get_or_insert(TimerProperties {
+                let timer = unit.timer_properties.get_or_insert(TimerProperties {
                     on_calendar: None,
                     on_boot_sec: None,
                     on_unit_active_sec: None,

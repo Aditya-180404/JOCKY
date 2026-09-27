@@ -227,6 +227,7 @@ pub async fn capabilities_handler(
 ) -> Json<serde_json::Value> {
     let reg = jockey_runtime_capabilities::CapabilityRegistry::new();
     let mut map = reg.to_json();
+    let total = map.as_object().map_or(0, serde_json::Map::len);
     if let serde_json::Value::Object(ref mut payload) = map {
         if query.status.is_some() || query.platform.is_some() {
             let status_filter = query.status.as_ref().map(|s| s.to_lowercase());
@@ -283,7 +284,7 @@ pub async fn capabilities_handler(
             return Json(serde_json::json!({
                 "capabilities": other,
                 "count": 0,
-                "total": 0,
+                "total": total,
                 "implemented": 0,
                 "partial": 0,
                 "requires_elevation": 0,
@@ -293,15 +294,29 @@ pub async fn capabilities_handler(
     };
 
     let count = payload.len();
-    let implemented = payload.values().filter(|v| v.get("status") == Some(&serde_json::Value::String("IMPLEMENTED".into()))).count();
-    let partial = payload.values().filter(|v| v.get("status") == Some(&serde_json::Value::String("PARTIAL".into()))).count();
-    let requires_elevation = payload.values().filter(|v| v.get("status") == Some(&serde_json::Value::String("REQUIRES_ELEVATION".into()))).count();
-    let unsupported = payload.values().filter(|v| v.get("status") == Some(&serde_json::Value::String("UNSUPPORTED".into()))).count();
+    let implemented = payload
+        .values()
+        .filter(|v| v.get("status") == Some(&serde_json::Value::String("IMPLEMENTED".into())))
+        .count();
+    let partial = payload
+        .values()
+        .filter(|v| v.get("status") == Some(&serde_json::Value::String("PARTIAL".into())))
+        .count();
+    let requires_elevation = payload
+        .values()
+        .filter(|v| {
+            v.get("status") == Some(&serde_json::Value::String("REQUIRES_ELEVATION".into()))
+        })
+        .count();
+    let unsupported = payload
+        .values()
+        .filter(|v| v.get("status") == Some(&serde_json::Value::String("UNSUPPORTED".into())))
+        .count();
 
     Json(serde_json::json!({
         "capabilities": payload,
         "count": count,
-        "total": count,
+        "total": total,
         "implemented": implemented,
         "partial": partial,
         "requires_elevation": requires_elevation,
@@ -501,20 +516,26 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
         "./packaging/windows-stage/jockey.exe",
     ]);
 
-    let mut packages = vec![DownloadPackage {
-        platform: "Windows".to_string(),
-        arch: "x64".to_string(),
-        name: "jockey Windows Distribution Archive (.zip)".to_string(),
-        filename: "jockey_0.1.0_windows_amd64.zip".to_string(),
-        version: "0.1.0".to_string(),
-        size_bytes: win_zip_size,
-        sha256: win_zip_hash,
-        release_date: chrono::Utc::now().format("%Y-%m-%d").to_string(),
-        requirements: "Windows 10 / 11 64-bit".to_string(),
-        download_url: "/api/downloads/jockey_0.1.0_windows_amd64.zip".to_string(),
-    }];
+    let release_date = chrono::Utc::now().format("%Y-%m-%d").to_string();
+    let mut packages = Vec::new();
 
-    if deb_size > 0 {
+    if win_zip_size > 0 && win_zip_hash != "unavailable" {
+        packages.push(DownloadPackage {
+            platform: "Windows".to_string(),
+            arch: "x64".to_string(),
+            name: "jockey Windows Distribution Archive (.zip)".to_string(),
+            filename: "jockey_0.1.0_windows_amd64.zip".to_string(),
+            version: "0.1.0".to_string(),
+            size_bytes: win_zip_size,
+            sha256: win_zip_hash,
+            content_type: "application/zip".to_string(),
+            release_date: release_date.clone(),
+            requirements: "Windows 10 / 11 64-bit".to_string(),
+            download_url: "/api/downloads/jockey_0.1.0_windows_amd64.zip".to_string(),
+        });
+    }
+
+    if deb_size > 0 && deb_hash != "unavailable" {
         packages.push(DownloadPackage {
             platform: "Linux (Debian)".to_string(),
             arch: "x64".to_string(),
@@ -523,73 +544,70 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
             version: "0.1.0".to_string(),
             size_bytes: deb_size,
             sha256: deb_hash,
-            release_date: chrono::Utc::now().format("%Y-%m-%d").to_string(),
+            content_type: "application/vnd.debian.binary-package".to_string(),
+            release_date: release_date.clone(),
             requirements: "Debian 12+ / Ubuntu 22.04+ (x86_64)".to_string(),
             download_url: "/api/downloads/jockey_0.1.0_amd64.deb".to_string(),
         });
     }
 
-    packages.push(DownloadPackage {
-        platform: "Windows".to_string(),
-        arch: "x64".to_string(),
-        name: "jockey Standalone CLI Executable".to_string(),
-        filename: "jockey.exe".to_string(),
-        version: "0.1.0".to_string(),
-        size_bytes: win_exe_size,
-        sha256: win_exe_hash,
-        release_date: chrono::Utc::now().format("%Y-%m-%d").to_string(),
-        requirements: "Windows 10 / 11 64-bit".to_string(),
-        download_url: "/api/downloads/jockey.exe".to_string(),
-    });
+    if win_exe_size > 0 && win_exe_hash != "unavailable" {
+        packages.push(DownloadPackage {
+            platform: "Windows".to_string(),
+            arch: "x64".to_string(),
+            name: "jockey Standalone CLI Executable".to_string(),
+            filename: "jockey.exe".to_string(),
+            version: "0.1.0".to_string(),
+            size_bytes: win_exe_size,
+            sha256: win_exe_hash,
+            content_type: "application/vnd.microsoft.portable-executable".to_string(),
+            release_date,
+            requirements: "Windows 10 / 11 64-bit".to_string(),
+            download_url: "/api/downloads/jockey.exe".to_string(),
+        });
+    }
 
     Json(DownloadInfoResponse { packages })
 }
 
 /// Endpoint: GET /api/downloads/:filename
 pub async fn download_file_handler(Path(filename): Path<String>) -> impl IntoResponse {
-    // Path traversal protection: strip .., /, \ and reject empty or suspicious names
-    let sanitized = filename.replace("..", "").replace(['/', '\\'], "");
-    if sanitized.is_empty() || sanitized.starts_with('.') {
-        return (StatusCode::BAD_REQUEST, "Invalid artifact name").into_response();
-    }
-
-    let root_path = std::path::PathBuf::from(".").join(&sanitized);
-    let package_path = std::path::PathBuf::from("./packages").join(&sanitized);
-    let build_path = std::path::PathBuf::from("./build").join(&sanitized);
-    let target_path = std::path::PathBuf::from("./target/release").join(&sanitized);
-    let debug_path = std::path::PathBuf::from("./target/debug").join(&sanitized);
-
-    let content_res = if root_path.is_file() {
-        std::fs::read(&root_path)
-    } else if package_path.is_file() {
-        std::fs::read(&package_path)
-    } else if build_path.is_file() {
-        std::fs::read(&build_path)
-    } else if target_path.is_file() {
-        std::fs::read(&target_path)
-    } else if debug_path.is_file() {
-        std::fs::read(&debug_path)
-    } else {
-        return (StatusCode::NOT_FOUND, "Artifact not currently available").into_response();
+    let (candidates, content_type): (&[&str], &str) = match filename.as_str() {
+        "jockey_0.1.0_windows_amd64.zip" => (
+            &[
+                "./jockey_0.1.0_windows_amd64.zip",
+                "./packages/jockey_0.1.0_windows_amd64.zip",
+                "./build/jockey_0.1.0_windows_amd64.zip",
+            ],
+            "application/zip",
+        ),
+        "jockey_0.1.0_amd64.deb" => (
+            &[
+                "./jockey_0.1.0_amd64.deb",
+                "./packages/jockey_0.1.0_amd64.deb",
+            ],
+            "application/vnd.debian.binary-package",
+        ),
+        "jockey.exe" => (
+            &[
+                "./target/release/jockey.exe",
+                "./jockey.exe",
+                "./packaging/windows-stage/jockey.exe",
+            ],
+            "application/vnd.microsoft.portable-executable",
+        ),
+        _ => return (StatusCode::NOT_FOUND, "Artifact not currently available").into_response(),
     };
 
-    match content_res {
-        Ok(data) => {
-            // Determine Content-Type based on file extension
-            let content_type = if sanitized.ends_with(".zip") {
-                "application/zip"
-            } else if sanitized.ends_with(".deb") {
-                "application/vnd.debian.binary-package"
-            } else if sanitized.ends_with(".exe") {
-                "application/vnd.microsoft.portable-executable"
-            } else if sanitized.ends_with(".json") {
-                "application/json"
-            } else {
-                "application/octet-stream"
-            };
+    let content_res = candidates
+        .iter()
+        .map(std::path::Path::new)
+        .find(|path| path.is_file())
+        .map(std::fs::read);
 
-            // Compute ETag from file content length + name
-            let etag = format!("\"{}{}\"", data.len(), sanitized.len());
+    match content_res {
+        Some(Ok(data)) => {
+            let etag = format!("\"{}{}\"", data.len(), filename.len());
             let content_length = data.len().to_string();
 
             (
@@ -598,18 +616,169 @@ pub async fn download_file_handler(Path(filename): Path<String>) -> impl IntoRes
                     ("Content-Type", content_type),
                     (
                         "Content-Disposition",
-                        &format!("attachment; filename=\"{}\"", sanitized),
+                        &format!("attachment; filename=\"{}\"", filename),
                     ),
                     ("Content-Length", &content_length),
                     ("ETag", &etag),
-                    ("Cache-Control", "public, max-age=3600, immutable"),
+                    ("Cache-Control", "no-store"),
                     ("X-Content-Type-Options", "nosniff"),
                 ],
                 data,
             )
                 .into_response()
         }
-        Err(_) => (StatusCode::NOT_FOUND, "Artifact not currently available").into_response(),
+        Some(Err(_)) | None => {
+            (StatusCode::NOT_FOUND, "Artifact not currently available").into_response()
+        }
+    }
+}
+
+#[cfg(test)]
+mod download_tests {
+    use super::{
+        capabilities_handler, download_file_handler, download_windows_handler,
+        downloads_info_handler, verify_handler, CapabilitiesQuery, VerifyRequest,
+    };
+    use axum::{body::to_bytes, response::IntoResponse, Json};
+
+    #[tokio::test]
+    async fn download_route_rejects_unapproved_names_and_traversal() {
+        for filename in [
+            "Cargo.toml",
+            "../../Cargo.toml",
+            "../../../etc/passwd",
+            r"..\..\Cargo.toml",
+            "foo.json",
+        ] {
+            let response = download_file_handler(axum::extract::Path(filename.to_string()))
+                .await
+                .into_response();
+            assert_eq!(
+                response.status(),
+                axum::http::StatusCode::NOT_FOUND,
+                "unexpectedly accepted {filename}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn windows_download_route_returns_canonical_zip_headers() {
+        let path =
+            std::env::temp_dir().join(format!("jockey-download-test-{}.zip", uuid::Uuid::new_v4()));
+        std::fs::write(&path, b"PK\x03\x04test").unwrap();
+        let previous = std::env::var_os("JOCKEY_WINDOWS_ZIP");
+        std::env::set_var("JOCKEY_WINDOWS_ZIP", &path);
+
+        let response = download_windows_handler().await.into_response();
+
+        if let Some(value) = previous {
+            std::env::set_var("JOCKEY_WINDOWS_ZIP", value);
+        } else {
+            std::env::remove_var("JOCKEY_WINDOWS_ZIP");
+        }
+        let _ = std::fs::remove_file(path);
+
+        assert_eq!(response.status(), axum::http::StatusCode::OK);
+        assert_eq!(
+            response.headers()[axum::http::header::CONTENT_TYPE],
+            "application/zip"
+        );
+        assert_eq!(
+            response.headers()[axum::http::header::CONTENT_DISPOSITION],
+            "attachment; filename=\"jockey_0.1.0_windows_amd64.zip\""
+        );
+        assert_eq!(
+            response.headers()[axum::http::header::CACHE_CONTROL],
+            "no-store"
+        );
+    }
+
+    #[tokio::test]
+    async fn evidence_verification_accepts_original_and_rejects_tampered_json() {
+        use sha2::{Digest, Sha256};
+
+        let records = vec![serde_json::json!({ "hostname": "test-host" })];
+        let evidence = serde_json::to_string(&records).unwrap();
+        let evidence_hash = format!("{:x}", Sha256::digest(evidence.as_bytes()));
+        let record_hashes = records
+            .iter()
+            .map(|record| format!("{:x}", Sha256::digest(serde_json::to_vec(record).unwrap())))
+            .collect::<Vec<_>>();
+        let merkle_root = jockey_runtime::compute_merkle_root(&record_hashes);
+        let metadata = serde_json::json!({
+            "evidence_hash": evidence_hash,
+            "merkle_root": merkle_root,
+        });
+
+        let original = verify_handler(Json(VerifyRequest {
+            evidence: evidence.clone(),
+            metadata: metadata.clone(),
+        }))
+        .await;
+        let original_body = to_bytes(original.into_body(), usize::MAX).await.unwrap();
+        let original_result: serde_json::Value = serde_json::from_slice(&original_body).unwrap();
+        assert_eq!(original_result["valid"], true);
+        assert_eq!(original_result["status"], "VALID");
+
+        let tampered = evidence.replace("test-host", "modified-host");
+        let response = verify_handler(Json(VerifyRequest {
+            evidence: tampered,
+            metadata,
+        }))
+        .await;
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let result: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(result["valid"], false);
+        assert_eq!(result["status"], "TAMPERED");
+    }
+
+    #[tokio::test]
+    async fn capability_envelope_counts_and_filtered_total_match_registry() {
+        let full = capabilities_handler(axum::extract::Query(CapabilitiesQuery::default()))
+            .await
+            .0;
+        assert_eq!(full["count"], 247);
+        assert_eq!(full["total"], 247);
+        assert_eq!(full["implemented"], 241);
+        assert_eq!(full["partial"], 1);
+        assert_eq!(full["requires_elevation"], 4);
+        assert_eq!(full["unsupported"], 1);
+        assert_eq!(full["capabilities"].as_object().unwrap().len(), 247);
+
+        let filtered = capabilities_handler(axum::extract::Query(CapabilitiesQuery {
+            status: Some("implemented".to_string()),
+            platform: None,
+        }))
+        .await
+        .0;
+        assert_eq!(filtered["count"], 241);
+        assert_eq!(filtered["total"], 247);
+        assert_eq!(filtered["implemented"], 241);
+    }
+
+    #[tokio::test]
+    async fn download_metadata_only_describes_real_artifacts() {
+        let response = downloads_info_handler().await.0;
+        for package in response.packages {
+            assert!(
+                package.size_bytes > 0,
+                "{} has no artifact bytes",
+                package.filename
+            );
+            assert!(
+                package.sha256.len() == 64
+                    && package.sha256.bytes().all(|byte| byte.is_ascii_hexdigit()),
+                "{} has no computed SHA-256 digest",
+                package.filename
+            );
+            let expected_content_type = match package.filename.as_str() {
+                "jockey_0.1.0_windows_amd64.zip" => "application/zip",
+                "jockey_0.1.0_amd64.deb" => "application/vnd.debian.binary-package",
+                "jockey.exe" => "application/vnd.microsoft.portable-executable",
+                other => panic!("unapproved package filename advertised: {other}"),
+            };
+            assert_eq!(package.content_type, expected_content_type);
+        }
     }
 }
 
@@ -617,10 +786,9 @@ pub async fn download_file_handler(Path(filename): Path<String>) -> impl IntoRes
 pub async fn download_windows_handler() -> impl IntoResponse {
     let candidates = [
         std::env::var("JOCKEY_WINDOWS_ZIP").unwrap_or_default(),
-        std::env::var("JOCKEY_WINDOWS_ARTIFACT").unwrap_or_default(),
         "./jockey_0.1.0_windows_amd64.zip".to_string(),
-        "./target/release/jockey.exe".to_string(),
-        "./jockey.exe".to_string(),
+        "./packages/jockey_0.1.0_windows_amd64.zip".to_string(),
+        "./build/jockey_0.1.0_windows_amd64.zip".to_string(),
     ];
 
     for path_str in candidates {
@@ -630,26 +798,18 @@ pub async fn download_windows_handler() -> impl IntoResponse {
         let p = std::path::PathBuf::from(&path_str);
         if p.is_file() {
             if let Ok(data) = std::fs::read(&p) {
-                let filename = p
-                    .file_name()
-                    .and_then(|s| s.to_str())
-                    .unwrap_or("jockey_0.1.0_windows_amd64.zip");
-                let content_type = if filename.ends_with(".zip") {
-                    "application/zip"
-                } else {
-                    "application/vnd.microsoft.portable-executable"
-                };
+                let filename = "jockey_0.1.0_windows_amd64.zip";
                 let content_length = data.len().to_string();
                 return (
                     StatusCode::OK,
                     [
-                        ("Content-Type", content_type),
+                        ("Content-Type", "application/zip"),
                         (
                             "Content-Disposition",
                             &format!("attachment; filename=\"{}\"", filename),
                         ),
                         ("Content-Length", &content_length),
-                        ("Cache-Control", "public, max-age=3600, immutable"),
+                        ("Cache-Control", "no-store"),
                     ],
                     data,
                 )
@@ -697,7 +857,7 @@ pub async fn download_linux_handler() -> impl IntoResponse {
                             &format!("attachment; filename=\"{}\"", filename),
                         ),
                         ("Content-Length", &content_length),
-                        ("Cache-Control", "public, max-age=3600, immutable"),
+                        ("Cache-Control", "no-store"),
                     ],
                     data,
                 )
@@ -741,6 +901,73 @@ pub struct VerificationResponse {
     pub status: String,
     pub sha256: String,
     pub merkle_root: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub evidence_raw: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct VerifyRequest {
+    pub evidence: String,
+    pub metadata: serde_json::Value,
+}
+
+pub async fn verify_handler(Json(req): Json<VerifyRequest>) -> Response {
+    const MAX_EVIDENCE_SIZE: usize = 16 * 1024 * 1024;
+    if req.evidence.len() > MAX_EVIDENCE_SIZE {
+        return compiler_error(
+            StatusCode::PAYLOAD_TOO_LARGE,
+            "Evidence exceeds the 16 MiB verification limit",
+        );
+    }
+
+    let expected_hash = match req.metadata.get("evidence_hash").and_then(|v| v.as_str()) {
+        Some(hash) => hash,
+        None => return compiler_error(StatusCode::BAD_REQUEST, "Metadata has no evidence_hash"),
+    };
+    let records: Vec<serde_json::Value> = match serde_json::from_str(&req.evidence) {
+        Ok(records) => records,
+        Err(error) => {
+            return compiler_error(
+                StatusCode::BAD_REQUEST,
+                &format!("Evidence is not a valid JSON record array: {error}"),
+            )
+        }
+    };
+
+    use sha2::{Digest, Sha256};
+    let calculated_hash = format!("{:x}", Sha256::digest(req.evidence.as_bytes()));
+    let merkle_root = req.metadata.get("merkle_root").and_then(|v| v.as_str());
+    let calculated_merkle_root = if merkle_root.is_some() {
+        let record_hashes = records
+            .iter()
+            .map(|record| {
+                let bytes = serde_json::to_vec(record).unwrap_or_default();
+                format!("{:x}", Sha256::digest(bytes))
+            })
+            .collect::<Vec<_>>();
+        Some(jockey_runtime::compute_merkle_root(&record_hashes))
+    } else {
+        None
+    };
+    let hash_matches = calculated_hash == expected_hash;
+    let merkle_matches = merkle_root
+        .zip(calculated_merkle_root.as_deref())
+        .map(|(expected, calculated)| expected == calculated)
+        .unwrap_or(true);
+    let valid = hash_matches && merkle_matches;
+
+    Json(VerificationResponse {
+        valid,
+        status: if valid {
+            "VALID".to_string()
+        } else {
+            "TAMPERED".to_string()
+        },
+        sha256: calculated_hash,
+        merkle_root: calculated_merkle_root,
+        evidence_raw: None,
+    })
+    .into_response()
 }
 
 /// Endpoint: POST /api/compiler/run — Execute JOCKEY program in controlled sandbox and return structured evidence
@@ -1044,6 +1271,7 @@ fn execute_native_program(source: &str, target_str: &str) -> RunResponse {
         .unwrap_or(if output.status.success() { 0 } else { 1 });
 
     let mut evidence_val: Option<serde_json::Value> = None;
+    let mut evidence_raw: Option<String> = None;
     let mut metadata_val: Option<serde_json::Value> = None;
     let mut verification_res: Option<VerificationResponse> = None;
 
@@ -1062,6 +1290,7 @@ fn execute_native_program(source: &str, target_str: &str) -> RunResponse {
                 && !fname.ends_with(".mir.json")
             {
                 if let Ok(content) = std::fs::read_to_string(&path) {
+                    evidence_raw = Some(content.clone());
                     if let Ok(val) = serde_json::from_str::<serde_json::Value>(&content) {
                         evidence_val = Some(val);
                     }
@@ -1112,6 +1341,7 @@ fn execute_native_program(source: &str, target_str: &str) -> RunResponse {
                         status: status_str,
                         sha256: hash_str,
                         merkle_root,
+                        evidence_raw: evidence_raw.clone(),
                     });
                 }
                 break;
@@ -1124,9 +1354,23 @@ fn execute_native_program(source: &str, target_str: &str) -> RunResponse {
         let _ = std::fs::remove_dir_all(&cleanup_dir);
     });
 
+    let verification_succeeded = verification_res
+        .as_ref()
+        .is_some_and(|verification| verification.valid);
+    let success = output.status.success() && verification_succeeded;
+    let stderr_str = if output.status.success() && !verification_succeeded {
+        format!(
+            "{}{}Investigation did not produce evidence that passed integrity verification.",
+            stderr_str,
+            if stderr_str.is_empty() { "" } else { "\n" }
+        )
+    } else {
+        stderr_str
+    };
+
     RunResponse {
-        success: output.status.success(),
-        exit_code,
+        success,
+        exit_code: if success { exit_code } else { exit_code.max(1) },
         stdout: stdout_str,
         stderr: stderr_str,
         duration_ms: start_time.elapsed().as_millis() as u64,
@@ -1151,6 +1395,7 @@ pub struct DownloadPackage {
     pub version: String,
     pub size_bytes: u64,
     pub sha256: String,
+    pub content_type: String,
     pub release_date: String,
     pub requirements: String,
     pub download_url: String,

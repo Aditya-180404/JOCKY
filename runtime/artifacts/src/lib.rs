@@ -1031,14 +1031,14 @@ pub fn is_elevated() -> bool {
 
 /// Windows Amcache.hve parser
 pub fn carve_amcache(
-    search_path: &str,
+    _search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     #[cfg(target_os = "windows")]
     {
-        let target_path = if search_path == "." || search_path.is_empty() {
+        let target_path = if _search_path == "." || _search_path.is_empty() {
             r"C:\Windows\AppCompat\Programs\Amcache.hve".to_string()
         } else {
-            search_path.to_string()
+            _search_path.to_string()
         };
         let path = Path::new(&target_path);
         if !path.exists() {
@@ -1125,13 +1125,15 @@ pub fn carve_amcache(
 }
 
 /// Windows SRUM database parser
-pub fn carve_srum(search_path: &str) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+pub fn carve_srum(
+    _search_path: &str,
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     #[cfg(target_os = "windows")]
     {
-        let target_path = if search_path == "." || search_path.is_empty() {
+        let target_path = if _search_path == "." || _search_path.is_empty() {
             r"C:\Windows\System32\sru\SRUDB.dat".to_string()
         } else {
-            search_path.to_string()
+            _search_path.to_string()
         };
         let path = Path::new(&target_path);
         if !path.exists() {
@@ -1219,13 +1221,13 @@ pub fn carve_srum(search_path: &str) -> Result<Vec<serde_json::Value>, Box<dyn s
 
 /// Windows Jump Lists parser
 pub fn carve_jumplists(
-    search_path: &str,
+    _search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     #[cfg(target_os = "windows")]
     {
         let mut dirs = Vec::new();
-        if search_path != "." && !search_path.is_empty() && Path::new(search_path).is_dir() {
-            dirs.push(std::path::PathBuf::from(search_path));
+        if _search_path != "." && !_search_path.is_empty() && Path::new(_search_path).is_dir() {
+            dirs.push(std::path::PathBuf::from(_search_path));
         } else if let Ok(appdata) = std::env::var("APPDATA") {
             let auto = Path::new(&appdata).join(r"Microsoft\Windows\Recent\AutomaticDestinations");
             let custom = Path::new(&appdata).join(r"Microsoft\Windows\Recent\CustomDestinations");
@@ -1457,7 +1459,7 @@ pub fn collect_etw_logs(
 
 /// Windows Event Logs collector
 pub fn carve_event_logs(
-    search_path: &str,
+    _search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     #[cfg(target_os = "windows")]
     {
@@ -1507,8 +1509,8 @@ pub fn carve_event_logs(
             }
         }
 
-        let winevt_dir = if search_path != "." && !search_path.is_empty() {
-            Path::new(search_path)
+        let winevt_dir = if _search_path != "." && !_search_path.is_empty() {
+            Path::new(_search_path)
         } else {
             Path::new(r"C:\Windows\System32\winevt\Logs")
         };
@@ -1517,7 +1519,7 @@ pub fn carve_event_logs(
             if let Ok(entries) = std::fs::read_dir(winevt_dir) {
                 for entry in entries.flatten().take(50) {
                     let p = entry.path();
-                    if p.extension().map_or(false, |ext| ext == "evtx") {
+                    if p.extension().is_some_and(|ext| ext == "evtx") {
                         let meta = entry.metadata().ok();
                         results.push(serde_json::json!({
                             "collector": "artifacts",
@@ -1554,18 +1556,20 @@ pub fn carve_event_logs(
 
 /// Windows Recent Files collector
 pub fn carve_recent_files(
-    search_path: &str,
+    _search_path: &str,
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     #[cfg(target_os = "windows")]
     {
-        let target_dir =
-            if search_path != "." && !search_path.is_empty() && Path::new(search_path).is_dir() {
-                std::path::PathBuf::from(search_path)
-            } else if let Ok(appdata) = std::env::var("APPDATA") {
-                Path::new(&appdata).join(r"Microsoft\Windows\Recent")
-            } else {
-                std::path::PathBuf::from(search_path)
-            };
+        let target_dir = if _search_path != "."
+            && !_search_path.is_empty()
+            && Path::new(_search_path).is_dir()
+        {
+            std::path::PathBuf::from(_search_path)
+        } else if let Ok(appdata) = std::env::var("APPDATA") {
+            Path::new(&appdata).join(r"Microsoft\Windows\Recent")
+        } else {
+            std::path::PathBuf::from(_search_path)
+        };
 
         if !target_dir.exists() {
             return Ok(vec![serde_json::json!({
@@ -1679,8 +1683,10 @@ pub fn carve_container_artifacts(
             if output.status.success() {
                 let u16s: Vec<u16> = output
                     .stdout
-                    .chunks_exact(2)
-                    .map(|chunk| u16::from_le_bytes([chunk[0], chunk[1]]))
+                    .as_chunks::<2>()
+                    .0
+                    .iter()
+                    .map(|chunk| u16::from_le_bytes(*chunk))
                     .collect();
                 let text = String::from_utf16_lossy(&u16s);
                 for line in text.lines().map(str::trim).filter(|l| !l.is_empty()) {
@@ -2059,29 +2065,28 @@ pub fn carve_ssh_config(
         // Also check user home directories for .ssh
         let home_dir = Path::new("/home");
         if home_dir.exists() {
-            for entry in
-                std::fs::read_dir(home_dir).unwrap_or_else(|_| std::fs::read_dir("/").unwrap())
+            for entry in std::fs::read_dir(home_dir)
+                .unwrap_or_else(|_| std::fs::read_dir("/").unwrap())
+                .flatten()
             {
-                if let Ok(entry) = entry {
-                    let ssh_path = entry.path().join(".ssh");
-                    if ssh_path.exists() {
-                        for ssh_entry in walkdir_max_depth(&ssh_path, 2) {
-                            if ssh_entry.is_file() {
-                                let sha256 = sha256_file(&ssh_entry);
-                                let size = ssh_entry.metadata().map(|m| m.len()).unwrap_or(0);
-                                results.push(serde_json::to_value(CarvedArtifact {
-                                    artifact_type: "ssh_config".to_string(),
-                                    path: ssh_entry.display().to_string(),
-                                    size_bytes: size,
-                                    sha256,
-                                    modified_at: modified_at(&ssh_entry),
-                                    metadata: serde_json::json!({
-                                        "file_type": "ssh_user_config",
-                                    }),
-                                    suspicious: false,
-                                    suspicious_reason: None,
-                                })?);
-                            }
+                let ssh_path = entry.path().join(".ssh");
+                if ssh_path.exists() {
+                    for ssh_entry in walkdir_max_depth(&ssh_path, 2) {
+                        if ssh_entry.is_file() {
+                            let sha256 = sha256_file(&ssh_entry);
+                            let size = ssh_entry.metadata().map(|m| m.len()).unwrap_or(0);
+                            results.push(serde_json::to_value(CarvedArtifact {
+                                artifact_type: "ssh_config".to_string(),
+                                path: ssh_entry.display().to_string(),
+                                size_bytes: size,
+                                sha256,
+                                modified_at: modified_at(&ssh_entry),
+                                metadata: serde_json::json!({
+                                    "file_type": "ssh_user_config",
+                                }),
+                                suspicious: false,
+                                suspicious_reason: None,
+                            })?);
                         }
                     }
                 }
@@ -2096,7 +2101,7 @@ pub fn carve_ssh_config(
             }));
         }
 
-        return Ok(results);
+        Ok(results)
     }
     #[cfg(not(target_os = "linux"))]
     {

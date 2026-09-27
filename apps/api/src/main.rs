@@ -1,6 +1,7 @@
 //! jockey API - REST API for the jockey platform
 
 use axum::{
+    extract::DefaultBodyLimit,
     http::HeaderValue,
     response::IntoResponse,
     routing::{get, post},
@@ -16,7 +17,7 @@ mod tools_service;
 use compiler_service::{
     capabilities_handler, check_handler, compile_handler, download_file_handler,
     download_linux_handler, download_windows_handler, downloads_info_handler, run_handler,
-    targets_handler,
+    targets_handler, verify_handler,
 };
 use tools_service::{
     auth_login_handler, auth_register_handler, tools_create_handler, tools_create_version_handler,
@@ -39,6 +40,10 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/compiler/check", post(check_handler))
         .route("/api/compiler/compile", post(compile_handler))
         .route("/api/compiler/run", post(run_handler))
+        .route(
+            "/api/compiler/verify",
+            post(verify_handler).layer(DefaultBodyLimit::max(16 * 1024 * 1024)),
+        )
         .route("/api/compiler/targets", get(targets_handler))
         .route("/api/compiler/capabilities", get(capabilities_handler))
         // Download package routes
@@ -92,8 +97,10 @@ async fn main() -> anyhow::Result<()> {
 
     let app = app.layer(cors).layer(TraceLayer::new_for_http());
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
-    info!("API server listening on http://0.0.0.0:8080");
+    let bind_address =
+        std::env::var("JOCKEY_API_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".to_string());
+    let listener = tokio::net::TcpListener::bind(&bind_address).await?;
+    info!("API server listening on http://{}", bind_address);
 
     axum::serve(listener, app).await?;
 

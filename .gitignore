@@ -50,6 +50,8 @@ packages/release-*/
 *_evidence.json
 
 
-docs/
+docs/*
+!docs/capability-implementation-report.md
+!docs/release-readiness-audit.md
 **/prompt.md
 **/tasks.md
