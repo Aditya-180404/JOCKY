@@ -236,11 +236,11 @@ pub async fn capabilities_handler(
                     let cap_status = v.get("status").and_then(|s| s.as_str()).unwrap_or("").to_lowercase();
                     let is_impl = v.get("is_implemented").and_then(|b| b.as_bool()).unwrap_or(false);
                     let matches_status = if sf == "implemented" {
-                        is_impl || cap_status == "implemented"
+                        cap_status == "implemented"
                     } else if sf == "missing" || sf == "unsupported" {
                         cap_status == "unsupported" || !is_impl
                     } else {
-                        cap_status == *sf
+                        cap_status == *sf || cap_status.replace('_', " ") == *sf || cap_status.replace('_', "") == *sf
                     };
                     if !matches_status {
                         return false;
@@ -347,8 +347,21 @@ pub async fn check_handler(
                 let is_linux = target_lower.contains("linux");
                 for cap_name in &ir.required_capabilities {
                     let cap_str = format!("{:?}", cap_name).to_lowercase();
+                    if cap_str.contains("registry") && is_linux {
+                        all_diags.push(DiagnosticResponse {
+                            severity: "warning".to_string(),
+                            message: format!(
+                                "Capability 'RegistryRead' is Windows-specific and not supported on target platform '{}'",
+                                target
+                            ),
+                            line: 1,
+                            column: 1,
+                        });
+                    }
                     if let Some(cap) = reg.capabilities.values().find(|c| {
-                        c.id.to_lowercase() == cap_str || c.name.to_lowercase() == cap_str
+                        let id_norm = c.id.replace('.', "").to_lowercase();
+                        let name_norm = c.name.replace(' ', "").to_lowercase();
+                        id_norm == cap_str || name_norm == cap_str || (cap_str.contains("registry") && c.id.starts_with("registry."))
                     }) {
                         use jockey_runtime_capabilities::Platform;
                         let compatible = match cap.platforms {
@@ -356,7 +369,7 @@ pub async fn check_handler(
                             Platform::Windows => is_windows,
                             Platform::Linux => is_linux,
                         };
-                        if !compatible {
+                        if !compatible && !cap_str.contains("registry") {
                             all_diags.push(DiagnosticResponse {
                                 severity: "warning".to_string(),
                                 message: format!(

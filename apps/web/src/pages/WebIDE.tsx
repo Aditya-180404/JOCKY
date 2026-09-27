@@ -81,6 +81,20 @@ interface CheckResponse {
   investigation_name?: string;
 }
 
+interface RegistryCapability {
+  id?: string;
+  name: string;
+  description: string;
+  category: string;
+  platforms: string;
+  privilege: string;
+  mitre_attack_ids: string[];
+  is_implemented: boolean;
+  status: string;
+  status_reason?: string | null;
+  version?: string;
+}
+
 const EXAMPLES = [
   {
     id: 'basic_system_triage',
@@ -358,6 +372,13 @@ export function WebIDE() {
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
 
+  // Capability registry from compiler API
+  const [capabilitiesRegistry, setCapabilitiesRegistry] = useState<Record<string, RegistryCapability>>({});
+  const [, setCapabilitiesLoading] = useState(false);
+  const [capViewMode, setCapViewMode] = useState<'required' | 'all'>('required');
+  const [capSearchQuery, setCapSearchQuery] = useState('');
+  const [capCategoryFilter, setCapCategoryFilter] = useState('ALL');
+
   useEffect(() => {
     api.get('/api/compiler/targets')
       .then((response) => {
@@ -377,7 +398,37 @@ export function WebIDE() {
         }
       })
       .catch(() => setTargets([{ id: 'windows-x64', name: 'Windows x64', status: 'Available here' }]));
+
+    setCapabilitiesLoading(true);
+    api.get('/api/compiler/capabilities')
+      .then((response) => {
+        if (response.data && typeof response.data === 'object') {
+          setCapabilitiesRegistry(response.data);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load capability registry:', err);
+      })
+      .finally(() => {
+        setCapabilitiesLoading(false);
+      });
   }, []);
+
+  const findCapabilityMetadata = useCallback((capName: string): RegistryCapability | undefined => {
+    if (!capName) return undefined;
+    if (capabilitiesRegistry[capName]) {
+      return { ...capabilitiesRegistry[capName], id: capName };
+    }
+    const norm = capName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    for (const [id, cap] of Object.entries(capabilitiesRegistry)) {
+      const idNorm = id.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const nameNorm = cap.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (idNorm === norm || nameNorm === norm || idNorm.includes(norm) || norm.includes(idNorm)) {
+        return { ...cap, id };
+      }
+    }
+    return undefined;
+  }, [capabilitiesRegistry]);
 
   // Configure Monaco Editor
   const handleEditorDidMount: OnMount = (editor, monaco) => {
@@ -1408,27 +1459,182 @@ export function WebIDE() {
               {/* Tab 2: Capabilities */}
               {inspectorTab === 'capabilities' && (
                 <div className="space-y-3">
-                  <div>
-                    <h4 className="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
-                      Required Capabilities
-                    </h4>
-                    <p className="text-[11px] text-slate-400 mb-2">
-                      Permissions reported by the compiler for the last successful check:
-                    </p>
-                    <div className="space-y-1">
-                      {requiredCapabilities.length > 0 ? requiredCapabilities.map((cap) => (
-                        <div
-                          key={cap}
-                          className="px-2 py-1 rounded bg-[#090d15] border border-slate-800 font-mono text-[11px] text-blue-300 flex items-center justify-between"
-                        >
-                          <span>{cap}</span>
-                          <span className="text-slate-400 text-[10px]">Compiler output</span>
-                        </div>
-                      )) : (
-                        <div className="text-slate-400">Run Check to inspect compiler capabilities.</div>
+                  {/* Mode switcher: Required vs Full Registry */}
+                  <div className="flex border-b border-slate-800 pb-2 gap-2 text-xs">
+                    <button
+                      onClick={() => setCapViewMode('required')}
+                      className={clsx(
+                        'px-2.5 py-1 rounded text-[11px] font-medium transition',
+                        capViewMode === 'required'
+                          ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                       )}
-                    </div>
+                    >
+                      Required ({requiredCapabilities.length})
+                    </button>
+                    <button
+                      onClick={() => setCapViewMode('all')}
+                      className={clsx(
+                        'px-2.5 py-1 rounded text-[11px] font-medium transition',
+                        capViewMode === 'all'
+                          ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                      )}
+                    >
+                      Registry ({Object.keys(capabilitiesRegistry).length || 247})
+                    </button>
                   </div>
+
+                  {capViewMode === 'required' ? (
+                    <div>
+                      <h4 className="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+                        Investigation Permissions
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mb-2">
+                        Capabilities required by the current AST and verified against the target platform:
+                      </p>
+                      <div className="space-y-2">
+                        {requiredCapabilities.length > 0 ? (
+                          requiredCapabilities.map((cap) => {
+                            const meta = findCapabilityMetadata(cap);
+                            return (
+                              <div
+                                key={cap}
+                                className="p-2.5 rounded bg-[#090d15] border border-slate-800 text-[11px] space-y-1.5"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="font-mono text-blue-300 font-semibold">{cap}</span>
+                                  {meta?.status ? (
+                                    <span
+                                      className={clsx(
+                                        'px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider',
+                                        meta.status === 'IMPLEMENTED' && 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+                                        meta.status === 'REQUIRES_ELEVATION' && 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+                                        meta.status === 'PARTIAL' && 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
+                                        meta.status === 'PLATFORM_SPECIFIC' && 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+                                        meta.status === 'UNSUPPORTED' && 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                      )}
+                                    >
+                                      {meta.status.replace('_', ' ')}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400 text-[10px]">Compiler AST</span>
+                                  )}
+                                </div>
+
+                                {meta && (
+                                  <>
+                                    <p className="text-slate-300 text-[10px] leading-tight">{meta.description}</p>
+                                    <div className="flex flex-wrap gap-1 pt-0.5">
+                                      <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[9px]">
+                                        Platform: {meta.platforms}
+                                      </span>
+                                      <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[9px]">
+                                        Privilege: {meta.privilege}
+                                      </span>
+                                      {meta.category && (
+                                        <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[9px]">
+                                          {meta.category}
+                                        </span>
+                                      )}
+                                      {meta.mitre_attack_ids?.map((t) => (
+                                        <span key={t} className="px-1.5 py-0.5 rounded bg-red-950/40 text-red-300 border border-red-800/30 text-[9px]">
+                                          {t}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="text-slate-400 text-xs py-4 text-center border border-dashed border-slate-800 rounded">
+                            Run <span className="text-blue-400 font-semibold">Check</span> to inspect required capabilities.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Search capabilities..."
+                          value={capSearchQuery}
+                          onChange={(e) => setCapSearchQuery(e.target.value)}
+                          className="w-full bg-[#090d15] border border-slate-800 rounded px-2.5 py-1 text-[11px] text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                        />
+                        <select
+                          value={capCategoryFilter}
+                          onChange={(e) => setCapCategoryFilter(e.target.value)}
+                          className="bg-[#090d15] border border-slate-800 rounded px-2 py-1 text-[11px] text-slate-300 focus:outline-none focus:border-blue-500"
+                        >
+                          <option value="ALL">All Categories</option>
+                          <option value="Process">Process</option>
+                          <option value="SystemInfo">SystemInfo</option>
+                          <option value="Network">Network</option>
+                          <option value="Filesystem">Filesystem</option>
+                          <option value="Authentication">Authentication</option>
+                          <option value="WindowsArtifact">WindowsArtifact</option>
+                          <option value="LinuxArtifact">LinuxArtifact</option>
+                          <option value="Persistence">Persistence</option>
+                          <option value="Service">Service</option>
+                          <option value="User">User</option>
+                          <option value="KernelDriver">KernelDriver</option>
+                          <option value="EvidenceIntegrity">EvidenceIntegrity</option>
+                          <option value="SecurityConfig">SecurityConfig</option>
+                          <option value="MaliciousScript">MaliciousScript</option>
+                        </select>
+                      </div>
+
+                      <div className="max-h-80 overflow-y-auto space-y-1.5 pr-1">
+                        {Object.entries(capabilitiesRegistry)
+                          .filter(([id, cap]) => {
+                            const matchesSearch =
+                              !capSearchQuery ||
+                              id.toLowerCase().includes(capSearchQuery.toLowerCase()) ||
+                              cap.name.toLowerCase().includes(capSearchQuery.toLowerCase()) ||
+                              cap.description?.toLowerCase().includes(capSearchQuery.toLowerCase()) ||
+                              cap.mitre_attack_ids?.some((t) => t.toLowerCase().includes(capSearchQuery.toLowerCase()));
+                            const matchesCat = capCategoryFilter === 'ALL' || cap.category === capCategoryFilter;
+                            return matchesSearch && matchesCat;
+                          })
+                          .slice(0, 50)
+                          .map(([id, cap]) => (
+                            <div key={id} className="p-2 rounded bg-[#090d15] border border-slate-800 text-[10px] space-y-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-mono text-slate-200 font-semibold">{id}</span>
+                                <span
+                                  className={clsx(
+                                    'px-1 py-0.5 rounded text-[8px] font-semibold uppercase',
+                                    cap.status === 'IMPLEMENTED' && 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+                                    cap.status === 'REQUIRES_ELEVATION' && 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+                                    cap.status === 'PARTIAL' && 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
+                                    cap.status === 'PLATFORM_SPECIFIC' && 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+                                    cap.status === 'UNSUPPORTED' && 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                  )}
+                                >
+                                  {cap.status?.replace('_', ' ')}
+                                </span>
+                              </div>
+                              <p className="text-slate-400 leading-tight">{cap.description}</p>
+                              <div className="flex flex-wrap gap-1 text-[8px] text-slate-500">
+                                <span>Platform: {cap.platforms}</span>
+                                <span>•</span>
+                                <span>Privilege: {cap.privilege}</span>
+                                {cap.mitre_attack_ids?.length > 0 && (
+                                  <>
+                                    <span>•</span>
+                                    <span>MITRE: {cap.mitre_attack_ids.join(', ')}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="p-2.5 rounded border border-slate-800 bg-[#090d15] text-[10px] text-slate-400 leading-relaxed">
                     <span className="font-semibold text-slate-300">Execution boundary: </span>
