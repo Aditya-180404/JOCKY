@@ -126,6 +126,7 @@ impl UsersResult {
 /// Enumerate all local users and groups
 #[cfg(target_os = "linux")]
 pub fn enumerate_users() -> Result<UsersResult> {
+    use std::collections::HashMap;
     use std::fs;
     use users::{get_group_by_gid, get_user_by_uid};
 

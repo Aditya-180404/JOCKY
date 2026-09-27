@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { api } from '../services/api';
@@ -9,6 +9,8 @@ import {
   Copy,
   Check,
   Info,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 
 interface PackageInfo {
@@ -27,6 +29,8 @@ interface PackageInfo {
 export function DownloadPage() {
   const [packages, setPackages] = useState<PackageInfo[]>([]);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
     loadPackages();
@@ -54,6 +58,40 @@ export function DownloadPage() {
     return `${mb.toFixed(2)} MB`;
   };
 
+  const handleDownload = useCallback(async (pkg: PackageInfo) => {
+    setDownloading(pkg.filename);
+    setDownloadError(null);
+    try {
+      // Fetch the binary data from the API
+      const response = await fetch(pkg.download_url);
+      if (!response.ok) {
+        throw new Error(`Download failed: HTTP ${response.status}`);
+      }
+      const blob = await response.blob();
+
+      // Create a temporary anchor with the exact filename and trigger download
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = pkg.filename; // Explicit filename on same-origin blob URL
+      anchor.style.display = 'none';
+      document.body.appendChild(anchor);
+      anchor.click();
+
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+      }, 100);
+    } catch (err) {
+      setDownloadError(
+        err instanceof Error ? err.message : 'Download failed. Try right-clicking and using "Save link as..."'
+      );
+    } finally {
+      setDownloading(null);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
       <SiteHeader />
@@ -67,14 +105,25 @@ export function DownloadPage() {
           </div>
 
           <h1 className="text-3xl font-bold font-mono text-white tracking-tight">
-            jockey Compiler & Toolchain Downloads
+            JOCKEY Compiler &amp; Toolchain Downloads
           </h1>
 
           <p className="mt-2 text-sm text-slate-400 max-w-3xl leading-relaxed">
-            Download the standalone native jockey compiler for offline incident response and forensic triage.
+            Download the standalone native JOCKEY compiler for offline incident response and forensic triage.
             All binaries are standalone, statically linked, and verified with canonical SHA-256 digests.
           </p>
         </div>
+
+        {/* Download Error */}
+        {downloadError && (
+          <div className="mb-6 p-4 rounded border border-red-500/30 bg-red-500/10 flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-red-300 font-medium">Download Error</p>
+              <p className="text-xs text-red-400 mt-1">{downloadError}</p>
+            </div>
+          </div>
+        )}
 
         {/* Available Packages */}
         <div className="space-y-6 mb-12">
@@ -101,6 +150,9 @@ export function DownloadPage() {
                   </div>
 
                   <h3 className="text-base font-bold text-white mb-1">{pkg.name}</h3>
+                  <p className="text-xs text-slate-400 mb-1">
+                    <span className="font-mono text-slate-300">{pkg.filename}</span>
+                  </p>
                   <p className="text-xs text-slate-400 mb-4">{pkg.requirements}</p>
 
                   <div className="p-2.5 rounded bg-[#090d15] border border-slate-800/80 mb-4 font-mono text-[11px]">
@@ -122,14 +174,23 @@ export function DownloadPage() {
                   </div>
                 </div>
 
-                <a
-                  href={pkg.download_url}
-                  download={pkg.filename}
-                  className="w-full inline-flex items-center justify-center gap-2 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition-colors"
+                <button
+                  onClick={() => handleDownload(pkg)}
+                  disabled={downloading === pkg.filename}
+                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-wait text-white font-medium text-xs transition-colors"
                 >
-                  <Download className="h-3.5 w-3.5" />
-                  <span>Download {pkg.filename}</span>
-                </a>
+                  {downloading === pkg.filename ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span>Downloading {pkg.filename}...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-3.5 w-3.5" />
+                      <span>Download {pkg.filename}</span>
+                    </>
+                  )}
+                </button>
               </div>
               ))}
             </div>
@@ -142,7 +203,7 @@ export function DownloadPage() {
             <Info className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
             <div>
               <h3 className="text-sm font-bold text-white font-mono mb-1">
-                Linux x86_64 & ARM64 Binaries
+                Linux x86_64 &amp; ARM64 Binaries
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Linux binaries are built from source for optimal compatibility with the target system's libc and kernel.
@@ -174,7 +235,7 @@ cargo build --release -p jockey-cli
           </p>
           <pre className="p-3 rounded bg-[#090d15] border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto">
 {`# Compute SHA-256 hash in PowerShell
-Get-FileHash .\\JOCKY-0.1.0-windows-x64.zip -Algorithm SHA256
+Get-FileHash .\\jockey_0.1.0_windows_amd64.zip -Algorithm SHA256
 
 # Verify that the output matches the published SHA-256 from the download page`}
           </pre>

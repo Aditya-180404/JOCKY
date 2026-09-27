@@ -190,7 +190,7 @@ enum Commands {
         #[command(subcommand)]
         command: Option<CapabilityCommands>,
     },
-    /// Log in to the JOCKY tool repository
+    /// Log in to the JOCKEY tool repository
     Login {
         /// User email
         #[arg(short, long)]
@@ -401,7 +401,7 @@ fn main() -> anyhow::Result<()> {
             } else {
                 list_capabilities(category, platform, implemented, missing, &format)
             }
-        },
+        }
         Commands::Login {
             email,
             password,

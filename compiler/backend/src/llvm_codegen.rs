@@ -1,6 +1,6 @@
 //! Programmatic LLVM Code Generation Engine
 //!
-//! Lowers JOCKY MIR directly into programmatic LLVM Context, Module, Functions,
+//! Lowers JOCKEY MIR directly into programmatic LLVM Context, Module, Functions,
 //! BasicBlocks, Instructions, and Terminators using the LLVM C API.
 //!
 //! Note on Runtime ABI:

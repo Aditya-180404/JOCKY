@@ -226,28 +226,41 @@ pub async fn capabilities_handler(
     axum::extract::Query(query): axum::extract::Query<CapabilitiesQuery>,
 ) -> Json<serde_json::Value> {
     let reg = jockey_runtime_capabilities::CapabilityRegistry::new();
-    let mut val = reg.to_json();
-    if let serde_json::Value::Object(ref mut map) = val {
+    let mut map = reg.to_json();
+    if let serde_json::Value::Object(ref mut payload) = map {
         if query.status.is_some() || query.platform.is_some() {
             let status_filter = query.status.as_ref().map(|s| s.to_lowercase());
             let platform_filter = query.platform.as_ref().map(|p| p.to_lowercase());
-            map.retain(|_k, v| {
+            payload.retain(|_k, v| {
                 if let Some(ref sf) = status_filter {
-                    let cap_status = v.get("status").and_then(|s| s.as_str()).unwrap_or("").to_lowercase();
-                    let is_impl = v.get("is_implemented").and_then(|b| b.as_bool()).unwrap_or(false);
+                    let cap_status = v
+                        .get("status")
+                        .and_then(|s| s.as_str())
+                        .unwrap_or("")
+                        .to_lowercase();
+                    let is_impl = v
+                        .get("is_implemented")
+                        .and_then(|b| b.as_bool())
+                        .unwrap_or(false);
                     let matches_status = if sf == "implemented" {
                         cap_status == "implemented"
                     } else if sf == "missing" || sf == "unsupported" {
                         cap_status == "unsupported" || !is_impl
                     } else {
-                        cap_status == *sf || cap_status.replace('_', " ") == *sf || cap_status.replace('_', "") == *sf
+                        cap_status == *sf
+                            || cap_status.replace('_', " ") == *sf
+                            || cap_status.replace('_', "") == *sf
                     };
                     if !matches_status {
                         return false;
                     }
                 }
                 if let Some(ref pf) = platform_filter {
-                    let platforms = v.get("platforms").and_then(|p| p.as_str()).unwrap_or("").to_lowercase();
+                    let platforms = v
+                        .get("platforms")
+                        .and_then(|p| p.as_str())
+                        .unwrap_or("")
+                        .to_lowercase();
                     let matches_platform = if pf == "windows" {
                         platforms.contains("windows") || platforms.contains("both")
                     } else if pf == "linux" {
@@ -263,7 +276,37 @@ pub async fn capabilities_handler(
             });
         }
     }
-    Json(val)
+
+    let payload = match map {
+        serde_json::Value::Object(payload) => payload,
+        other => {
+            return Json(serde_json::json!({
+                "capabilities": other,
+                "count": 0,
+                "total": 0,
+                "implemented": 0,
+                "partial": 0,
+                "requires_elevation": 0,
+                "unsupported": 0,
+            }));
+        }
+    };
+
+    let count = payload.len();
+    let implemented = payload.values().filter(|v| v.get("status") == Some(&serde_json::Value::String("IMPLEMENTED".into()))).count();
+    let partial = payload.values().filter(|v| v.get("status") == Some(&serde_json::Value::String("PARTIAL".into()))).count();
+    let requires_elevation = payload.values().filter(|v| v.get("status") == Some(&serde_json::Value::String("REQUIRES_ELEVATION".into()))).count();
+    let unsupported = payload.values().filter(|v| v.get("status") == Some(&serde_json::Value::String("UNSUPPORTED".into()))).count();
+
+    Json(serde_json::json!({
+        "capabilities": payload,
+        "count": count,
+        "total": count,
+        "implemented": implemented,
+        "partial": partial,
+        "requires_elevation": requires_elevation,
+        "unsupported": unsupported,
+    }))
 }
 
 pub async fn check_handler(
@@ -372,7 +415,9 @@ pub async fn check_handler(
                     if let Some(cap) = reg.capabilities.values().find(|c| {
                         let id_norm = c.id.replace('.', "").to_lowercase();
                         let name_norm = c.name.replace(' ', "").to_lowercase();
-                        id_norm == cap_str || name_norm == cap_str || (cap_str.contains("registry") && c.id.starts_with("registry."))
+                        id_norm == cap_str
+                            || name_norm == cap_str
+                            || (cap_str.contains("registry") && c.id.starts_with("registry."))
                     }) {
                         use jockey_runtime_capabilities::Platform;
                         let compatible = match cap.platforms {
@@ -502,7 +547,12 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
 
 /// Endpoint: GET /api/downloads/:filename
 pub async fn download_file_handler(Path(filename): Path<String>) -> impl IntoResponse {
+    // Path traversal protection: strip .., /, \ and reject empty or suspicious names
     let sanitized = filename.replace("..", "").replace(['/', '\\'], "");
+    if sanitized.is_empty() || sanitized.starts_with('.') {
+        return (StatusCode::BAD_REQUEST, "Invalid artifact name").into_response();
+    }
+
     let root_path = std::path::PathBuf::from(".").join(&sanitized);
     let package_path = std::path::PathBuf::from("./packages").join(&sanitized);
     let build_path = std::path::PathBuf::from("./build").join(&sanitized);
@@ -524,18 +574,41 @@ pub async fn download_file_handler(Path(filename): Path<String>) -> impl IntoRes
     };
 
     match content_res {
-        Ok(data) => (
-            StatusCode::OK,
-            [
-                ("Content-Type", "application/octet-stream"),
-                (
-                    "Content-Disposition",
-                    &format!("attachment; filename=\"{}\"", sanitized),
-                ),
-            ],
-            data,
-        )
-            .into_response(),
+        Ok(data) => {
+            // Determine Content-Type based on file extension
+            let content_type = if sanitized.ends_with(".zip") {
+                "application/zip"
+            } else if sanitized.ends_with(".deb") {
+                "application/vnd.debian.binary-package"
+            } else if sanitized.ends_with(".exe") {
+                "application/vnd.microsoft.portable-executable"
+            } else if sanitized.ends_with(".json") {
+                "application/json"
+            } else {
+                "application/octet-stream"
+            };
+
+            // Compute ETag from file content length + name
+            let etag = format!("\"{}{}\"", data.len(), sanitized.len());
+            let content_length = data.len().to_string();
+
+            (
+                StatusCode::OK,
+                [
+                    ("Content-Type", content_type),
+                    (
+                        "Content-Disposition",
+                        &format!("attachment; filename=\"{}\"", sanitized),
+                    ),
+                    ("Content-Length", &content_length),
+                    ("ETag", &etag),
+                    ("Cache-Control", "public, max-age=3600, immutable"),
+                    ("X-Content-Type-Options", "nosniff"),
+                ],
+                data,
+            )
+                .into_response()
+        }
         Err(_) => (StatusCode::NOT_FOUND, "Artifact not currently available").into_response(),
     }
 }
@@ -561,14 +634,22 @@ pub async fn download_windows_handler() -> impl IntoResponse {
                     .file_name()
                     .and_then(|s| s.to_str())
                     .unwrap_or("jockey_0.1.0_windows_amd64.zip");
+                let content_type = if filename.ends_with(".zip") {
+                    "application/zip"
+                } else {
+                    "application/vnd.microsoft.portable-executable"
+                };
+                let content_length = data.len().to_string();
                 return (
                     StatusCode::OK,
                     [
-                        ("Content-Type", "application/octet-stream"),
+                        ("Content-Type", content_type),
                         (
                             "Content-Disposition",
                             &format!("attachment; filename=\"{}\"", filename),
                         ),
+                        ("Content-Length", &content_length),
+                        ("Cache-Control", "public, max-age=3600, immutable"),
                     ],
                     data,
                 )
@@ -606,6 +687,7 @@ pub async fn download_linux_handler() -> impl IntoResponse {
                     .file_name()
                     .and_then(|s| s.to_str())
                     .unwrap_or("jockey_0.1.0_amd64.deb");
+                let content_length = data.len().to_string();
                 return (
                     StatusCode::OK,
                     [
@@ -614,6 +696,8 @@ pub async fn download_linux_handler() -> impl IntoResponse {
                             "Content-Disposition",
                             &format!("attachment; filename=\"{}\"", filename),
                         ),
+                        ("Content-Length", &content_length),
+                        ("Cache-Control", "public, max-age=3600, immutable"),
                     ],
                     data,
                 )
@@ -954,7 +1038,10 @@ fn execute_native_program(source: &str, target_str: &str) -> RunResponse {
 
     let stdout_str = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr_str = String::from_utf8_lossy(&output.stderr).to_string();
-    let exit_code = output.status.code().unwrap_or(if output.status.success() { 0 } else { 1 });
+    let exit_code = output
+        .status
+        .code()
+        .unwrap_or(if output.status.success() { 0 } else { 1 });
 
     let mut evidence_val: Option<serde_json::Value> = None;
     let mut metadata_val: Option<serde_json::Value> = None;
@@ -999,7 +1086,8 @@ fn execute_native_program(source: &str, target_str: &str) -> RunResponse {
                     path.to_str().unwrap_or_default(),
                     meta_path.to_str().unwrap_or_default(),
                 ) {
-                    let valid = matches!(result.status, jockey_runtime::VerificationStatus::Verified);
+                    let valid =
+                        matches!(result.status, jockey_runtime::VerificationStatus::Verified);
                     let status_str = match &result.status {
                         jockey_runtime::VerificationStatus::Verified => "VALID".to_string(),
                         jockey_runtime::VerificationStatus::Tampered { reason } => {

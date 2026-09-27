@@ -84,10 +84,16 @@ fn enumerate_windows(
                 };
 
                 for item in items {
-                    let base_hex = item.get("BaseAddress").and_then(|v| v.as_str()).unwrap_or("0");
+                    let base_hex = item
+                        .get("BaseAddress")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("0");
                     let size = item.get("Size").and_then(|v| v.as_u64()).unwrap_or(0);
                     let filename = item.get("FileName").and_then(|v| v.as_str()).unwrap_or("");
-                    let module_name = item.get("ModuleName").and_then(|v| v.as_str()).unwrap_or("");
+                    let module_name = item
+                        .get("ModuleName")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("");
 
                     let base_num = u64::from_str_radix(base_hex, 16).unwrap_or(0);
                     let end_hex = format!("{:x}", base_num.saturating_add(size));
@@ -98,7 +104,11 @@ fn enumerate_windows(
                         end_address: end_hex,
                         size_bytes: size,
                         permissions: "r-xp".to_string(),
-                        mapped_file: if !filename.is_empty() { filename.to_string() } else { module_name.to_string() },
+                        mapped_file: if !filename.is_empty() {
+                            filename.to_string()
+                        } else {
+                            module_name.to_string()
+                        },
                         executable: true,
                         writable: false,
                         rss_bytes: Some(size),

@@ -159,7 +159,10 @@ fn inspect_syscall_table_linux() -> Result<Vec<serde_json::Value>, Box<dyn std::
 
     let mut masked_count = 0;
     for line in kallsyms_content.lines() {
-        if line.contains("sys_call_table") || line.contains("__x64_sys_") || line.contains("sys_enter") {
+        if line.contains("sys_call_table")
+            || line.contains("__x64_sys_")
+            || line.contains("sys_enter")
+        {
             let parts: Vec<&str> = line.split_whitespace().collect();
             if parts.len() >= 3 {
                 let addr = parts[0];

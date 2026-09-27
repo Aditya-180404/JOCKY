@@ -1,7 +1,7 @@
-//! JOCKY Forensic Runtime
+//! JOCKEY Forensic Runtime
 //!
 //! # Architecture & Compatibility
-//! JOCKY is a domain-specific forensic programming language and compiler framework.
+//! JOCKEY is a domain-specific forensic programming language and compiler framework.
 //! The C-ABI symbols (`jockey_rt_*` and `jockey_runtime_*`) are intentional internal
 //! ABI compatibility identifiers ensuring stable interoperability between the LLVM backend
 //! code generator and the native runtime static library across platforms.

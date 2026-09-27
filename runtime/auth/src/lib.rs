@@ -366,6 +366,7 @@ pub fn collect_windows_logon_events() -> Result<LogonEventsResult> {
 /// Collect Linux auth.log events
 #[cfg(target_os = "linux")]
 pub fn collect_linux_logon_events() -> Result<LogonEventsResult> {
+    use anyhow::Context;
     use regex::Regex;
     use std::fs;
 

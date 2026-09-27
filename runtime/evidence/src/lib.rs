@@ -579,16 +579,14 @@ impl EvidenceCollector {
         let host = self.host_identifier.clone();
         let inv = self.investigation_name.clone();
         let hash = self.compute_hash("sha256")?;
-        let merkle = self.metadata.get("merkle_root").and_then(|v| v.as_str()).map(|s| s.to_string());
+        let merkle = self
+            .metadata
+            .get("merkle_root")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
         let coc = generate_chain_of_custody(&inv, &host, &hash, merkle.as_deref());
         self.data.push(serde_json::to_value(&coc)?);
-        self.record_collector_result(
-            "chain_of_custody",
-            CollectionStatus::Success,
-            1,
-            None,
-            None,
-        );
+        self.record_collector_result("chain_of_custody", CollectionStatus::Success, 1, None, None);
         Ok(())
     }
 

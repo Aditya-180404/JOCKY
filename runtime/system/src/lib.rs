@@ -1315,7 +1315,10 @@ pub fn collect_boot_config() -> Result<Vec<serde_json::Value>, Box<dyn std::erro
 
     #[cfg(target_os = "linux")]
     {
-        let cmdline = std::fs::read_to_string("/proc/cmdline").unwrap_or_default().trim().to_string();
+        let cmdline = std::fs::read_to_string("/proc/cmdline")
+            .unwrap_or_default()
+            .trim()
+            .to_string();
         let is_uefi = std::path::Path::new("/sys/firmware/efi").exists();
         let secure_boot = std::path::Path::new("/sys/firmware/efi/efivars").exists();
 

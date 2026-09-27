@@ -249,7 +249,10 @@ pub fn detect_alternate_data_streams(
 
     #[cfg(target_os = "linux")]
     {
-        if let Ok(output) = std::process::Command::new("getfattr").args(["-d", "-m", "-", &p]).output() {
+        if let Ok(output) = std::process::Command::new("getfattr")
+            .args(["-d", "-m", "-", &p])
+            .output()
+        {
             if output.status.success() {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 for line in stdout.lines() {
@@ -305,11 +308,23 @@ pub fn enumerate_mounts() -> Result<Vec<serde_json::Value>, Box<dyn std::error::
                         _ => vec![],
                     };
                     for item in items {
-                        let drive = item.get("DriveLetter").and_then(|v| v.as_str()).unwrap_or("");
-                        let label = item.get("FileSystemLabel").and_then(|v| v.as_str()).unwrap_or("");
-                        let fs_type = item.get("FileSystem").and_then(|v| v.as_str()).unwrap_or("");
+                        let drive = item
+                            .get("DriveLetter")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("");
+                        let label = item
+                            .get("FileSystemLabel")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("");
+                        let fs_type = item
+                            .get("FileSystem")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("");
                         let size = item.get("Size").and_then(|v| v.as_u64()).unwrap_or(0);
-                        let free = item.get("SizeRemaining").and_then(|v| v.as_u64()).unwrap_or(0);
+                        let free = item
+                            .get("SizeRemaining")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0);
                         results.push(serde_json::json!({
                             "collector": "filesystem",
                             "artifact_type": "mount_point",

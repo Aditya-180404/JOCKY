@@ -335,7 +335,9 @@ pub fn enumerate_processes(
                     };
 
                     let working_directory = exe_path.as_deref().and_then(|p| {
-                        std::path::Path::new(p).parent().map(|d| d.to_string_lossy().to_string())
+                        std::path::Path::new(p)
+                            .parent()
+                            .map(|d| d.to_string_lossy().to_string())
                     });
 
                     let info = ProcessInfo {

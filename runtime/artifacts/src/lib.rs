@@ -1229,8 +1229,12 @@ pub fn carve_jumplists(
         } else if let Ok(appdata) = std::env::var("APPDATA") {
             let auto = Path::new(&appdata).join(r"Microsoft\Windows\Recent\AutomaticDestinations");
             let custom = Path::new(&appdata).join(r"Microsoft\Windows\Recent\CustomDestinations");
-            if auto.exists() { dirs.push(auto); }
-            if custom.exists() { dirs.push(custom); }
+            if auto.exists() {
+                dirs.push(auto);
+            }
+            if custom.exists() {
+                dirs.push(custom);
+            }
         }
 
         let mut results = Vec::new();
@@ -1238,8 +1242,14 @@ pub fn carve_jumplists(
             if let Ok(entries) = std::fs::read_dir(&dir) {
                 for entry in entries.flatten() {
                     let path = entry.path();
-                    let name = path.file_name().unwrap_or_default().to_string_lossy().to_string();
-                    if name.ends_with(".automaticDestinations-ms") || name.ends_with(".customDestinations-ms") {
+                    let name = path
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                        .to_string();
+                    if name.ends_with(".automaticDestinations-ms")
+                        || name.ends_with(".customDestinations-ms")
+                    {
                         let meta = entry.metadata().ok();
                         let size = meta.as_ref().map(|m| m.len()).unwrap_or(0);
                         let modified = meta.and_then(|m| m.modified().ok()).map(|t| {
@@ -1322,7 +1332,10 @@ pub fn carve_shellbags(
         for subpath in bag_paths {
             if let Ok(key) = hkcu.open_subkey(subpath) {
                 let subkeys: Vec<String> = key.enum_keys().filter_map(|k| k.ok()).collect();
-                let values: Vec<String> = key.enum_values().filter_map(|v| v.ok().map(|(n, _)| n)).collect();
+                let values: Vec<String> = key
+                    .enum_values()
+                    .filter_map(|v| v.ok().map(|(n, _)| n))
+                    .collect();
                 results.push(serde_json::json!({
                     "collector": "artifacts",
                     "artifact_type": "shellbags",
@@ -1402,7 +1415,11 @@ pub fn collect_etw_logs(
             let stdout = String::from_utf8_lossy(&output.stdout);
             for line in stdout.lines() {
                 let trimmed = line.trim();
-                if !trimmed.is_empty() && !trimmed.starts_with('-') && !trimmed.starts_with("Data Collector Set") && !trimmed.starts_with("The command") {
+                if !trimmed.is_empty()
+                    && !trimmed.starts_with('-')
+                    && !trimmed.starts_with("Data Collector Set")
+                    && !trimmed.starts_with("The command")
+                {
                     let parts: Vec<&str> = trimmed.split_whitespace().collect();
                     if parts.len() >= 2 {
                         results.push(serde_json::json!({
@@ -1464,9 +1481,18 @@ pub fn carve_event_logs(
                     };
                     for item in items {
                         let log_name = item.get("LogName").and_then(|v| v.as_str()).unwrap_or("");
-                        let count = item.get("RecordCount").and_then(|v| v.as_u64()).unwrap_or(0);
-                        let enabled = item.get("IsEnabled").and_then(|v| v.as_bool()).unwrap_or(false);
-                        let max_size = item.get("MaximumSizeInBytes").and_then(|v| v.as_u64()).unwrap_or(0);
+                        let count = item
+                            .get("RecordCount")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0);
+                        let enabled = item
+                            .get("IsEnabled")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(false);
+                        let max_size = item
+                            .get("MaximumSizeInBytes")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0);
                         results.push(serde_json::json!({
                             "collector": "artifacts",
                             "artifact_type": "event_logs",
@@ -1532,13 +1558,14 @@ pub fn carve_recent_files(
 ) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     #[cfg(target_os = "windows")]
     {
-        let target_dir = if search_path != "." && !search_path.is_empty() && Path::new(search_path).is_dir() {
-            std::path::PathBuf::from(search_path)
-        } else if let Ok(appdata) = std::env::var("APPDATA") {
-            Path::new(&appdata).join(r"Microsoft\Windows\Recent")
-        } else {
-            std::path::PathBuf::from(search_path)
-        };
+        let target_dir =
+            if search_path != "." && !search_path.is_empty() && Path::new(search_path).is_dir() {
+                std::path::PathBuf::from(search_path)
+            } else if let Ok(appdata) = std::env::var("APPDATA") {
+                Path::new(&appdata).join(r"Microsoft\Windows\Recent")
+            } else {
+                std::path::PathBuf::from(search_path)
+            };
 
         if !target_dir.exists() {
             return Ok(vec![serde_json::json!({
@@ -1645,9 +1672,13 @@ pub fn carve_container_artifacts(
                 }));
             }
         }
-        if let Ok(output) = std::process::Command::new("wsl").args(["-l", "-q"]).output() {
+        if let Ok(output) = std::process::Command::new("wsl")
+            .args(["-l", "-q"])
+            .output()
+        {
             if output.status.success() {
-                let u16s: Vec<u16> = output.stdout
+                let u16s: Vec<u16> = output
+                    .stdout
                     .chunks_exact(2)
                     .map(|chunk| u16::from_le_bytes([chunk[0], chunk[1]]))
                     .collect();
@@ -1691,15 +1722,34 @@ pub fn carve_browser_artifacts(
         let appdata = std::env::var("APPDATA").unwrap_or_default();
 
         let browser_roots = [
-            ("Google Chrome", Path::new(&localappdata).join(r"Google\Chrome\User Data")),
-            ("Microsoft Edge", Path::new(&localappdata).join(r"Microsoft\Edge\User Data")),
-            ("Brave", Path::new(&localappdata).join(r"BraveSoftware\Brave-Browser\User Data")),
-            ("Mozilla Firefox", Path::new(&appdata).join(r"Mozilla\Firefox\Profiles")),
+            (
+                "Google Chrome",
+                Path::new(&localappdata).join(r"Google\Chrome\User Data"),
+            ),
+            (
+                "Microsoft Edge",
+                Path::new(&localappdata).join(r"Microsoft\Edge\User Data"),
+            ),
+            (
+                "Brave",
+                Path::new(&localappdata).join(r"BraveSoftware\Brave-Browser\User Data"),
+            ),
+            (
+                "Mozilla Firefox",
+                Path::new(&appdata).join(r"Mozilla\Firefox\Profiles"),
+            ),
         ];
 
         for (browser_name, root) in browser_roots {
             if root.exists() {
-                let targets = ["History", "Cookies", "Bookmarks", "Preferences", "places.sqlite", "cookies.sqlite"];
+                let targets = [
+                    "History",
+                    "Cookies",
+                    "Bookmarks",
+                    "Preferences",
+                    "places.sqlite",
+                    "cookies.sqlite",
+                ];
                 for entry in walkdir_max_depth(&root, 3) {
                     let fname = entry.file_name().unwrap_or_default().to_string_lossy();
                     for target in targets {
@@ -1733,16 +1783,26 @@ pub fn carve_browser_artifacts(
     {
         if let Ok(home) = std::env::var("HOME") {
             let browser_roots = [
-                ("Google Chrome", Path::new(&home).join(".config/google-chrome")),
+                (
+                    "Google Chrome",
+                    Path::new(&home).join(".config/google-chrome"),
+                ),
                 ("Chromium", Path::new(&home).join(".config/chromium")),
                 ("Mozilla Firefox", Path::new(&home).join(".mozilla/firefox")),
-                ("Brave", Path::new(&home).join(".config/BraveSoftware/Brave-Browser")),
+                (
+                    "Brave",
+                    Path::new(&home).join(".config/BraveSoftware/Brave-Browser"),
+                ),
             ];
             for (browser_name, root) in browser_roots {
                 if root.exists() {
                     for entry in walkdir_max_depth(&root, 3) {
                         let fname = entry.file_name().unwrap_or_default().to_string_lossy();
-                        if fname == "History" || fname == "Cookies" || fname == "Bookmarks" || fname == "places.sqlite" {
+                        if fname == "History"
+                            || fname == "Cookies"
+                            || fname == "Bookmarks"
+                            || fname == "places.sqlite"
+                        {
                             let meta = entry.metadata().ok();
                             let sha256 = sha256_file(&entry);
                             results.push(serde_json::json!({
@@ -1790,7 +1850,10 @@ pub fn carve_email_artifacts(
             if let Ok(entries) = std::fs::read_dir(&outlook_dir) {
                 for entry in entries.flatten() {
                     let path = entry.path();
-                    let ext = path.extension().map_or("", |e| e.to_str().unwrap_or("")).to_lowercase();
+                    let ext = path
+                        .extension()
+                        .map_or("", |e| e.to_str().unwrap_or(""))
+                        .to_lowercase();
                     if ext == "ost" || ext == "pst" {
                         let meta = entry.metadata().ok();
                         results.push(serde_json::json!({
@@ -1925,7 +1988,8 @@ pub fn carve_office_artifacts(
     #[cfg(not(target_os = "windows"))]
     {
         if let Ok(home) = std::env::var("HOME") {
-            let lo_cfg = Path::new(&home).join(".config/libreoffice/4/user/registrymodifications.xcu");
+            let lo_cfg =
+                Path::new(&home).join(".config/libreoffice/4/user/registrymodifications.xcu");
             if lo_cfg.exists() {
                 let meta = std::fs::metadata(&lo_cfg).ok();
                 results.push(serde_json::json!({

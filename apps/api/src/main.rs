@@ -82,6 +82,12 @@ async fn main() -> anyhow::Result<()> {
             axum::http::header::CONTENT_TYPE,
             axum::http::header::AUTHORIZATION,
             axum::http::header::ACCEPT,
+        ])
+        .expose_headers([
+            axum::http::header::CONTENT_DISPOSITION,
+            axum::http::header::CONTENT_LENGTH,
+            axum::http::header::CONTENT_TYPE,
+            axum::http::header::ETAG,
         ]);
 
     let app = app.layer(cors).layer(TraceLayer::new_for_http());

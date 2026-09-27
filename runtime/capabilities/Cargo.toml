@@ -23,3 +23,6 @@ jockey-runtime-artifacts = { path = "../artifacts" }
 jockey-runtime-security = { path = "../security" }
 jockey-runtime-logs = { path = "../logs" }
 jockey-runtime-drivers = { path = "../drivers" }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"

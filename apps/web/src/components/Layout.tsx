@@ -45,10 +45,10 @@ export function Layout() {
         )}
       >
         <div className="flex h-16 items-center justify-between px-4 border-b border-forensic-800">
-          <NavLink to="/dashboard" className="flex items-center gap-2" title="JOCKY">
+          <NavLink to="/dashboard" className="flex items-center gap-2" title="JOCKEY">
             <Activity className="h-8 w-8 text-accent-blue" />
             <span className={clsx('font-bold text-lg text-forensic-100 transition-opacity', sidebarOpen ? 'opacity-100' : 'opacity-0')}>
-              JOCKY
+              JOCKEY
             </span>
           </NavLink>
           <button
@@ -161,7 +161,7 @@ export function Layout() {
               </svg>
             </button>
             <h1 className="text-xl font-semibold text-forensic-100 hidden sm:block">
-              {navigation.find((n) => isActive(n.href))?.name || 'JOCKY'}
+              {navigation.find((n) => isActive(n.href))?.name || 'JOCKEY'}
             </h1>
           </div>
 

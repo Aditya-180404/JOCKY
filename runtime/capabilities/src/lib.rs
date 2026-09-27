@@ -161,11 +161,7 @@ impl Capability {
         }
     }
 
-    pub fn with_status(
-        mut self,
-        status: ImplementationStatus,
-        reason: Option<&str>,
-    ) -> Self {
+    pub fn with_status(mut self, status: ImplementationStatus, reason: Option<&str>) -> Self {
         self.status = status;
         self.status_reason = reason.map(|s| s.to_string());
         self.is_implemented = matches!(
@@ -4165,17 +4161,20 @@ impl CapabilityRegistry {
             true,
         ).with_status(ImplementationStatus::Implemented, None));
 
-        self.register(Capability::new(
-            "persistence.wmi",
-            "WMI Event Subscriptions",
-            "Enumerate WMI event consumers, filters, and bindings used for persistence",
-            CapabilityCategory::Persistence,
-            Platform::Windows,
-            PrivilegeLevel::Admin,
-            &["T1546"],
-            "enumerate_wmi_subscriptions",
-            true,
-        ).with_status(ImplementationStatus::Implemented, None));
+        self.register(
+            Capability::new(
+                "persistence.wmi",
+                "WMI Event Subscriptions",
+                "Enumerate WMI event consumers, filters, and bindings used for persistence",
+                CapabilityCategory::Persistence,
+                Platform::Windows,
+                PrivilegeLevel::Admin,
+                &["T1546"],
+                "enumerate_wmi_subscriptions",
+                true,
+            )
+            .with_status(ImplementationStatus::Implemented, None),
+        );
 
         // ===== NETWORK CAPABILITIES =====
         self.register(Capability::new(
@@ -4190,53 +4189,65 @@ impl CapabilityRegistry {
             true,
         ));
 
-        self.register(Capability::new(
-            "network.listening_ports",
-            "Listening Ports",
-            "Enumerate listening ports with associated process, binding address, and protocol",
-            CapabilityCategory::Network,
-            Platform::Both,
-            PrivilegeLevel::User,
-            &["T1049"],
-            "enumerate_listening_ports",
-            true,
-        ).with_status(ImplementationStatus::Implemented, None));
+        self.register(
+            Capability::new(
+                "network.listening_ports",
+                "Listening Ports",
+                "Enumerate listening ports with associated process, binding address, and protocol",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1049"],
+                "enumerate_listening_ports",
+                true,
+            )
+            .with_status(ImplementationStatus::Implemented, None),
+        );
 
-        self.register(Capability::new(
-            "network.dns_cache",
-            "DNS Cache",
-            "Collect DNS resolver cache entries: domain, IP, TTL, record type",
-            CapabilityCategory::Network,
-            Platform::Both,
-            PrivilegeLevel::Admin,
-            &["T1016"],
-            "collect_dns_cache",
-            true,
-        ).with_status(ImplementationStatus::Implemented, None));
+        self.register(
+            Capability::new(
+                "network.dns_cache",
+                "DNS Cache",
+                "Collect DNS resolver cache entries: domain, IP, TTL, record type",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::Admin,
+                &["T1016"],
+                "collect_dns_cache",
+                true,
+            )
+            .with_status(ImplementationStatus::Implemented, None),
+        );
 
-        self.register(Capability::new(
-            "network.arp_table",
-            "ARP/Neighbor Table",
-            "Collect ARP table (IPv4) or neighbor table (IPv6): IP, MAC, interface, state",
-            CapabilityCategory::Network,
-            Platform::Both,
-            PrivilegeLevel::User,
-            &["T1016"],
-            "collect_arp_table",
-            true,
-        ).with_status(ImplementationStatus::Implemented, None));
+        self.register(
+            Capability::new(
+                "network.arp_table",
+                "ARP/Neighbor Table",
+                "Collect ARP table (IPv4) or neighbor table (IPv6): IP, MAC, interface, state",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1016"],
+                "collect_arp_table",
+                true,
+            )
+            .with_status(ImplementationStatus::Implemented, None),
+        );
 
-        self.register(Capability::new(
-            "network.routing_table",
-            "Routing Table",
-            "Collect routing table: destination, gateway, interface, metric, protocol",
-            CapabilityCategory::Network,
-            Platform::Both,
-            PrivilegeLevel::User,
-            &["T1016"],
-            "collect_routing_table",
-            true,
-        ).with_status(ImplementationStatus::Implemented, None));
+        self.register(
+            Capability::new(
+                "network.routing_table",
+                "Routing Table",
+                "Collect routing table: destination, gateway, interface, metric, protocol",
+                CapabilityCategory::Network,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1016"],
+                "collect_routing_table",
+                true,
+            )
+            .with_status(ImplementationStatus::Implemented, None),
+        );
 
         self.register(Capability::new(
             "network.firewall",
@@ -4263,29 +4274,35 @@ impl CapabilityRegistry {
             true,
         ));
 
-        self.register(Capability::new(
-            "filesystem.mounts",
-            "Mount Points",
-            "Enumerate mounted filesystems: device, mount point, type, options, labels",
-            CapabilityCategory::Filesystem,
-            Platform::Both,
-            PrivilegeLevel::User,
-            &["T1083"],
-            "enumerate_mounts",
-            true,
-        ).with_status(ImplementationStatus::Implemented, None));
+        self.register(
+            Capability::new(
+                "filesystem.mounts",
+                "Mount Points",
+                "Enumerate mounted filesystems: device, mount point, type, options, labels",
+                CapabilityCategory::Filesystem,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1083"],
+                "enumerate_mounts",
+                true,
+            )
+            .with_status(ImplementationStatus::Implemented, None),
+        );
 
-        self.register(Capability::new(
-            "filesystem.alternate_data_streams",
-            "Alternate Data Streams",
-            "Detect NTFS alternate data streams on Windows files",
-            CapabilityCategory::Filesystem,
-            Platform::Windows,
-            PrivilegeLevel::User,
-            &["T1564"],
-            "detect_alternate_data_streams",
-            true,
-        ).with_status(ImplementationStatus::Implemented, None));
+        self.register(
+            Capability::new(
+                "filesystem.alternate_data_streams",
+                "Alternate Data Streams",
+                "Detect NTFS alternate data streams on Windows files",
+                CapabilityCategory::Filesystem,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1564"],
+                "detect_alternate_data_streams",
+                true,
+            )
+            .with_status(ImplementationStatus::Implemented, None),
+        );
 
         // ===== WINDOWS ARTIFACT CAPABILITIES =====
         self.register(Capability::new(
@@ -4336,17 +4353,20 @@ impl CapabilityRegistry {
             true,
         ).with_status(ImplementationStatus::Implemented, None));
 
-        self.register(Capability::new(
-            "artifact.jumplists",
-            "Jump Lists",
-            "Parse Jump List files: recent files, application destinations, timestamps",
-            CapabilityCategory::WindowsArtifact,
-            Platform::Windows,
-            PrivilegeLevel::User,
-            &["T1057"],
-            "carve_jumplists",
-            true,
-        ).with_status(ImplementationStatus::Implemented, None));
+        self.register(
+            Capability::new(
+                "artifact.jumplists",
+                "Jump Lists",
+                "Parse Jump List files: recent files, application destinations, timestamps",
+                CapabilityCategory::WindowsArtifact,
+                Platform::Windows,
+                PrivilegeLevel::User,
+                &["T1057"],
+                "carve_jumplists",
+                true,
+            )
+            .with_status(ImplementationStatus::Implemented, None),
+        );
 
         self.register(Capability::new(
             "artifact.amcache",
@@ -4378,20 +4398,23 @@ impl CapabilityRegistry {
             Some("Access to SRUDB.dat database requires Administrator privilege; dynamic fallback supported"),
         ));
 
-        self.register(Capability::new(
-            "artifact.etw",
-            "ETW Logs",
-            "Collect Windows Event Tracing for Windows logs",
-            CapabilityCategory::WindowsArtifact,
-            Platform::Windows,
-            PrivilegeLevel::Admin,
-            &["T1562"],
-            "collect_etw_logs",
-            true,
-        ).with_status(
-            ImplementationStatus::RequiresElevation,
-            Some("Querying active kernel ETW sessions requires Administrator privilege"),
-        ));
+        self.register(
+            Capability::new(
+                "artifact.etw",
+                "ETW Logs",
+                "Collect Windows Event Tracing for Windows logs",
+                CapabilityCategory::WindowsArtifact,
+                Platform::Windows,
+                PrivilegeLevel::Admin,
+                &["T1562"],
+                "collect_etw_logs",
+                true,
+            )
+            .with_status(
+                ImplementationStatus::RequiresElevation,
+                Some("Querying active kernel ETW sessions requires Administrator privilege"),
+            ),
+        );
 
         // ===== LINUX ARTIFACT CAPABILITIES =====
         self.register(Capability::new(
@@ -4467,20 +4490,23 @@ impl CapabilityRegistry {
             true,
         ));
 
-        self.register(Capability::new(
-            "kernel.syscalls",
-            "System Call Table",
-            "Inspect system call table for hooking/modification (requires kernel access)",
-            CapabilityCategory::KernelDriver,
-            Platform::Linux,
-            PrivilegeLevel::Kernel,
-            &["T1014"],
-            "inspect_syscall_table",
-            true,
-        ).with_status(
-            ImplementationStatus::RequiresElevation,
-            Some("Inspection of system call table / SSDT requires Kernel/root privilege"),
-        ));
+        self.register(
+            Capability::new(
+                "kernel.syscalls",
+                "System Call Table",
+                "Inspect system call table for hooking/modification (requires kernel access)",
+                CapabilityCategory::KernelDriver,
+                Platform::Linux,
+                PrivilegeLevel::Kernel,
+                &["T1014"],
+                "inspect_syscall_table",
+                true,
+            )
+            .with_status(
+                ImplementationStatus::RequiresElevation,
+                Some("Inspection of system call table / SSDT requires Kernel/root privilege"),
+            ),
+        );
 
         self.register(Capability::new(
             "kernel.boot_config",
@@ -4519,17 +4545,20 @@ impl CapabilityRegistry {
             true,
         ).with_status(ImplementationStatus::Implemented, None));
 
-        self.register(Capability::new(
-            "security.app_control",
-            "Application Control",
-            "Collect AppLocker, WDAC, SELinux, AppArmor policies and enforcement status",
-            CapabilityCategory::SecurityConfig,
-            Platform::Both,
-            PrivilegeLevel::Admin,
-            &["T1562"],
-            "collect_app_control",
-            true,
-        ).with_status(ImplementationStatus::Implemented, None));
+        self.register(
+            Capability::new(
+                "security.app_control",
+                "Application Control",
+                "Collect AppLocker, WDAC, SELinux, AppArmor policies and enforcement status",
+                CapabilityCategory::SecurityConfig,
+                Platform::Both,
+                PrivilegeLevel::Admin,
+                &["T1562"],
+                "collect_app_control",
+                true,
+            )
+            .with_status(ImplementationStatus::Implemented, None),
+        );
 
         // ===== APPLICATION ARTIFACT CAPABILITIES =====
         self.register(Capability::new(
@@ -4682,17 +4711,20 @@ impl CapabilityRegistry {
             true,
         ).with_status(ImplementationStatus::Implemented, None));
 
-        self.register(Capability::new(
-            "file.entropy",
-            "File Entropy Analysis",
-            "Calculate Shannon entropy per file/section for packing/encryption detection",
-            CapabilityCategory::FileBinaryMetadata,
-            Platform::Both,
-            PrivilegeLevel::User,
-            &["T1027"],
-            "analyze_file_entropy",
-            true,
-        ).with_status(ImplementationStatus::Implemented, None));
+        self.register(
+            Capability::new(
+                "file.entropy",
+                "File Entropy Analysis",
+                "Calculate Shannon entropy per file/section for packing/encryption detection",
+                CapabilityCategory::FileBinaryMetadata,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &["T1027"],
+                "analyze_file_entropy",
+                true,
+            )
+            .with_status(ImplementationStatus::Implemented, None),
+        );
 
         // ===== EVIDENCE INTEGRITY CAPABILITIES =====
         self.register(Capability::new(
@@ -4734,17 +4766,20 @@ impl CapabilityRegistry {
             Some("Anchoring to public blockchain requires external funded wallet & JSON-RPC node; local development ledger active"),
         ));
 
-        self.register(Capability::new(
-            "evidence.chain_of_custody",
-            "Chain of Custody",
-            "Generate chain of custody records: collector, timestamp, hash, custody transfers",
-            CapabilityCategory::EvidenceIntegrity,
-            Platform::Both,
-            PrivilegeLevel::User,
-            &[],
-            "generate_chain_of_custody",
-            true,
-        ).with_status(ImplementationStatus::Implemented, None));
+        self.register(
+            Capability::new(
+                "evidence.chain_of_custody",
+                "Chain of Custody",
+                "Generate chain of custody records: collector, timestamp, hash, custody transfers",
+                CapabilityCategory::EvidenceIntegrity,
+                Platform::Both,
+                PrivilegeLevel::User,
+                &[],
+                "generate_chain_of_custody",
+                true,
+            )
+            .with_status(ImplementationStatus::Implemented, None),
+        );
     }
 
     fn register(&mut self, cap: Capability) {
@@ -5063,7 +5098,10 @@ impl CapabilityRegistry {
             }
         };
 
-        if (binding.privilege == PrivilegeLevel::Admin || binding.privilege == PrivilegeLevel::Kernel) && !is_elevated_process {
+        if (binding.privilege == PrivilegeLevel::Admin
+            || binding.privilege == PrivilegeLevel::Kernel)
+            && !is_elevated_process
+        {
             eprintln!(
                 "[WARN] Capability '{}' requires {:?} privileges; running with current user privileges",
                 capability.id, binding.privilege
@@ -5516,8 +5554,8 @@ impl CapabilityRegistry {
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
             "enumerate_mounts" => {
-                let records = jockey_runtime_filesystem::enumerate_mounts()
-                    .map_err(|e| e.to_string())?;
+                let records =
+                    jockey_runtime_filesystem::enumerate_mounts().map_err(|e| e.to_string())?;
                 append_records!(records)
             }
             "detect_alternate_data_streams" => {
@@ -5904,14 +5942,12 @@ impl CapabilityRegistry {
             }
             "inspect_syscall_table" => {
                 append_records!(
-                    jockey_runtime_drivers::inspect_syscall_table()
-                        .map_err(|e| e.to_string())?
+                    jockey_runtime_drivers::inspect_syscall_table().map_err(|e| e.to_string())?
                 )
             }
             "collect_boot_config" => {
                 append_records!(
-                    jockey_runtime_system::collect_boot_config()
-                        .map_err(|e| e.to_string())?
+                    jockey_runtime_system::collect_boot_config().map_err(|e| e.to_string())?
                 )
             }
 
@@ -5931,7 +5967,9 @@ impl CapabilityRegistry {
                 })])
             }
             "generate_chain_of_custody" => {
-                collector.generate_chain_of_custody().map_err(|e| e.to_string())?;
+                collector
+                    .generate_chain_of_custody()
+                    .map_err(|e| e.to_string())?;
                 let records = collector.data().to_vec();
                 let count = records.len();
                 Ok((CollectionStatus::Success, count, records, None, None))
@@ -6110,7 +6148,12 @@ mod tests {
         let implemented = reg.implemented_count();
         let total = reg.count();
         let unimpl = reg.unimplemented();
-        println!("Total: {}, Implemented: {}, Unimplemented: {}", total, implemented, unimpl.len());
+        println!(
+            "Total: {}, Implemented: {}, Unimplemented: {}",
+            total,
+            implemented,
+            unimpl.len()
+        );
         println!("------------------------------------------------------------");
         let mut sorted_unimpl: Vec<_> = unimpl.iter().collect();
         sorted_unimpl.sort_by_key(|c| &c.id);
