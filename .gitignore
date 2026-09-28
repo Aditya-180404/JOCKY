@@ -58,5 +58,7 @@ packages/release-*/
 docs/*
 !docs/capability-implementation-report.md
 !docs/release-readiness-audit.md
+!docs/evasion-architecture.md
+!docs/cloud-transport.md
 **/prompt.md
 **/tasks.md
