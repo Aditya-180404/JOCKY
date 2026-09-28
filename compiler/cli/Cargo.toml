@@ -34,3 +34,6 @@ ureq = { version = "2.10", features = ["json"] }
 [features]
 default = []
 llvm = ["jockey-backend/llvm"]
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"

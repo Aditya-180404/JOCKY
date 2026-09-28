@@ -369,6 +369,64 @@ impl EvidenceCollector {
         }
     }
 
+    pub fn collect_firewall(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        match jockey_runtime_network::enumerate_firewall_policy() {
+            Ok(records) => {
+                let count = records.len();
+                let mut status = CollectionStatus::Success;
+                for rec in records {
+                    if let Some(s) = rec.get("status").and_then(|v| v.as_str()) {
+                        if s == "requires_elevation" {
+                            status = CollectionStatus::RequiresElevation;
+                        } else if (s == "not_available" || s == "unsupported")
+                            && status != CollectionStatus::RequiresElevation
+                        {
+                            status = CollectionStatus::Unsupported;
+                        }
+                    }
+                    self.data.push(rec);
+                }
+                self.record_collector_result("firewall", status, count, None, None);
+                Ok(())
+            }
+            Err(e) => {
+                let err_str = e.to_string();
+                self.record_collector_result(
+                    "firewall",
+                    CollectionStatus::Failed,
+                    0,
+                    Some(err_str),
+                    None,
+                );
+                Err(e)
+            }
+        }
+    }
+
+    pub fn collect_proxy(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        match jockey_runtime_network::enumerate_proxy() {
+            Ok(records) => {
+                let count = records.len();
+                for rec in records {
+                    self.data.push(rec);
+                }
+                self.record_collector_result("proxy", CollectionStatus::Success, count, None, None);
+                Ok(())
+            }
+            Err(e) => {
+                let err_str = e.to_string();
+                self.record_collector_result(
+                    "proxy",
+                    CollectionStatus::Failed,
+                    0,
+                    Some(err_str),
+                    None,
+                );
+                Err(e)
+            }
+        }
+    }
+
     pub fn collect_files(
         &mut self,
         path: &str,

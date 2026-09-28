@@ -408,7 +408,8 @@ export function WebIDE() {
     api.get('/api/compiler/capabilities')
       .then((response) => {
         if (response.data && typeof response.data === 'object') {
-          setCapabilitiesRegistry(response.data);
+          const caps = (response.data as { capabilities?: Record<string, RegistryCapability> }).capabilities || response.data;
+          setCapabilitiesRegistry(caps as Record<string, RegistryCapability>);
         }
       })
       .catch((err) => {

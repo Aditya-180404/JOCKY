@@ -2,8 +2,24 @@
 
 use jockey_ir::{ArtifactMetadata, BuildConfig, IrInvestigation, TargetArch, TargetPlatform};
 use sha2::Digest;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use thiserror::Error;
+
+fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(dst)?;
+    for entry in std::fs::read_dir(src)? {
+        let entry = entry?;
+        let ty = entry.file_type()?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+        if ty.is_dir() {
+            copy_dir_all(&src_path, &dst_path)?;
+        } else {
+            std::fs::copy(&src_path, &dst_path)?;
+        }
+    }
+    Ok(())
+}
 
 #[derive(Debug, Error)]
 pub enum BackendError {
@@ -302,6 +318,7 @@ impl Backend {
         std::fs::write(&src_path, rust_code)?;
 
         // Generate Cargo.toml
+        self.copy_runtime_bundle(&project_dir)?;
         let cargo_toml = self.generate_cargo_toml(ir)?;
         std::fs::write(project_dir.join("Cargo.toml"), cargo_toml)?;
 
@@ -399,6 +416,7 @@ impl Backend {
         let src_path = src_dir.join("main.rs");
         std::fs::write(&src_path, rust_code)?;
 
+        self.copy_runtime_bundle(&project_dir)?;
         let cargo_toml = self.generate_cargo_toml(ir)?;
         std::fs::write(project_dir.join("Cargo.toml"), cargo_toml)?;
 
@@ -626,6 +644,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
             "network.connections" => {
                 code.push_str("    evidence.collect_network_connections()?;\n");
             }
+            "network.firewall"
+            | "network.firewall.policy"
+            | "security.firewall"
+            | "firewall.policy" => {
+                code.push_str("    evidence.collect_firewall()?;\n");
+            }
+            "network.proxy" | "proxy.configuration" => {
+                code.push_str("    evidence.collect_proxy()?;\n");
+            }
             "filesystem.enumerate" => {
                 let path = collect
                     .options
@@ -798,19 +825,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
         Ok(code)
     }
 
-    pub fn generate_cargo_toml(&self, ir: &IrInvestigation) -> Result<String, BackendError> {
-        let deps = self.required_dependencies(ir);
-        let runtime_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    pub fn copy_runtime_bundle(&self, project_dir: &Path) -> Result<(), BackendError> {
+        let runtime_src = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../../runtime")
             .canonicalize()
             .map_err(|error| {
                 BackendError::TemplateError(format!("Unable to locate runtime crate: {}", error))
             })?;
-        let mut runtime_path_str = runtime_path.to_string_lossy().to_string();
-        if let Some(stripped) = runtime_path_str.strip_prefix(r"\\?\") {
-            runtime_path_str = stripped.to_string();
+        let runtime_dest = project_dir.join("runtime");
+        if runtime_dest.exists() {
+            std::fs::remove_dir_all(&runtime_dest)?;
         }
-        let runtime_path = runtime_path_str.replace('\\', "/");
+        copy_dir_all(&runtime_src, &runtime_dest)?;
+        Ok(())
+    }
+
+    pub fn generate_cargo_toml(&self, ir: &IrInvestigation) -> Result<String, BackendError> {
+        let deps = self.required_dependencies(ir);
 
         Ok(format!(
             r#"[package]
@@ -819,13 +850,58 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
+members = [
+    ".",
+    "runtime",
+    "runtime/system",
+    "runtime/process",
+    "runtime/network",
+    "runtime/filesystem",
+    "runtime/logs",
+    "runtime/evidence",
+    "runtime/security",
+    "runtime/drivers",
+    "runtime/timeline",
+    "runtime/memory",
+    "runtime/registry",
+    "runtime/artifacts",
+    "runtime/correlation",
+    "runtime/capabilities",
+    "runtime/auth",
+    "runtime/users",
+    "runtime/services",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["jockey Team"]
+repository = "https://github.com/Aditya-180404/jockey.git"
+
+[workspace.dependencies]
+serde = {{ version = "1.0", features = ["derive"] }}
+serde_json = "1.0"
+thiserror = "1.0"
+chrono = {{ version = "0.4", features = ["serde"] }}
+sha2 = "0.10"
+sha1 = "0.10"
+md-5 = "0.10"
+ipnetwork = "0.20"
+anyhow = "1.0"
+tracing = "0.1"
+tracing-subscriber = {{ version = "0.3", features = ["env-filter", "json"] }}
+uuid = {{ version = "1.0", features = ["v4", "serde"] }}
+tokio = {{ version = "1.38", features = ["full"] }}
+indexmap = {{ version = "2.0", features = ["serde"] }}
+bincode = "1.3"
+toml = "0.8"
 
 [dependencies]
-jockey-runtime = {{ path = "{}" }}
+jockey-runtime = {{ path = "runtime" }}
 {}
 "#,
             ir.name.replace('-', "_"),
-            runtime_path,
             deps
         ))
     }

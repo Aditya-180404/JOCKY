@@ -54,31 +54,59 @@ impl LlvmBackend {
         let ll_path = output_dir.join(format!("{}.ll", mir.name));
         std::fs::write(&ll_path, &llvm_ir)?;
 
-        // 3. Determine artifact filename and target parameters
+        // 3. Ensure runtime static archive exists
+        let runtime_lib = self.ensure_runtime_lib(self.config.target_platform)?;
+
+        // 4. Determine artifact filename and target parameters
         let (artifact_name, target_triple, linker_flags) = match self.config.target_platform {
             TargetPlatform::Linux => (
                 format!("{}-linux-{}", mir.name, self.arch_suffix()),
                 "x86_64-pc-linux-gnu",
                 vec!["-lpthread", "-ldl", "-lm"],
             ),
-            TargetPlatform::Windows => (
-                format!("{}-windows-{}.exe", mir.name, self.arch_suffix()),
-                "x86_64-w64-windows-gnu",
-                vec![
-                    "-lws2_32",
-                    "-luserenv",
-                    "-lntdll",
-                    "-ladvapi32",
-                    "-lbcrypt",
-                    "-lsecur32",
-                ],
-            ),
+            TargetPlatform::Windows => {
+                let is_msvc = runtime_lib.extension().and_then(|e| e.to_str()) == Some("lib")
+                    || cfg!(target_env = "msvc");
+                let triple = if is_msvc {
+                    "x86_64-pc-windows-msvc"
+                } else {
+                    "x86_64-w64-windows-gnu"
+                };
+                let flags = if is_msvc {
+                    vec![
+                        "-lws2_32",
+                        "-luserenv",
+                        "-lntdll",
+                        "-ladvapi32",
+                        "-lbcrypt",
+                        "-lsecur32",
+                        "-lcrypt32",
+                        "-lsynchronization",
+                        "-lshell32",
+                        "-lole32",
+                        "-loleaut32",
+                        "-liphlpapi",
+                        "-luser32",
+                    ]
+                } else {
+                    vec![
+                        "-lws2_32",
+                        "-luserenv",
+                        "-lntdll",
+                        "-ladvapi32",
+                        "-lbcrypt",
+                        "-lsecur32",
+                    ]
+                };
+                (
+                    format!("{}-windows-{}.exe", mir.name, self.arch_suffix()),
+                    triple,
+                    flags,
+                )
+            }
         };
 
         let output_path = output_dir.join(&artifact_name);
-
-        // 4. Ensure runtime static archive exists
-        let runtime_lib = self.ensure_runtime_lib(self.config.target_platform)?;
 
         // 5. Invoke clang to compile .ll to native binary
         let mut cmd = std::process::Command::new("clang");
@@ -191,55 +219,73 @@ impl LlvmBackend {
     fn ensure_runtime_lib(&self, platform: TargetPlatform) -> Result<PathBuf, crate::BackendError> {
         let workspace_root = Self::find_workspace_root();
 
-        let (target_arg, rel_path) = match platform {
-            TargetPlatform::Linux => (
-                None,
-                workspace_root
-                    .join("target")
-                    .join("release")
-                    .join("libjockey_runtime.a"),
-            ),
-            TargetPlatform::Windows => (
-                Some("x86_64-pc-windows-gnu"),
-                workspace_root
-                    .join("target")
-                    .join("x86_64-pc-windows-gnu")
-                    .join("release")
-                    .join("libjockey_runtime.a"),
-            ),
-        };
+        let msvc_lib = workspace_root
+            .join("target")
+            .join("release")
+            .join("jockey_runtime.lib");
+        let gnu_win_lib = workspace_root
+            .join("target")
+            .join("x86_64-pc-windows-gnu")
+            .join("release")
+            .join("libjockey_runtime.a");
+        let gnu_win_lib_release = workspace_root
+            .join("target")
+            .join("release")
+            .join("libjockey_runtime.a");
+        let linux_lib = workspace_root
+            .join("target")
+            .join("release")
+            .join("libjockey_runtime.a");
 
-        // Let Cargo freshness-check the archive; an existing file may predate runtime source changes.
-        let cargo_bin = std::env::var("CARGO").unwrap_or_else(|_| {
-            let home_cargo = std::env::var("HOME")
-                .map(|h| PathBuf::from(h).join(".cargo/bin/cargo"))
-                .ok();
-            if let Some(hc) = home_cargo {
-                if hc.exists() {
-                    return hc.to_string_lossy().to_string();
+        let (target_arg, rel_path) = match platform {
+            TargetPlatform::Linux => (None, linux_lib),
+            TargetPlatform::Windows => {
+                if cfg!(target_os = "windows") && msvc_lib.exists() {
+                    (None, msvc_lib)
+                } else if gnu_win_lib.exists() {
+                    (Some("x86_64-pc-windows-gnu"), gnu_win_lib)
+                } else if gnu_win_lib_release.exists() {
+                    (None, gnu_win_lib_release)
+                } else if cfg!(target_os = "windows") {
+                    (None, msvc_lib)
+                } else {
+                    (Some("x86_64-pc-windows-gnu"), gnu_win_lib)
                 }
             }
-            "cargo".to_string()
-        });
-        let mut cmd = std::process::Command::new(cargo_bin);
-        cmd.args(["build", "-p", "jockey-runtime", "--release"]);
-        if let Some(target) = target_arg {
-            cmd.args(["--target", target]);
-        }
-        cmd.current_dir(&workspace_root);
+        };
 
-        let status = cmd.status().map_err(|e| {
-            crate::BackendError::CompilationError(format!(
-                "Failed to build runtime staticlib: {}",
-                e
-            ))
-        })?;
+        if !rel_path.exists() {
+            let cargo_bin = std::env::var("CARGO").unwrap_or_else(|_| {
+                let home_cargo = std::env::var("HOME")
+                    .map(|h| PathBuf::from(h).join(".cargo/bin/cargo"))
+                    .ok();
+                if let Some(hc) = home_cargo {
+                    if hc.exists() {
+                        return hc.to_string_lossy().to_string();
+                    }
+                }
+                "cargo".to_string()
+            });
+            let mut cmd = std::process::Command::new(cargo_bin);
+            cmd.args(["build", "-p", "jockey-runtime", "--release"]);
+            if let Some(target) = target_arg {
+                cmd.args(["--target", target]);
+            }
+            cmd.current_dir(&workspace_root);
 
-        if !status.success() || !rel_path.exists() {
-            return Err(crate::BackendError::CompilationError(format!(
-                "Failed to build required staticlib: {}",
-                rel_path.display()
-            )));
+            let status = cmd.status().map_err(|e| {
+                crate::BackendError::CompilationError(format!(
+                    "Failed to build runtime staticlib: {}",
+                    e
+                ))
+            })?;
+
+            if !status.success() || !rel_path.exists() {
+                return Err(crate::BackendError::CompilationError(format!(
+                    "Failed to build required staticlib: {}",
+                    rel_path.display()
+                )));
+            }
         }
 
         Ok(rel_path)

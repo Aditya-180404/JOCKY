@@ -52,8 +52,9 @@ fn compile_to_llvm_ir(source: &str, test_name: &str) -> String {
 /// If `clang` is available, validate the IR with the assembler frontend.
 fn validate_with_clang(ir: &str, test_name: &str) {
     use std::io::Write;
+    let dev_null = if cfg!(windows) { "NUL" } else { "/dev/null" };
     let mut child = match Command::new("clang")
-        .args(["-x", "ir", "-", "-c", "-o", "/dev/null"])
+        .args(["-x", "ir", "-", "-c", "-o", dev_null])
         .stdin(std::process::Stdio::piped())
         .spawn()
     {

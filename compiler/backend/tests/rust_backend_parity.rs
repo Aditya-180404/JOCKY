@@ -103,8 +103,17 @@ fn test_rust_and_llvm_backend_parity_all_collectors() {
     let cargo_toml = rust_backend
         .generate_cargo_toml(&ir)
         .expect("Cargo.toml generation must succeed");
+    let runtime_line = cargo_toml
+        .lines()
+        .find(|line| line.contains("jockey-runtime"))
+        .expect("Cargo.toml must declare jockey-runtime");
     assert!(cargo_toml.contains("jockey-runtime"));
     assert!(cargo_toml.contains("name = \"full_parity_triage\""));
+    assert!(
+        !runtime_line.contains(":"),
+        "Generated Cargo.toml must not embed an absolute runtime path: {}",
+        runtime_line
+    );
 
     // 2. LLVM backend verification
     let hir: jockey_hir::HirInvestigation = (&ir).into();

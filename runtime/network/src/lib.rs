@@ -1,5 +1,11 @@
 //! jockey Runtime - Network connection enumeration
 
+pub mod firewall;
+pub mod proxy;
+
+pub use firewall::{collect_firewall_policy, NormalizedFirewallRecord};
+pub use proxy::{collect_proxy_configuration, NormalizedProxyRecord};
+
 use serde::{Deserialize, Serialize};
 use std::net::IpAddr;
 
@@ -534,98 +540,14 @@ pub fn enumerate_listening_ports() -> Result<Vec<serde_json::Value>, Box<dyn std
     Ok(listening)
 }
 
-/// Enumerate firewall policy
+/// Enumerate firewall policy (cross-platform, normalized model)
 pub fn enumerate_firewall_policy() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
-    #[cfg(target_os = "linux")]
-    {
-        let mut results = Vec::new();
+    firewall::collect_firewall_policy()
+}
 
-        // Check iptables
-        if let Ok(output) = std::process::Command::new("iptables")
-            .args(["-L", "-n", "-v"])
-            .output()
-        {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            results.push(serde_json::json!({
-                "type": "iptables",
-                "rules": stdout.lines().collect::<Vec<_>>(),
-            }));
-        }
-
-        // Check nftables
-        if let Ok(output) = std::process::Command::new("nft")
-            .args(["list", "ruleset"])
-            .output()
-        {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            results.push(serde_json::json!({
-                "type": "nftables",
-                "rules": stdout.lines().collect::<Vec<_>>(),
-            }));
-        }
-
-        // Check ufw
-        if let Ok(output) = std::process::Command::new("ufw")
-            .args(["status", "verbose"])
-            .output()
-        {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            results.push(serde_json::json!({
-                "type": "ufw",
-                "rules": stdout.lines().collect::<Vec<_>>(),
-            }));
-        }
-
-        if results.is_empty() {
-            results.push(serde_json::json!({
-                "collector": "network",
-                "artifact_type": "firewall_policy",
-                "status": "not_found",
-                "note": "No firewall rules found (iptables, nftables, ufw)",
-            }));
-        }
-
-        Ok(results)
-    }
-
-    #[cfg(target_os = "windows")]
-    {
-        let mut results = Vec::new();
-        let output = std::process::Command::new("powershell")
-            .args(["-NoProfile", "-Command", "Get-NetFirewallRule | Select-Object Name,DisplayName,Enabled,Action,Direction,Protocol,LocalPort,RemotePort,Program,Profile | ConvertTo-Json -Compress"])
-            .output();
-
-        if let Ok(output) = output {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            if let Ok(val) = serde_json::from_str::<serde_json::Value>(&stdout) {
-                let items: Vec<serde_json::Value> = match val {
-                    serde_json::Value::Array(arr) => arr,
-                    serde_json::Value::Object(_) => vec![val],
-                    _ => vec![],
-                };
-                for item in items {
-                    results.push(serde_json::json!({
-                        "name": item.get("Name").and_then(|v| v.as_str()).unwrap_or(""),
-                        "display_name": item.get("DisplayName").and_then(|v| v.as_str()).unwrap_or(""),
-                        "enabled": item.get("Enabled").and_then(|v| v.as_str()).unwrap_or(""),
-                        "action": item.get("Action").and_then(|v| v.as_str()).unwrap_or(""),
-                        "direction": item.get("Direction").and_then(|v| v.as_str()).unwrap_or(""),
-                        "protocol": item.get("Protocol").and_then(|v| v.as_str()).unwrap_or(""),
-                        "local_port": item.get("LocalPort").and_then(|v| v.as_str()).unwrap_or(""),
-                        "remote_port": item.get("RemotePort").and_then(|v| v.as_str()).unwrap_or(""),
-                        "program": item.get("Program").and_then(|v| v.as_str()).unwrap_or(""),
-                        "profile": item.get("Profile").and_then(|v| v.as_str()).unwrap_or(""),
-                    }));
-                }
-            }
-        }
-        Ok(results)
-    }
-
-    #[cfg(not(any(target_os = "linux", target_os = "windows")))]
-    {
-        Ok(Vec::new())
-    }
+/// Enumerate proxy configuration (cross-platform, credential-redacted, normalized model)
+pub fn enumerate_proxy() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    proxy::collect_proxy_configuration()
 }
 
 /// Enumerate network shares

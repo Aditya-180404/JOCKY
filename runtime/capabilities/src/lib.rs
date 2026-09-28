@@ -16,6 +16,9 @@ use std::sync::OnceLock;
 
 use jockey_runtime_evidence::{CollectionStatus, EvidenceCollector, EvidenceOrigin};
 
+pub mod polymorphism;
+pub use polymorphism::*;
+
 /// Unique identifier for a capability
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct CapabilityId(pub &'static str);
@@ -2967,7 +2970,7 @@ impl CapabilityRegistry {
                 Platform::Both,
                 PrivilegeLevel::User,
                 &["T1016"],
-                "enumerate_connections",
+                "collect_proxy",
                 true,
             ),
             Capability::new(
@@ -2989,7 +2992,7 @@ impl CapabilityRegistry {
                 Platform::Both,
                 PrivilegeLevel::Admin,
                 &["T1562"],
-                "enumerate_connections",
+                "enumerate_firewall_policy",
                 true,
             ),
             Capability::new(
@@ -5521,6 +5524,11 @@ impl CapabilityRegistry {
             "enumerate_listening_ports" => {
                 append_records!(jockey_runtime_network::enumerate_listening_ports()
                     .map_err(|e| e.to_string())?)
+            }
+            "collect_proxy" | "enumerate_proxy" => {
+                append_records!(
+                    jockey_runtime_network::enumerate_proxy().map_err(|e| e.to_string())?
+                )
             }
             "enumerate_firewall_policy" => {
                 append_records!(jockey_runtime_network::enumerate_firewall_policy()

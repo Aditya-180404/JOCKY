@@ -626,41 +626,7 @@ pub fn collect_audit_policy() -> Result<Vec<serde_json::Value>, Box<dyn std::err
 }
 
 pub fn collect_firewall_rules() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
-    let mut results = Vec::new();
-    let commands: &[(&str, &[&str])] = &[
-        ("iptables", &["iptables", "-S"]),
-        ("nft", &["nft", "list", "ruleset"]),
-        ("ufw", &["ufw", "status", "verbose"]),
-    ];
-
-    for (cmd, args) in commands {
-        let output = std::process::Command::new(*cmd).args(*args).output();
-        let Ok(out) = output else {
-            continue;
-        };
-        let stdout = String::from_utf8_lossy(&out.stdout).trim().to_string();
-        if stdout.is_empty() {
-            continue;
-        }
-        results.push(serde_json::json!({
-            "collector": "firewall",
-            "engine": cmd,
-            "output": stdout
-                .lines()
-                .take(50)
-                .collect::<Vec<_>>(),
-            "status": "present",
-        }));
-    }
-
-    if results.is_empty() {
-        results.push(serde_json::json!({
-            "collector": "firewall",
-            "status": "not_available",
-        }));
-    }
-
-    Ok(results)
+    jockey_runtime_network::firewall::collect_firewall_policy()
 }
 
 pub fn detect_av_edr() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {

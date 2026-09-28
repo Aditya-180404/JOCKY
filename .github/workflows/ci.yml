@@ -22,15 +22,29 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      # Build without LLVM (default feature set — same as local dev)
+      - name: Setup LLVM 21 toolchain (Linux)
+        run: |
+          set -e
+          python3 scripts/setup-llvm-linux.py
+          echo "LLVM_SYS_211_PREFIX=/opt/llvm21" >> "$GITHUB_ENV"
+          echo "/opt/llvm21/bin" >> "$GITHUB_PATH"
+
+      - name: Print toolchain versions
+        run: |
+          echo "=== Toolchain Versions ==="
+          rustc --version
+          cargo --version
+          /opt/llvm21/bin/llvm-config --version || true
+          clang --version || true
+
       - name: fmt check
         run: cargo fmt --all -- --check
 
-      - name: clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: clippy (--all-features)
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
 
-      - name: test
-        run: cargo test --workspace
+      - name: test (--all-features)
+        run: cargo test --workspace --all-features
 
       - name: build release
         run: cargo build --workspace --release
@@ -87,17 +101,46 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
+      - name: Setup LLVM 21 toolchain (Windows)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python scripts\setup-llvm-win.py
+          "LLVM_SYS_211_PREFIX=C:\LLVM21" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "C:\LLVM21\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Print toolchain versions
+        shell: pwsh
+        run: |
+          Write-Host "=== Toolchain Versions ==="
+          rustc --version
+          cargo --version
+          & "C:\LLVM21\bin\llvm-config.exe" --version
+          clang --version
+
       - name: fmt check
         run: cargo fmt --all -- --check
 
-      - name: clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: clippy (--all-features)
+        shell: pwsh
+        run: |
+          $env:LLVM_SYS_211_PREFIX = "C:\LLVM21"
+          $env:PATH = "C:\LLVM21\bin;$env:PATH"
+          cargo clippy --workspace --all-targets --all-features -- -D warnings
 
-      - name: test
-        run: cargo test --workspace
+      - name: test (--all-features)
+        shell: pwsh
+        run: |
+          $env:LLVM_SYS_211_PREFIX = "C:\LLVM21"
+          $env:PATH = "C:\LLVM21\bin;$env:PATH"
+          cargo test --workspace --all-features
 
       - name: build release
-        run: cargo build --workspace --release
+        shell: pwsh
+        run: |
+          $env:LLVM_SYS_211_PREFIX = "C:\LLVM21"
+          $env:PATH = "C:\LLVM21\bin;$env:PATH"
+          cargo build --workspace --release
 
       # ── Windows acceptance tests ─────────────────────────────────────────────
       - name: jockey --version
@@ -153,21 +196,20 @@ jobs:
             Write-Host "✓ Tamper detection working correctly"
           }
 
-      # ── Windows packaging ────────────────────────────────────────────────────
+      - name: Authenticode Signing Pipeline (Dev / Release)
+        shell: pwsh
+        run: |
+          $mandatory = if ($env:GITHUB_REF -like "refs/tags/*") { "-Mandatory" } else { "" }
+          powershell.exe -ExecutionPolicy Bypass -File scripts\sign-windows.ps1 $mandatory
+
+      # ── Windows packaging & clean extraction validation ──────────────────────
       - name: build Windows distribution archive
         run: powershell.exe -ExecutionPolicy Bypass -File packaging\build-win.ps1
 
-      - name: verify archive exists and has content
+      - name: validate extracted Windows distribution package
         shell: pwsh
         run: |
-          if (-not (Test-Path .\jockey_0.1.0_windows_amd64.zip)) {
-            Write-Error "Package not created"; exit 1
-          }
-          $size = (Get-Item .\jockey_0.1.0_windows_amd64.zip).Length
-          if ($size -lt 100000) {
-            Write-Error "Package too small ($size bytes)"; exit 1
-          }
-          Write-Host "✓ Windows package ($size bytes)"
+          powershell.exe -ExecutionPolicy Bypass -File tests\verify-windows-package.ps1
 
       - name: Upload Windows distribution artifact
         uses: actions/upload-artifact@v4
@@ -192,6 +234,11 @@ jobs:
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
 
+      - name: Print Node & NPM versions
+        run: |
+          node --version
+          npm --version
+
       - run: npm ci
       - run: npm run lint
       - run: npm run build
@@ -206,6 +253,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
+
+      - name: Print toolchain versions
+        run: |
+          rustc --version
+          cargo --version
 
       - name: Build release CLI
         run: cargo build --release -p jockey-cli
@@ -228,6 +280,7 @@ jobs:
         run: |
           jockey --version
           jockey doctor
+          jockey capabilities --format json | jq '. | length'
           jockey check examples/complete_forensic_triage.jy
 
       - name: Remove package

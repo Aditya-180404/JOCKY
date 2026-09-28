@@ -944,7 +944,7 @@ fn compile(
                 llvm_backend
                     .generate_llvm_ir(mir)
                     .ok()
-                    .map(|ir_text| calculate_sha256(ir_text.as_bytes()))
+                    .map(|ir_text| calculate_sha256(&ir_text))
             } else {
                 None
             }

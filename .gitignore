@@ -6,6 +6,8 @@
 # Rust build artifacts
 /target/
 **/target/
+/.cargo/
+/.rustup/
 
 # Node.js and Vite artifacts
 node_modules/
@@ -35,6 +37,9 @@ Thumbs.db
 # Compiler generated artifacts and temporary builds
 build/
 build_win/
+test-build/
+ci-build/
+packaging/windows-stage/
 scratch/
 # LLVM / compiler intermediate files
 *.ll

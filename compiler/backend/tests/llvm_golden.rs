@@ -102,8 +102,9 @@ fn test_llvm_golden_process_triage_ir() {
     assert!(ir.contains("ret i32"));
 
     // Verify clang parses and compiles this IR to an object file with zero errors
+    let dev_null = if cfg!(windows) { "NUL" } else { "/dev/null" };
     let clang_res = Command::new("clang")
-        .args(["-x", "ir", "-", "-c", "-o", "/dev/null"])
+        .args(["-x", "ir", "-", "-c", "-o", dev_null])
         .stdin(std::process::Stdio::piped())
         .spawn();
 

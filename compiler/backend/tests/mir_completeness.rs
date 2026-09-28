@@ -349,8 +349,9 @@ fn test_every_mir_instruction_has_explicit_llvm_lowering() {
     );
 
     // ── Assembler validation via Clang ────────────────────────────────
+    let dev_null = if cfg!(windows) { "NUL" } else { "/dev/null" };
     let mut cmd = std::process::Command::new("clang");
-    cmd.args(["-x", "ir", "-", "-c", "-o", "/dev/null"]);
+    cmd.args(["-x", "ir", "-", "-c", "-o", dev_null]);
     cmd.stdin(std::process::Stdio::piped());
     if let Ok(mut child) = cmd.spawn() {
         use std::io::Write;

@@ -24,23 +24,35 @@ use jockey_runtime_evidence::{verify_evidence_deep, VerificationStatus};
 
 #[test]
 fn test_native_end_to_end_forensic_pipeline() {
-    let source = r#"
-investigation "native_semantic_triage" {
-    collect system_info
-    collect processes
-    collect network_connections
-    collect files "/etc" { recursive: false }
-    collect timeline
-    export evidence "native_evidence.json"
-}
-"#;
-
     let temp_dir = std::env::temp_dir().join(format!("jockey_native_test_{}", std::process::id()));
     let _ = fs::remove_dir_all(&temp_dir);
     fs::create_dir_all(&temp_dir).expect("Failed to create temp test directory");
 
+    let test_files_dir = temp_dir.join("evidence_input");
+    fs::create_dir_all(&test_files_dir).expect("Failed to create test files directory");
+    fs::write(
+        test_files_dir.join("forensic_probe.txt"),
+        b"evidence artifact payload",
+    )
+    .expect("Failed to write test file");
+
+    let files_dir_escaped = test_files_dir.to_string_lossy().replace('\\', "/");
+    let source = format!(
+        r#"
+investigation "native_semantic_triage" {{
+    collect system_info
+    collect processes
+    collect network_connections
+    collect files "{}" {{ recursive: false }}
+    collect timeline
+    export evidence "native_evidence.json"
+}}
+"#,
+        files_dir_escaped
+    );
+
     // 1. Lexer
-    let mut lexer = jockey_lexer::Lexer::new(source);
+    let mut lexer = jockey_lexer::Lexer::new(&source);
     let tokens = lexer.tokenize().expect("Lexer failed");
 
     // 2. Parser
@@ -52,14 +64,23 @@ investigation "native_semantic_triage" {
     let ir = analyzer.analyze(&ast).expect("Semantic analysis failed");
 
     // 4. HIR Lowering
-    let hir = jockey_hir::HirLowering::lower(&ast, &ir.required_capabilities, source)
+    let hir = jockey_hir::HirLowering::lower(&ast, &ir.required_capabilities, &source)
         .expect("HIR lowering failed");
 
     // 5. MIR Lowering
     let mir = jockey_mir::MirLowering::lower(&hir).expect("MIR lowering failed");
 
     // 6. Programmatic LLVM Compilation to Native Executable
-    let config = BuildConfig::default();
+    let config = BuildConfig {
+        target_platform: if cfg!(target_os = "windows") {
+            jockey_ir::TargetPlatform::Windows
+        } else {
+            jockey_ir::TargetPlatform::Linux
+        },
+        target_arch: jockey_ir::TargetArch::X64,
+        optimization_level: jockey_ir::OptimizationLevel::Speed,
+        ..Default::default()
+    };
     let backend = LlvmBackend::new(config);
     let metadata = backend
         .compile(&mir, &temp_dir)
@@ -68,11 +89,15 @@ investigation "native_semantic_triage" {
     assert_eq!(metadata.investigation_name, "native_semantic_triage");
     assert!(!metadata.artifact_hash.is_empty());
 
-    let binary_name = "native_semantic_triage-linux-x64".to_string();
+    let binary_name = if cfg!(target_os = "windows") {
+        "native_semantic_triage-windows-x64.exe".to_string()
+    } else {
+        "native_semantic_triage-linux-x64".to_string()
+    };
     let binary_path = temp_dir.join(&binary_name);
     assert!(
         binary_path.exists(),
-        "Native ELF binary was not produced at {:?}",
+        "Native binary was not produced at {:?}",
         binary_path
     );
 
