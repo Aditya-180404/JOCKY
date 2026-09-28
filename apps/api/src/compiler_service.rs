@@ -122,6 +122,7 @@ fn compile_native_artifact(source: &str, target_str: &str) -> Result<(String, Ve
         optimization_level: jockey_ir::OptimizationLevel::Speed,
         debug_symbols: false,
         strip_symbols: true,
+        obfuscation: Default::default(),
     };
     let backend_kind = if std::env::var("JOCKEY_BACKEND").unwrap_or_default() == "llvm" {
         BackendKind::Llvm
@@ -1172,6 +1173,7 @@ fn execute_native_program(source: &str, target_str: &str) -> RunResponse {
         optimization_level: jockey_ir::OptimizationLevel::Speed,
         debug_symbols: false,
         strip_symbols: true,
+        obfuscation: Default::default(),
     };
     let backend_kind = if std::env::var("JOCKEY_BACKEND").unwrap_or_default() == "llvm" {
         BackendKind::Llvm

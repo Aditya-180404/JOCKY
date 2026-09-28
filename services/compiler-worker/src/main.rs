@@ -460,6 +460,7 @@ impl Worker {
             optimization_level: jockey_ir::OptimizationLevel::Speed,
             debug_symbols: false,
             strip_symbols: true,
+            obfuscation: Default::default(),
         };
 
         let backend = Backend::new(config);

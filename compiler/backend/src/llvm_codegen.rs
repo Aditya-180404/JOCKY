@@ -1,4 +1,5 @@
 //! Programmatic LLVM Code Generation Engine
+#![allow(deprecated)]
 //!
 //! Lowers JOCKEY MIR directly into programmatic LLVM Context, Module, Functions,
 //! BasicBlocks, Instructions, and Terminators using the LLVM C API.
@@ -839,15 +840,19 @@ impl ProgrammaticLlvmCodegen {
                     }
                     // ── Obfuscation-only instructions ────────────────────────────
                     MirInstruction::JunkBitwiseXor { dest, lhs, rhs } => {
-                        let lhs_val = load_local(builder_ref, &local_allocas, *lhs, "junk_xor_lhs")?;
-                        let rhs_val = load_local(builder_ref, &local_allocas, *rhs, "junk_xor_rhs")?;
+                        let lhs_val =
+                            load_local(builder_ref, &local_allocas, *lhs, "junk_xor_lhs")?;
+                        let rhs_val =
+                            load_local(builder_ref, &local_allocas, *rhs, "junk_xor_rhs")?;
                         let c_name = CString::new("junk_xor_res").unwrap();
                         let res = LLVMBuildXor(builder_ref, lhs_val, rhs_val, c_name.as_ptr());
                         store_local(builder_ref, &local_allocas, *dest, res)?;
                     }
                     MirInstruction::JunkAdd { dest, lhs, rhs } => {
-                        let lhs_val = load_local(builder_ref, &local_allocas, *lhs, "junk_add_lhs")?;
-                        let rhs_val = load_local(builder_ref, &local_allocas, *rhs, "junk_add_rhs")?;
+                        let lhs_val =
+                            load_local(builder_ref, &local_allocas, *lhs, "junk_add_lhs")?;
+                        let rhs_val =
+                            load_local(builder_ref, &local_allocas, *rhs, "junk_add_rhs")?;
                         let c_name = CString::new("junk_add_res").unwrap();
                         let res = LLVMBuildAdd(builder_ref, lhs_val, rhs_val, c_name.as_ptr());
                         store_local(builder_ref, &local_allocas, *dest, res)?;
@@ -864,14 +869,16 @@ impl ProgrammaticLlvmCodegen {
                         let c_var_name = CString::new(var_name).unwrap();
                         let global = LLVMAddGlobal(mod_ref, array_ty, c_var_name.as_ptr());
                         LLVMSetGlobalConstant(global, 1);
-                        LLVMSetLinkage(global, llvm_sys::LLVMLinkage::LLVMPrivateLinkage as u32);
+                        LLVMSetLinkage(global, llvm_sys::LLVMLinkage::LLVMPrivateLinkage);
 
                         // Create the constant array value
                         let mut const_vals: Vec<LLVMValueRef> = ciphertext
                             .iter()
                             .map(|&b| LLVMConstInt(i8_ty, b as u64, 0))
                             .collect();
-                        let const_array = LLVMConstArray(i8_ty, const_vals.as_mut_ptr(), ciphertext.len() as u32);
+                        #[allow(deprecated)]
+                        let const_array =
+                            LLVMConstArray(i8_ty, const_vals.as_mut_ptr(), ciphertext.len() as u32);
                         LLVMSetInitializer(global, const_array);
 
                         // Store pointer to the encrypted array in the destination local
@@ -882,21 +889,24 @@ impl ProgrammaticLlvmCodegen {
                         let key_array_ty = LLVMArrayType(i8_ty, 16);
                         let key_var_name = format!(".enc_key.{}", raw_dest);
                         let c_key_var_name = CString::new(key_var_name).unwrap();
-                        let key_global = LLVMAddGlobal(mod_ref, key_array_ty, c_key_var_name.as_ptr());
+                        let key_global =
+                            LLVMAddGlobal(mod_ref, key_array_ty, c_key_var_name.as_ptr());
                         LLVMSetGlobalConstant(key_global, 1);
-                        LLVMSetLinkage(key_global, llvm_sys::LLVMLinkage::LLVMPrivateLinkage as u32);
+                        LLVMSetLinkage(key_global, llvm_sys::LLVMLinkage::LLVMPrivateLinkage);
                         let mut key_const_vals: Vec<LLVMValueRef> = xor_key
                             .iter()
                             .map(|&b| LLVMConstInt(i8_ty, b as u64, 0))
                             .collect();
-                        let key_const_array = LLVMConstArray(i8_ty, key_const_vals.as_mut_ptr(), 16);
+                        #[allow(deprecated)]
+                        let key_const_array =
+                            LLVMConstArray(i8_ty, key_const_vals.as_mut_ptr(), 16);
                         LLVMSetInitializer(key_global, key_const_array);
                     }
                     MirInstruction::InlineDecrypt {
                         dest,
                         src,
                         ciphertext,
-                        xor_key,
+                        xor_key: _,
                     } => {
                         // Load the encrypted string pointer
                         let enc_ptr = load_local(builder_ref, &local_allocas, *src, "enc_ptr")?;
@@ -906,7 +916,8 @@ impl ProgrammaticLlvmCodegen {
                         let buf_size = ciphertext.len() + 1;
                         let buf_array_ty = LLVMArrayType(i8_ty, buf_size as u32);
                         let buf_name_c = CString::new(format!("dec_buf_{}", dest)).unwrap();
-                        let buf_alloca = LLVMBuildAlloca(builder_ref, buf_array_ty, buf_name_c.as_ptr());
+                        let buf_alloca =
+                            LLVMBuildAlloca(builder_ref, buf_array_ty, buf_name_c.as_ptr());
 
                         // Load the XOR key global
                         let key_var_name = format!(".enc_key.{}", src);
@@ -923,12 +934,28 @@ impl ProgrammaticLlvmCodegen {
                         let i64_ty = LLVMInt64TypeInContext(ctx);
 
                         // Create loop basic blocks
-                        let loop_cond_bb = LLVMAppendBasicBlockInContext(ctx, LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder_ref)), CString::new("dec_loop_cond").unwrap().as_ptr());
-                        let loop_body_bb = LLVMAppendBasicBlockInContext(ctx, LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder_ref)), CString::new("dec_loop_body").unwrap().as_ptr());
-                        let loop_end_bb = LLVMAppendBasicBlockInContext(ctx, LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder_ref)), CString::new("dec_loop_end").unwrap().as_ptr());
+                        let loop_cond_bb = LLVMAppendBasicBlockInContext(
+                            ctx,
+                            LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder_ref)),
+                            CString::new("dec_loop_cond").unwrap().as_ptr(),
+                        );
+                        let loop_body_bb = LLVMAppendBasicBlockInContext(
+                            ctx,
+                            LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder_ref)),
+                            CString::new("dec_loop_body").unwrap().as_ptr(),
+                        );
+                        let loop_end_bb = LLVMAppendBasicBlockInContext(
+                            ctx,
+                            LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder_ref)),
+                            CString::new("dec_loop_end").unwrap().as_ptr(),
+                        );
 
                         // Initialize index = 0
-                        let idx_alloca = LLVMBuildAlloca(builder_ref, i32_ty, CString::new("dec_idx").unwrap().as_ptr());
+                        let idx_alloca = LLVMBuildAlloca(
+                            builder_ref,
+                            i32_ty,
+                            CString::new("dec_idx").unwrap().as_ptr(),
+                        );
                         LLVMBuildStore(builder_ref, LLVMConstInt(i32_ty, 0, 0), idx_alloca);
 
                         // Jump to condition check
@@ -936,35 +963,110 @@ impl ProgrammaticLlvmCodegen {
 
                         // Condition block: check if idx < ciphertext.len()
                         LLVMPositionBuilderAtEnd(builder_ref, loop_cond_bb);
-                        let idx_val = LLVMBuildLoad2(builder_ref, i32_ty, idx_alloca, CString::new("idx").unwrap().as_ptr());
+                        let idx_val = LLVMBuildLoad2(
+                            builder_ref,
+                            i32_ty,
+                            idx_alloca,
+                            CString::new("idx").unwrap().as_ptr(),
+                        );
                         let len_val = LLVMConstInt(i32_ty, ciphertext.len() as u64, 0);
-                        let cond_val = LLVMBuildICmp(builder_ref, LLVMIntPredicate::LLVMIntSLT, idx_val, len_val, CString::new("loop_cond").unwrap().as_ptr());
+                        let cond_val = LLVMBuildICmp(
+                            builder_ref,
+                            LLVMIntPredicate::LLVMIntSLT,
+                            idx_val,
+                            len_val,
+                            CString::new("loop_cond").unwrap().as_ptr(),
+                        );
                         LLVMBuildCondBr(builder_ref, cond_val, loop_body_bb, loop_end_bb);
 
                         // Body block: decrypt one byte
                         LLVMPositionBuilderAtEnd(builder_ref, loop_body_bb);
-                        let idx_val = LLVMBuildLoad2(builder_ref, i32_ty, idx_alloca, CString::new("idx").unwrap().as_ptr());
-                        let idx64 = LLVMBuildSExt(builder_ref, idx_val, i64_ty, CString::new("idx64").unwrap().as_ptr());
+                        let idx_val = LLVMBuildLoad2(
+                            builder_ref,
+                            i32_ty,
+                            idx_alloca,
+                            CString::new("idx").unwrap().as_ptr(),
+                        );
+                        let idx64 = LLVMBuildSExt(
+                            builder_ref,
+                            idx_val,
+                            i64_ty,
+                            CString::new("idx64").unwrap().as_ptr(),
+                        );
 
                         // Load encrypted byte
-                        let enc_byte_ptr = LLVMBuildGEP2(builder_ref, i8_ty, enc_ptr, &mut [idx64], 1, CString::new("enc_byte_ptr").unwrap().as_ptr());
-                        let enc_byte = LLVMBuildLoad2(builder_ref, i8_ty, enc_byte_ptr, CString::new("enc_byte").unwrap().as_ptr());
+                        let mut enc_indices = [idx64];
+                        let enc_byte_ptr = LLVMBuildGEP2(
+                            builder_ref,
+                            i8_ty,
+                            enc_ptr,
+                            enc_indices.as_mut_ptr(),
+                            1,
+                            CString::new("enc_byte_ptr").unwrap().as_ptr(),
+                        );
+                        let enc_byte = LLVMBuildLoad2(
+                            builder_ref,
+                            i8_ty,
+                            enc_byte_ptr,
+                            CString::new("enc_byte").unwrap().as_ptr(),
+                        );
 
                         // Load key byte (key[idx % 16])
-                        let mod_val = LLVMBuildSRem(builder_ref, idx_val, LLVMConstInt(i32_ty, 16, 0), CString::new("key_idx").unwrap().as_ptr());
-                        let mod64 = LLVMBuildSExt(builder_ref, mod_val, i64_ty, CString::new("key_idx64").unwrap().as_ptr());
-                        let key_byte_ptr = LLVMBuildGEP2(builder_ref, i8_ty, key_ptr, &mut [mod64], 1, CString::new("key_byte_ptr").unwrap().as_ptr());
-                        let key_byte = LLVMBuildLoad2(builder_ref, i8_ty, key_byte_ptr, CString::new("key_byte").unwrap().as_ptr());
+                        let mod_val = LLVMBuildSRem(
+                            builder_ref,
+                            idx_val,
+                            LLVMConstInt(i32_ty, 16, 0),
+                            CString::new("key_idx").unwrap().as_ptr(),
+                        );
+                        let mod64 = LLVMBuildSExt(
+                            builder_ref,
+                            mod_val,
+                            i64_ty,
+                            CString::new("key_idx64").unwrap().as_ptr(),
+                        );
+                        let mut key_indices = [mod64];
+                        let key_byte_ptr = LLVMBuildGEP2(
+                            builder_ref,
+                            i8_ty,
+                            key_ptr,
+                            key_indices.as_mut_ptr(),
+                            1,
+                            CString::new("key_byte_ptr").unwrap().as_ptr(),
+                        );
+                        let key_byte = LLVMBuildLoad2(
+                            builder_ref,
+                            i8_ty,
+                            key_byte_ptr,
+                            CString::new("key_byte").unwrap().as_ptr(),
+                        );
 
                         // XOR decrypt
-                        let dec_byte = LLVMBuildXor(builder_ref, enc_byte, key_byte, CString::new("dec_byte").unwrap().as_ptr());
+                        let dec_byte = LLVMBuildXor(
+                            builder_ref,
+                            enc_byte,
+                            key_byte,
+                            CString::new("dec_byte").unwrap().as_ptr(),
+                        );
 
                         // Store to buffer
-                        let buf_byte_ptr = LLVMBuildGEP2(builder_ref, i8_ty, buf_alloca, &mut [idx64], 1, CString::new("buf_byte_ptr").unwrap().as_ptr());
+                        let mut buf_indices = [idx64];
+                        let buf_byte_ptr = LLVMBuildGEP2(
+                            builder_ref,
+                            i8_ty,
+                            buf_alloca,
+                            buf_indices.as_mut_ptr(),
+                            1,
+                            CString::new("buf_byte_ptr").unwrap().as_ptr(),
+                        );
                         LLVMBuildStore(builder_ref, dec_byte, buf_byte_ptr);
 
                         // Increment index
-                        let next_idx = LLVMBuildAdd(builder_ref, idx_val, LLVMConstInt(i32_ty, 1, 0), CString::new("next_idx").unwrap().as_ptr());
+                        let next_idx = LLVMBuildAdd(
+                            builder_ref,
+                            idx_val,
+                            LLVMConstInt(i32_ty, 1, 0),
+                            CString::new("next_idx").unwrap().as_ptr(),
+                        );
                         LLVMBuildStore(builder_ref, next_idx, idx_alloca);
 
                         // Loop back
@@ -972,28 +1074,44 @@ impl ProgrammaticLlvmCodegen {
 
                         // End block: null-terminate and store buffer pointer
                         LLVMPositionBuilderAtEnd(builder_ref, loop_end_bb);
-                        let null_ptr = LLVMBuildGEP2(builder_ref, i8_ty, buf_alloca, &mut [LLVMConstInt(i64_ty, ciphertext.len() as u64, 0)], 1, CString::new("null_ptr").unwrap().as_ptr());
+                        let mut null_indices = [LLVMConstInt(i64_ty, ciphertext.len() as u64, 0)];
+                        let null_ptr = LLVMBuildGEP2(
+                            builder_ref,
+                            i8_ty,
+                            buf_alloca,
+                            null_indices.as_mut_ptr(),
+                            1,
+                            CString::new("null_ptr").unwrap().as_ptr(),
+                        );
                         LLVMBuildStore(builder_ref, LLVMConstInt(i8_ty, 0, 0), null_ptr);
 
                         // Store buffer pointer as the decrypted string
                         let buf_ptr = LLVMConstPointerCast(buf_alloca, LLVMPointerType(i8_ty, 0));
                         store_local(builder_ref, &local_allocas, *dest, buf_ptr)?;
                     }
-                    MirInstruction::OpaqueCheck { value, expected_true } => {
+                    MirInstruction::OpaqueCheck {
+                        value,
+                        expected_true,
+                    } => {
                         // Load the value and compare against 0
                         let val = load_local(builder_ref, &local_allocas, *value, "opaque_val")?;
                         let zero = LLVMConstInt(LLVMTypeOf(val), 0, 0);
                         let predicate = if *expected_true {
-                            LLVMIntPredicate::LLVMIntNE  // value != 0 (always true)
+                            LLVMIntPredicate::LLVMIntNE // value != 0 (always true)
                         } else {
-                            LLVMIntPredicate::LLVMIntEQ  // value == 0 (always false)
+                            LLVMIntPredicate::LLVMIntEQ // value == 0 (always false)
                         };
                         let c_name = CString::new("opaque_cond").unwrap();
-                        let cond = LLVMBuildICmp(builder_ref, predicate, val, zero, c_name.as_ptr());
+                        let cond =
+                            LLVMBuildICmp(builder_ref, predicate, val, zero, c_name.as_ptr());
                         // Store the boolean result
                         store_local(builder_ref, &local_allocas, *value, cond)?;
                     }
-                    MirInstruction::WatermarkBlob { bytes, tag, seed } => {
+                    MirInstruction::WatermarkBlob {
+                        bytes,
+                        tag,
+                        seed: _,
+                    } => {
                         // Embed watermark as a global constant in a named section
                         let i8_ty = LLVMInt8TypeInContext(ctx);
                         let array_ty = LLVMArrayType(i8_ty, bytes.len() as u32);
@@ -1002,7 +1120,7 @@ impl ProgrammaticLlvmCodegen {
                         let c_var_name = CString::new(var_name).unwrap();
                         let global = LLVMAddGlobal(mod_ref, array_ty, c_var_name.as_ptr());
                         LLVMSetGlobalConstant(global, 1);
-                        LLVMSetLinkage(global, llvm_sys::LLVMLinkage::LLVMPrivateLinkage as u32);
+                        LLVMSetLinkage(global, llvm_sys::LLVMLinkage::LLVMPrivateLinkage);
                         let c_section = CString::new(section_name).unwrap();
                         LLVMSetSection(global, c_section.as_ptr());
 
@@ -1010,7 +1128,9 @@ impl ProgrammaticLlvmCodegen {
                             .iter()
                             .map(|&b| LLVMConstInt(i8_ty, b as u64, 0))
                             .collect();
-                        let const_array = LLVMConstArray(i8_ty, const_vals.as_mut_ptr(), bytes.len() as u32);
+                        #[allow(deprecated)]
+                        let const_array =
+                            LLVMConstArray(i8_ty, const_vals.as_mut_ptr(), bytes.len() as u32);
                         LLVMSetInitializer(global, const_array);
                     }
                 }
@@ -1041,22 +1161,31 @@ impl ProgrammaticLlvmCodegen {
                     })?;
                     LLVMBuildBr(builder_ref, target_bb);
                 }
-                MirTerminator::CondBranch {
-                    cond,
-                    then_target,
-                    else_target,
-                } => {
-                    let cond_val = load_local(builder_ref, &local_allocas, *cond, "cond_val")?;
-                    let then_bb = bb_map.get(then_target).copied().ok_or_else(|| {
+                MirTerminator::Jump { target } => {
+                    let target_bb = bb_map.get(target).copied().ok_or_else(|| {
                         BackendError::LlvmLoweringError(format!(
-                            "Invalid then branch target BB: {}",
-                            then_target
+                            "Invalid jump target BB: {}",
+                            target
                         ))
                     })?;
-                    let else_bb = bb_map.get(else_target).copied().ok_or_else(|| {
+                    LLVMBuildBr(builder_ref, target_bb);
+                }
+                MirTerminator::CondBranch {
+                    cond,
+                    true_block,
+                    false_block,
+                } => {
+                    let cond_val = load_local(builder_ref, &local_allocas, *cond, "cond_val")?;
+                    let then_bb = bb_map.get(true_block).copied().ok_or_else(|| {
+                        BackendError::LlvmLoweringError(format!(
+                            "Invalid then branch target BB: {}",
+                            true_block
+                        ))
+                    })?;
+                    let else_bb = bb_map.get(false_block).copied().ok_or_else(|| {
                         BackendError::LlvmLoweringError(format!(
                             "Invalid else branch target BB: {}",
-                            else_target
+                            false_block
                         ))
                     })?;
                     LLVMBuildCondBr(builder_ref, cond_val, then_bb, else_bb);
@@ -1069,7 +1198,8 @@ impl ProgrammaticLlvmCodegen {
                     arms,
                     default_target,
                 } => {
-                    let disc_val = load_local(builder_ref, &local_allocas, *discriminant, "switch_disc")?;
+                    let disc_val =
+                        load_local(builder_ref, &local_allocas, *discriminant, "switch_disc")?;
                     let default_bb = bb_map.get(default_target).copied().ok_or_else(|| {
                         BackendError::LlvmLoweringError(format!(
                             "Invalid default target BB: {}",
@@ -1078,7 +1208,8 @@ impl ProgrammaticLlvmCodegen {
                     })?;
 
                     // Build switch instruction
-                    let switch = LLVMBuildSwitch(builder_ref, disc_val, default_bb, arms.len() as u32);
+                    let switch =
+                        LLVMBuildSwitch(builder_ref, disc_val, default_bb, arms.len() as u32);
 
                     for (state_val, target_bb_id) in arms {
                         let target_bb = bb_map.get(target_bb_id).copied().ok_or_else(|| {

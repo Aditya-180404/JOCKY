@@ -436,9 +436,18 @@ impl SecurityAnalyzer {
     /// Analyze callback-tampering evidence produced by the kernel callback detection collector.
     pub fn analyze_kernel_callback_tampering(&mut self, callbacks: &[serde_json::Value]) {
         for callback in callbacks {
-            let status = callback.get("status").and_then(|v| v.as_str()).unwrap_or("");
-            let platform = callback.get("platform").and_then(|v| v.as_str()).unwrap_or("unknown");
-            let artifact = callback.get("artifact").and_then(|v| v.as_str()).unwrap_or("unknown");
+            let status = callback
+                .get("status")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let platform = callback
+                .get("platform")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown");
+            let artifact = callback
+                .get("artifact")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown");
 
             if status == "present" || status == "suspicious" || status == "available" {
                 let category = FindingCategory::DriverAnomaly;
@@ -699,22 +708,14 @@ pub fn detect_kernel_callback_tampering(
 
     #[cfg(not(target_os = "windows"))]
     {
-        let kernel_paths = [
-            "/proc/modules",
-            "/sys/kernel/security",
-            "/sys/kernel/debug",
-        ];
+        let kernel_paths = ["/proc/modules", "/sys/kernel/security", "/sys/kernel/debug"];
 
         for path in kernel_paths {
             let p = std::path::Path::new(path);
             if p.exists() {
                 let mut sample = String::new();
                 if let Ok(contents) = std::fs::read_to_string(p) {
-                    sample = contents
-                        .lines()
-                        .take(10)
-                        .collect::<Vec<_>>()
-                        .join("\n");
+                    sample = contents.lines().take(10).collect::<Vec<_>>().join("\n");
                 }
                 results.push(serde_json::json!({
                     "collector": "kernel_callback_tampering",
@@ -1396,11 +1397,15 @@ mod tests {
     #[test]
     fn test_kernel_callback_tampering_detection_is_host_safe() {
         let detector = detect_kernel_callback_tampering();
-        assert!(detector.is_ok(), "kernel callback detection should return a result");
+        assert!(
+            detector.is_ok(),
+            "kernel callback detection should return a result"
+        );
         let entries = detector.unwrap();
         assert!(!entries.is_empty());
         assert!(entries.iter().any(|entry| {
-            entry.get("collector")
+            entry
+                .get("collector")
                 .and_then(|v| v.as_str())
                 .map(|v| v == "kernel_callback_tampering")
                 .unwrap_or(false)

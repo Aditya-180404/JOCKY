@@ -1,30 +1,6 @@
 # jockey
 
-A local-first digital-forensics development platform with a proprietary domain-specific language for computer and network forensic analysis without triggering security solutions.
-
----
-
-### Smart India Hackathon (SIH) 2026 — Problem Statement 26148
-
-| Field | Details |
-|---|---|
-| **Problem Statement ID** | **26148** |
-| **Title** | Creation of scripts/functions with new programming language to commence Computer & Network forensic analysis without triggering security solutions |
-| **Organization** | **National Technical Research Organisation (NTRO)** |
-| **Theme** | Blockchain & Cybersecurity |
-| **Category** | Software |
-
-#### Key Capabilities & Evasion Architecture
-- **Independent Programming Language ('JOCKEY')**: Custom LLVM frontend that alters control-flow graphs (CFG flattening), token generation, and binary layouts to render signature-based detection ineffective.
-- **Automated Polymorphic CI/CD Engine**: Rotates compile-time seeds, watermark sections, and per-build XOR encryption keys so every compiled binary produces a unique cryptographic SHA-256 hash.
-- **Living-off-the-Land (LotL) Primitives**:
-  - *Direct Syscalls*: In-memory SSN extraction bypassing hooked userland `ntdll.dll` stubs.
-  - *PEB Dynamic API Resolution*: Resolves Win32/NTAPI exports via PEB walking and compile-time DJB2 hashes without noisy `GetProcAddress`.
-  - *API Unhooking*: Restores pristine `ntdll.dll` code from `\KnownDlls\ntdll.dll` to neutralize EDR inline trampolines.
-  - *In-Memory File-Less Execution*: Executes triage scripts entirely in-memory without dropping temporary payload files to disk.
-- **BYOVD & Kernel Callback Tampering Analysis**: Defensively identifies known vulnerable drivers (LOLDrivers: `rtcore64`, `gdrv`, etc.) and detects subverted kernel notify routines (`PspCreateProcessNotifyRoutine`, `ObRegisterCallbacks`).
-- **Stealth Network Routing**: Egress routing through CDN Domain Fronting, Cloud Storage APIs (S3/GCS presigned URLs), and SOCKS5 proxy relays.
-- **Central Management Interface**: Simultaneous multi-system analysis dashboard and REST API (`apps/web` + `apps/api`).
+A local-first digital-forensics platform for authorized forensic triage, evidence collection, and analysis in controlled environments.
 
 ---
 
@@ -32,11 +8,12 @@ A local-first digital-forensics development platform with a proprietary domain-s
 
 jockey enables investigators to:
 - Write forensic investigation programs using the jockey language (`.jy`)
-- Validate and compile programs into portable, anti-detection forensic tools
-- Version and publish tools to a centralized repository
-- Execute tools on authorized forensic/lab machines
-- Collect and verify forensic evidence cryptographically (SHA-256, Merkle trees)
-- View investigation results from a web dashboard
+- Validate and compile investigation definitions into repeatable, auditable workflows
+- Collect evidence from approved hosts using local runtime collectors and signed metadata
+- Verify evidence integrity cryptographically using SHA-256 and bundle metadata
+- Review investigation results from a web dashboard and export artifacts for case management
+
+This project is designed for legitimate, consented forensic use. It does not claim to bypass endpoint controls, evade detection, or perform stealth operations outside the authorized scope of an investigation.
 
 ## Architecture
 

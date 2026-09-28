@@ -206,8 +206,8 @@ impl EvidenceTransport for DirectTransport {
 
         deliver_via_http(
             &url,
-            None,  // no custom Host override
-            None,  // no X-Jockey-Target header
+            None, // no custom Host override
+            None, // no X-Jockey-Target header
             evidence_bytes,
             self.config.timeout_secs,
             TransportKind::Direct,
@@ -266,7 +266,10 @@ impl EvidenceTransport for DomainFrontedTransport {
         let real_target = self.config.relay_url.trim_end_matches('/');
 
         // The URL we connect to uses the CDN hostname so the TLS SNI matches
-        let cdn_url = format!("https://{}/api/evidence/ingest/{}", cdn_host, investigation_name);
+        let cdn_url = format!(
+            "https://{}/api/evidence/ingest/{}",
+            cdn_host, investigation_name
+        );
 
         deliver_via_http(
             &cdn_url,
@@ -353,10 +356,7 @@ impl EvidenceTransport for Socks5Transport {
     fn describe(&self) -> String {
         format!(
             "Socks5Transport via {} -> {}",
-            self.config
-                .socks5_proxy_url
-                .as_deref()
-                .unwrap_or("(none)"),
+            self.config.socks5_proxy_url.as_deref().unwrap_or("(none)"),
             self.config.relay_url
         )
     }
@@ -394,9 +394,10 @@ impl EvidenceTransport for CloudApiRelayTransport {
         investigation_name: &str,
         evidence_bytes: &[u8],
     ) -> Result<TransportResult, TransportError> {
-        let url = self.config.upload_presigned_url.as_deref().ok_or_else(|| {
-            TransportError::Config("upload_presigned_url is not set".to_string())
-        })?;
+        let url =
+            self.config.upload_presigned_url.as_deref().ok_or_else(|| {
+                TransportError::Config("upload_presigned_url is not set".to_string())
+            })?;
 
         // Add investigation name as a query param to the presigned URL
         let url_with_name = format!("{}&investigation={}", url, investigation_name);
@@ -445,13 +446,9 @@ pub fn build_transport(
 ) -> Result<Box<dyn EvidenceTransport>, TransportError> {
     match config.kind {
         TransportKind::Direct => Ok(Box::new(DirectTransport::new(config))),
-        TransportKind::DomainFronted => {
-            Ok(Box::new(DomainFrontedTransport::new(config)?))
-        }
+        TransportKind::DomainFronted => Ok(Box::new(DomainFrontedTransport::new(config)?)),
         TransportKind::Socks5 => Ok(Box::new(Socks5Transport::new(config)?)),
-        TransportKind::CloudApiRelay => {
-            Ok(Box::new(CloudApiRelayTransport::new(config)?))
-        }
+        TransportKind::CloudApiRelay => Ok(Box::new(CloudApiRelayTransport::new(config)?)),
     }
 }
 
@@ -529,12 +526,18 @@ mod tests {
 
     #[test]
     fn test_transport_kind_from_str() {
-        assert_eq!("direct".parse::<TransportKind>().unwrap(), TransportKind::Direct);
+        assert_eq!(
+            "direct".parse::<TransportKind>().unwrap(),
+            TransportKind::Direct
+        );
         assert_eq!(
             "domain_fronted".parse::<TransportKind>().unwrap(),
             TransportKind::DomainFronted
         );
-        assert_eq!("socks5".parse::<TransportKind>().unwrap(), TransportKind::Socks5);
+        assert_eq!(
+            "socks5".parse::<TransportKind>().unwrap(),
+            TransportKind::Socks5
+        );
         assert_eq!(
             "cloud_api_relay".parse::<TransportKind>().unwrap(),
             TransportKind::CloudApiRelay
@@ -614,7 +617,9 @@ mod tests {
     fn test_direct_deliver_evidence_stub() {
         let config = TransportConfig::default();
         let transport = DirectTransport::new(config);
-        let result = transport.deliver_evidence("test_investigation", b"{}").unwrap();
+        let result = transport
+            .deliver_evidence("test_investigation", b"{}")
+            .unwrap();
         assert!(result.success);
         assert_eq!(result.bytes_transferred, 2);
     }

@@ -41,7 +41,7 @@
 use jockey_ir::ObfuscationConfig;
 use jockey_mir::{
     BasicBlockId, LocalId, MirBasicBlock, MirFunction, MirInstruction, MirLocal, MirProgram,
-    MirProvenance, MirTerminator, MirType,
+    MirTerminator, MirType,
 };
 
 /// The central obfuscation pipeline that applies all enabled passes in order.
@@ -141,7 +141,9 @@ struct JunkInsertionPass {
 
 impl JunkInsertionPass {
     fn new(seed: u64) -> Self {
-        Self { rng: Rng::new(seed ^ 0x1111_1111_1111_1111) }
+        Self {
+            rng: Rng::new(seed ^ 0x1111_1111_1111_1111),
+        }
     }
 
     fn run(mut self, mut mir: MirProgram) -> MirProgram {
@@ -158,7 +160,7 @@ impl JunkInsertionPass {
         let mut junk_local_count = 0usize;
 
         // Closure to make a new junk local
-        let mut new_junk_local = |count: &mut usize| -> LocalId {
+        let new_junk_local = |count: &mut usize| -> LocalId {
             let id = base_junk_id + *count;
             *count += 1;
             id
@@ -211,7 +213,11 @@ impl JunkInsertionPass {
                             dest: b,
                             value: self.rng.next_range(1, 100),
                         });
-                        MirInstruction::JunkAdd { dest, lhs: a, rhs: b }
+                        MirInstruction::JunkAdd {
+                            dest,
+                            lhs: a,
+                            rhs: b,
+                        }
                     }
                     _ => MirInstruction::ConstInt {
                         dest,
@@ -257,7 +263,9 @@ struct OpaquePredicatePass {
 
 impl OpaquePredicatePass {
     fn new(seed: u64) -> Self {
-        Self { rng: Rng::new(seed ^ 0x2222_2222_2222_2222) }
+        Self {
+            rng: Rng::new(seed ^ 0x2222_2222_2222_2222),
+        }
     }
 
     fn run(mut self, mut mir: MirProgram) -> MirProgram {
@@ -309,12 +317,14 @@ impl OpaquePredicatePass {
                     },
                 ],
                 // Guard always unconditionally falls through to the real block
-                terminator: MirTerminator::Jump { target: orig_block.id },
+                terminator: MirTerminator::Jump {
+                    target: orig_block.id,
+                },
             };
             new_blocks.push(guard_block);
 
             // Push original block unchanged after its guard
-            let mut real_block = orig_block.clone();
+            let real_block = orig_block.clone();
             // Register the pred local
             func.locals.push(MirLocal {
                 id: pred_local_id,
@@ -345,7 +355,11 @@ fn rewrite_terminator_targets(
                 *target = g;
             }
         }
-        MirTerminator::CondBranch { true_block, false_block, .. } => {
+        MirTerminator::CondBranch {
+            true_block,
+            false_block,
+            ..
+        } => {
             if let Some(&g) = guard_ids.get(true_block) {
                 *true_block = g;
             }
@@ -353,7 +367,11 @@ fn rewrite_terminator_targets(
                 *false_block = g;
             }
         }
-        MirTerminator::DispatchSwitch { arms, default_target, .. } => {
+        MirTerminator::DispatchSwitch {
+            arms,
+            default_target,
+            ..
+        } => {
             for (_, tgt) in arms.iter_mut() {
                 if let Some(&g) = guard_ids.get(tgt) {
                     *tgt = g;
@@ -399,7 +417,9 @@ struct CfgFlatteningPass {
 
 impl CfgFlatteningPass {
     fn new(seed: u64) -> Self {
-        Self { rng: Rng::new(seed ^ 0x3333_3333_3333_3333) }
+        Self {
+            rng: Rng::new(seed ^ 0x3333_3333_3333_3333),
+        }
     }
 
     fn run(mut self, mut mir: MirProgram) -> MirProgram {
@@ -435,8 +455,7 @@ impl CfgFlatteningPass {
         });
 
         // ID for the dispatch block
-        let dispatch_id: BasicBlockId =
-            func.blocks.iter().map(|b| b.id).max().unwrap_or(0) + 1;
+        let dispatch_id: BasicBlockId = func.blocks.iter().map(|b| b.id).max().unwrap_or(0) + 1;
 
         // ID for the end block
         let end_id = dispatch_id + 1;
@@ -459,7 +478,9 @@ impl CfgFlatteningPass {
                 dest: state_local,
                 value: first_state,
             }],
-            terminator: MirTerminator::Jump { target: dispatch_id },
+            terminator: MirTerminator::Jump {
+                target: dispatch_id,
+            },
         };
 
         // ── Dispatch block: switch on state_local ──
@@ -513,7 +534,9 @@ impl CfgFlatteningPass {
                             value: next_state,
                         });
                         // Rewrite terminator to jump to dispatch
-                        block.terminator = MirTerminator::Jump { target: dispatch_id };
+                        block.terminator = MirTerminator::Jump {
+                            target: dispatch_id,
+                        };
                     }
                     rewritten.push(block);
                 }
@@ -722,14 +745,20 @@ mod tests {
     use jockey_ir::ObfuscationConfig;
 
     fn dummy_mir(name: &str) -> MirProgram {
-        use jockey_mir::{MirBasicBlock, MirFunction, MirInstruction, MirTerminator, MirType};
+        use jockey_mir::{
+            MirBasicBlock, MirFunction, MirInstruction, MirProvenance, MirTerminator, MirType,
+        };
         MirProgram {
             name: name.to_string(),
             target: None,
             functions: vec![MirFunction {
                 name: "main".to_string(),
                 return_type: MirType::Void,
-                locals: vec![MirLocal { id: 0, name: "s".to_string(), ty: MirType::String }],
+                locals: vec![MirLocal {
+                    id: 0,
+                    name: "s".to_string(),
+                    ty: MirType::String,
+                }],
                 blocks: vec![
                     MirBasicBlock {
                         id: 0,

@@ -187,7 +187,7 @@ pub enum TargetArch {
 }
 
 /// Obfuscation configuration for polymorphic binary generation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ObfuscationConfig {
     /// Enable CFG flattening: converts linear control flow into a state-machine dispatcher
     pub cfg_flattening: bool,
@@ -201,19 +201,6 @@ pub struct ObfuscationConfig {
     pub polymorphic_watermark: bool,
     /// Per-build random seed (generated at compile time; ensures unique binaries)
     pub build_seed: u64,
-}
-
-impl Default for ObfuscationConfig {
-    fn default() -> Self {
-        Self {
-            cfg_flattening: false,
-            string_encryption: false,
-            junk_insertion: false,
-            opaque_predicates: false,
-            polymorphic_watermark: false,
-            build_seed: 0,
-        }
-    }
 }
 
 impl ObfuscationConfig {

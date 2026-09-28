@@ -4,9 +4,9 @@
 //! optimizes via LLVM passes, and links against the native jockey runtime staticlib
 //! using `clang` to produce platform-native ELF and PE executables.
 
+use crate::obfuscation::ObfuscationPipeline;
 use jockey_ir::{ArtifactMetadata, BuildConfig, TargetArch, TargetPlatform};
 use jockey_mir::MirProgram;
-use jockey_backend::obfuscation::ObfuscationPipeline;
 use std::path::{Path, PathBuf};
 
 /// LLVM backend configuration and compilation driver
@@ -190,7 +190,7 @@ impl LlvmBackend {
             target_platform: self.config.target_platform,
             target_arch: self.config.target_arch,
             build_timestamp: chrono::Utc::now().to_rfc3339(),
-            artifact_hash,
+            artifact_hash: artifact_hash.clone(),
             required_capabilities: mir
                 .capabilities
                 .iter()

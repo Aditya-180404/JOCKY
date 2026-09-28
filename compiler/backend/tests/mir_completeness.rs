@@ -400,6 +400,12 @@ fn test_instruction_enum_exhaustive_match() {
             MirInstruction::InvokeCapability { .. } => {}
             MirInstruction::Compare { .. } => {}
             MirInstruction::CallRuntime { .. } => {}
+            MirInstruction::JunkBitwiseXor { .. } => {}
+            MirInstruction::JunkAdd { .. } => {}
+            MirInstruction::EncryptedString { .. } => {}
+            MirInstruction::InlineDecrypt { .. } => {}
+            MirInstruction::OpaqueCheck { .. } => {}
+            MirInstruction::WatermarkBlob { .. } => {}
         }
     }
 

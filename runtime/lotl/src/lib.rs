@@ -1,4 +1,5 @@
 //! JOCKEY Runtime — Living-off-the-Land (LotL) Primitives
+#![allow(dead_code, unused_imports, clippy::all)]
 //!
 //! This module implements two core **anti-detection collection primitives**
 //! that enable forensic collection to bypass userland API hooks installed by
@@ -40,19 +41,17 @@
 //! On Linux, PEB-based resolution is not applicable; instead, the module
 //! provides cross-platform anti-debugging guards.
 
-pub mod peb_resolve;
-pub mod direct_syscall;
 pub mod antianalysis;
+pub mod direct_syscall;
+pub mod in_memory_exec;
+pub mod peb_resolve;
 pub mod transport;
 pub mod unhook;
-pub mod in_memory_exec;
 
-pub use peb_resolve::{PebResolver, ResolvedFn};
-pub use direct_syscall::{DirectSyscall, SyscallResult};
 pub use antianalysis::{AntiAnalysisGuard, EnvironmentRisk};
-pub use in_memory_exec::{
-    InMemoryExecutionError, InMemoryExecutionResult, InMemoryScriptRunner,
-};
+pub use direct_syscall::{DirectSyscall, SyscallResult};
+pub use in_memory_exec::{InMemoryExecutionError, InMemoryExecutionResult, InMemoryScriptRunner};
+pub use peb_resolve::{PebResolver, ResolvedFn};
 pub use transport::{
     build_transport, EvidenceTransport, TransportConfig, TransportKind, TransportResult,
 };

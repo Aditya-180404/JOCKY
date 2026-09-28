@@ -161,7 +161,9 @@ impl DirectSyscall {
 
         // NTSTATUS 0xC0000000+ is error
         if ret as u32 >= 0xC000_0000 {
-            Err(SyscallError::NtStatusFailed { ntstatus: ret as u32 })
+            Err(SyscallError::NtStatusFailed {
+                ntstatus: ret as u32,
+            })
         } else {
             Ok(ret)
         }
@@ -195,7 +197,7 @@ impl DirectSyscall {
                     self.do_syscall(
                         ssn,
                         &[
-                            5usize,             // SystemProcessInformation
+                            5usize, // SystemProcessInformation
                             buf.as_mut_ptr() as usize,
                             buf_size,
                             &mut ret_len as *mut u32 as usize,
@@ -207,7 +209,9 @@ impl DirectSyscall {
                     Ok(_) => {
                         return Ok(parse_system_process_information(&buf));
                     }
-                    Err(SyscallError::NtStatusFailed { ntstatus: 0xC000_0004 }) => {
+                    Err(SyscallError::NtStatusFailed {
+                        ntstatus: 0xC000_0004,
+                    }) => {
                         // STATUS_INFO_LENGTH_MISMATCH — retry with larger buffer
                         buf_size = (ret_len as usize).max(buf_size * 2);
                         if buf_size > 64 * 1024 * 1024 {
@@ -265,9 +269,12 @@ fn parse_system_process_information(buf: &[u8]) -> Vec<ProcessEntry> {
             break;
         }
 
-        let next_entry_offset =
-            u32::from_le_bytes([buf[offset], buf[offset + 1], buf[offset + 2], buf[offset + 3]])
-                as usize;
+        let next_entry_offset = u32::from_le_bytes([
+            buf[offset],
+            buf[offset + 1],
+            buf[offset + 2],
+            buf[offset + 3],
+        ]) as usize;
 
         // NumberOfThreads at 0x04
         let thread_count = u32::from_le_bytes([

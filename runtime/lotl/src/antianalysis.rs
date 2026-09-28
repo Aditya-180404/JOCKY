@@ -62,7 +62,10 @@ impl EnvironmentRisk {
     }
 
     pub fn is_suspicious(&self) -> bool {
-        matches!(self, EnvironmentRisk::Suspicious(_) | EnvironmentRisk::Hostile(_))
+        matches!(
+            self,
+            EnvironmentRisk::Suspicious(_) | EnvironmentRisk::Hostile(_)
+        )
     }
 }
 
@@ -183,10 +186,10 @@ impl AntiAnalysisGuard {
     fn detect_debugger_windows(&self) -> Option<String> {
         // Check PEB.BeingDebugged (offset 0x2) via inline ASM
         unsafe {
-            let being_debugged: u8;
+            let being_debugged: u32;
             std::arch::asm!(
                 "mov {peb}, gs:[0x60]",
-                "movzx {bd}, byte ptr [{peb}+0x2]",
+                "movzx {bd:e}, byte ptr [{peb}+0x2]",
                 peb = out(reg) _,
                 bd  = out(reg) being_debugged,
                 options(nostack, preserves_flags, readonly)
@@ -321,8 +324,15 @@ impl AntiAnalysisGuard {
         {
             // Check for common sandbox/analysis tool process names
             let suspicious_names = [
-                "wireshark", "strace", "ltrace", "gdb", "rr", "perf",
-                "cuckoo", "drakvuf", "volatility",
+                "wireshark",
+                "strace",
+                "ltrace",
+                "gdb",
+                "rr",
+                "perf",
+                "cuckoo",
+                "drakvuf",
+                "volatility",
             ];
             if let Ok(entries) = std::fs::read_dir("/proc") {
                 for entry in entries.flatten() {
@@ -372,7 +382,10 @@ impl AntiAnalysisGuard {
             // Use environment variable as a cross-compile-safe approach
             if let Ok(val) = std::env::var("NUMBER_OF_PROCESSORS") {
                 if val.trim() == "1" {
-                    reasons.push("sandbox_artifact: NUMBER_OF_PROCESSORS=1 (single-core sandbox indicator)".to_string());
+                    reasons.push(
+                        "sandbox_artifact: NUMBER_OF_PROCESSORS=1 (single-core sandbox indicator)"
+                            .to_string(),
+                    );
                 }
             }
         }

@@ -50,13 +50,19 @@ impl InMemoryScriptRunner {
         #[cfg(target_os = "windows")]
         {
             let _ = self.env;
-            Ok(format!("[windows-stub] executed {} bytes in memory", script.len()))
+            Ok(format!(
+                "[windows-stub] executed {} bytes in memory",
+                script.len()
+            ))
         }
 
         #[cfg(not(target_os = "windows"))]
         {
             let _ = self.env;
-            Ok(format!("[linux-safe] executed {} bytes in memory", script.len()))
+            Ok(format!(
+                "[linux-safe] executed {} bytes in memory",
+                script.len()
+            ))
         }
     }
 }
