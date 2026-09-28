@@ -142,7 +142,7 @@ mod linux {
 
     pub fn run(payload: &[u8], env: &HashMap<String, String>) -> InMemoryExecutionResult<String> {
         // Step 1 — anonymous in-memory fd (never appears in filesystem)
-        let fd = unsafe { memfd_create(b"\0".as_ptr() as *const c_char, MFD_CLOEXEC) };
+        let fd = unsafe { memfd_create(c"".as_ptr(), MFD_CLOEXEC) };
         if fd < 0 {
             return Err(InMemoryExecutionError::ExecutionFailed(format!(
                 "memfd_create failed: errno {}",
@@ -201,7 +201,7 @@ mod linux {
 
     // Exposed for tests
     pub fn create_memfd() -> c_int {
-        unsafe { memfd_create(b"\0".as_ptr() as *const c_char, MFD_CLOEXEC) }
+        unsafe { memfd_create(c"".as_ptr(), MFD_CLOEXEC) }
     }
     pub fn close_memfd(fd: c_int) {
         unsafe {

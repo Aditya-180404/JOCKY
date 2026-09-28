@@ -157,7 +157,7 @@ mod in_memory {
                     flags: std::ffi::c_uint,
                 ) -> std::ffi::c_int;
             }
-            unsafe { memfd_create(b"\0".as_ptr() as _, 0x0001) }
+            unsafe { memfd_create(c"".as_ptr(), 0x0001) }
         }
 
         fn close_fd(fd: i32) {
