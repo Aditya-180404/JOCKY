@@ -1,4 +1,4 @@
-//! jockey API - REST API for the jockey platform
+//! jocky API - REST API for the jocky platform
 
 use axum::{
     extract::DefaultBodyLimit,
@@ -31,7 +31,7 @@ async fn main() -> anyhow::Result<()> {
         .json()
         .init();
 
-    info!("Starting jockey API");
+    info!("Starting jocky API");
 
     let app = Router::new()
         // Health check
@@ -98,7 +98,7 @@ async fn main() -> anyhow::Result<()> {
     let app = app.layer(cors).layer(TraceLayer::new_for_http());
 
     let bind_address =
-        std::env::var("JOCKEY_API_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".to_string());
+        std::env::var("JOCKY_API_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".to_string());
     let listener = tokio::net::TcpListener::bind(&bind_address).await?;
     info!("API server listening on http://{}", bind_address);
 
@@ -110,7 +110,7 @@ async fn main() -> anyhow::Result<()> {
 async fn health_check() -> impl IntoResponse {
     Json(serde_json::json!({
         "status": "ok",
-        "service": "jockey-api",
+        "service": "jocky-api",
         "version": env!("CARGO_PKG_VERSION")
     }))
 }

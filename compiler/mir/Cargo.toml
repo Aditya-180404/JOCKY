@@ -1,5 +1,5 @@
 [package]
-name = "jockey-mir"
+name = "jocky-mir"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -7,8 +7,8 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-jockey-ast = { path = "../ast" }
-jockey-hir = { path = "../hir" }
+jocky-ast = { path = "../ast" }
+jocky-hir = { path = "../hir" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 sha2 = { workspace = true }

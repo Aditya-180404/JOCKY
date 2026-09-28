@@ -88,7 +88,7 @@
           },
           {
             "name": "ANTIGRAVITY_SOURCE_METADATA",
-            "value": "{\"tool\":{\"conversationId\":\"2b16495d-82e4-4ec2-b2c0-532821063c7a\",\"stepIndex\":2339,\"toolCall\":{\"id\":\"toolu_vrtx_01Dvk7NZTvjg1YYVouMrNU7G\",\"name\":\"run_command\",\"argumentsJson\":\"{\\\"CommandLine\\\":\\\".\\\\\\\\build\\\\\\\\complete_forensic_triage-windows-x64.exe 2\\\\u003e\\\\u00261 | Select-Object -Last 20\\\",\\\"Cwd\\\":\\\"G:\\\\\\\\jockey\\\",\\\"IsDaemon\\\":false,\\\"WaitMsBeforeAsync\\\":30000,\\\"toolAction\\\":\\\"Running artifact\\\",\\\"toolSummary\\\":\\\"Execute compiled investigation\\\"}\",\"originalName\":\"run_command\"}}}"
+            "value": "{\"tool\":{\"conversationId\":\"2b16495d-82e4-4ec2-b2c0-532821063c7a\",\"stepIndex\":2339,\"toolCall\":{\"id\":\"toolu_vrtx_01Dvk7NZTvjg1YYVouMrNU7G\",\"name\":\"run_command\",\"argumentsJson\":\"{\\\"CommandLine\\\":\\\".\\\\\\\\build\\\\\\\\complete_forensic_triage-windows-x64.exe 2\\\\u003e\\\\u00261 | Select-Object -Last 20\\\",\\\"Cwd\\\":\\\"G:\\\\\\\\jocky\\\",\\\"IsDaemon\\\":false,\\\"WaitMsBeforeAsync\\\":30000,\\\"toolAction\\\":\\\"Running artifact\\\",\\\"toolSummary\\\":\\\"Execute compiled investigation\\\"}\",\"originalName\":\"run_command\"}}}"
           },
           {
             "name": "ANTIGRAVITY_TRAJECTORY_ID",

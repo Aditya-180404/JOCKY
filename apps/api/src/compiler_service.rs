@@ -5,14 +5,14 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
-use jockey_ast::Severity;
-use jockey_backend::TargetSpec;
-use jockey_backend::{Backend, BackendKind};
-use jockey_ir::BuildConfig;
-use jockey_ir::{TargetArch, TargetPlatform};
-use jockey_lexer::Lexer;
-use jockey_parser::Parser;
-use jockey_semantic::SemanticAnalyzer;
+use jocky_ast::Severity;
+use jocky_backend::TargetSpec;
+use jocky_backend::{Backend, BackendKind};
+use jocky_ir::BuildConfig;
+use jocky_ir::{TargetArch, TargetPlatform};
+use jocky_lexer::Lexer;
+use jocky_parser::Parser;
+use jocky_semantic::SemanticAnalyzer;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -29,7 +29,7 @@ pub struct CompileRequest {
     pub target: Option<String>,
 }
 
-/// Compile defensive JOCKEY source to a downloadable local artifact.
+/// Compile defensive JOCKY source to a downloadable local artifact.
 /// The hosted compiler intentionally supports Linux x86_64 only. Windows users download
 /// the compiler and build on a Windows machine, where the runtime can inspect that host.
 pub async fn compile_handler(Json(req): Json<CompileRequest>) -> Response {
@@ -72,7 +72,7 @@ pub async fn compile_handler(Json(req): Json<CompileRequest>) -> Response {
             };
             response
                 .headers_mut()
-                .insert("x-jockey-target", target_header);
+                .insert("x-jocky-target", target_header);
             response
         }
         Ok(Err(message)) => compiler_error(StatusCode::UNPROCESSABLE_ENTITY, &message),
@@ -107,7 +107,7 @@ fn compile_native_artifact(source: &str, target_str: &str) -> Result<(String, Ve
     }
     let ir = ir.ok_or_else(|| "Unable to analyze investigation".to_string())?;
     let output_dir =
-        std::env::temp_dir().join(format!("jockey-public-build-{}", uuid::Uuid::new_v4()));
+        std::env::temp_dir().join(format!("jocky-public-build-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&output_dir).map_err(|e| e.to_string())?;
 
     let is_windows = target_str.contains("windows");
@@ -119,12 +119,12 @@ fn compile_native_artifact(source: &str, target_str: &str) -> Result<(String, Ve
     let config = BuildConfig {
         target_platform,
         target_arch: TargetArch::X64,
-        optimization_level: jockey_ir::OptimizationLevel::Speed,
+        optimization_level: jocky_ir::OptimizationLevel::Speed,
         debug_symbols: false,
         strip_symbols: true,
         obfuscation: Default::default(),
     };
-    let backend_kind = if std::env::var("JOCKEY_BACKEND").unwrap_or_default() == "llvm" {
+    let backend_kind = if std::env::var("JOCKY_BACKEND").unwrap_or_default() == "llvm" {
         BackendKind::Llvm
     } else {
         BackendKind::Rust
@@ -226,7 +226,7 @@ pub struct CapabilitiesQuery {
 pub async fn capabilities_handler(
     axum::extract::Query(query): axum::extract::Query<CapabilitiesQuery>,
 ) -> Json<serde_json::Value> {
-    let reg = jockey_runtime_capabilities::CapabilityRegistry::new();
+    let reg = jocky_runtime_capabilities::CapabilityRegistry::new();
     let mut map = reg.to_json();
     let total = map.as_object().map_or(0, serde_json::Map::len);
     if let serde_json::Value::Object(ref mut payload) = map {
@@ -394,12 +394,12 @@ pub async fn check_handler(
         if let Some(ir) = ir {
             let mut collectors: Vec<String> = Vec::new();
             for op in &ir.operations {
-                if let jockey_ir::IrOperation::Collect(c) = op {
+                if let jocky_ir::IrOperation::Collect(c) = op {
                     collectors.push(c.operation.clone());
                 }
             }
 
-            let reg = jockey_runtime_capabilities::CapabilityRegistry::new();
+            let reg = jocky_runtime_capabilities::CapabilityRegistry::new();
             if let Some(ref target) = req.target {
                 let target_lower = target.to_lowercase();
                 let is_windows = target_lower.contains("windows");
@@ -435,7 +435,7 @@ pub async fn check_handler(
                             || name_norm == cap_str
                             || (cap_str.contains("registry") && c.id.starts_with("registry."))
                     }) {
-                        use jockey_runtime_capabilities::Platform;
+                        use jocky_runtime_capabilities::Platform;
                         let compatible = match cap.platforms {
                             Platform::Both => true,
                             Platform::Windows => is_windows,
@@ -504,17 +504,17 @@ fn file_sha256_candidates(candidates: &[&str]) -> (String, u64) {
 pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
     // Compute real hashes from the actual files on disk
     let (win_zip_hash, win_zip_size) = file_sha256_candidates(&[
-        "./jockey_0.1.0_windows_amd64.zip",
-        "./packages/jockey_0.1.0_windows_amd64.zip",
-        "./packages/jockey-0.1.0-windows-x64.zip",
+        "./jocky_0.1.0_windows_amd64.zip",
+        "./packages/jocky_0.1.0_windows_amd64.zip",
+        "./packages/jocky-0.1.0-windows-x64.zip",
     ]);
     let (deb_hash, deb_size) = file_sha256_candidates(&[
-        "./jockey_0.1.0_amd64.deb",
-        "./packages/jockey_0.1.0_amd64.deb",
+        "./jocky_0.1.0_amd64.deb",
+        "./packages/jocky_0.1.0_amd64.deb",
     ]);
     let (win_exe_hash, win_exe_size) = file_sha256_candidates(&[
-        "./target/release/jockey.exe",
-        "./packaging/windows-stage/jockey.exe",
+        "./target/release/jocky.exe",
+        "./packaging/windows-stage/jocky.exe",
     ]);
 
     let release_date = chrono::Utc::now().format("%Y-%m-%d").to_string();
@@ -524,15 +524,15 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
         packages.push(DownloadPackage {
             platform: "Windows".to_string(),
             arch: "x64".to_string(),
-            name: "jockey Windows Distribution Archive (.zip)".to_string(),
-            filename: "jockey_0.1.0_windows_amd64.zip".to_string(),
+            name: "jocky Windows Distribution Archive (.zip)".to_string(),
+            filename: "jocky_0.1.0_windows_amd64.zip".to_string(),
             version: "0.1.0".to_string(),
             size_bytes: win_zip_size,
             sha256: win_zip_hash,
             content_type: "application/zip".to_string(),
             release_date: release_date.clone(),
             requirements: "Windows 10 / 11 64-bit".to_string(),
-            download_url: "/api/downloads/jockey_0.1.0_windows_amd64.zip".to_string(),
+            download_url: "/api/downloads/jocky_0.1.0_windows_amd64.zip".to_string(),
         });
     }
 
@@ -540,15 +540,15 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
         packages.push(DownloadPackage {
             platform: "Linux (Debian)".to_string(),
             arch: "x64".to_string(),
-            name: "jockey Debian / Ubuntu Package (.deb)".to_string(),
-            filename: "jockey_0.1.0_amd64.deb".to_string(),
+            name: "jocky Debian / Ubuntu Package (.deb)".to_string(),
+            filename: "jocky_0.1.0_amd64.deb".to_string(),
             version: "0.1.0".to_string(),
             size_bytes: deb_size,
             sha256: deb_hash,
             content_type: "application/vnd.debian.binary-package".to_string(),
             release_date: release_date.clone(),
             requirements: "Debian 12+ / Ubuntu 22.04+ (x86_64)".to_string(),
-            download_url: "/api/downloads/jockey_0.1.0_amd64.deb".to_string(),
+            download_url: "/api/downloads/jocky_0.1.0_amd64.deb".to_string(),
         });
     }
 
@@ -556,15 +556,15 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
         packages.push(DownloadPackage {
             platform: "Windows".to_string(),
             arch: "x64".to_string(),
-            name: "jockey Standalone CLI Executable".to_string(),
-            filename: "jockey.exe".to_string(),
+            name: "jocky Standalone CLI Executable".to_string(),
+            filename: "jocky.exe".to_string(),
             version: "0.1.0".to_string(),
             size_bytes: win_exe_size,
             sha256: win_exe_hash,
             content_type: "application/vnd.microsoft.portable-executable".to_string(),
             release_date,
             requirements: "Windows 10 / 11 64-bit".to_string(),
-            download_url: "/api/downloads/jockey.exe".to_string(),
+            download_url: "/api/downloads/jocky.exe".to_string(),
         });
     }
 
@@ -574,26 +574,26 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
 /// Endpoint: GET /api/downloads/:filename
 pub async fn download_file_handler(Path(filename): Path<String>) -> impl IntoResponse {
     let (candidates, content_type): (&[&str], &str) = match filename.as_str() {
-        "jockey_0.1.0_windows_amd64.zip" => (
+        "jocky_0.1.0_windows_amd64.zip" => (
             &[
-                "./jockey_0.1.0_windows_amd64.zip",
-                "./packages/jockey_0.1.0_windows_amd64.zip",
-                "./build/jockey_0.1.0_windows_amd64.zip",
+                "./jocky_0.1.0_windows_amd64.zip",
+                "./packages/jocky_0.1.0_windows_amd64.zip",
+                "./build/jocky_0.1.0_windows_amd64.zip",
             ],
             "application/zip",
         ),
-        "jockey_0.1.0_amd64.deb" => (
+        "jocky_0.1.0_amd64.deb" => (
             &[
-                "./jockey_0.1.0_amd64.deb",
-                "./packages/jockey_0.1.0_amd64.deb",
+                "./jocky_0.1.0_amd64.deb",
+                "./packages/jocky_0.1.0_amd64.deb",
             ],
             "application/vnd.debian.binary-package",
         ),
-        "jockey.exe" => (
+        "jocky.exe" => (
             &[
-                "./target/release/jockey.exe",
-                "./jockey.exe",
-                "./packaging/windows-stage/jockey.exe",
+                "./target/release/jocky.exe",
+                "./jocky.exe",
+                "./packaging/windows-stage/jocky.exe",
             ],
             "application/vnd.microsoft.portable-executable",
         ),
@@ -665,17 +665,17 @@ mod download_tests {
     #[tokio::test]
     async fn windows_download_route_returns_canonical_zip_headers() {
         let path =
-            std::env::temp_dir().join(format!("jockey-download-test-{}.zip", uuid::Uuid::new_v4()));
+            std::env::temp_dir().join(format!("jocky-download-test-{}.zip", uuid::Uuid::new_v4()));
         std::fs::write(&path, b"PK\x03\x04test").unwrap();
-        let previous = std::env::var_os("JOCKEY_WINDOWS_ZIP");
-        std::env::set_var("JOCKEY_WINDOWS_ZIP", &path);
+        let previous = std::env::var_os("JOCKY_WINDOWS_ZIP");
+        std::env::set_var("JOCKY_WINDOWS_ZIP", &path);
 
         let response = download_windows_handler().await.into_response();
 
         if let Some(value) = previous {
-            std::env::set_var("JOCKEY_WINDOWS_ZIP", value);
+            std::env::set_var("JOCKY_WINDOWS_ZIP", value);
         } else {
-            std::env::remove_var("JOCKEY_WINDOWS_ZIP");
+            std::env::remove_var("JOCKY_WINDOWS_ZIP");
         }
         let _ = std::fs::remove_file(path);
 
@@ -686,7 +686,7 @@ mod download_tests {
         );
         assert_eq!(
             response.headers()[axum::http::header::CONTENT_DISPOSITION],
-            "attachment; filename=\"jockey_0.1.0_windows_amd64.zip\""
+            "attachment; filename=\"jocky_0.1.0_windows_amd64.zip\""
         );
         assert_eq!(
             response.headers()[axum::http::header::CACHE_CONTROL],
@@ -705,7 +705,7 @@ mod download_tests {
             .iter()
             .map(|record| format!("{:x}", Sha256::digest(serde_json::to_vec(record).unwrap())))
             .collect::<Vec<_>>();
-        let merkle_root = jockey_runtime::compute_merkle_root(&record_hashes);
+        let merkle_root = jocky_runtime::compute_merkle_root(&record_hashes);
         let metadata = serde_json::json!({
             "evidence_hash": evidence_hash,
             "merkle_root": merkle_root,
@@ -773,9 +773,9 @@ mod download_tests {
                 package.filename
             );
             let expected_content_type = match package.filename.as_str() {
-                "jockey_0.1.0_windows_amd64.zip" => "application/zip",
-                "jockey_0.1.0_amd64.deb" => "application/vnd.debian.binary-package",
-                "jockey.exe" => "application/vnd.microsoft.portable-executable",
+                "jocky_0.1.0_windows_amd64.zip" => "application/zip",
+                "jocky_0.1.0_amd64.deb" => "application/vnd.debian.binary-package",
+                "jocky.exe" => "application/vnd.microsoft.portable-executable",
                 other => panic!("unapproved package filename advertised: {other}"),
             };
             assert_eq!(package.content_type, expected_content_type);
@@ -786,10 +786,10 @@ mod download_tests {
 /// Endpoint: GET /api/downloads/windows — Direct Windows download
 pub async fn download_windows_handler() -> impl IntoResponse {
     let candidates = [
-        std::env::var("JOCKEY_WINDOWS_ZIP").unwrap_or_default(),
-        "./jockey_0.1.0_windows_amd64.zip".to_string(),
-        "./packages/jockey_0.1.0_windows_amd64.zip".to_string(),
-        "./build/jockey_0.1.0_windows_amd64.zip".to_string(),
+        std::env::var("JOCKY_WINDOWS_ZIP").unwrap_or_default(),
+        "./jocky_0.1.0_windows_amd64.zip".to_string(),
+        "./packages/jocky_0.1.0_windows_amd64.zip".to_string(),
+        "./build/jocky_0.1.0_windows_amd64.zip".to_string(),
     ];
 
     for path_str in candidates {
@@ -799,7 +799,7 @@ pub async fn download_windows_handler() -> impl IntoResponse {
         let p = std::path::PathBuf::from(&path_str);
         if p.is_file() {
             if let Ok(data) = std::fs::read(&p) {
-                let filename = "jockey_0.1.0_windows_amd64.zip";
+                let filename = "jocky_0.1.0_windows_amd64.zip";
                 let content_length = data.len().to_string();
                 return (
                     StatusCode::OK,
@@ -832,9 +832,9 @@ pub async fn download_windows_handler() -> impl IntoResponse {
 /// Endpoint: GET /api/downloads/linux — Direct Linux download
 pub async fn download_linux_handler() -> impl IntoResponse {
     let candidates = [
-        std::env::var("JOCKEY_LINUX_DEB").unwrap_or_default(),
-        "./jockey_0.1.0_amd64.deb".to_string(),
-        "./packages/jockey_0.1.0_amd64.deb".to_string(),
+        std::env::var("JOCKY_LINUX_DEB").unwrap_or_default(),
+        "./jocky_0.1.0_amd64.deb".to_string(),
+        "./packages/jocky_0.1.0_amd64.deb".to_string(),
     ];
 
     for path_str in candidates {
@@ -847,7 +847,7 @@ pub async fn download_linux_handler() -> impl IntoResponse {
                 let filename = p
                     .file_name()
                     .and_then(|s| s.to_str())
-                    .unwrap_or("jockey_0.1.0_amd64.deb");
+                    .unwrap_or("jocky_0.1.0_amd64.deb");
                 let content_length = data.len().to_string();
                 return (
                     StatusCode::OK,
@@ -946,7 +946,7 @@ pub async fn verify_handler(Json(req): Json<VerifyRequest>) -> Response {
                 format!("{:x}", Sha256::digest(bytes))
             })
             .collect::<Vec<_>>();
-        Some(jockey_runtime::compute_merkle_root(&record_hashes))
+        Some(jocky_runtime::compute_merkle_root(&record_hashes))
     } else {
         None
     };
@@ -971,7 +971,7 @@ pub async fn verify_handler(Json(req): Json<VerifyRequest>) -> Response {
     .into_response()
 }
 
-/// Endpoint: POST /api/compiler/run — Execute JOCKEY program in controlled sandbox and return structured evidence
+/// Endpoint: POST /api/compiler/run — Execute JOCKY program in controlled sandbox and return structured evidence
 pub async fn run_handler(Json(req): Json<RunRequest>) -> Response {
     if req.source.len() > 256 * 1024 {
         return compiler_error(
@@ -1146,7 +1146,7 @@ fn execute_native_program(source: &str, target_str: &str) -> RunResponse {
         };
     }
 
-    let output_dir = std::env::temp_dir().join(format!("jockey-run-{}", uuid::Uuid::new_v4()));
+    let output_dir = std::env::temp_dir().join(format!("jocky-run-{}", uuid::Uuid::new_v4()));
     if let Err(e) = std::fs::create_dir_all(&output_dir) {
         return RunResponse {
             success: false,
@@ -1170,12 +1170,12 @@ fn execute_native_program(source: &str, target_str: &str) -> RunResponse {
     let config = BuildConfig {
         target_platform,
         target_arch: TargetArch::X64,
-        optimization_level: jockey_ir::OptimizationLevel::Speed,
+        optimization_level: jocky_ir::OptimizationLevel::Speed,
         debug_symbols: false,
         strip_symbols: true,
         obfuscation: Default::default(),
     };
-    let backend_kind = if std::env::var("JOCKEY_BACKEND").unwrap_or_default() == "llvm" {
+    let backend_kind = if std::env::var("JOCKY_BACKEND").unwrap_or_default() == "llvm" {
         BackendKind::Llvm
     } else {
         BackendKind::Rust
@@ -1313,18 +1313,18 @@ fn execute_native_program(source: &str, target_str: &str) -> RunResponse {
                         }
                     }
                 }
-                if let Ok(result) = jockey_runtime::verify_evidence(
+                if let Ok(result) = jocky_runtime::verify_evidence(
                     path.to_str().unwrap_or_default(),
                     meta_path.to_str().unwrap_or_default(),
                 ) {
                     let valid =
-                        matches!(result.status, jockey_runtime::VerificationStatus::Verified);
+                        matches!(result.status, jocky_runtime::VerificationStatus::Verified);
                     let status_str = match &result.status {
-                        jockey_runtime::VerificationStatus::Verified => "VALID".to_string(),
-                        jockey_runtime::VerificationStatus::Tampered { reason } => {
+                        jocky_runtime::VerificationStatus::Verified => "VALID".to_string(),
+                        jocky_runtime::VerificationStatus::Tampered { reason } => {
                             format!("TAMPERED: {}", reason)
                         }
-                        jockey_runtime::VerificationStatus::Missing { detail } => {
+                        jocky_runtime::VerificationStatus::Missing { detail } => {
                             format!("MISSING: {}", detail)
                         }
                     };

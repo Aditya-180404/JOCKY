@@ -1,10 +1,10 @@
 use chrono::Utc;
-use jockey_runtime_correlation::{
+use jocky_runtime_correlation::{
     entities::NormalizedEntities,
     ioc::{Indicator, IndicatorType, IocEngine, MatchType},
-    rules::{JockeyRule, RuleCondition, RuleEngine, RuleSeverity},
+    rules::{JockyRule, RuleCondition, RuleEngine, RuleSeverity},
 };
-use jockey_runtime_timeline::TimelineEvent;
+use jocky_runtime_timeline::TimelineEvent;
 use serde_json::json;
 
 #[test]
@@ -135,12 +135,12 @@ fn test_ioc_matching_engine_all_operators() {
 }
 
 #[test]
-fn test_jockey_native_rule_engine() {
+fn test_jocky_native_rule_engine() {
     let mut engine = RuleEngine::new();
 
     // Custom behavioral rule with nested boolean logic
     engine.add_rule(
-        JockeyRule::new(
+        JockyRule::new(
             "reverse_shell_netcat",
             "Netcat Reverse Shell Observed",
             "Process named nc or ncat spawned with -e argument indicative of reverse shell",

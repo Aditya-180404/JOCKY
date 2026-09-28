@@ -9,7 +9,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::entities::NormalizedEntities;
-use jockey_runtime_timeline::TimelineEvent;
+use jocky_runtime_timeline::TimelineEvent;
 
 /// Supported IOC Types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

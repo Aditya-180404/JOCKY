@@ -1,12 +1,12 @@
 //! Real Programmatic LLVM Code Generation Backend
 //!
-//! Lowers jockey MIR into standard, valid LLVM 15-21 Intermediate Representation (`.ll`),
-//! optimizes via LLVM passes, and links against the native jockey runtime staticlib
+//! Lowers jocky MIR into standard, valid LLVM 15-21 Intermediate Representation (`.ll`),
+//! optimizes via LLVM passes, and links against the native jocky runtime staticlib
 //! using `clang` to produce platform-native ELF and PE executables.
 
 use crate::obfuscation::ObfuscationPipeline;
-use jockey_ir::{ArtifactMetadata, BuildConfig, TargetArch, TargetPlatform};
-use jockey_mir::MirProgram;
+use jocky_ir::{ArtifactMetadata, BuildConfig, TargetArch, TargetPlatform};
+use jocky_mir::MirProgram;
 use std::path::{Path, PathBuf};
 
 /// LLVM backend configuration and compilation driver
@@ -129,13 +129,13 @@ impl LlvmBackend {
         let mut cmd = std::process::Command::new("clang");
         // Optimization level
         match self.config.optimization_level {
-            jockey_ir::OptimizationLevel::None => {
+            jocky_ir::OptimizationLevel::None => {
                 cmd.arg("-O0");
             }
-            jockey_ir::OptimizationLevel::Size => {
+            jocky_ir::OptimizationLevel::Size => {
                 cmd.arg("-Os");
             }
-            jockey_ir::OptimizationLevel::Speed => {
+            jocky_ir::OptimizationLevel::Speed => {
                 cmd.arg("-O2");
             }
         }
@@ -207,7 +207,7 @@ impl LlvmBackend {
     }
 
     fn find_workspace_root() -> PathBuf {
-        if let Ok(dir) = std::env::var("JOCKEY_WORKSPACE_ROOT") {
+        if let Ok(dir) = std::env::var("JOCKY_WORKSPACE_ROOT") {
             let p = PathBuf::from(dir);
             if p.exists() {
                 return p;
@@ -243,20 +243,20 @@ impl LlvmBackend {
         let msvc_lib = workspace_root
             .join("target")
             .join("release")
-            .join("jockey_runtime.lib");
+            .join("jocky_runtime.lib");
         let gnu_win_lib = workspace_root
             .join("target")
             .join("x86_64-pc-windows-gnu")
             .join("release")
-            .join("libjockey_runtime.a");
+            .join("libjocky_runtime.a");
         let gnu_win_lib_release = workspace_root
             .join("target")
             .join("release")
-            .join("libjockey_runtime.a");
+            .join("libjocky_runtime.a");
         let linux_lib = workspace_root
             .join("target")
             .join("release")
-            .join("libjockey_runtime.a");
+            .join("libjocky_runtime.a");
 
         let (target_arg, rel_path) = match platform {
             TargetPlatform::Linux => (None, linux_lib),
@@ -288,7 +288,7 @@ impl LlvmBackend {
                 "cargo".to_string()
             });
             let mut cmd = std::process::Command::new(cargo_bin);
-            cmd.args(["build", "-p", "jockey-runtime", "--release"]);
+            cmd.args(["build", "-p", "jocky-runtime", "--release"]);
             if let Some(target) = target_arg {
                 cmd.args(["--target", target]);
             }
@@ -331,7 +331,7 @@ impl LlvmBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use jockey_mir::{
+    use jocky_mir::{
         MirBasicBlock, MirFunction, MirInstruction, MirLocal, MirProgram, MirProvenance,
         MirTerminator, MirType,
     };
@@ -392,11 +392,11 @@ mod tests {
             .expect("LLVM IR codegen failed");
 
         assert!(ir.contains("target triple = \"x86_64-pc-linux-gnu\""));
-        assert!(ir.contains("declare ptr @jockey_rt_evidence_init(ptr, ptr)"));
-        assert!(ir.contains("call ptr @jockey_rt_evidence_init"));
-        assert!(ir.contains("call i32 @jockey_rt_collect_system"));
-        assert!(ir.contains("call i32 @jockey_rt_evidence_export"));
-        assert!(ir.contains("call void @jockey_rt_evidence_free"));
+        assert!(ir.contains("declare ptr @jocky_rt_evidence_init(ptr, ptr)"));
+        assert!(ir.contains("call ptr @jocky_rt_evidence_init"));
+        assert!(ir.contains("call i32 @jocky_rt_collect_system"));
+        assert!(ir.contains("call i32 @jocky_rt_evidence_export"));
+        assert!(ir.contains("call void @jocky_rt_evidence_free"));
         assert!(ir.contains("ret i32"));
     }
 }

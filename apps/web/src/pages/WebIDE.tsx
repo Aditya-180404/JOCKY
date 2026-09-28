@@ -441,11 +441,11 @@ export function WebIDE() {
     editorRef.current = editor;
     monacoRef.current = monaco;
 
-    // Register jockey language definition
-    if (!monaco.languages.getLanguages().some((l: any) => l.id === 'jockey')) {
-      monaco.languages.register({ id: 'jockey', extensions: ['.jy'], aliases: ['JOCKEY', 'jockey', 'jy'] });
+    // Register jocky language definition
+    if (!monaco.languages.getLanguages().some((l: any) => l.id === 'jocky')) {
+      monaco.languages.register({ id: 'jocky', extensions: ['.jy'], aliases: ['JOCKY', 'jocky', 'jy'] });
 
-      monaco.languages.setMonarchTokensProvider('jockey', {
+      monaco.languages.setMonarchTokensProvider('jocky', {
         keywords: ALL_KEYWORDS,
         tokenizer: {
           root: [
@@ -470,7 +470,7 @@ export function WebIDE() {
         },
       });
 
-      monaco.languages.setLanguageConfiguration('jockey', {
+      monaco.languages.setLanguageConfiguration('jocky', {
         comments: {
           lineComment: '//',
           blockComment: ['/*', '*/'],
@@ -489,7 +489,7 @@ export function WebIDE() {
       });
 
       // Hover provider — shows collector documentation
-      monaco.languages.registerHoverProvider('jockey', {
+      monaco.languages.registerHoverProvider('jocky', {
         provideHover(model: any, position: any) {
           const word = model.getWordAtPosition(position);
           if (!word) return null;
@@ -501,7 +501,7 @@ export function WebIDE() {
               position.lineNumber, word.endColumn
             ),
             contents: [
-              { value: `**${word.word}** — jockey collector` },
+              { value: `**${word.word}** — jocky collector` },
               { value: doc },
             ],
           };
@@ -509,7 +509,7 @@ export function WebIDE() {
       });
 
       // Completion provider — suggests keywords and collector targets
-      monaco.languages.registerCompletionItemProvider('jockey', {
+      monaco.languages.registerCompletionItemProvider('jocky', {
         provideCompletionItems(model: any, position: any) {
           const word = model.getWordUntilPosition(position);
           const range = {
@@ -551,7 +551,7 @@ export function WebIDE() {
     }
 
     // Professional, restrained editor theme
-    monaco.editor.defineTheme('jockey-pro', {
+    monaco.editor.defineTheme('jocky-pro', {
       base: 'vs-dark',
       inherit: true,
       rules: [
@@ -575,7 +575,7 @@ export function WebIDE() {
       },
     });
 
-    monaco.editor.setTheme('jockey-pro');
+    monaco.editor.setTheme('jocky-pro');
   };
 
   // Debounced auto-check: fires 800 ms after the user stops typing
@@ -606,7 +606,7 @@ export function WebIDE() {
             endLineNumber: d.line || 1,
             endColumn: (d.column || 1) + 8,
           }));
-          monacoRef.current.editor.setModelMarkers(model, 'jockey', markers);
+          monacoRef.current.editor.setModelMarkers(model, 'jocky', markers);
         }
       } catch { /* silent — user will see errors on explicit check */ }
     }, 800);
@@ -660,7 +660,7 @@ export function WebIDE() {
           endLineNumber: d.line || 1,
           endColumn: (d.column || 1) + 8,
         }));
-        monacoRef.current.editor.setModelMarkers(model, 'jockey', markers);
+        monacoRef.current.editor.setModelMarkers(model, 'jocky', markers);
       }
     } catch (err: any) {
       setStatusMessage('Compiler check failed');
@@ -894,7 +894,7 @@ export function WebIDE() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 font-mono font-bold text-slate-100 pr-2 border-r border-slate-800">
             <TerminalIcon className="h-3.5 w-3.5 text-blue-400" />
-            <span>jockey IDE</span>
+            <span>jocky IDE</span>
           </div>
 
           <button
@@ -1023,7 +1023,7 @@ export function WebIDE() {
           <aside className="w-56 bg-[#0e1422] border-r border-slate-800 flex flex-col select-none text-xs">
             <div className="p-2 border-b border-slate-800 flex items-center justify-between text-slate-400 font-semibold tracking-wider uppercase text-[10px]">
               <span>Explorer</span>
-              <span className="text-[10px] text-slate-400">jockey</span>
+              <span className="text-[10px] text-slate-400">jocky</span>
             </div>
 
             <div className="flex-1 overflow-y-auto p-1.5 space-y-1">
@@ -1110,7 +1110,7 @@ export function WebIDE() {
           <div className="flex-1 overflow-hidden">
             <MonacoEditor
               height="100%"
-              language="jockey"
+              language="jocky"
               value={source}
               onChange={(value) => handleSourceChange(value || '')}
               onMount={handleEditorDidMount}

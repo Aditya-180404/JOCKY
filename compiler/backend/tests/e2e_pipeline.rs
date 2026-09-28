@@ -6,11 +6,11 @@
 
 #![cfg(feature = "llvm")]
 
-use jockey_backend::llvm::LlvmBackend;
-use jockey_ir::BuildConfig;
-use jockey_lexer::Lexer;
-use jockey_parser::Parser;
-use jockey_semantic::SemanticAnalyzer;
+use jocky_backend::llvm::LlvmBackend;
+use jocky_ir::BuildConfig;
+use jocky_lexer::Lexer;
+use jocky_parser::Parser;
+use jocky_semantic::SemanticAnalyzer;
 use std::process::Command;
 
 /// Run the full compiler stack from source text, stopping just before the
@@ -39,8 +39,8 @@ fn compile_to_llvm_ir(source: &str, test_name: &str) -> String {
     let ir = ir.unwrap_or_else(|| panic!("[{}] No IR produced", test_name));
 
     // Lower IR → HIR → MIR
-    let hir: jockey_hir::HirInvestigation = (&ir).into();
-    let mir = jockey_mir::MirLowering::lower(&hir)
+    let hir: jocky_hir::HirInvestigation = (&ir).into();
+    let mir = jocky_mir::MirLowering::lower(&hir)
         .unwrap_or_else(|e| panic!("[{}] MIR lowering error: {}", test_name, e));
 
     // Generate LLVM IR text
@@ -85,19 +85,19 @@ fn e2e_basic_system_triage() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_basic_system_triage");
     assert!(
-        ir.contains("jockey_rt_evidence_init"),
+        ir.contains("jocky_rt_evidence_init"),
         "missing evidence_init"
     );
     assert!(
-        ir.contains("jockey_rt_collect_system"),
+        ir.contains("jocky_rt_collect_system"),
         "missing collect_system"
     );
     assert!(
-        ir.contains("jockey_rt_collect_processes"),
+        ir.contains("jocky_rt_collect_processes"),
         "missing collect_processes"
     );
     assert!(
-        ir.contains("jockey_rt_evidence_export"),
+        ir.contains("jocky_rt_evidence_export"),
         "missing evidence_export"
     );
     validate_with_clang(&ir, "e2e_basic_system_triage");
@@ -112,7 +112,7 @@ fn e2e_network_investigation() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_network_investigation");
     assert!(
-        ir.contains("call i32 @jockey_rt_invoke_capability"),
+        ir.contains("call i32 @jocky_rt_invoke_capability"),
         "missing generic capability runtime call"
     );
     assert!(
@@ -130,7 +130,7 @@ fn e2e_filesystem_integrity() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_filesystem_integrity");
     assert!(
-        ir.contains("jockey_rt_collect_files"),
+        ir.contains("jocky_rt_collect_files"),
         "missing collect_files"
     );
     validate_with_clang(&ir, "e2e_filesystem_integrity");
@@ -144,7 +144,7 @@ fn e2e_memory_regions() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_memory_regions");
     assert!(
-        ir.contains("jockey_rt_collect_memory_regions"),
+        ir.contains("jocky_rt_collect_memory_regions"),
         "missing collect_memory_regions"
     );
     validate_with_clang(&ir, "e2e_memory_regions");
@@ -158,7 +158,7 @@ fn e2e_registry_audit() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_registry_audit");
     assert!(
-        ir.contains("jockey_rt_collect_registry"),
+        ir.contains("jocky_rt_collect_registry"),
         "missing collect_registry"
     );
     validate_with_clang(&ir, "e2e_registry_audit");
@@ -172,7 +172,7 @@ fn e2e_artifact_carving() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_artifact_carving");
     assert!(
-        ir.contains("jockey_rt_collect_artifacts"),
+        ir.contains("jocky_rt_collect_artifacts"),
         "missing collect_artifacts"
     );
     validate_with_clang(&ir, "e2e_artifact_carving");
@@ -187,7 +187,7 @@ fn e2e_driver_hunt() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_driver_hunt");
     assert!(
-        ir.contains("jockey_rt_collect_drivers"),
+        ir.contains("jocky_rt_collect_drivers"),
         "missing collect_drivers"
     );
     validate_with_clang(&ir, "e2e_driver_hunt");
@@ -210,16 +210,16 @@ fn e2e_full_triage_all_collectors() {
 }"#;
     let ir = compile_to_llvm_ir(source, "e2e_full_triage_all_collectors");
     for symbol in &[
-        "jockey_rt_collect_system",
-        "jockey_rt_collect_processes",
-        "jockey_rt_collect_network",
-        "jockey_rt_collect_files",
-        "jockey_rt_collect_logs",
-        "jockey_rt_collect_drivers",
-        "jockey_rt_collect_memory_regions",
-        "jockey_rt_collect_registry",
-        "jockey_rt_collect_artifacts",
-        "jockey_rt_evidence_export",
+        "jocky_rt_collect_system",
+        "jocky_rt_collect_processes",
+        "jocky_rt_collect_network",
+        "jocky_rt_collect_files",
+        "jocky_rt_collect_logs",
+        "jocky_rt_collect_drivers",
+        "jocky_rt_collect_memory_regions",
+        "jocky_rt_collect_registry",
+        "jocky_rt_collect_artifacts",
+        "jocky_rt_evidence_export",
     ] {
         assert!(ir.contains(symbol), "missing runtime symbol: {}", symbol);
     }

@@ -1,4 +1,4 @@
-# jockey Forensic Report: basic_system_triage
+# jocky Forensic Report: basic_system_triage
 
 ## Executive Summary
 

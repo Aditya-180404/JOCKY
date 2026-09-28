@@ -1,5 +1,5 @@
 [package]
-name = "jockey-runtime-auth"
+name = "jocky-runtime-auth"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }

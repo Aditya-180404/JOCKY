@@ -1,5 +1,5 @@
 [package]
-name = "jockey-compiler"
+name = "jocky-compiler"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -7,14 +7,14 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-jockey-lexer = { path = "lexer" }
-jockey-parser = { path = "parser" }
-jockey-ast = { path = "ast" }
-jockey-semantic = { path = "semantic" }
-jockey-ir = { path = "ir" }
-jockey-hir = { path = "hir" }
-jockey-mir = { path = "mir" }
-jockey-backend = { path = "backend" }
-jockey-cli = { path = "cli" }
+jocky-lexer = { path = "lexer" }
+jocky-parser = { path = "parser" }
+jocky-ast = { path = "ast" }
+jocky-semantic = { path = "semantic" }
+jocky-ir = { path = "ir" }
+jocky-hir = { path = "hir" }
+jocky-mir = { path = "mir" }
+jocky-backend = { path = "backend" }
+jocky-cli = { path = "cli" }
 anyhow = { workspace = true }
 tracing = { workspace = true }

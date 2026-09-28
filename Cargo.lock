@@ -2014,7 +2014,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-api"
+name = "jocky-api"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2024,24 +2024,24 @@ dependencies = [
  "axum",
  "chrono",
  "ipnetwork",
- "jockey-ast",
- "jockey-backend",
- "jockey-ir",
- "jockey-lexer",
- "jockey-parser",
- "jockey-runtime",
- "jockey-runtime-capabilities",
- "jockey-runtime-correlation",
- "jockey-runtime-evidence",
- "jockey-runtime-filesystem",
- "jockey-runtime-logs",
- "jockey-runtime-network",
- "jockey-runtime-process",
- "jockey-runtime-security",
- "jockey-runtime-system",
- "jockey-runtime-timeline",
- "jockey-semantic",
- "jockey-shared-types",
+ "jocky-ast",
+ "jocky-backend",
+ "jocky-ir",
+ "jocky-lexer",
+ "jocky-parser",
+ "jocky-runtime",
+ "jocky-runtime-capabilities",
+ "jocky-runtime-correlation",
+ "jocky-runtime-evidence",
+ "jocky-runtime-filesystem",
+ "jocky-runtime-logs",
+ "jocky-runtime-network",
+ "jocky-runtime-process",
+ "jocky-runtime-security",
+ "jocky-runtime-system",
+ "jocky-runtime-timeline",
+ "jocky-semantic",
+ "jocky-shared-types",
  "jsonwebtoken",
  "rand 0.8.8",
  "redis",
@@ -2059,7 +2059,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-ast"
+name = "jocky-ast"
 version = "0.1.0"
 dependencies = [
  "serde",
@@ -2067,20 +2067,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-backend"
+name = "jocky-backend"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
- "jockey-ast",
- "jockey-hir",
- "jockey-ir",
- "jockey-lexer",
- "jockey-mir",
- "jockey-parser",
- "jockey-runtime",
- "jockey-runtime-evidence",
- "jockey-semantic",
+ "jocky-ast",
+ "jocky-hir",
+ "jocky-ir",
+ "jocky-lexer",
+ "jocky-mir",
+ "jocky-parser",
+ "jocky-runtime",
+ "jocky-runtime-evidence",
+ "jocky-semantic",
  "llvm-sys",
  "serde",
  "serde_json",
@@ -2089,22 +2089,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-cli"
+name = "jocky-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
  "clap",
- "jockey-ast",
- "jockey-backend",
- "jockey-hir",
- "jockey-ir",
- "jockey-lexer",
- "jockey-mir",
- "jockey-parser",
- "jockey-runtime",
- "jockey-runtime-capabilities",
- "jockey-semantic",
+ "jocky-ast",
+ "jocky-backend",
+ "jocky-hir",
+ "jocky-ir",
+ "jocky-lexer",
+ "jocky-mir",
+ "jocky-parser",
+ "jocky-runtime",
+ "jocky-runtime-capabilities",
+ "jocky-semantic",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -2115,21 +2115,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-compiler-worker"
+name = "jocky-compiler-worker"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "aws-config",
  "aws-sdk-s3",
  "chrono",
- "jockey-ast",
- "jockey-backend",
- "jockey-ir",
- "jockey-lexer",
- "jockey-parser",
- "jockey-runtime",
- "jockey-semantic",
- "jockey-shared-types",
+ "jocky-ast",
+ "jocky-backend",
+ "jocky-ir",
+ "jocky-lexer",
+ "jocky-parser",
+ "jocky-runtime",
+ "jocky-semantic",
+ "jocky-shared-types",
  "redis",
  "serde",
  "serde_json",
@@ -2143,78 +2143,78 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-hir"
+name = "jocky-hir"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "jockey-ast",
- "jockey-ir",
+ "jocky-ast",
+ "jocky-ir",
  "serde",
  "serde_json",
  "sha2 0.10.9",
 ]
 
 [[package]]
-name = "jockey-ir"
+name = "jocky-ir"
 version = "0.1.0"
 dependencies = [
- "jockey-ast",
+ "jocky-ast",
  "serde",
  "serde_json",
 ]
 
 [[package]]
-name = "jockey-lexer"
+name = "jocky-lexer"
 version = "0.1.0"
 dependencies = [
- "jockey-ast",
+ "jocky-ast",
  "serde",
  "thiserror 1.0.69",
 ]
 
 [[package]]
-name = "jockey-mir"
+name = "jocky-mir"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "jockey-ast",
- "jockey-hir",
+ "jocky-ast",
+ "jocky-hir",
  "serde",
  "serde_json",
  "sha2 0.10.9",
 ]
 
 [[package]]
-name = "jockey-parser"
+name = "jocky-parser"
 version = "0.1.0"
 dependencies = [
- "jockey-ast",
- "jockey-lexer",
+ "jocky-ast",
+ "jocky-lexer",
  "thiserror 1.0.69",
 ]
 
 [[package]]
-name = "jockey-runtime"
+name = "jocky-runtime"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "jockey-runtime-artifacts",
- "jockey-runtime-auth",
- "jockey-runtime-capabilities",
- "jockey-runtime-correlation",
- "jockey-runtime-drivers",
- "jockey-runtime-evidence",
- "jockey-runtime-filesystem",
- "jockey-runtime-logs",
- "jockey-runtime-memory",
- "jockey-runtime-network",
- "jockey-runtime-process",
- "jockey-runtime-registry",
- "jockey-runtime-security",
- "jockey-runtime-services",
- "jockey-runtime-system",
- "jockey-runtime-timeline",
- "jockey-runtime-users",
+ "jocky-runtime-artifacts",
+ "jocky-runtime-auth",
+ "jocky-runtime-capabilities",
+ "jocky-runtime-correlation",
+ "jocky-runtime-drivers",
+ "jocky-runtime-evidence",
+ "jocky-runtime-filesystem",
+ "jocky-runtime-logs",
+ "jocky-runtime-memory",
+ "jocky-runtime-network",
+ "jocky-runtime-process",
+ "jocky-runtime-registry",
+ "jocky-runtime-security",
+ "jocky-runtime-services",
+ "jocky-runtime-system",
+ "jocky-runtime-timeline",
+ "jocky-runtime-users",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -2222,7 +2222,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-artifacts"
+name = "jocky-runtime-artifacts"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2235,7 +2235,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-auth"
+name = "jocky-runtime-auth"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2256,22 +2256,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-capabilities"
+name = "jocky-runtime-capabilities"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "jockey-runtime-artifacts",
- "jockey-runtime-auth",
- "jockey-runtime-drivers",
- "jockey-runtime-evidence",
- "jockey-runtime-filesystem",
- "jockey-runtime-logs",
- "jockey-runtime-network",
- "jockey-runtime-process",
- "jockey-runtime-security",
- "jockey-runtime-services",
- "jockey-runtime-system",
- "jockey-runtime-users",
+ "jocky-runtime-artifacts",
+ "jocky-runtime-auth",
+ "jocky-runtime-drivers",
+ "jocky-runtime-evidence",
+ "jocky-runtime-filesystem",
+ "jocky-runtime-logs",
+ "jocky-runtime-network",
+ "jocky-runtime-process",
+ "jocky-runtime-security",
+ "jocky-runtime-services",
+ "jocky-runtime-system",
+ "jocky-runtime-users",
  "libc",
  "serde",
  "serde_json",
@@ -2279,22 +2279,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-correlation"
+name = "jocky-runtime-correlation"
 version = "0.1.0"
 dependencies = [
  "chrono",
  "indexmap",
- "jockey-runtime-artifacts",
- "jockey-runtime-drivers",
- "jockey-runtime-evidence",
- "jockey-runtime-filesystem",
- "jockey-runtime-logs",
- "jockey-runtime-memory",
- "jockey-runtime-network",
- "jockey-runtime-process",
- "jockey-runtime-registry",
- "jockey-runtime-security",
- "jockey-runtime-timeline",
+ "jocky-runtime-artifacts",
+ "jocky-runtime-drivers",
+ "jocky-runtime-evidence",
+ "jocky-runtime-filesystem",
+ "jocky-runtime-logs",
+ "jocky-runtime-memory",
+ "jocky-runtime-network",
+ "jocky-runtime-process",
+ "jocky-runtime-registry",
+ "jocky-runtime-security",
+ "jocky-runtime-timeline",
  "regex",
  "serde",
  "serde_json",
@@ -2303,7 +2303,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-drivers"
+name = "jocky-runtime-drivers"
 version = "0.1.0"
 dependencies = [
  "chrono",
@@ -2314,21 +2314,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-evidence"
+name = "jocky-runtime-evidence"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
- "jockey-runtime-artifacts",
- "jockey-runtime-drivers",
- "jockey-runtime-filesystem",
- "jockey-runtime-logs",
- "jockey-runtime-memory",
- "jockey-runtime-network",
- "jockey-runtime-process",
- "jockey-runtime-registry",
- "jockey-runtime-system",
- "jockey-runtime-timeline",
+ "jocky-runtime-artifacts",
+ "jocky-runtime-drivers",
+ "jocky-runtime-filesystem",
+ "jocky-runtime-logs",
+ "jocky-runtime-memory",
+ "jocky-runtime-network",
+ "jocky-runtime-process",
+ "jocky-runtime-registry",
+ "jocky-runtime-system",
+ "jocky-runtime-timeline",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -2338,7 +2338,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-filesystem"
+name = "jocky-runtime-filesystem"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2353,7 +2353,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-logs"
+name = "jocky-runtime-logs"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2364,7 +2364,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-lotl"
+name = "jocky-runtime-lotl"
 version = "0.1.0"
 dependencies = [
  "serde",
@@ -2373,7 +2373,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-memory"
+name = "jocky-runtime-memory"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2387,7 +2387,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-network"
+name = "jocky-runtime-network"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2399,7 +2399,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-process"
+name = "jocky-runtime-process"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2414,7 +2414,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-registry"
+name = "jocky-runtime-registry"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2426,18 +2426,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-security"
+name = "jocky-runtime-security"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "jockey-runtime-network",
+ "jocky-runtime-network",
  "serde",
  "serde_json",
  "sha2 0.10.9",
 ]
 
 [[package]]
-name = "jockey-runtime-services"
+name = "jocky-runtime-services"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2455,7 +2455,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-system"
+name = "jocky-runtime-system"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2468,7 +2468,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-timeline"
+name = "jocky-runtime-timeline"
 version = "0.1.0"
 dependencies = [
  "chrono",
@@ -2478,7 +2478,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-runtime-users"
+name = "jocky-runtime-users"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2495,20 +2495,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "jockey-semantic"
+name = "jocky-semantic"
 version = "0.1.0"
 dependencies = [
- "jockey-ast",
- "jockey-ir",
- "jockey-lexer",
- "jockey-parser",
+ "jocky-ast",
+ "jocky-ir",
+ "jocky-lexer",
+ "jocky-parser",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
 ]
 
 [[package]]
-name = "jockey-shared-types"
+name = "jocky-shared-types"
 version = "0.1.0"
 dependencies = [
  "chrono",

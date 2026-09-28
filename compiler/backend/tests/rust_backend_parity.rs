@@ -1,12 +1,12 @@
 #![cfg(feature = "llvm")]
 
-use jockey_ast::Capability;
-use jockey_backend::llvm::LlvmBackend;
-use jockey_backend::{Backend, BackendKind};
-use jockey_ir::{BuildConfig, IrInvestigation};
-use jockey_lexer::Lexer;
-use jockey_parser::Parser;
-use jockey_semantic::SemanticAnalyzer;
+use jocky_ast::Capability;
+use jocky_backend::llvm::LlvmBackend;
+use jocky_backend::{Backend, BackendKind};
+use jocky_ir::{BuildConfig, IrInvestigation};
+use jocky_lexer::Lexer;
+use jocky_parser::Parser;
+use jocky_semantic::SemanticAnalyzer;
 use std::collections::HashSet;
 
 fn parse_to_ir(source: &str, test_name: &str) -> IrInvestigation {
@@ -105,9 +105,9 @@ fn test_rust_and_llvm_backend_parity_all_collectors() {
         .expect("Cargo.toml generation must succeed");
     let runtime_line = cargo_toml
         .lines()
-        .find(|line| line.contains("jockey-runtime"))
-        .expect("Cargo.toml must declare jockey-runtime");
-    assert!(cargo_toml.contains("jockey-runtime"));
+        .find(|line| line.contains("jocky-runtime"))
+        .expect("Cargo.toml must declare jocky-runtime");
+    assert!(cargo_toml.contains("jocky-runtime"));
     assert!(cargo_toml.contains("name = \"full_parity_triage\""));
     assert!(
         !runtime_line.contains(":"),
@@ -116,48 +116,48 @@ fn test_rust_and_llvm_backend_parity_all_collectors() {
     );
 
     // 2. LLVM backend verification
-    let hir: jockey_hir::HirInvestigation = (&ir).into();
-    let mir = jockey_mir::MirLowering::lower(&hir).expect("MIR lowering must succeed");
+    let hir: jocky_hir::HirInvestigation = (&ir).into();
+    let mir = jocky_mir::MirLowering::lower(&hir).expect("MIR lowering must succeed");
     let llvm_backend = LlvmBackend::new(build_config);
     let llvm_ir = llvm_backend
         .generate_llvm_ir(&mir)
         .expect("LLVM IR codegen must succeed");
 
     assert!(
-        llvm_ir.contains("jockey_rt_collect_system"),
-        "Missing jockey_rt_collect_system in LLVM backend"
+        llvm_ir.contains("jocky_rt_collect_system"),
+        "Missing jocky_rt_collect_system in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("jockey_rt_collect_processes"),
-        "Missing jockey_rt_collect_processes in LLVM backend"
+        llvm_ir.contains("jocky_rt_collect_processes"),
+        "Missing jocky_rt_collect_processes in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("jockey_rt_collect_network"),
-        "Missing jockey_rt_collect_network in LLVM backend"
+        llvm_ir.contains("jocky_rt_collect_network"),
+        "Missing jocky_rt_collect_network in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("jockey_rt_collect_memory_regions"),
-        "Missing jockey_rt_collect_memory_regions in LLVM backend"
+        llvm_ir.contains("jocky_rt_collect_memory_regions"),
+        "Missing jocky_rt_collect_memory_regions in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("jockey_rt_collect_registry"),
-        "Missing jockey_rt_collect_registry in LLVM backend"
+        llvm_ir.contains("jocky_rt_collect_registry"),
+        "Missing jocky_rt_collect_registry in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("jockey_rt_collect_artifacts"),
-        "Missing jockey_rt_collect_artifacts in LLVM backend"
+        llvm_ir.contains("jocky_rt_collect_artifacts"),
+        "Missing jocky_rt_collect_artifacts in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("jockey_rt_collect_drivers"),
-        "Missing jockey_rt_collect_drivers in LLVM backend"
+        llvm_ir.contains("jocky_rt_collect_drivers"),
+        "Missing jocky_rt_collect_drivers in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("jockey_rt_collect_logs"),
-        "Missing jockey_rt_collect_logs in LLVM backend"
+        llvm_ir.contains("jocky_rt_collect_logs"),
+        "Missing jocky_rt_collect_logs in LLVM backend"
     );
     assert!(
-        llvm_ir.contains("jockey_rt_evidence_export"),
-        "Missing jockey_rt_evidence_export in LLVM backend"
+        llvm_ir.contains("jocky_rt_evidence_export"),
+        "Missing jocky_rt_evidence_export in LLVM backend"
     );
 
     // 3. Parity checks: both backends target identical required capabilities

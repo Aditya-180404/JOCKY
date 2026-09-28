@@ -1,5 +1,5 @@
 [package]
-name = "jockey-cli"
+name = "jocky-cli"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -7,20 +7,20 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [[bin]]
-name = "jockey"
+name = "jocky"
 path = "src/main.rs"
 
 [dependencies]
-jockey-lexer = { path = "../lexer" }
-jockey-parser = { path = "../parser" }
-jockey-ast = { path = "../ast" }
-jockey-semantic = { path = "../semantic" }
-jockey-ir = { path = "../ir" }
-jockey-hir = { path = "../hir" }
-jockey-mir = { path = "../mir" }
-jockey-backend = { path = "../backend" }
-jockey-runtime = { path = "../../runtime" }
-jockey-runtime-capabilities = { path = "../../runtime/capabilities" }
+jocky-lexer = { path = "../lexer" }
+jocky-parser = { path = "../parser" }
+jocky-ast = { path = "../ast" }
+jocky-semantic = { path = "../semantic" }
+jocky-ir = { path = "../ir" }
+jocky-hir = { path = "../hir" }
+jocky-mir = { path = "../mir" }
+jocky-backend = { path = "../backend" }
+jocky-runtime = { path = "../../runtime" }
+jocky-runtime-capabilities = { path = "../../runtime/capabilities" }
 anyhow = { workspace = true }
 clap = { workspace = true }
 serde = { workspace = true }
@@ -33,7 +33,7 @@ ureq = { version = "2.10", features = ["json"] }
 
 [features]
 default = []
-llvm = ["jockey-backend/llvm"]
+llvm = ["jocky-backend/llvm"]
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"

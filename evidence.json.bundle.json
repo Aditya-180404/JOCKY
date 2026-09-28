@@ -17149,7 +17149,7 @@
           "--extension_server_csrf_token",
           "cd38ce38-71c6-449b-b73a-64f5e28f3d90",
           "--workspace_id",
-          "file_home_ghost_Desktop_JOCKEY",
+          "file_home_ghost_Desktop_JOCKY",
           "--cloud_code_endpoint",
           "https://daily-cloudcode-pa.googleapis.com",
           "--subclient_type",
@@ -18516,7 +18516,7 @@
           "anon_inode:[eventfd]",
           "anon_inode:[eventfd]",
           "anon_inode:inotify",
-          "/tmp/claude-1000/-home-ghost-Desktop-JOCKEY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks",
+          "/tmp/claude-1000/-home-ghost-Desktop-JOCKY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks",
           "socket:[231500]",
           "socket:[161662]",
           "socket:[249318]",
@@ -22827,19 +22827,19 @@
       "record_type": "record",
       "payload": {
         "command_line": [
-          "./target/release/jockey-api"
+          "./target/release/jocky-api"
         ],
         "cpu_percent": null,
-        "executable_path": "/home/ghost/Desktop/JOCKEY/target/release/jockey-api (deleted)",
+        "executable_path": "/home/ghost/Desktop/JOCKY/target/release/jocky-api (deleted)",
         "group": "ghost",
         "memory_rss_bytes": 55672832,
         "memory_vms_bytes": 1359454208,
-        "name": "jockey-api",
+        "name": "jocky-api",
         "network_connections": [],
         "open_files": [
           "/dev/null",
-          "/tmp/claude-1000/-home-ghost-Desktop-JOCKEY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/b1dgma2fu.output (deleted)",
-          "/tmp/claude-1000/-home-ghost-Desktop-JOCKEY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/b1dgma2fu.output (deleted)",
+          "/tmp/claude-1000/-home-ghost-Desktop-JOCKY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/b1dgma2fu.output (deleted)",
+          "/tmp/claude-1000/-home-ghost-Desktop-JOCKY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/b1dgma2fu.output (deleted)",
           "anon_inode:[eventpoll]",
           "anon_inode:[eventfd]",
           "anon_inode:[eventpoll]",
@@ -23147,7 +23147,7 @@
       "payload": {
         "command_line": [
           "node",
-          "/home/ghost/Desktop/JOCKEY/apps/web/node_modules/.bin/vite"
+          "/home/ghost/Desktop/JOCKY/apps/web/node_modules/.bin/vite"
         ],
         "cpu_percent": null,
         "executable_path": "/usr/bin/node",
@@ -23221,12 +23221,12 @@
       "record_type": "record",
       "payload": {
         "command_line": [
-          "/home/ghost/Desktop/JOCKEY/apps/web/node_modules/@esbuild/linux-x64/bin/esbuild",
+          "/home/ghost/Desktop/JOCKY/apps/web/node_modules/@esbuild/linux-x64/bin/esbuild",
           "--service=0.21.5",
           "--ping"
         ],
         "cpu_percent": null,
-        "executable_path": "/home/ghost/Desktop/JOCKEY/apps/web/node_modules/@esbuild/linux-x64/bin/esbuild",
+        "executable_path": "/home/ghost/Desktop/JOCKY/apps/web/node_modules/@esbuild/linux-x64/bin/esbuild",
         "group": "ghost",
         "memory_rss_bytes": 20078592,
         "memory_vms_bytes": 741081088,
@@ -25208,8 +25208,8 @@
         "network_connections": [],
         "open_files": [
           "/dev/null",
-          "/tmp/claude-1000/-home-ghost-Desktop-JOCKEY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/b4v2dcp07.output",
-          "/tmp/claude-1000/-home-ghost-Desktop-JOCKEY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/b4v2dcp07.output",
+          "/tmp/claude-1000/-home-ghost-Desktop-JOCKY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/b4v2dcp07.output",
+          "/tmp/claude-1000/-home-ghost-Desktop-JOCKY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/b4v2dcp07.output",
           "/dev/null",
           "socket:[291975]"
         ],
@@ -25245,7 +25245,7 @@
           "./build/test_triage-linux-x64"
         ],
         "cpu_percent": null,
-        "executable_path": "/home/ghost/Desktop/JOCKEY/build/test_triage-linux-x64",
+        "executable_path": "/home/ghost/Desktop/JOCKY/build/test_triage-linux-x64",
         "group": "ghost",
         "memory_rss_bytes": 6393856,
         "memory_vms_bytes": 8908800,
@@ -25253,8 +25253,8 @@
         "network_connections": [],
         "open_files": [
           "/dev/null",
-          "/tmp/claude-1000/-home-ghost-Desktop-JOCKEY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/b4v2dcp07.output",
-          "/tmp/claude-1000/-home-ghost-Desktop-JOCKEY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/b4v2dcp07.output",
+          "/tmp/claude-1000/-home-ghost-Desktop-JOCKY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/b4v2dcp07.output",
+          "/tmp/claude-1000/-home-ghost-Desktop-JOCKY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/b4v2dcp07.output",
           "/proc/208510",
           "/proc",
           "/proc/208510/fd"
@@ -25620,7 +25620,7 @@
         "local_address": "0.0.0.0",
         "local_port": 8080,
         "pid": 150011,
-        "process_name": "jockey-api",
+        "process_name": "jocky-api",
         "protocol": "tcp",
         "remote_address": "0.0.0.0",
         "remote_port": 0,
@@ -25950,7 +25950,7 @@
         "local_address": "127.0.0.1",
         "local_port": 8080,
         "pid": 150011,
-        "process_name": "jockey-api",
+        "process_name": "jocky-api",
         "protocol": "tcp",
         "remote_address": "127.0.0.1",
         "remote_port": 47518,
@@ -59648,8 +59648,8 @@
       "record_type": "record",
       "payload": {
         "level": "5",
-        "message": "   ghost : TTY=pts/4 ; PWD=/home/ghost/Desktop/JOCKEY ; USER=root ; COMMAND=/usr/bin/su",
-        "raw_line": "{\"SYSLOG_FACILITY\":\"10\",\"__REALTIME_TIMESTAMP\":\"1790321096235124\",\"_SYSTEMD_UNIT\":\"session-2.scope\",\"_SOURCE_REALTIME_TIMESTAMP\":\"1790321096235044\",\"_UID\":\"1000\",\"__MONOTONIC_TIMESTAMP\":\"3631692781\",\"_RUNTIME_SCOPE\":\"system\",\"_SYSTEMD_OWNER_UID\":\"1000\",\"_PID\":\"109002\",\"_CAP_EFFECTIVE\":\"1ffffffffff\",\"_TRANSPORT\":\"syslog\",\"_EXE\":\"/usr/bin/sudo\",\"_BOOT_ID\":\"f1ed149363894682907aaddf255590b4\",\"MESSAGE\":\"   ghost : TTY=pts/4 ; PWD=/home/ghost/Desktop/JOCKEY ; USER=root ; COMMAND=/usr/bin/su\",\"_SYSTEMD_CGROUP\":\"/user.slice/user-1000.slice/session-2.scope\",\"_SYSTEMD_INVOCATION_ID\":\"82f072ba65af4b83a5e05ad45e1f8527\",\"__CURSOR\":\"s=ee3cdbc4b06d4d59a9b679ae58d31718;i=27c8c;b=f1ed149363894682907aaddf255590b4;m=d8773bed;t=65c499cf99874;x=86a40e495fd4240\",\"__SEQNUM_ID\":\"ee3cdbc4b06d4d59a9b679ae58d31718\",\"_SYSTEMD_SLICE\":\"user-1000.slice\",\"_AUDIT_LOGINUID\":\"1000\",\"_COMM\":\"sudo\",\"_GID\":\"1000\",\"_AUDIT_SESSION\":\"2\",\"_MACHINE_ID\":\"3953aa1746724e6583963194ac151874\",\"_HOSTNAME\":\"kali\",\"SYSLOG_IDENTIFIER\":\"sudo\",\"_SYSTEMD_SESSION\":\"2\",\"_SYSTEMD_USER_SLICE\":\"-.slice\",\"_CMDLINE\":\"sudo su\",\"SYSLOG_TIMESTAMP\":\"Sep 25 12:54:56 \",\"__SEQNUM\":\"162956\",\"PRIORITY\":\"5\"}",
+        "message": "   ghost : TTY=pts/4 ; PWD=/home/ghost/Desktop/JOCKY ; USER=root ; COMMAND=/usr/bin/su",
+        "raw_line": "{\"SYSLOG_FACILITY\":\"10\",\"__REALTIME_TIMESTAMP\":\"1790321096235124\",\"_SYSTEMD_UNIT\":\"session-2.scope\",\"_SOURCE_REALTIME_TIMESTAMP\":\"1790321096235044\",\"_UID\":\"1000\",\"__MONOTONIC_TIMESTAMP\":\"3631692781\",\"_RUNTIME_SCOPE\":\"system\",\"_SYSTEMD_OWNER_UID\":\"1000\",\"_PID\":\"109002\",\"_CAP_EFFECTIVE\":\"1ffffffffff\",\"_TRANSPORT\":\"syslog\",\"_EXE\":\"/usr/bin/sudo\",\"_BOOT_ID\":\"f1ed149363894682907aaddf255590b4\",\"MESSAGE\":\"   ghost : TTY=pts/4 ; PWD=/home/ghost/Desktop/JOCKY ; USER=root ; COMMAND=/usr/bin/su\",\"_SYSTEMD_CGROUP\":\"/user.slice/user-1000.slice/session-2.scope\",\"_SYSTEMD_INVOCATION_ID\":\"82f072ba65af4b83a5e05ad45e1f8527\",\"__CURSOR\":\"s=ee3cdbc4b06d4d59a9b679ae58d31718;i=27c8c;b=f1ed149363894682907aaddf255590b4;m=d8773bed;t=65c499cf99874;x=86a40e495fd4240\",\"__SEQNUM_ID\":\"ee3cdbc4b06d4d59a9b679ae58d31718\",\"_SYSTEMD_SLICE\":\"user-1000.slice\",\"_AUDIT_LOGINUID\":\"1000\",\"_COMM\":\"sudo\",\"_GID\":\"1000\",\"_AUDIT_SESSION\":\"2\",\"_MACHINE_ID\":\"3953aa1746724e6583963194ac151874\",\"_HOSTNAME\":\"kali\",\"SYSLOG_IDENTIFIER\":\"sudo\",\"_SYSTEMD_SESSION\":\"2\",\"_SYSTEMD_USER_SLICE\":\"-.slice\",\"_CMDLINE\":\"sudo su\",\"SYSLOG_TIMESTAMP\":\"Sep 25 12:54:56 \",\"__SEQNUM\":\"162956\",\"PRIORITY\":\"5\"}",
         "source": "journal",
         "timestamp": "2026-09-25T07:24:56.235124Z"
       },

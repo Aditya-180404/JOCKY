@@ -1,6 +1,6 @@
 investigation "complete_forensic_triage" {
     metadata {
-        author = "JOCKEY DFIR Team"
+        author = "JOCKY DFIR Team"
         priority = "High"
         category = "Full Triage"
     }

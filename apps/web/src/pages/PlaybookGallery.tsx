@@ -187,7 +187,7 @@ export function PlaybookGallery() {
             Forensic Investigation Playbooks
           </h1>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-            Production-ready jockey investigations for incident response, threat hunting, and digital forensics.
+            Production-ready jocky investigations for incident response, threat hunting, and digital forensics.
             Click any playbook to open it instantly in the Web IDE.
           </p>
         </div>

@@ -1,9 +1,9 @@
-//! Real Firewall collector and normalizer for JOCKEY
+//! Real Firewall collector and normalizer for JOCKY
 //!
-//! Complies with JOCKEY forensic requirements:
+//! Complies with JOCKY forensic requirements:
 //! - Real collector (no mocks, no hardcoded records).
 //! - Clean reporting on unsupported platforms or missing backends.
-//! - Normalized evidence model matching the JOCKEY forensic schema.
+//! - Normalized evidence model matching the JOCKY forensic schema.
 //! - Clear elevation handling (`status: "requires_elevation"` on permission denial).
 
 use serde::{Deserialize, Serialize};

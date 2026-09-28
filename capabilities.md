@@ -1,4 +1,4 @@
-# JOCKEY Capability Inventory
+# JOCKY Capability Inventory
 
 **Total Capabilities:** 247 | **Implemented:** 240 | **Partial:** 1 | **Requires Elevation:** 4 | **Platform Restricted:** 1 | **Unsupported:** 1 | **Coverage:** 97.2%
 

@@ -1,4 +1,4 @@
-//! jockey AST - Abstract Syntax Tree definitions
+//! jocky AST - Abstract Syntax Tree definitions
 
 use serde::{Deserialize, Serialize};
 use std::fmt;

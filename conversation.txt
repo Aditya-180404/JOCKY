@@ -1,14 +1,14 @@
-JOCKEY handoff conversation and technical context
+JOCKY handoff conversation and technical context
 ===============================================
 
 Project:
-- Repository: /home/ghost/Desktop/JOCKEY
-- Remote: https://github.com/Aditya-180404/JOCKEY.git
+- Repository: /home/ghost/Desktop/JOCKY
+- Remote: https://github.com/Aditya-180404/JOCKY.git
 - Current branch at audit start: main, commit 40475c4
 
 User's intended product direction:
-- JOCKEY is an offline-first defensive forensic DSL, compiler, native runtime, and local reporting tool.
-- The website should let users write and validate JOCKEY source, compile/download an OS-specific artifact, download the local compiler, read setup guides, documentation, examples, and playbooks.
+- JOCKY is an offline-first defensive forensic DSL, compiler, native runtime, and local reporting tool.
+- The website should let users write and validate JOCKY source, compile/download an OS-specific artifact, download the local compiler, read setup guides, documentation, examples, and playbooks.
 - A user runs the downloaded executable/binary on their own target OS. The binary collects local evidence and creates evidence.json plus evidence.json.meta.json.
 - Evidence verification and report generation should happen locally through the CLI, not by uploading evidence to the website.
 - No login or registration is required for now.
@@ -60,10 +60,10 @@ Important implementation constraints:
 
 Suggested verification after continuation:
 - cargo fmt --all -- --check
-- cargo build -p jockey-api
+- cargo build -p jocky-api
 - npm run build in apps/web
 - docker compose up --build
 - curl /health through the exposed API
 - POST a valid .tfg program to /api/compiler/compile and verify Content-Disposition plus executable download
-- Run the downloaded Linux artifact in a controlled environment, then run jockey evidence verify evidence.json --deep
+- Run the downloaded Linux artifact in a controlled environment, then run jocky evidence verify evidence.json --deep
 

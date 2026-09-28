@@ -61,7 +61,7 @@ fn tools() -> &'static Arc<Mutex<HashMap<String, StoredTool>>> {
 
 // ─── JWT (HS256) ──────────────────────────────────────────────────────────────
 
-const JWT_SECRET: &[u8] = b"jockey-local-dev-secret-DO-NOT-USE-IN-PRODUCTION";
+const JWT_SECRET: &[u8] = b"jocky-local-dev-secret-DO-NOT-USE-IN-PRODUCTION";
 
 #[derive(Serialize, Deserialize)]
 struct Claims {

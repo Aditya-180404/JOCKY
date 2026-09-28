@@ -1,4 +1,4 @@
-//! Canonical Evidence Bundle Architecture for JOCKEY
+//! Canonical Evidence Bundle Architecture for JOCKY
 //!
 //! Provides the primary forensic data contracts:
 //! - EvidenceRecord (with cryptographically sealed item hash and provenance)

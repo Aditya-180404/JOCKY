@@ -1,4 +1,4 @@
-# JOCKEY Release Validation Gate
+# JOCKY Release Validation Gate
 # Single entry point for local full release qualification
 
 $ErrorActionPreference = 'Stop'
@@ -38,7 +38,7 @@ if (Test-Path "C:\LLVM21") {
 }
 
 Write-Host "************************************************************" -ForegroundColor Magenta
-Write-Host "     JOCKEY STRICT RELEASE VALIDATION MASTER GATE           " -ForegroundColor Magenta
+Write-Host "     JOCKY STRICT RELEASE VALIDATION MASTER GATE           " -ForegroundColor Magenta
 Write-Host "************************************************************" -ForegroundColor Magenta
 Write-Host "Repository: $repoRoot"
 Write-Host "Time:       $([System.DateTime]::UtcNow.ToString('o')) UTC"
@@ -74,19 +74,19 @@ Run-Gate "4. Release Binary Compilation (cargo build --release)" {
 
 # 5. PE Version Metadata Validation
 Run-Gate "5. Windows PE Version Metadata" {
-    $exePath = Join-Path $repoRoot "target\release\jockey.exe"
-    if (-not (Test-Path $exePath)) { throw "jockey.exe not found" }
+    $exePath = Join-Path $repoRoot "target\release\jocky.exe"
+    if (-not (Test-Path $exePath)) { throw "jocky.exe not found" }
     $info = (Get-Item $exePath).VersionInfo
-    if ($info.ProductName -ne "JOCKEY") { throw "ProductName mismatch: $($info.ProductName)" }
-    if ($info.FileDescription -ne "JOCKEY Digital Forensics Platform") { throw "FileDescription mismatch: $($info.FileDescription)" }
-    if ($info.CompanyName -ne "JOCKEY") { throw "CompanyName mismatch: $($info.CompanyName)" }
+    if ($info.ProductName -ne "JOCKY") { throw "ProductName mismatch: $($info.ProductName)" }
+    if ($info.FileDescription -ne "JOCKY Digital Forensics Platform") { throw "FileDescription mismatch: $($info.FileDescription)" }
+    if ($info.CompanyName -ne "JOCKY") { throw "CompanyName mismatch: $($info.CompanyName)" }
     if ($info.ProductVersion -ne "0.1.0") { throw "ProductVersion mismatch: $($info.ProductVersion)" }
     Write-Host "      ✓ Product: $($info.ProductName), Version: $($info.ProductVersion)"
 }
 
 # 6. Authoritative Capability Matrix Audit
 Run-Gate "6. Authoritative Capability Matrix (247 capabilities)" {
-    $cliJson = (& .\target\release\jockey.exe capabilities --format json) -join "`n"
+    $cliJson = (& .\target\release\jocky.exe capabilities --format json) -join "`n"
     $caps = $cliJson | ConvertFrom-Json
     if ($caps.Length -ne 247) { throw "CLI capabilities count mismatch: $($caps.Length) (expected 247)" }
     Write-Host "      ✓ 247 capabilities verified across registry"
@@ -94,23 +94,23 @@ Run-Gate "6. Authoritative Capability Matrix (247 capabilities)" {
 
 # 7. Source Independence & Relocatable Project Validation
 Run-Gate "7. Source-Independent Generated Projects" {
-    & cargo test --package jockey-backend --test source_independence
+    & cargo test --package jocky-backend --test source_independence
     if ($LASTEXITCODE -ne 0) { throw "Source independence test failed" }
 }
 
 # 8. Forensic Pipeline Execution & Integrity Verification
 Run-Gate "8. Forensic Pipeline (Check, Run, Verify, Tamper Detection)" {
     # Check
-    & .\target\release\jockey.exe check examples\complete_forensic_triage.jy
-    if ($LASTEXITCODE -ne 0) { throw "jockey check failed" }
+    & .\target\release\jocky.exe check examples\complete_forensic_triage.jy
+    if ($LASTEXITCODE -ne 0) { throw "jocky check failed" }
 
     # Run
     $testOut = Join-Path $repoRoot "target\release-test-build"
     if (Test-Path $testOut) { Remove-Item -Recurse -Force $testOut }
     New-Item -ItemType Directory -Path $testOut | Out-Null
 
-    & .\target\release\jockey.exe run examples\complete_forensic_triage.jy --output $testOut
-    if ($LASTEXITCODE -ne 0) { throw "jockey run failed" }
+    & .\target\release\jocky.exe run examples\complete_forensic_triage.jy --output $testOut
+    if ($LASTEXITCODE -ne 0) { throw "jocky run failed" }
 
     $evidenceFile = Join-Path $testOut "complete_forensic_triage_evidence.json"
     if (-not (Test-Path $evidenceFile)) {
@@ -120,14 +120,14 @@ Run-Gate "8. Forensic Pipeline (Check, Run, Verify, Tamper Detection)" {
     if (-not (Test-Path $evidenceFile)) { throw "Evidence file not produced" }
 
     # Verify
-    & .\target\release\jockey.exe evidence verify $evidenceFile --meta $metaFile
+    & .\target\release\jocky.exe evidence verify $evidenceFile --meta $metaFile
     if ($LASTEXITCODE -ne 0) { throw "Evidence verification failed" }
 
     # Tamper test
     $tamperedFile = Join-Path $env:TEMP "tamper_gate_test.json"
     $content = Get-Content $evidenceFile -Raw
     Set-Content -Path $tamperedFile -Value ($content + " ")
-    $tamperProc = Start-Process -FilePath ".\target\release\jockey.exe" -ArgumentList "evidence", "verify", $tamperedFile, "--meta", $metaFile -NoNewWindow -Wait -PassThru
+    $tamperProc = Start-Process -FilePath ".\target\release\jocky.exe" -ArgumentList "evidence", "verify", $tamperedFile, "--meta", $metaFile -NoNewWindow -Wait -PassThru
     Remove-Item -Force $tamperedFile -ErrorAction SilentlyContinue
     if ($tamperProc.ExitCode -eq 0) { throw "Tampered evidence was falsely validated!" }
     Write-Host "      ✓ Tamper detection confirmed"
@@ -150,7 +150,7 @@ Run-Gate "10. Authenticode Signing Pipeline" {
 
 # 11. API Unit & Security Tests
 Run-Gate "11. API Contracts & Download Security Tests" {
-    & cargo test --package jockey-api
+    & cargo test --package jocky-api
     if ($LASTEXITCODE -ne 0) { throw "API tests failed" }
 }
 

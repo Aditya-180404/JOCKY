@@ -1,4 +1,4 @@
-//! jockey Runtime — Registry / sysctl forensic collector
+//! jocky Runtime — Registry / sysctl forensic collector
 //!
 //! On Windows: reads real registry hives via `winreg`.
 //! On Linux: enumerates `/proc/sys/**` kernel parameters and loaded modules

@@ -1,4 +1,4 @@
-# JOCKEY Strict Evidence Integrity & Tamper Detection Test
+# JOCKY Strict Evidence Integrity & Tamper Detection Test
 # Performs exact 8-step test sequence:
 # 1. Run investigation
 # 2. Generate evidence
@@ -12,13 +12,13 @@
 $ErrorActionPreference = "Stop"
 
 Write-Host "==================================================" -ForegroundColor Cyan
-Write-Host "JOCKEY STRICT EVIDENCE TAMPER DETECTION TEST" -ForegroundColor Cyan
+Write-Host "JOCKY STRICT EVIDENCE TAMPER DETECTION TEST" -ForegroundColor Cyan
 Write-Host "==================================================" -ForegroundColor Cyan
 
 # Step 1 & 2: Run investigation & generate evidence
 Write-Host "[Step 1 & 2] Executing investigation to generate fresh evidence..." -ForegroundColor Yellow
 if (!(Test-Path "build")) { New-Item -ItemType Directory -Path "build" | Out-Null }
-$runOutput = .\target\release\jockey.exe run examples/basic_system_triage.jy --output build/
+$runOutput = .\target\release\jocky.exe run examples/basic_system_triage.jy --output build/
 $evPath = "build/system_triage.json"
 $metaPath = "build/system_triage.json.meta.json"
 
@@ -30,7 +30,7 @@ Write-Host "  -> Generated $evPath ($((Get-Item $evPath).Length) bytes)" -Foregr
 
 # Step 3: Verify original evidence
 Write-Host "[Step 3] Verifying original untampered evidence..." -ForegroundColor Yellow
-$verify1 = .\target\release\jockey.exe verify $evPath 2>&1 | Out-String
+$verify1 = .\target\release\jocky.exe verify $evPath 2>&1 | Out-String
 $verify1Valid = ($LASTEXITCODE -eq 0) -and ($verify1 -match "VALID")
 if (!$verify1Valid) {
     Write-Host "[FAIL] Original evidence failed verification: $verify1" -ForegroundColor Red
@@ -60,7 +60,7 @@ Write-Host "[Step 5 & 6] Verifying tampered evidence (MUST FAIL)..." -Foreground
 $verify2 = ""
 $exitCode = 0
 try {
-    $p = Start-Process -FilePath ".\target\release\jockey.exe" -ArgumentList "verify `"$evPath`"" -NoNewWindow -Wait -PassThru -RedirectStandardError "build/tamper_err.txt" -RedirectStandardOutput "build/tamper_out.txt"
+    $p = Start-Process -FilePath ".\target\release\jocky.exe" -ArgumentList "verify `"$evPath`"" -NoNewWindow -Wait -PassThru -RedirectStandardError "build/tamper_err.txt" -RedirectStandardOutput "build/tamper_out.txt"
     $exitCode = $p.ExitCode
     $verify2 = (Get-Content "build/tamper_err.txt" -Raw) + (Get-Content "build/tamper_out.txt" -Raw)
 } catch {
@@ -82,7 +82,7 @@ Write-Host "  -> Restored original evidence" -ForegroundColor Green
 
 # Step 8: Verification MUST succeed again
 Write-Host "[Step 8] Verifying restored original evidence (MUST SUCCEED)..." -ForegroundColor Yellow
-$verify3 = .\target\release\jockey.exe verify $evPath 2>&1 | Out-String
+$verify3 = .\target\release\jocky.exe verify $evPath 2>&1 | Out-String
 $verify3Valid = ($LASTEXITCODE -eq 0) -and ($verify3 -match "VALID")
 if (!$verify3Valid) {
     Write-Host "[FAIL] Restored evidence failed verification: $verify3" -ForegroundColor Red

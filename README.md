@@ -1,4 +1,4 @@
-# jockey
+# jocky
 
 A local-first digital-forensics platform for authorized forensic triage, evidence collection, and analysis in controlled environments.
 
@@ -6,8 +6,8 @@ A local-first digital-forensics platform for authorized forensic triage, evidenc
 
 ## Overview
 
-jockey enables investigators to:
-- Write forensic investigation programs using the jockey language (`.jy`)
+jocky enables investigators to:
+- Write forensic investigation programs using the jocky language (`.jy`)
 - Validate and compile investigation definitions into repeatable, auditable workflows
 - Collect evidence from approved hosts using local runtime collectors and signed metadata
 - Verify evidence integrity cryptographically using SHA-256 and bundle metadata
@@ -18,10 +18,10 @@ This project is designed for legitimate, consented forensic use. It does not cla
 ## Architecture
 
 ```
-jockey Workspace
+jocky Workspace
 ├── Web Frontend (React + TypeScript + Vite + Tailwind)
 ├── Web IDE (Monaco Editor)
-├── jockey Language & Compiler (Rust)
+├── jocky Language & Compiler (Rust)
 ├── Compiler Service (Rust worker)
 ├── Tool Repository
 ├── Investigation Management
@@ -34,11 +34,11 @@ jockey Workspace
 ## Project Structure
 
 ```
-jockey/
+jocky/
 ├── apps/
 │   ├── web/          # Frontend application
 │   └── api/          # Backend API
-├── compiler/         # jockey compiler (Rust)
+├── compiler/         # jocky compiler (Rust)
 │   ├── lexer/
 │   ├── parser/
 │   ├── ast/
@@ -80,8 +80,8 @@ jockey/
 ### Step 1 — Clone the Repository
 
 ```powershell
-git clone https://github.com/Aditya-180404/jockey.git
-cd jockey
+git clone https://github.com/Aditya-180404/jocky.git
+cd jocky
 ```
 
 ---
@@ -89,8 +89,8 @@ cd jockey
 ### Step 2 — Start the Local API
 
 ```powershell
-$env:JOCKEY_API_ADDR = "0.0.0.0:8080"
-cargo run -p jockey-api
+$env:JOCKY_API_ADDR = "0.0.0.0:8080"
+cargo run -p jocky-api
 ```
 
 The local API exposes `/health` and compiler/download endpoints on port 8080. The current API does not require PostgreSQL, Redis, or MinIO to run these local workflows.
@@ -121,7 +121,7 @@ Use separate terminals for the API and frontend. Do not terminate an API process
 
 ```powershell
 # Terminal 1: API
-cargo run -p jockey-api
+cargo run -p jocky-api
 
 # Terminal 2: frontend
 cd apps\web
@@ -136,10 +136,10 @@ Verify `http://localhost:8080/health`, then open `http://localhost:3000/ide`. Th
 ### Step 4 — Build the CLI
 
 ```powershell
-cargo build --release -p jockey-cli
+cargo build --release -p jocky-cli
 ```
 
-The CLI binary is created at `target\release\jockey.exe`.
+The CLI binary is created at `target\release\jocky.exe`.
 
 Optionally add it to your PATH:
 
@@ -150,25 +150,25 @@ $env:PATH += ";$PWD\target\release"
 Verify:
 
 ```powershell
-jockey --version
-# jockey 0.1.0
+jocky --version
+# jocky 0.1.0
 ```
 
 ---
 
 ### Step 5 — Run Your First Investigation
 
-JOCKEY source files use the `.jy` extension.
+JOCKY source files use the `.jy` extension.
 
 ```powershell
 # Validate a .jy file
-jockey validate examples\process_triage.jy
+jocky validate examples\process_triage.jy
 
 # Run an investigation (requires Rust/Cargo and the runtime source tree)
-jockey run examples\process_triage.jy
+jocky run examples\process_triage.jy
 
 # Verify the evidence file integrity
-jockey verify process_triage_evidence.json
+jocky verify process_triage_evidence.json
 ```
 
 Expected output:
@@ -187,7 +187,7 @@ Collected: 2026-09-23T...
 Navigate to **http://localhost:3000/ide** in your browser, or run:
 
 ```powershell
-jockey ide
+jocky ide
 ```
 
 Write `.jy` code in the Monaco editor, click **Check** to validate, **Run** to collect evidence through the local API, and **Verify** to recheck evidence integrity. The current generated CLI run/build path still depends on the Rust toolchain and runtime source tree; packaged execution away from the source checkout is not yet release-ready.
@@ -196,7 +196,7 @@ Write `.jy` code in the Monaco editor, click **Check** to validate, **Run** to c
 
 ## Language Example
 
-```jockey
+```jocky
 investigation "process_triage" {
     collect system_info
     collect processes {
@@ -214,7 +214,7 @@ investigation "process_triage" {
 
 ## Security
 
-jockey is a **defensive** digital-forensics platform. It does not implement:
+jocky is a **defensive** digital-forensics platform. It does not implement:
 - Antivirus/EDR bypass techniques
 - Process injection or hollowing
 - Credential theft

@@ -1,8 +1,8 @@
 #![cfg(feature = "llvm")]
 
-use jockey_backend::llvm::LlvmBackend;
-use jockey_ir::BuildConfig;
-use jockey_mir::{
+use jocky_backend::llvm::LlvmBackend;
+use jocky_ir::BuildConfig;
+use jocky_mir::{
     MirBasicBlock, MirFunction, MirInstruction, MirLocal, MirProgram, MirProvenance, MirTerminator,
     MirType,
 };
@@ -87,18 +87,18 @@ fn test_llvm_golden_process_triage_ir() {
     assert!(ir.contains("; ModuleID = 'golden_triage'"));
     assert!(ir.contains("target datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\""));
     assert!(ir.contains("target triple = \"x86_64-pc-linux-gnu\""));
-    assert!(ir.contains("declare ptr @jockey_rt_evidence_init(ptr, ptr)"));
-    assert!(ir.contains("declare i32 @jockey_rt_collect_processes(ptr, ptr, ptr)"));
-    assert!(ir.contains("declare i32 @jockey_rt_evidence_filter(ptr, ptr)"));
-    assert!(ir.contains("declare i32 @jockey_rt_evidence_limit(ptr, i64)"));
-    assert!(ir.contains("declare i32 @jockey_rt_evidence_export(ptr, ptr, ptr)"));
-    assert!(ir.contains("declare void @jockey_rt_evidence_free(ptr)"));
-    assert!(ir.contains("call ptr @jockey_rt_evidence_init"));
-    assert!(ir.contains("call i32 @jockey_rt_collect_processes"));
-    assert!(ir.contains("call i32 @jockey_rt_evidence_filter"));
-    assert!(ir.contains("call i32 @jockey_rt_evidence_limit"));
-    assert!(ir.contains("call i32 @jockey_rt_evidence_export"));
-    assert!(ir.contains("call void @jockey_rt_evidence_free"));
+    assert!(ir.contains("declare ptr @jocky_rt_evidence_init(ptr, ptr)"));
+    assert!(ir.contains("declare i32 @jocky_rt_collect_processes(ptr, ptr, ptr)"));
+    assert!(ir.contains("declare i32 @jocky_rt_evidence_filter(ptr, ptr)"));
+    assert!(ir.contains("declare i32 @jocky_rt_evidence_limit(ptr, i64)"));
+    assert!(ir.contains("declare i32 @jocky_rt_evidence_export(ptr, ptr, ptr)"));
+    assert!(ir.contains("declare void @jocky_rt_evidence_free(ptr)"));
+    assert!(ir.contains("call ptr @jocky_rt_evidence_init"));
+    assert!(ir.contains("call i32 @jocky_rt_collect_processes"));
+    assert!(ir.contains("call i32 @jocky_rt_evidence_filter"));
+    assert!(ir.contains("call i32 @jocky_rt_evidence_limit"));
+    assert!(ir.contains("call i32 @jocky_rt_evidence_export"));
+    assert!(ir.contains("call void @jocky_rt_evidence_free"));
     assert!(ir.contains("ret i32"));
 
     // Verify clang parses and compiles this IR to an object file with zero errors

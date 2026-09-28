@@ -164,7 +164,7 @@ export function ExamplesPage() {
             <span>Canonical Investigation Scripts</span>
           </div>
           <h1 className="text-3xl font-bold font-mono text-white">
-            jockey Examples
+            jocky Examples
           </h1>
           <p className="mt-2 text-xs text-slate-400">
             Explore ready-to-run forensic investigations. Open any example in the Web IDE or download the `.jy` source.

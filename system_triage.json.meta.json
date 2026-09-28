@@ -1,6 +1,6 @@
 {
   "investigation_name": "basic_system_triage",
-  "tool_name": "jockey-tool",
+  "tool_name": "jocky-tool",
   "tool_version": "0.1.0",
   "host_identifier": "kali",
   "collection_time": "2026-09-25T07:34:10.335762698Z",

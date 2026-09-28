@@ -69,9 +69,9 @@ async function main() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       username: 'e2e_analyst_' + Date.now(),
-      email: 'analyst_' + Date.now() + '@jockey.security',
+      email: 'analyst_' + Date.now() + '@jocky.security',
       password: 'SecurePassword123!',
-      organization: 'JOCKEY Security Research'
+      organization: 'JOCKY Security Research'
     })
   }).then(r => r.json());
   console.log('Register response:', regRes);

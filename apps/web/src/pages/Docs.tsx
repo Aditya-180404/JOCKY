@@ -13,35 +13,35 @@ export function DocsPage() {
 
   const cliCommands = [
     {
-      cmd: 'jockey check <file.jy>',
+      cmd: 'jocky check <file.jy>',
       desc: 'Validates source syntax, AST, and semantic capability constraints.',
     },
     {
-      cmd: 'jockey compile <file.jy> --target windows --arch x64',
+      cmd: 'jocky compile <file.jy> --target windows --arch x64',
       desc: 'Compiles the .jy investigation into a standalone native executable artifact.',
     },
     {
-      cmd: 'jockey build <file.jy>',
+      cmd: 'jocky build <file.jy>',
       desc: 'Alias for speed-optimized compilation into release binary.',
     },
     {
-      cmd: 'jockey run <file.jy>',
+      cmd: 'jocky run <file.jy>',
       desc: 'Compiles and immediately executes the investigation on the current host.',
     },
     {
-      cmd: 'jockey fmt <file.jy> [--write]',
-      desc: 'Parses and formats source code into normalized jockey syntax.',
+      cmd: 'jocky fmt <file.jy> [--write]',
+      desc: 'Parses and formats source code into normalized jocky syntax.',
     },
     {
-      cmd: 'jockey inspect <file.jy> --format [tokens|ast|ir]',
+      cmd: 'jocky inspect <file.jy> --format [tokens|ast|ir]',
       desc: 'Dumps lexer tokens, AST hierarchy, or Intermediate Representation (IR).',
     },
     {
-      cmd: 'jockey verify <artifact/evidence.json>',
+      cmd: 'jocky verify <artifact/evidence.json>',
       desc: 'Verifies SHA-256 cryptographic checksums against sidecar metadata to detect tampering.',
     },
     {
-      cmd: 'jockey target list',
+      cmd: 'jocky target list',
       desc: 'Lists all supported compilation target platforms and architectures.',
     },
   ];
@@ -84,7 +84,7 @@ export function DocsPage() {
               <div>
                 <h1 className="text-xl font-bold font-mono text-white">CLI Toolchain Reference</h1>
                 <p className="mt-1 text-xs text-slate-400">
-                  Command-line interface for checking, compiling, running, and verifying jockey investigations.
+                  Command-line interface for checking, compiling, running, and verifying jocky investigations.
                 </p>
               </div>
 
@@ -153,7 +153,7 @@ export function DocsPage() {
                 </p>
 
                 <div className="font-bold text-slate-200 pt-2">3. Verification Command</div>
-                <div className="text-blue-300">jockey verify evidence.json</div>
+                <div className="text-blue-300">jocky verify evidence.json</div>
                 <p className="text-slate-400 font-sans">
                   Recalculates the evidence hash and matches against sidecar. Exit code 0 if valid; exit code 1 if tampered.
                 </p>
@@ -174,7 +174,7 @@ export function DocsPage() {
                 <div className="p-3.5 rounded bg-[#090d15] border border-slate-800">
                   <h3 className="font-bold text-white mb-1">Read-Only Operation</h3>
                   <p className="text-slate-400">
-                    jockey collection primitives only query existing state. Handles are opened with read-only
+                    jocky collection primitives only query existing state. Handles are opened with read-only
                     rights (`PROCESS_QUERY_LIMITED_INFORMATION`, read-only file streams).
                   </p>
                 </div>

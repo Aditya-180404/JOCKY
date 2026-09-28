@@ -1,9 +1,9 @@
-//! C-compatible ABI for jockey LLVM code generation
+//! C-compatible ABI for jocky LLVM code generation
 //!
 //! Provides `extern "C"` endpoints called directly by the LLVM IR generated
-//! by the jockey compiler.
+//! by the jocky compiler.
 
-use jockey_runtime_evidence::{CollectionStatus, EvidenceCollector};
+use jocky_runtime_evidence::{CollectionStatus, EvidenceCollector};
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int, c_void};
 
@@ -15,7 +15,7 @@ pub struct RuntimeContext {
 #[no_mangle]
 /// # Safety
 /// Caller must ensure `investigation_name` and `source_hash` are valid UTF-8 C string pointers or null.
-pub unsafe extern "C" fn jockey_rt_evidence_init(
+pub unsafe extern "C" fn jocky_rt_evidence_init(
     investigation_name: *const c_char,
     source_hash: *const c_char,
 ) -> *mut c_void {
@@ -38,7 +38,7 @@ pub unsafe extern "C" fn jockey_rt_evidence_init(
     };
     let artifact_hash = std::env::current_exe()
         .ok()
-        .and_then(|path| jockey_runtime_evidence::hash_file(&path.to_string_lossy()).ok());
+        .and_then(|path| jocky_runtime_evidence::hash_file(&path.to_string_lossy()).ok());
     let mut collector = EvidenceCollector::new(&name_str);
     collector.set_build_provenance(source_hash, artifact_hash);
     let ctx = Box::new(RuntimeContext { collector });
@@ -49,7 +49,7 @@ pub unsafe extern "C" fn jockey_rt_evidence_init(
 /// # Safety
 /// Caller must provide a valid runtime context and valid UTF-8 C strings for the capability ID
 /// and options JSON, or null for options.
-pub unsafe extern "C" fn jockey_rt_invoke_capability(
+pub unsafe extern "C" fn jocky_rt_invoke_capability(
     ctx_ptr: *mut c_void,
     capability_id_ptr: *const c_char,
     options_json_ptr: *const c_char,
@@ -72,7 +72,7 @@ pub unsafe extern "C" fn jockey_rt_invoke_capability(
             Ok(options) => options,
             Err(error) => {
                 eprintln!(
-                    "[jockey Runtime] Invalid capability options JSON: {}",
+                    "[jocky Runtime] Invalid capability options JSON: {}",
                     error
                 );
                 return -1;
@@ -91,7 +91,7 @@ pub unsafe extern "C" fn jockey_rt_invoke_capability(
         Ok(result) => result,
         Err(error) => {
             eprintln!(
-                "[jockey Runtime] Capability {} dispatch error: {}",
+                "[jocky Runtime] Capability {} dispatch error: {}",
                 capability_id, error
             );
             return -1;
@@ -122,9 +122,9 @@ pub unsafe extern "C" fn jockey_rt_invoke_capability(
 
 #[no_mangle]
 /// # Safety
-/// Caller must provide a valid pointer returned by `jockey_rt_evidence_init` and must not
-/// dereference it after calling `jockey_rt_evidence_free`.
-pub unsafe extern "C" fn jockey_rt_collect_system(ctx_ptr: *mut c_void) -> c_int {
+/// Caller must provide a valid pointer returned by `jocky_rt_evidence_init` and must not
+/// dereference it after calling `jocky_rt_evidence_free`.
+pub unsafe extern "C" fn jocky_rt_collect_system(ctx_ptr: *mut c_void) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
     }
@@ -132,7 +132,7 @@ pub unsafe extern "C" fn jockey_rt_collect_system(ctx_ptr: *mut c_void) -> c_int
     match ctx.collector.collect_system_info() {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[jockey Runtime] System info collection error: {}", e);
+            eprintln!("[jocky Runtime] System info collection error: {}", e);
             -1
         }
     }
@@ -142,7 +142,7 @@ pub unsafe extern "C" fn jockey_rt_collect_system(ctx_ptr: *mut c_void) -> c_int
 /// # Safety
 /// Caller must ensure `ctx_ptr` is a valid runtime context pointer and that `fields_json` is a
 /// valid UTF-8 C string pointer or null.
-pub unsafe extern "C" fn jockey_rt_collect_processes(
+pub unsafe extern "C" fn jocky_rt_collect_processes(
     ctx_ptr: *mut c_void,
     fields_json: *const c_char,
     _hash_algo: *const c_char,
@@ -162,7 +162,7 @@ pub unsafe extern "C" fn jockey_rt_collect_processes(
     match ctx.collector.collect_processes(fields) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[jockey Runtime] Process collection error: {}", e);
+            eprintln!("[jocky Runtime] Process collection error: {}", e);
             -1
         }
     }
@@ -170,8 +170,8 @@ pub unsafe extern "C" fn jockey_rt_collect_processes(
 
 #[no_mangle]
 /// # Safety
-/// Caller must provide a valid runtime context pointer returned by `jockey_rt_evidence_init`.
-pub unsafe extern "C" fn jockey_rt_collect_network(ctx_ptr: *mut c_void) -> c_int {
+/// Caller must provide a valid runtime context pointer returned by `jocky_rt_evidence_init`.
+pub unsafe extern "C" fn jocky_rt_collect_network(ctx_ptr: *mut c_void) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
     }
@@ -179,7 +179,7 @@ pub unsafe extern "C" fn jockey_rt_collect_network(ctx_ptr: *mut c_void) -> c_in
     match ctx.collector.collect_network_connections() {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[jockey Runtime] Network collection error: {}", e);
+            eprintln!("[jocky Runtime] Network collection error: {}", e);
             -1
         }
     }
@@ -189,7 +189,7 @@ pub unsafe extern "C" fn jockey_rt_collect_network(ctx_ptr: *mut c_void) -> c_in
 /// # Safety
 /// Caller must provide a valid runtime context pointer and ensure `path_ptr` and `hash_algo_ptr`
 /// are valid UTF-8 C strings or null.
-pub unsafe extern "C" fn jockey_rt_collect_files(
+pub unsafe extern "C" fn jocky_rt_collect_files(
     ctx_ptr: *mut c_void,
     path_ptr: *const c_char,
     recursive: c_int,
@@ -213,7 +213,7 @@ pub unsafe extern "C" fn jockey_rt_collect_files(
     match ctx.collector.collect_files(path, recursive != 0, hash_algo) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[jockey Runtime] Filesystem collection error: {}", e);
+            eprintln!("[jocky Runtime] Filesystem collection error: {}", e);
             -1
         }
     }
@@ -223,7 +223,7 @@ pub unsafe extern "C" fn jockey_rt_collect_files(
 /// # Safety
 /// Caller must provide a valid runtime context pointer and a valid UTF-8 C string pointer for
 /// `source_ptr`, or null.
-pub unsafe extern "C" fn jockey_rt_collect_logs(
+pub unsafe extern "C" fn jocky_rt_collect_logs(
     ctx_ptr: *mut c_void,
     source_ptr: *const c_char,
 ) -> c_int {
@@ -240,7 +240,7 @@ pub unsafe extern "C" fn jockey_rt_collect_logs(
     match ctx.collector.collect_logs(source) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[jockey Runtime] Logs collection error: {}", e);
+            eprintln!("[jocky Runtime] Logs collection error: {}", e);
             -1
         }
     }
@@ -248,8 +248,8 @@ pub unsafe extern "C" fn jockey_rt_collect_logs(
 
 #[no_mangle]
 /// # Safety
-/// Caller must provide a valid runtime context pointer returned by `jockey_rt_evidence_init`.
-pub unsafe extern "C" fn jockey_rt_collect_drivers(ctx_ptr: *mut c_void) -> c_int {
+/// Caller must provide a valid runtime context pointer returned by `jocky_rt_evidence_init`.
+pub unsafe extern "C" fn jocky_rt_collect_drivers(ctx_ptr: *mut c_void) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
     }
@@ -262,7 +262,7 @@ pub unsafe extern "C" fn jockey_rt_collect_drivers(ctx_ptr: *mut c_void) -> c_in
             0
         }
         Err(e) => {
-            eprintln!("[jockey Runtime] Drivers collection error: {}", e);
+            eprintln!("[jocky Runtime] Drivers collection error: {}", e);
             -1
         }
     }
@@ -270,8 +270,8 @@ pub unsafe extern "C" fn jockey_rt_collect_drivers(ctx_ptr: *mut c_void) -> c_in
 
 #[no_mangle]
 /// # Safety
-/// Caller must provide a valid runtime context pointer returned by `jockey_rt_evidence_init`.
-pub unsafe extern "C" fn jockey_rt_collect_memory_regions(
+/// Caller must provide a valid runtime context pointer returned by `jocky_rt_evidence_init`.
+pub unsafe extern "C" fn jocky_rt_collect_memory_regions(
     ctx_ptr: *mut c_void,
     pid: c_int,
 ) -> c_int {
@@ -283,7 +283,7 @@ pub unsafe extern "C" fn jockey_rt_collect_memory_regions(
     match ctx.collector.collect_memory_regions(pid_filter) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[jockey Runtime] Memory regions collection error: {}", e);
+            eprintln!("[jocky Runtime] Memory regions collection error: {}", e);
             -1
         }
     }
@@ -292,7 +292,7 @@ pub unsafe extern "C" fn jockey_rt_collect_memory_regions(
 #[no_mangle]
 /// # Safety
 /// Caller must provide a valid runtime context pointer and valid UTF-8 strings or null.
-pub unsafe extern "C" fn jockey_rt_collect_registry(
+pub unsafe extern "C" fn jocky_rt_collect_registry(
     ctx_ptr: *mut c_void,
     hive_ptr: *const c_char,
     key_ptr: *const c_char,
@@ -315,7 +315,7 @@ pub unsafe extern "C" fn jockey_rt_collect_registry(
     match ctx.collector.collect_registry(hive, key_path) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[jockey Runtime] Registry collection error: {}", e);
+            eprintln!("[jocky Runtime] Registry collection error: {}", e);
             -1
         }
     }
@@ -324,7 +324,7 @@ pub unsafe extern "C" fn jockey_rt_collect_registry(
 #[no_mangle]
 /// # Safety
 /// Caller must provide a valid runtime context pointer and valid UTF-8 strings or null.
-pub unsafe extern "C" fn jockey_rt_collect_artifacts(
+pub unsafe extern "C" fn jocky_rt_collect_artifacts(
     ctx_ptr: *mut c_void,
     type_ptr: *const c_char,
     path_ptr: *const c_char,
@@ -347,7 +347,7 @@ pub unsafe extern "C" fn jockey_rt_collect_artifacts(
     match ctx.collector.collect_artifacts(artifact_type, path) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[jockey Runtime] Artifacts collection error: {}", e);
+            eprintln!("[jocky Runtime] Artifacts collection error: {}", e);
             -1
         }
     }
@@ -356,7 +356,7 @@ pub unsafe extern "C" fn jockey_rt_collect_artifacts(
 #[no_mangle]
 /// # Safety
 /// Caller must ensure `ctx_ptr` is valid and `filter_json` is a valid UTF-8 C string pointer.
-pub unsafe extern "C" fn jockey_rt_evidence_filter(
+pub unsafe extern "C" fn jocky_rt_evidence_filter(
     ctx_ptr: *mut c_void,
     filter_json: *const c_char,
 ) -> c_int {
@@ -376,7 +376,7 @@ pub unsafe extern "C" fn jockey_rt_evidence_filter(
 #[no_mangle]
 /// # Safety
 /// Caller must ensure `ctx_ptr` is valid and `where_json` is a valid UTF-8 C string pointer.
-pub unsafe extern "C" fn jockey_rt_evidence_where(
+pub unsafe extern "C" fn jocky_rt_evidence_where(
     ctx_ptr: *mut c_void,
     where_json: *const c_char,
 ) -> c_int {
@@ -395,8 +395,8 @@ pub unsafe extern "C" fn jockey_rt_evidence_where(
 
 #[no_mangle]
 /// # Safety
-/// Caller must provide a valid runtime context pointer returned by `jockey_rt_evidence_init`.
-pub unsafe extern "C" fn jockey_rt_evidence_limit(ctx_ptr: *mut c_void, limit: usize) -> c_int {
+/// Caller must provide a valid runtime context pointer returned by `jocky_rt_evidence_init`.
+pub unsafe extern "C" fn jocky_rt_evidence_limit(ctx_ptr: *mut c_void, limit: usize) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
     }
@@ -409,7 +409,7 @@ pub unsafe extern "C" fn jockey_rt_evidence_limit(ctx_ptr: *mut c_void, limit: u
 /// # Safety
 /// Caller must provide a valid runtime context pointer and valid UTF-8 C string pointers for the
 /// format and output path, or null.
-pub unsafe extern "C" fn jockey_rt_evidence_export(
+pub unsafe extern "C" fn jocky_rt_evidence_export(
     ctx_ptr: *mut c_void,
     format_ptr: *const c_char,
     path_ptr: *const c_char,
@@ -433,7 +433,7 @@ pub unsafe extern "C" fn jockey_rt_evidence_export(
     match ctx.collector.finalize() {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[jockey Runtime] Export error: {}", e);
+            eprintln!("[jocky Runtime] Export error: {}", e);
             -1
         }
     }
@@ -443,7 +443,7 @@ pub unsafe extern "C" fn jockey_rt_evidence_export(
 /// # Safety
 /// Caller must provide a valid runtime context pointer and a valid UTF-8 C string pointer for
 /// `algo_ptr`, or null.
-pub unsafe extern "C" fn jockey_rt_evidence_compute_hash(
+pub unsafe extern "C" fn jocky_rt_evidence_compute_hash(
     ctx_ptr: *mut c_void,
     algo_ptr: *const c_char,
 ) -> c_int {
@@ -459,7 +459,7 @@ pub unsafe extern "C" fn jockey_rt_evidence_compute_hash(
     match ctx.collector.compute_hash(algo) {
         Ok(_) => 0,
         Err(e) => {
-            eprintln!("[jockey Runtime] Compute hash error: {}", e);
+            eprintln!("[jocky Runtime] Compute hash error: {}", e);
             -1
         }
     }
@@ -467,8 +467,8 @@ pub unsafe extern "C" fn jockey_rt_evidence_compute_hash(
 
 #[no_mangle]
 /// # Safety
-/// Caller must provide a valid runtime context pointer returned by `jockey_rt_evidence_init`.
-pub unsafe extern "C" fn jockey_rt_evidence_generate_timeline(ctx_ptr: *mut c_void) -> c_int {
+/// Caller must provide a valid runtime context pointer returned by `jocky_rt_evidence_init`.
+pub unsafe extern "C" fn jocky_rt_evidence_generate_timeline(ctx_ptr: *mut c_void) -> c_int {
     if ctx_ptr.is_null() {
         return -1;
     }
@@ -478,7 +478,7 @@ pub unsafe extern "C" fn jockey_rt_evidence_generate_timeline(ctx_ptr: *mut c_vo
     let mut timeline_records = Vec::with_capacity(records.len());
     for (i, rec) in records.iter().enumerate() {
         let ref_str = format!("ref-{}", i + 1);
-        if let Some(event) = jockey_runtime_timeline::normalize_record(rec, &host, Some(&ref_str)) {
+        if let Some(event) = jocky_runtime_timeline::normalize_record(rec, &host, Some(&ref_str)) {
             if let Ok(v) = serde_json::to_value(&event) {
                 timeline_records.push(v);
                 continue;
@@ -495,8 +495,8 @@ pub unsafe extern "C" fn jockey_rt_evidence_generate_timeline(ctx_ptr: *mut c_vo
 #[no_mangle]
 /// # Safety
 /// Caller must ensure `ctx_ptr` is either null or a pointer previously returned by
-/// `jockey_rt_evidence_init` and not already freed.
-pub unsafe extern "C" fn jockey_rt_evidence_free(ctx_ptr: *mut c_void) {
+/// `jocky_rt_evidence_init` and not already freed.
+pub unsafe extern "C" fn jocky_rt_evidence_free(ctx_ptr: *mut c_void) {
     if !ctx_ptr.is_null() {
         drop(Box::from_raw(ctx_ptr as *mut RuntimeContext));
     }

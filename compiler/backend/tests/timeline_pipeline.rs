@@ -1,12 +1,12 @@
 #![cfg(feature = "llvm")]
 
-use jockey_backend::llvm::LlvmBackend;
-use jockey_hir::{HirLowering, HirOperation};
-use jockey_ir::BuildConfig;
-use jockey_lexer::Lexer;
-use jockey_mir::{MirInstruction, MirLowering};
-use jockey_parser::Parser;
-use jockey_semantic::SemanticAnalyzer;
+use jocky_backend::llvm::LlvmBackend;
+use jocky_hir::{HirLowering, HirOperation};
+use jocky_ir::BuildConfig;
+use jocky_lexer::Lexer;
+use jocky_mir::{MirInstruction, MirLowering};
+use jocky_parser::Parser;
+use jocky_semantic::SemanticAnalyzer;
 
 #[test]
 fn test_timeline_lowering_pipeline_integrity() {
@@ -26,8 +26,8 @@ investigation "timeline_verification" {
 
     // Verify AST has Timeline target
     let has_ast_timeline = ast.statements.iter().any(|stmt| {
-        if let jockey_ast::Stmt::Collect { target, .. } = stmt {
-            matches!(target, jockey_ast::CollectTarget::Timeline { .. })
+        if let jocky_ast::Stmt::Collect { target, .. } = stmt {
+            matches!(target, jocky_ast::CollectTarget::Timeline { .. })
         } else {
             false
         }
@@ -39,7 +39,7 @@ investigation "timeline_verification" {
     let ir = analyzer.analyze(&ast).expect("Semantic analysis failed");
 
     let has_ir_timeline = ir.operations.iter().any(|op| {
-        if let jockey_ir::IrOperation::Collect(c) = op {
+        if let jocky_ir::IrOperation::Collect(c) = op {
             c.operation == "timeline.build" || c.operation == "timeline"
         } else {
             false
@@ -61,7 +61,7 @@ investigation "timeline_verification" {
     );
 
     // Also verify from_ir roundtrip
-    let hir_from_ir = jockey_hir::HirInvestigation::from(&ir);
+    let hir_from_ir = jocky_hir::HirInvestigation::from(&ir);
     let has_hir_from_ir_timeline = hir_from_ir
         .operations
         .iter()
@@ -96,7 +96,7 @@ investigation "timeline_verification" {
         .expect("LLVM generation failed");
 
     assert!(
-        llvm_ir.contains("call i32 @jockey_rt_evidence_generate_timeline"),
-        "LLVM IR must explicitly invoke @jockey_rt_evidence_generate_timeline"
+        llvm_ir.contains("call i32 @jocky_rt_evidence_generate_timeline"),
+        "LLVM IR must explicitly invoke @jocky_rt_evidence_generate_timeline"
     );
 }

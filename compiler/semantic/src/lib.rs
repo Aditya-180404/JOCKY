@@ -1,10 +1,10 @@
-//! jockey Semantic Analysis - Type checking and validation
+//! jocky Semantic Analysis - Type checking and validation
 
-use jockey_ast::{
+use jocky_ast::{
     Capability, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr, HashAlgorithm,
     Investigation, PipelineStage, Span, Stmt,
 };
-use jockey_ir::{
+use jocky_ir::{
     IrAssignOperation, IrCollectOperation, IrEvidencePipelineOperation, IrExportOperation,
     IrFilterOperation, IrInvestigation, IrLimitOperation, IrMetadataOperation, IrOperation,
     IrPipelineStage, IrWhereOperation,
@@ -748,11 +748,11 @@ impl Default for SemanticAnalyzer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use jockey_ast::Severity;
-    use jockey_lexer::Lexer;
-    use jockey_parser::Parser;
+    use jocky_ast::Severity;
+    use jocky_lexer::Lexer;
+    use jocky_parser::Parser;
 
-    fn analyze_source(source: &str) -> (Option<jockey_ir::IrInvestigation>, Vec<Diagnostic>) {
+    fn analyze_source(source: &str) -> (Option<jocky_ir::IrInvestigation>, Vec<Diagnostic>) {
         let mut lexer = Lexer::new(source);
         let tokens = lexer.tokenize().unwrap();
         let mut parser = Parser::new(tokens);

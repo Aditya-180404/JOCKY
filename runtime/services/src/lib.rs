@@ -1,4 +1,4 @@
-//! JOCKEY Runtime - Service Enumeration
+//! JOCKY Runtime - Service Enumeration
 //!
 //! Enumerates Windows services, systemd units, and kernel drivers.
 

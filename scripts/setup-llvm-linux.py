@@ -58,7 +58,7 @@ for d in ["/usr/bin", "/usr/lib/llvm-18/bin", "/usr/lib/llvm-17/bin"]:
 # Download llvm-c headers for LLVM 21 release branch
 def get_contents(path):
     url = f"https://api.github.com/repos/llvm/llvm-project/contents/{path}?ref=release/21.x"
-    req = urllib.request.Request(url, headers={"User-Agent": "jockey-setup"})
+    req = urllib.request.Request(url, headers={"User-Agent": "jocky-setup"})
     return json.loads(urllib.request.urlopen(req, timeout=30).read())
 
 print("Downloading llvm-c headers for LLVM 21...")

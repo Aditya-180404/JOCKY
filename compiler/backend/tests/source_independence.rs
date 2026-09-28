@@ -1,23 +1,23 @@
-//! Source-independence and relocatability regression test suite for JOCKEY
+//! Source-independence and relocatability regression test suite for JOCKY
 //!
 //! Validates:
-//! 1. Generated projects NEVER contain developer machine absolute paths (G:\JOCKEY, developer C:\Users, /home, etc.)
-//! 2. Generated Cargo manifests use relative runtime paths: `jockey-runtime = { path = "runtime" }`
+//! 1. Generated projects NEVER contain developer machine absolute paths (G:\JOCKY, developer C:\Users, /home, etc.)
+//! 2. Generated Cargo manifests use relative runtime paths: `jocky-runtime = { path = "runtime" }`
 //! 3. Generated projects can be moved to an entirely independent directory and compiled cleanly by Cargo.
 
-use jockey_backend::Backend;
-use jockey_ir::{BuildConfig, TargetArch, TargetPlatform};
-use jockey_lexer::Lexer;
-use jockey_parser::Parser;
-use jockey_semantic::SemanticAnalyzer;
+use jocky_backend::Backend;
+use jocky_ir::{BuildConfig, TargetArch, TargetPlatform};
+use jocky_lexer::Lexer;
+use jocky_parser::Parser;
+use jocky_semantic::SemanticAnalyzer;
 use std::fs;
 use std::path::Path;
 
 fn assert_no_machine_paths(text: &str, context: &str) {
     let lower = text.to_lowercase();
     assert!(
-        !lower.contains("g:\\jockey") && !lower.contains("g:/jockey"),
-        "Machine path 'G:/JOCKEY' detected in {}:\n{}",
+        !lower.contains("g:\\jocky") && !lower.contains("g:/jocky"),
+        "Machine path 'G:/JOCKY' detected in {}:\n{}",
         context,
         text
     );
@@ -30,7 +30,7 @@ fn assert_no_machine_paths(text: &str, context: &str) {
         text
     );
     assert!(
-        !lower.contains("/workspace/jockey"),
+        !lower.contains("/workspace/jocky"),
         "Developer workspace directory detected in {}:\n{}",
         context,
         text
@@ -62,8 +62,8 @@ fn scan_manifests_for_absolute_paths(dir: &Path) {
                     if filename == "Cargo.toml" {
                         for line in content.lines() {
                             let trimmed = line.trim();
-                            if trimmed.starts_with("jockey-runtime")
-                                || trimmed.starts_with("jockey-runtime-")
+                            if trimmed.starts_with("jocky-runtime")
+                                || trimmed.starts_with("jocky-runtime-")
                             {
                                 assert!(
                                     !trimmed.contains(":\\") && !trimmed.contains(":/"),
@@ -127,7 +127,7 @@ investigation "relocatable_triage" {
         .generate_cargo_toml(&ir)
         .expect("Cargo.toml generation must succeed");
     assert_no_machine_paths(&cargo_toml, "Generated Cargo.toml");
-    assert!(cargo_toml.contains("jockey-runtime = { path = \"runtime\" }"));
+    assert!(cargo_toml.contains("jocky-runtime = { path = \"runtime\" }"));
 
     // 2. Generate Rust main.rs and check for absolute path leaks
     let main_rs = backend
@@ -140,7 +140,7 @@ investigation "relocatable_triage" {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    let temp_root = std::env::temp_dir().join(format!("jockey_reloc_test_{}", nanos));
+    let temp_root = std::env::temp_dir().join(format!("jocky_reloc_test_{}", nanos));
     let project_dir = temp_root.join("initial_project");
     fs::create_dir_all(&project_dir).expect("Create project dir");
 

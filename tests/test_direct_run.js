@@ -2,11 +2,11 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// Test running jockey.exe run directly
-console.log('Testing jockey.exe run basic_system_triage.jy...');
+// Test running jocky.exe run directly
+console.log('Testing jocky.exe run basic_system_triage.jy...');
 const start = Date.now();
 try {
-  const out = execSync('.\\target\\release\\jockey.exe run examples/basic_system_triage.jy --output build/test_run', { encoding: 'utf8' });
+  const out = execSync('.\\target\\release\\jocky.exe run examples/basic_system_triage.jy --output build/test_run', { encoding: 'utf8' });
   console.log('Success in', Date.now() - start, 'ms');
   console.log(out);
 } catch (e) {

@@ -17171,7 +17171,7 @@
           "--extension_server_csrf_token",
           "cd38ce38-71c6-449b-b73a-64f5e28f3d90",
           "--workspace_id",
-          "file_home_ghost_Desktop_JOCKEY",
+          "file_home_ghost_Desktop_JOCKY",
           "--cloud_code_endpoint",
           "https://daily-cloudcode-pa.googleapis.com",
           "--subclient_type",
@@ -18653,7 +18653,7 @@
           "anon_inode:[eventfd]",
           "socket:[164857]",
           "anon_inode:inotify",
-          "/tmp/claude-1000/-home-ghost-Desktop-JOCKEY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks",
+          "/tmp/claude-1000/-home-ghost-Desktop-JOCKY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks",
           "socket:[164858]",
           "socket:[161662]",
           "socket:[172727]",
@@ -23910,8 +23910,8 @@
         "network_connections": [],
         "open_files": [
           "/dev/null",
-          "/tmp/claude-1000/-home-ghost-Desktop-JOCKEY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/bih1djhh6.output",
-          "/tmp/claude-1000/-home-ghost-Desktop-JOCKEY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/bih1djhh6.output",
+          "/tmp/claude-1000/-home-ghost-Desktop-JOCKY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/bih1djhh6.output",
+          "/tmp/claude-1000/-home-ghost-Desktop-JOCKY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/bih1djhh6.output",
           "/dev/null",
           "socket:[206764]"
         ],
@@ -23947,7 +23947,7 @@
           "./build/basic_system_triage-linux-x64"
         ],
         "cpu_percent": null,
-        "executable_path": "/home/ghost/Desktop/JOCKEY/build/basic_system_triage-linux-x64",
+        "executable_path": "/home/ghost/Desktop/JOCKY/build/basic_system_triage-linux-x64",
         "group": "ghost",
         "memory_rss_bytes": 6578176,
         "memory_vms_bytes": 8818688,
@@ -23955,8 +23955,8 @@
         "network_connections": [],
         "open_files": [
           "/dev/null",
-          "/tmp/claude-1000/-home-ghost-Desktop-JOCKEY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/bih1djhh6.output",
-          "/tmp/claude-1000/-home-ghost-Desktop-JOCKEY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/bih1djhh6.output",
+          "/tmp/claude-1000/-home-ghost-Desktop-JOCKY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/bih1djhh6.output",
+          "/tmp/claude-1000/-home-ghost-Desktop-JOCKY/cc6122bf-67f3-4ea8-8e1e-33a8ed0f75c5/tasks/bih1djhh6.output",
           "/proc/137904",
           "/proc",
           "/proc/137904/fd"

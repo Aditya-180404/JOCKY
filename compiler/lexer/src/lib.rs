@@ -1,6 +1,6 @@
-//! jockey Lexer - Tokenizes jockey source code
+//! jocky Lexer - Tokenizes jocky source code
 
-use jockey_ast::{Span, Token, TokenKind};
+use jocky_ast::{Span, Token, TokenKind};
 use thiserror::Error;
 
 #[derive(Debug, Error)]

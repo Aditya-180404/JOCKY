@@ -1,4 +1,4 @@
-//! JOCKEY Polymorphic Obfuscation Engine
+//! JOCKY Polymorphic Obfuscation Engine
 //!
 //! Implements four independent, composable obfuscation passes that are applied
 //! to MIR programs before LLVM code-generation:
@@ -30,16 +30,16 @@
 //! ## Usage
 //!
 //! ```rust,ignore
-//! use jockey_ir::ObfuscationConfig;
-//! use jockey_backend::obfuscation::ObfuscationPipeline;
+//! use jocky_ir::ObfuscationConfig;
+//! use jocky_backend::obfuscation::ObfuscationPipeline;
 //!
 //! let config = ObfuscationConfig::full_polymorphic();
 //! let mut pipeline = ObfuscationPipeline::new(&config);
 //! let obfuscated_mir = pipeline.run(original_mir);
 //! ```
 
-use jockey_ir::ObfuscationConfig;
-use jockey_mir::{
+use jocky_ir::ObfuscationConfig;
+use jocky_mir::{
     BasicBlockId, LocalId, MirBasicBlock, MirFunction, MirInstruction, MirLocal, MirProgram,
     MirTerminator, MirType,
 };
@@ -89,7 +89,7 @@ impl<'a> ObfuscationPipeline<'a> {
 // ────────────────────────────────────────────────────────────────────────────
 // Utility — lightweight deterministic PRNG (xorshift64)
 // We avoid pulling in `rand` here so the obfuscation engine itself has no
-// extra dependencies beyond jockey-internal crates.
+// extra dependencies beyond jocky-internal crates.
 // ────────────────────────────────────────────────────────────────────────────
 
 struct Rng(u64);
@@ -655,7 +655,7 @@ impl StringEncryptionPass {
 
 /// Embeds a unique 64-byte random blob into the MIR's provenance metadata.
 ///
-/// This blob is later written into a dedicated binary section (`.jockeywm`) by
+/// This blob is later written into a dedicated binary section (`.jockywm`) by
 /// the LLVM backend, ensuring the final binary has a unique SHA-256 hash even
 /// when compiled from identical source code. Defeat file-reputation databases
 /// that block specific binary hashes.
@@ -742,10 +742,10 @@ impl ObfuscationReport {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use jockey_ir::ObfuscationConfig;
+    use jocky_ir::ObfuscationConfig;
 
     fn dummy_mir(name: &str) -> MirProgram {
-        use jockey_mir::{
+        use jocky_mir::{
             MirBasicBlock, MirFunction, MirInstruction, MirProvenance, MirTerminator, MirType,
         };
         MirProgram {
@@ -765,7 +765,7 @@ mod tests {
                         name: "entry".to_string(),
                         instructions: vec![MirInstruction::ConstString {
                             dest: 0,
-                            value: "hello_jockey".to_string(),
+                            value: "hello_jocky".to_string(),
                         }],
                         terminator: MirTerminator::Jump { target: 1 },
                     },

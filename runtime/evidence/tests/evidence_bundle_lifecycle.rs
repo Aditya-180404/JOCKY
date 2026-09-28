@@ -1,5 +1,5 @@
 use chrono::Utc;
-use jockey_runtime_evidence::{
+use jocky_runtime_evidence::{
     bundle::{EvidenceBundle, EvidenceProvenance, EvidenceRecord},
     CollectionStatus, EvidenceCollector, EvidenceOrigin,
 };

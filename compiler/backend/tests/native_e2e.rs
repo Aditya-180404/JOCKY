@@ -18,13 +18,13 @@
 use std::fs;
 use std::process::Command;
 
-use jockey_backend::llvm::LlvmBackend;
-use jockey_ir::BuildConfig;
-use jockey_runtime_evidence::{verify_evidence_deep, VerificationStatus};
+use jocky_backend::llvm::LlvmBackend;
+use jocky_ir::BuildConfig;
+use jocky_runtime_evidence::{verify_evidence_deep, VerificationStatus};
 
 #[test]
 fn test_native_end_to_end_forensic_pipeline() {
-    let temp_dir = std::env::temp_dir().join(format!("jockey_native_test_{}", std::process::id()));
+    let temp_dir = std::env::temp_dir().join(format!("jocky_native_test_{}", std::process::id()));
     let _ = fs::remove_dir_all(&temp_dir);
     fs::create_dir_all(&temp_dir).expect("Failed to create temp test directory");
 
@@ -52,33 +52,33 @@ investigation "native_semantic_triage" {{
     );
 
     // 1. Lexer
-    let mut lexer = jockey_lexer::Lexer::new(&source);
+    let mut lexer = jocky_lexer::Lexer::new(&source);
     let tokens = lexer.tokenize().expect("Lexer failed");
 
     // 2. Parser
-    let mut parser = jockey_parser::Parser::new(tokens);
+    let mut parser = jocky_parser::Parser::new(tokens);
     let ast = parser.parse().expect("Parser failed");
 
     // 3. Semantic Analysis
-    let mut analyzer = jockey_semantic::SemanticAnalyzer::new();
+    let mut analyzer = jocky_semantic::SemanticAnalyzer::new();
     let ir = analyzer.analyze(&ast).expect("Semantic analysis failed");
 
     // 4. HIR Lowering
-    let hir = jockey_hir::HirLowering::lower(&ast, &ir.required_capabilities, &source)
+    let hir = jocky_hir::HirLowering::lower(&ast, &ir.required_capabilities, &source)
         .expect("HIR lowering failed");
 
     // 5. MIR Lowering
-    let mir = jockey_mir::MirLowering::lower(&hir).expect("MIR lowering failed");
+    let mir = jocky_mir::MirLowering::lower(&hir).expect("MIR lowering failed");
 
     // 6. Programmatic LLVM Compilation to Native Executable
     let config = BuildConfig {
         target_platform: if cfg!(target_os = "windows") {
-            jockey_ir::TargetPlatform::Windows
+            jocky_ir::TargetPlatform::Windows
         } else {
-            jockey_ir::TargetPlatform::Linux
+            jocky_ir::TargetPlatform::Linux
         },
-        target_arch: jockey_ir::TargetArch::X64,
-        optimization_level: jockey_ir::OptimizationLevel::Speed,
+        target_arch: jocky_ir::TargetArch::X64,
+        optimization_level: jocky_ir::OptimizationLevel::Speed,
         ..Default::default()
     };
     let backend = LlvmBackend::new(config);

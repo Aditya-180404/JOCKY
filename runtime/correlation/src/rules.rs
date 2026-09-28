@@ -1,4 +1,4 @@
-//! JOCKEY-Native Rule Engine (Section 14)
+//! JOCKY-Native Rule Engine (Section 14)
 //!
 //! Evaluates declarative behavioral rules against forensic artifacts and timeline events.
 //! Supports operators: ==, !=, contains, starts_with, ends_with, regex, >, <, exists, and, or, not.
@@ -9,7 +9,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::entities::NormalizedEntities;
-use jockey_runtime_timeline::TimelineEvent;
+use jocky_runtime_timeline::TimelineEvent;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -94,9 +94,9 @@ impl RuleCondition {
     }
 }
 
-/// Strongly-typed JOCKEY Forensic Rule
+/// Strongly-typed JOCKY Forensic Rule
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct JockeyRule {
+pub struct JockyRule {
     pub name: String,
     pub title: String,
     pub description: String,
@@ -106,7 +106,7 @@ pub struct JockeyRule {
     pub recommendation: Option<String>,
 }
 
-impl JockeyRule {
+impl JockyRule {
     pub fn new(
         name: impl Into<String>,
         title: impl Into<String>,
@@ -154,7 +154,7 @@ pub struct RuleFinding {
 /// Rule Evaluation Engine
 #[derive(Debug, Default, Clone)]
 pub struct RuleEngine {
-    pub rules: Vec<JockeyRule>,
+    pub rules: Vec<JockyRule>,
 }
 
 impl RuleEngine {
@@ -164,7 +164,7 @@ impl RuleEngine {
         engine
     }
 
-    pub fn add_rule(&mut self, rule: JockeyRule) {
+    pub fn add_rule(&mut self, rule: JockyRule) {
         self.rules.push(rule);
     }
 
@@ -172,7 +172,7 @@ impl RuleEngine {
     pub fn load_builtin_rules(&mut self) {
         // Suspicious encoded powershell
         self.add_rule(
-            JockeyRule::new(
+            JockyRule::new(
                 "suspicious_powershell_enc",
                 "Encoded PowerShell Execution",
                 "Detected powershell execution containing base64 encoded command arguments (-enc / -encodedcommand)",
@@ -191,7 +191,7 @@ impl RuleEngine {
 
         // Discovery commands
         self.add_rule(
-            JockeyRule::new(
+            JockyRule::new(
                 "recon_system_info_discovery",
                 "System Reconnaissance / Host Discovery",
                 "Execution of system discovery utilities (whoami, hostname, systeminfo, ifconfig, ip a)",
@@ -208,7 +208,7 @@ impl RuleEngine {
 
         // Word / Office spawning command shells
         self.add_rule(
-            JockeyRule::new(
+            JockyRule::new(
                 "office_spawning_cmd",
                 "Office Application Spawning Command Interpreter",
                 "Microsoft Office or document viewer spawned a command shell or scripting interpreter",

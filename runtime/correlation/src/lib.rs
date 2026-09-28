@@ -1,4 +1,4 @@
-//! jockey Runtime - Cross-Source Correlation Engine
+//! jocky Runtime - Cross-Source Correlation Engine
 //!
 //! Provides correlation of forensic observations across multiple evidence sources.
 //! Builds relationships between entities (processes, files, network connections, etc.)
@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use jockey_runtime_evidence::EvidenceCollector;
-use jockey_runtime_timeline::{ForensicTimeline, TimelineEvent};
+use jocky_runtime_evidence::EvidenceCollector;
+use jocky_runtime_timeline::{ForensicTimeline, TimelineEvent};
 
 pub mod entities;
 pub mod ioc;
@@ -22,7 +22,7 @@ pub use entities::{
     NormalizedEntities, ProcessArtifact, RegistryArtifact, UserArtifact,
 };
 pub use ioc::{Indicator, IndicatorMatch, IndicatorType, IocEngine, MatchType};
-pub use rules::{JockeyRule, RuleCondition, RuleEngine, RuleFinding, RuleSeverity};
+pub use rules::{JockyRule, RuleCondition, RuleEngine, RuleFinding, RuleSeverity};
 
 /// Represents a forensic entity that can be correlated across sources
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -281,7 +281,7 @@ impl CorrelationEngine {
     /// Ingest evidence records directly and build correlations
     pub fn ingest_records(&mut self, records: &[serde_json::Value], host: &str) {
         // First pass: build timeline
-        self.timeline = Some(jockey_runtime_timeline::build_timeline(records, host, None));
+        self.timeline = Some(jocky_runtime_timeline::build_timeline(records, host, None));
 
         // Second pass: extract entities and build indices
         self.extract_entities(records, host);

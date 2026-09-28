@@ -1,6 +1,6 @@
 //! In-memory script execution runner.
 //!
-//! Provides a minimal, platform-safe execution harness for JOCKEY payloads or
+//! Provides a minimal, platform-safe execution harness for JOCKY payloads or
 //! secondary scripts without writing a new file to disk. The implementation is a
 //! thin compatibility layer intended for runtime orchestration and validation in
 //! Linux-oriented CI; it intentionally avoids unsupported Windows-only execution

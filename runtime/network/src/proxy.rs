@@ -1,6 +1,6 @@
-//! Proxy configuration collector and normalizer for JOCKEY
+//! Proxy configuration collector and normalizer for JOCKY
 //!
-//! Complies with JOCKEY forensic & security requirements:
+//! Complies with JOCKY forensic & security requirements:
 //! - NEVER collects, logs, or exports proxy passwords, tokens, cookies, or secrets.
 //! - Strips credentials from proxy URLs and reports `authentication_configured: true`.
 //! - Normalizes Windows (WinHTTP, WinINET/registry, environment) and Linux (environment,

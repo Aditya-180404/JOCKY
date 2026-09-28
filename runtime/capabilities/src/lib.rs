@@ -1,4 +1,4 @@
-//! JOCKEY Capability Registry
+//! JOCKY Capability Registry
 //!
 //! Central registry for all forensic capabilities. Each capability has:
 //! - Unique ID (string)
@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-use jockey_runtime_evidence::{CollectionStatus, EvidenceCollector, EvidenceOrigin};
+use jocky_runtime_evidence::{CollectionStatus, EvidenceCollector, EvidenceOrigin};
 
 pub mod polymorphism;
 pub use polymorphism::*;
@@ -424,279 +424,279 @@ impl CapabilityRegistry {
             // System Info capabilities
             RuntimeCapabilityBinding {
                 capability_id: "system.info.basic",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.info.detailed",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info_detailed",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info_detailed",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.hostname",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.os.name",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.os.version",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.kernel.version",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.architecture",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.cpu.count",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.cpu.model",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.cpu.cores",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.cpu.frequency",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.memory.total",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.memory.boot",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.boot.time",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.uptime",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.timezone",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.locale",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.machine.id",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.virtualization",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.firmware.vendor",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.firmware.version",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.secure.boot",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.disks",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.partitions",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.network.interfaces",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.packages",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.users",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.groups",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.environment",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.paths",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
             },
             RuntimeCapabilityBinding {
                 capability_id: "system.mounts",
-                runtime_module: "jockey_runtime_system",
+                runtime_module: "jocky_runtime_system",
                 runtime_handler: "collect_system_info",
-                abi_symbol: Some("jockey_rt_collect_system"),
+                abi_symbol: Some("jocky_rt_collect_system"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "system_info",
@@ -704,54 +704,54 @@ impl CapabilityRegistry {
             // Process capabilities
             RuntimeCapabilityBinding {
                 capability_id: "process.enumerate",
-                runtime_module: "jockey_runtime_process",
+                runtime_module: "jocky_runtime_process",
                 runtime_handler: "enumerate_processes",
-                abi_symbol: Some("jockey_rt_collect_processes"),
+                abi_symbol: Some("jocky_rt_collect_processes"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "process_inventory",
             },
             RuntimeCapabilityBinding {
                 capability_id: "process.tree",
-                runtime_module: "jockey_runtime_process",
+                runtime_module: "jocky_runtime_process",
                 runtime_handler: "collect_process_tree",
-                abi_symbol: Some("jockey_rt_collect_processes"),
+                abi_symbol: Some("jocky_rt_collect_processes"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "process_tree",
             },
             RuntimeCapabilityBinding {
                 capability_id: "process.modules",
-                runtime_module: "jockey_runtime_process",
+                runtime_module: "jocky_runtime_process",
                 runtime_handler: "collect_process_modules",
-                abi_symbol: Some("jockey_rt_collect_processes"),
+                abi_symbol: Some("jocky_rt_collect_processes"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "process_modules",
             },
             RuntimeCapabilityBinding {
                 capability_id: "process.memory",
-                runtime_module: "jockey_runtime_memory",
+                runtime_module: "jocky_runtime_memory",
                 runtime_handler: "enumerate_memory_regions",
-                abi_symbol: Some("jockey_rt_collect_memory_regions"),
+                abi_symbol: Some("jocky_rt_collect_memory_regions"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "memory_regions",
             },
             RuntimeCapabilityBinding {
                 capability_id: "process.deleted_exe",
-                runtime_module: "jockey_runtime_process",
+                runtime_module: "jocky_runtime_process",
                 runtime_handler: "detect_deleted_executables",
-                abi_symbol: Some("jockey_rt_collect_processes"),
+                abi_symbol: Some("jocky_rt_collect_processes"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "deleted_executables",
             },
             RuntimeCapabilityBinding {
                 capability_id: "process.handles",
-                runtime_module: "jockey_runtime_process",
+                runtime_module: "jocky_runtime_process",
                 runtime_handler: "collect_process_handles",
-                abi_symbol: Some("jockey_rt_collect_processes"),
+                abi_symbol: Some("jocky_rt_collect_processes"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::Admin,
                 evidence_contract: "process_handles",
@@ -759,7 +759,7 @@ impl CapabilityRegistry {
             // User capabilities
             RuntimeCapabilityBinding {
                 capability_id: "user.enumerate",
-                runtime_module: "jockey_runtime_users",
+                runtime_module: "jocky_runtime_users",
                 runtime_handler: "enumerate_users",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -769,7 +769,7 @@ impl CapabilityRegistry {
             // Auth capabilities
             RuntimeCapabilityBinding {
                 capability_id: "auth.logon_events",
-                runtime_module: "jockey_runtime_auth",
+                runtime_module: "jocky_runtime_auth",
                 runtime_handler: "collect_logon_events",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -778,7 +778,7 @@ impl CapabilityRegistry {
             },
             RuntimeCapabilityBinding {
                 capability_id: "auth.credential_artifacts",
-                runtime_module: "jockey_runtime_auth",
+                runtime_module: "jocky_runtime_auth",
                 runtime_handler: "collect_credential_artifacts",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -787,7 +787,7 @@ impl CapabilityRegistry {
             },
             RuntimeCapabilityBinding {
                 capability_id: "auth.policy",
-                runtime_module: "jockey_runtime_auth",
+                runtime_module: "jocky_runtime_auth",
                 runtime_handler: "collect_auth_policy",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -797,7 +797,7 @@ impl CapabilityRegistry {
             // Service capabilities
             RuntimeCapabilityBinding {
                 capability_id: "service.enumerate",
-                runtime_module: "jockey_runtime_services",
+                runtime_module: "jocky_runtime_services",
                 runtime_handler: "enumerate_services",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -806,16 +806,16 @@ impl CapabilityRegistry {
             },
             RuntimeCapabilityBinding {
                 capability_id: "service.drivers",
-                runtime_module: "jockey_runtime_services",
+                runtime_module: "jocky_runtime_services",
                 runtime_handler: "enumerate_drivers",
-                abi_symbol: Some("jockey_rt_collect_drivers"),
+                abi_symbol: Some("jocky_rt_collect_drivers"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "driver_inventory",
             },
             RuntimeCapabilityBinding {
                 capability_id: "service.systemd",
-                runtime_module: "jockey_runtime_services",
+                runtime_module: "jocky_runtime_services",
                 runtime_handler: "enumerate_systemd_units",
                 abi_symbol: None,
                 platform: Platform::Linux,
@@ -825,99 +825,99 @@ impl CapabilityRegistry {
             // Network capabilities
             RuntimeCapabilityBinding {
                 capability_id: "network.connections",
-                runtime_module: "jockey_runtime_network",
+                runtime_module: "jocky_runtime_network",
                 runtime_handler: "enumerate_connections",
-                abi_symbol: Some("jockey_rt_collect_network"),
+                abi_symbol: Some("jocky_rt_collect_network"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "network_connections",
             },
             RuntimeCapabilityBinding {
                 capability_id: "network.interfaces",
-                runtime_module: "jockey_runtime_network",
+                runtime_module: "jocky_runtime_network",
                 runtime_handler: "enumerate_interfaces",
-                abi_symbol: Some("jockey_rt_collect_network"),
+                abi_symbol: Some("jocky_rt_collect_network"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "network_interfaces",
             },
             RuntimeCapabilityBinding {
                 capability_id: "network.routes",
-                runtime_module: "jockey_runtime_network",
+                runtime_module: "jocky_runtime_network",
                 runtime_handler: "enumerate_routes",
-                abi_symbol: Some("jockey_rt_collect_network"),
+                abi_symbol: Some("jocky_rt_collect_network"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "network_routes",
             },
             RuntimeCapabilityBinding {
                 capability_id: "network.arp",
-                runtime_module: "jockey_runtime_network",
+                runtime_module: "jocky_runtime_network",
                 runtime_handler: "enumerate_arp",
-                abi_symbol: Some("jockey_rt_collect_network"),
+                abi_symbol: Some("jocky_rt_collect_network"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "network_arp",
             },
             RuntimeCapabilityBinding {
                 capability_id: "network.dns.servers",
-                runtime_module: "jockey_runtime_network",
+                runtime_module: "jocky_runtime_network",
                 runtime_handler: "enumerate_dns_servers",
-                abi_symbol: Some("jockey_rt_collect_network"),
+                abi_symbol: Some("jocky_rt_collect_network"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "network_dns_servers",
             },
             RuntimeCapabilityBinding {
                 capability_id: "network.dns.cache",
-                runtime_module: "jockey_runtime_network",
+                runtime_module: "jocky_runtime_network",
                 runtime_handler: "enumerate_dns_cache",
-                abi_symbol: Some("jockey_rt_collect_network"),
+                abi_symbol: Some("jocky_rt_collect_network"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::Admin,
                 evidence_contract: "network_dns_cache",
             },
             RuntimeCapabilityBinding {
                 capability_id: "network.hosts",
-                runtime_module: "jockey_runtime_network",
+                runtime_module: "jocky_runtime_network",
                 runtime_handler: "enumerate_hosts",
-                abi_symbol: Some("jockey_rt_collect_network"),
+                abi_symbol: Some("jocky_rt_collect_network"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "network_hosts",
             },
             RuntimeCapabilityBinding {
                 capability_id: "network.listening.ports",
-                runtime_module: "jockey_runtime_network",
+                runtime_module: "jocky_runtime_network",
                 runtime_handler: "enumerate_listening_ports",
-                abi_symbol: Some("jockey_rt_collect_network"),
+                abi_symbol: Some("jocky_rt_collect_network"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "network_listening_ports",
             },
             RuntimeCapabilityBinding {
                 capability_id: "network.firewall.policy",
-                runtime_module: "jockey_runtime_network",
+                runtime_module: "jocky_runtime_network",
                 runtime_handler: "enumerate_firewall_policy",
-                abi_symbol: Some("jockey_rt_collect_network"),
+                abi_symbol: Some("jocky_rt_collect_network"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::Admin,
                 evidence_contract: "network_firewall_policy",
             },
             RuntimeCapabilityBinding {
                 capability_id: "network.shares",
-                runtime_module: "jockey_runtime_network",
+                runtime_module: "jocky_runtime_network",
                 runtime_handler: "enumerate_shares",
-                abi_symbol: Some("jockey_rt_collect_network"),
+                abi_symbol: Some("jocky_rt_collect_network"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "network_shares",
             },
             RuntimeCapabilityBinding {
                 capability_id: "network.listeners",
-                runtime_module: "jockey_runtime_network",
+                runtime_module: "jocky_runtime_network",
                 runtime_handler: "enumerate_listeners",
-                abi_symbol: Some("jockey_rt_collect_network"),
+                abi_symbol: Some("jocky_rt_collect_network"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "network_listeners",
@@ -925,36 +925,36 @@ impl CapabilityRegistry {
             // Filesystem capabilities
             RuntimeCapabilityBinding {
                 capability_id: "filesystem.enumerate",
-                runtime_module: "jockey_runtime_filesystem",
+                runtime_module: "jocky_runtime_filesystem",
                 runtime_handler: "enumerate_files",
-                abi_symbol: Some("jockey_rt_collect_files"),
+                abi_symbol: Some("jocky_rt_collect_files"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "filesystem_inventory",
             },
             RuntimeCapabilityBinding {
                 capability_id: "filesystem.mounts",
-                runtime_module: "jockey_runtime_filesystem",
+                runtime_module: "jocky_runtime_filesystem",
                 runtime_handler: "enumerate_mounts",
-                abi_symbol: Some("jockey_rt_collect_files"),
+                abi_symbol: Some("jocky_rt_collect_files"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "filesystem_mounts",
             },
             RuntimeCapabilityBinding {
                 capability_id: "filesystem.alternate.data.streams",
-                runtime_module: "jockey_runtime_filesystem",
+                runtime_module: "jocky_runtime_filesystem",
                 runtime_handler: "detect_alternate_data_streams",
-                abi_symbol: Some("jockey_rt_collect_files"),
+                abi_symbol: Some("jocky_rt_collect_files"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "filesystem_ads",
             },
             RuntimeCapabilityBinding {
                 capability_id: "filesystem.deleted.open",
-                runtime_module: "jockey_runtime_filesystem",
+                runtime_module: "jocky_runtime_filesystem",
                 runtime_handler: "detect_deleted_open_files",
-                abi_symbol: Some("jockey_rt_collect_files"),
+                abi_symbol: Some("jocky_rt_collect_files"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "filesystem_deleted_open",
@@ -962,90 +962,90 @@ impl CapabilityRegistry {
             // Windows Artifact capabilities
             RuntimeCapabilityBinding {
                 capability_id: "artifact.prefetch",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_prefetch",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_prefetch",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.lnk",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_lnk_files",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_lnk",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.recycle.bin",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_recycle_bin",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_recycle_bin",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.shellbags",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_shellbags",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_shellbags",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.jumplists",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_jumplists",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_jumplists",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.amcache",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_amcache",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::Admin,
                 evidence_contract: "artifact_amcache",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.srum",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_srum",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::Admin,
                 evidence_contract: "artifact_srum",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.etw",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_etw_logs",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::Admin,
                 evidence_contract: "artifact_etw",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.event.logs",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_event_logs",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::Admin,
                 evidence_contract: "artifact_event_logs",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.recent.files",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_recent_files",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_recent_files",
@@ -1053,108 +1053,108 @@ impl CapabilityRegistry {
             // Linux Artifact capabilities
             RuntimeCapabilityBinding {
                 capability_id: "artifact.shell_history",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_shell_history",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_shell_history",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.cron",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_cron_entries",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_cron",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.systemd",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_systemd_units",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_systemd",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.ssh",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_ssh_config",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_ssh",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.auth.logs",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_logs",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_auth_logs",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.journal",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_logs",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_journal",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.auditd",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_logs",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_auditd",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.sudo",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_logs",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_sudo",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.bash.history",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_shell_history",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_bash_history",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.zsh.history",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_shell_history",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_zsh_history",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.login.config",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_logs",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_login_config",
             },
             RuntimeCapabilityBinding {
                 capability_id: "artifact.container",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_container_artifacts",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "artifact_container",
@@ -1162,7 +1162,7 @@ impl CapabilityRegistry {
             // Kernel/Driver capabilities
             RuntimeCapabilityBinding {
                 capability_id: "kernel.modules",
-                runtime_module: "jockey_runtime_registry",
+                runtime_module: "jocky_runtime_registry",
                 runtime_handler: "enumerate_modules",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -1171,7 +1171,7 @@ impl CapabilityRegistry {
             },
             RuntimeCapabilityBinding {
                 capability_id: "kernel.syscalls",
-                runtime_module: "jockey_runtime_registry",
+                runtime_module: "jocky_runtime_registry",
                 runtime_handler: "inspect_syscall_table",
                 abi_symbol: None,
                 platform: Platform::Linux,
@@ -1180,7 +1180,7 @@ impl CapabilityRegistry {
             },
             RuntimeCapabilityBinding {
                 capability_id: "kernel.boot_config",
-                runtime_module: "jockey_runtime_registry",
+                runtime_module: "jocky_runtime_registry",
                 runtime_handler: "collect_boot_config",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -1190,7 +1190,7 @@ impl CapabilityRegistry {
             // Security capabilities
             RuntimeCapabilityBinding {
                 capability_id: "security.audit_policy",
-                runtime_module: "jockey_runtime_security",
+                runtime_module: "jocky_runtime_security",
                 runtime_handler: "collect_audit_policy",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -1199,7 +1199,7 @@ impl CapabilityRegistry {
             },
             RuntimeCapabilityBinding {
                 capability_id: "security.av_status",
-                runtime_module: "jockey_runtime_security",
+                runtime_module: "jocky_runtime_security",
                 runtime_handler: "detect_av_edr",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -1208,7 +1208,7 @@ impl CapabilityRegistry {
             },
             RuntimeCapabilityBinding {
                 capability_id: "security.app_control",
-                runtime_module: "jockey_runtime_security",
+                runtime_module: "jocky_runtime_security",
                 runtime_handler: "collect_app_control",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -1217,7 +1217,7 @@ impl CapabilityRegistry {
             },
             RuntimeCapabilityBinding {
                 capability_id: "security.firewall",
-                runtime_module: "jockey_runtime_security",
+                runtime_module: "jocky_runtime_security",
                 runtime_handler: "collect_firewall_rules",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -1227,27 +1227,27 @@ impl CapabilityRegistry {
             // Application Artifact capabilities
             RuntimeCapabilityBinding {
                 capability_id: "app.browser",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_browser_artifacts",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "app_browser",
             },
             RuntimeCapabilityBinding {
                 capability_id: "app.email",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_email_artifacts",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "app_email",
             },
             RuntimeCapabilityBinding {
                 capability_id: "app.office",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "carve_office_artifacts",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "app_office",
@@ -1255,7 +1255,7 @@ impl CapabilityRegistry {
             // Backdoor/Rootkit capabilities
             RuntimeCapabilityBinding {
                 capability_id: "backdoor.rootkit_indicators",
-                runtime_module: "jockey_runtime_security",
+                runtime_module: "jocky_runtime_security",
                 runtime_handler: "detect_rootkit_indicators",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -1264,7 +1264,7 @@ impl CapabilityRegistry {
             },
             RuntimeCapabilityBinding {
                 capability_id: "backdoor.binary_anomalies",
-                runtime_module: "jockey_runtime_security",
+                runtime_module: "jocky_runtime_security",
                 runtime_handler: "detect_binary_anomalies",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -1274,144 +1274,144 @@ impl CapabilityRegistry {
             // Malicious Script capabilities
             RuntimeCapabilityBinding {
                 capability_id: "script.powershell",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_powershell_scripts",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_powershell",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.wmi",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_wmi_scripts",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_wmi",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.shell",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_shell_scripts",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_shell",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.python",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_python_scripts",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_python",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.powershell.metadata",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_powershell_scripts",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_powershell_metadata",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.bash.metadata",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_shell_scripts",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_bash_metadata",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.python.metadata",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_python_scripts",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_python_metadata",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.javascript.metadata",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_javascript_scripts",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_javascript_metadata",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.cmd.metadata",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_batch_scripts",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_cmd_metadata",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.url.indicators",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_all_scripts",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_url_indicators",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.ip.indicators",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_all_scripts",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_ip_indicators",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.file.indicators",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_all_scripts",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_file_indicators",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.environment.indicators",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_all_scripts",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_environment_indicators",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.obfuscation",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_all_scripts",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_obfuscation_indicators",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.execution",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_all_scripts",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_execution_indicators",
             },
             RuntimeCapabilityBinding {
                 capability_id: "script.persistence",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_all_scripts",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "script_persistence_indicators",
@@ -1419,72 +1419,72 @@ impl CapabilityRegistry {
             // File/Binary Metadata capabilities
             RuntimeCapabilityBinding {
                 capability_id: "file.pe_metadata",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "parse_pe_metadata",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_pe_metadata",
             },
             RuntimeCapabilityBinding {
                 capability_id: "file.pe.metadata",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "parse_pe_metadata",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_pe_metadata",
             },
             RuntimeCapabilityBinding {
                 capability_id: "file.elf_metadata",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "parse_elf_metadata",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_elf_metadata",
             },
             RuntimeCapabilityBinding {
                 capability_id: "file.elf.metadata",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "parse_elf_metadata",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_elf_metadata",
             },
             RuntimeCapabilityBinding {
                 capability_id: "file.hash.sha256",
-                runtime_module: "jockey_runtime_filesystem",
+                runtime_module: "jocky_runtime_filesystem",
                 runtime_handler: "hash_sha256",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_sha256",
             },
             RuntimeCapabilityBinding {
                 capability_id: "file.code_signature",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "verify_code_signature",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_code_signature",
             },
             RuntimeCapabilityBinding {
                 capability_id: "file.signature",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "verify_code_signature",
-                abi_symbol: Some("jockey_rt_invoke_capability"),
+                abi_symbol: Some("jocky_rt_invoke_capability"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_code_signature",
             },
             RuntimeCapabilityBinding {
                 capability_id: "file.entropy",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "analyze_file_entropy",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "file_entropy",
@@ -1492,7 +1492,7 @@ impl CapabilityRegistry {
             // Evidence Integrity capabilities
             RuntimeCapabilityBinding {
                 capability_id: "evidence.sha256",
-                runtime_module: "jockey_runtime_evidence",
+                runtime_module: "jocky_runtime_evidence",
                 runtime_handler: "hash_sha256",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -1501,7 +1501,7 @@ impl CapabilityRegistry {
             },
             RuntimeCapabilityBinding {
                 capability_id: "evidence.merkle",
-                runtime_module: "jockey_runtime_evidence",
+                runtime_module: "jocky_runtime_evidence",
                 runtime_handler: "build_merkle_tree",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -1510,7 +1510,7 @@ impl CapabilityRegistry {
             },
             RuntimeCapabilityBinding {
                 capability_id: "evidence.blockchain_anchor",
-                runtime_module: "jockey_runtime_evidence",
+                runtime_module: "jocky_runtime_evidence",
                 runtime_handler: "anchor_to_blockchain",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -1519,7 +1519,7 @@ impl CapabilityRegistry {
             },
             RuntimeCapabilityBinding {
                 capability_id: "evidence.chain_of_custody",
-                runtime_module: "jockey_runtime_evidence",
+                runtime_module: "jocky_runtime_evidence",
                 runtime_handler: "generate_chain_of_custody",
                 abi_symbol: None,
                 platform: Platform::Both,
@@ -1529,108 +1529,108 @@ impl CapabilityRegistry {
             // Persistence capabilities
             RuntimeCapabilityBinding {
                 capability_id: "persistence.autostart",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_autostart_entries",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "autostart_entries",
             },
             RuntimeCapabilityBinding {
                 capability_id: "persistence.scheduled_tasks",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "enumerate_scheduled_tasks",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "persistence_scheduled_tasks",
             },
             RuntimeCapabilityBinding {
                 capability_id: "persistence.wmi",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "enumerate_wmi_subscriptions",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::Admin,
                 evidence_contract: "persistence_wmi",
             },
             RuntimeCapabilityBinding {
                 capability_id: "persistence.run",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_autostart_entries",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "persistence_run",
             },
             RuntimeCapabilityBinding {
                 capability_id: "persistence.startup.folder",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_autostart_entries",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "persistence_startup_folder",
             },
             RuntimeCapabilityBinding {
                 capability_id: "persistence.cron",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_autostart_entries",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "persistence_cron",
             },
             RuntimeCapabilityBinding {
                 capability_id: "persistence.systemd.timer",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_autostart_entries",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "persistence_systemd_timer",
             },
             RuntimeCapabilityBinding {
                 capability_id: "persistence.shell.profile",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_autostart_entries",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Both,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "persistence_shell_profile",
             },
             RuntimeCapabilityBinding {
                 capability_id: "persistence.ssh",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_autostart_entries",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Linux,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "persistence_ssh",
             },
             RuntimeCapabilityBinding {
                 capability_id: "persistence.winlogon",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_autostart_entries",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "persistence_winlogon",
             },
             RuntimeCapabilityBinding {
                 capability_id: "persistence.ifeo",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_autostart_entries",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "persistence_ifeo",
             },
             RuntimeCapabilityBinding {
                 capability_id: "persistence.appinit",
-                runtime_module: "jockey_runtime_artifacts",
+                runtime_module: "jocky_runtime_artifacts",
                 runtime_handler: "collect_autostart_entries",
-                abi_symbol: Some("jockey_rt_collect_artifacts"),
+                abi_symbol: Some("jocky_rt_collect_artifacts"),
                 platform: Platform::Windows,
                 privilege: PrivilegeLevel::User,
                 evidence_contract: "persistence_appinit",
@@ -5346,7 +5346,7 @@ impl CapabilityRegistry {
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
             "collect_system_info_detailed" => {
-                let record = jockey_runtime_system::collect_system_info_detailed()
+                let record = jocky_runtime_system::collect_system_info_detailed()
                     .map_err(|e| e.to_string())?;
                 append_records!(vec![record])
             }
@@ -5362,12 +5362,12 @@ impl CapabilityRegistry {
             }
             "collect_process_tree" => {
                 let records =
-                    jockey_runtime_process::collect_process_tree().map_err(|e| e.to_string())?;
+                    jocky_runtime_process::collect_process_tree().map_err(|e| e.to_string())?;
                 append_records!(records)
             }
             "collect_process_modules" => {
                 let processes =
-                    jockey_runtime_process::enumerate_processes(&[]).map_err(|e| e.to_string())?;
+                    jocky_runtime_process::enumerate_processes(&[]).map_err(|e| e.to_string())?;
                 let mut modules = Vec::new();
                 for process in processes {
                     let Some(pid) = process.get("pid").and_then(serde_json::Value::as_i64) else {
@@ -5389,7 +5389,7 @@ impl CapabilityRegistry {
             }
             "collect_process_handles" => {
                 let processes =
-                    jockey_runtime_process::enumerate_processes(&[]).map_err(|e| e.to_string())?;
+                    jocky_runtime_process::enumerate_processes(&[]).map_err(|e| e.to_string())?;
                 let records = processes.into_iter().filter_map(|process| {
                     let pid = process.get("pid")?.as_i64()?;
                     let open_files = process.get("open_files")?.as_array()?;
@@ -5414,7 +5414,7 @@ impl CapabilityRegistry {
 
             // User handlers
             "enumerate_users" => {
-                let result = jockey_runtime_users::enumerate_users().map_err(|e| e.to_string())?;
+                let result = jocky_runtime_users::enumerate_users().map_err(|e| e.to_string())?;
                 let mut records = Vec::new();
                 for user in result.users {
                     records.push(serde_json::json!({
@@ -5434,7 +5434,7 @@ impl CapabilityRegistry {
             // Auth handlers
             "collect_logon_events" => {
                 let result =
-                    jockey_runtime_auth::collect_logon_events().map_err(|e| e.to_string())?;
+                    jocky_runtime_auth::collect_logon_events().map_err(|e| e.to_string())?;
                 let errors = result.errors;
                 let records = result
                     .events
@@ -5444,7 +5444,7 @@ impl CapabilityRegistry {
                 append_records_with_errors!(records, errors)
             }
             "collect_credential_artifacts" => {
-                let result = jockey_runtime_auth::collect_credential_artifacts()
+                let result = jocky_runtime_auth::collect_credential_artifacts()
                     .map_err(|e| e.to_string())?;
                 let errors = result.errors;
                 let records = result
@@ -5456,7 +5456,7 @@ impl CapabilityRegistry {
             }
             "collect_auth_policy" => {
                 let result =
-                    jockey_runtime_auth::collect_auth_policy().map_err(|e| e.to_string())?;
+                    jocky_runtime_auth::collect_auth_policy().map_err(|e| e.to_string())?;
                 let errors = result.errors;
                 let records = result
                     .policies
@@ -5469,7 +5469,7 @@ impl CapabilityRegistry {
             // Service handlers
             "enumerate_services" => {
                 let result =
-                    jockey_runtime_services::enumerate_services().map_err(|e| e.to_string())?;
+                    jocky_runtime_services::enumerate_services().map_err(|e| e.to_string())?;
                 let errors = result.errors;
                 let records = result
                     .services
@@ -5485,7 +5485,7 @@ impl CapabilityRegistry {
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
             "enumerate_systemd_units" => {
-                let units = jockey_runtime_services::enumerate_systemd_units()
+                let units = jocky_runtime_services::enumerate_systemd_units()
                     .map_err(|e| e.to_string())?;
                 let records = units
                     .into_iter()
@@ -5504,41 +5504,41 @@ impl CapabilityRegistry {
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
             "enumerate_interfaces" => append_records!(
-                jockey_runtime_network::enumerate_interfaces().map_err(|e| e.to_string())?
+                jocky_runtime_network::enumerate_interfaces().map_err(|e| e.to_string())?
             ),
             "enumerate_routes" => append_records!(
-                jockey_runtime_network::enumerate_routes().map_err(|e| e.to_string())?
+                jocky_runtime_network::enumerate_routes().map_err(|e| e.to_string())?
             ),
             "enumerate_arp" => {
-                append_records!(jockey_runtime_network::enumerate_arp().map_err(|e| e.to_string())?)
+                append_records!(jocky_runtime_network::enumerate_arp().map_err(|e| e.to_string())?)
             }
             "enumerate_dns_servers" => append_records!(
-                jockey_runtime_network::enumerate_dns_servers().map_err(|e| e.to_string())?
+                jocky_runtime_network::enumerate_dns_servers().map_err(|e| e.to_string())?
             ),
             "enumerate_dns_cache" => append_records!(
-                jockey_runtime_network::enumerate_dns_cache().map_err(|e| e.to_string())?
+                jocky_runtime_network::enumerate_dns_cache().map_err(|e| e.to_string())?
             ),
             "enumerate_hosts" => append_records!(
-                jockey_runtime_network::enumerate_hosts().map_err(|e| e.to_string())?
+                jocky_runtime_network::enumerate_hosts().map_err(|e| e.to_string())?
             ),
             "enumerate_listening_ports" => {
-                append_records!(jockey_runtime_network::enumerate_listening_ports()
+                append_records!(jocky_runtime_network::enumerate_listening_ports()
                     .map_err(|e| e.to_string())?)
             }
             "collect_proxy" | "enumerate_proxy" => {
                 append_records!(
-                    jockey_runtime_network::enumerate_proxy().map_err(|e| e.to_string())?
+                    jocky_runtime_network::enumerate_proxy().map_err(|e| e.to_string())?
                 )
             }
             "enumerate_firewall_policy" => {
-                append_records!(jockey_runtime_network::enumerate_firewall_policy()
+                append_records!(jocky_runtime_network::enumerate_firewall_policy()
                     .map_err(|e| e.to_string())?)
             }
             "enumerate_shares" => append_records!(
-                jockey_runtime_network::enumerate_shares().map_err(|e| e.to_string())?
+                jocky_runtime_network::enumerate_shares().map_err(|e| e.to_string())?
             ),
             "enumerate_listeners" => append_records!(
-                jockey_runtime_network::enumerate_listeners().map_err(|e| e.to_string())?
+                jocky_runtime_network::enumerate_listeners().map_err(|e| e.to_string())?
             ),
 
             // Filesystem handlers
@@ -5563,33 +5563,33 @@ impl CapabilityRegistry {
             }
             "enumerate_mounts" => {
                 let records =
-                    jockey_runtime_filesystem::enumerate_mounts().map_err(|e| e.to_string())?;
+                    jocky_runtime_filesystem::enumerate_mounts().map_err(|e| e.to_string())?;
                 append_records!(records)
             }
             "detect_alternate_data_streams" => {
                 let path = option_string("path", ".");
-                let records = jockey_runtime_filesystem::detect_alternate_data_streams(&path)
+                let records = jocky_runtime_filesystem::detect_alternate_data_streams(&path)
                     .map_err(|e| e.to_string())?;
                 append_records!(records)
             }
 
             // Artifact handlers
             "carve_shell_history" => {
-                append_records!(jockey_runtime_artifacts::carve_shell_history("/home")
+                append_records!(jocky_runtime_artifacts::carve_shell_history("/home")
                     .map_err(|e| e.to_string())?)
             }
-            "carve_cron_entries" => append_records!(jockey_runtime_artifacts::carve_cron_entries(
+            "carve_cron_entries" => append_records!(jocky_runtime_artifacts::carve_cron_entries(
                 ""
             )
             .map_err(|e| e.to_string())?),
             "carve_systemd_units" => append_records!(
-                jockey_runtime_artifacts::carve_systemd_units("").map_err(|e| e.to_string())?
+                jocky_runtime_artifacts::carve_systemd_units("").map_err(|e| e.to_string())?
             ),
             "carve_ssh_config" => {
-                append_records!(jockey_runtime_artifacts::carve_ssh_config("/etc/ssh")
+                append_records!(jocky_runtime_artifacts::carve_ssh_config("/etc/ssh")
                     .map_err(|e| e.to_string())?)
             }
-            "carve_prefetch" => append_records!(jockey_runtime_artifacts::carve_prefetch(
+            "carve_prefetch" => append_records!(jocky_runtime_artifacts::carve_prefetch(
                 r"C:\Windows\Prefetch"
             )
             .map_err(|e| e.to_string())?),
@@ -5600,36 +5600,36 @@ impl CapabilityRegistry {
                         r"C:\Users\Default\AppData\Roaming\Microsoft\Windows\Recent".to_string()
                     });
                 append_records!(
-                    jockey_runtime_artifacts::carve_lnk_files(&recent).map_err(|e| e.to_string())?
+                    jocky_runtime_artifacts::carve_lnk_files(&recent).map_err(|e| e.to_string())?
                 )
             }
-            "carve_recycle_bin" => append_records!(jockey_runtime_artifacts::carve_recycle_bin(
+            "carve_recycle_bin" => append_records!(jocky_runtime_artifacts::carve_recycle_bin(
                 r"C:\$RECYCLE.BIN"
             )
             .map_err(|e| e.to_string())?),
             "carve_shellbags" => append_records!(
-                jockey_runtime_artifacts::carve_shellbags(".").map_err(|e| e.to_string())?
+                jocky_runtime_artifacts::carve_shellbags(".").map_err(|e| e.to_string())?
             ),
             "carve_jumplists" => {
                 let recent = std::env::var("APPDATA")
                     .map(|path| format!(r"{}\Microsoft\Windows\Recent\AutomaticDestinations", path))
                     .unwrap_or_else(|_| r"C:\Users\Default\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations".to_string());
                 append_records!(
-                    jockey_runtime_artifacts::carve_jumplists(&recent).map_err(|e| e.to_string())?
+                    jocky_runtime_artifacts::carve_jumplists(&recent).map_err(|e| e.to_string())?
                 )
             }
-            "carve_amcache" => append_records!(jockey_runtime_artifacts::carve_amcache(
+            "carve_amcache" => append_records!(jocky_runtime_artifacts::carve_amcache(
                 r"C:\Windows\AppCompat\Programs\Amcache.hve"
             )
             .map_err(|e| e.to_string())?),
-            "carve_srum" => append_records!(jockey_runtime_artifacts::carve_srum(
+            "carve_srum" => append_records!(jocky_runtime_artifacts::carve_srum(
                 r"C:\Windows\System32\sru\SRUDB.dat"
             )
             .map_err(|e| e.to_string())?),
             "collect_etw_logs" => append_records!(
-                jockey_runtime_artifacts::collect_etw_logs(".").map_err(|e| e.to_string())?
+                jocky_runtime_artifacts::collect_etw_logs(".").map_err(|e| e.to_string())?
             ),
-            "carve_event_logs" => append_records!(jockey_runtime_artifacts::carve_event_logs(
+            "carve_event_logs" => append_records!(jocky_runtime_artifacts::carve_event_logs(
                 r"C:\Windows\System32\winevt\Logs"
             )
             .map_err(|e| e.to_string())?),
@@ -5639,52 +5639,52 @@ impl CapabilityRegistry {
                     .unwrap_or_else(|_| {
                         r"C:\Users\Default\AppData\Roaming\Microsoft\Windows\Recent".to_string()
                     });
-                append_records!(jockey_runtime_artifacts::carve_recent_files(&recent)
+                append_records!(jocky_runtime_artifacts::carve_recent_files(&recent)
                     .map_err(|e| e.to_string())?)
             }
             "carve_container_artifacts" => append_records!(
-                jockey_runtime_artifacts::carve_container_artifacts("/var/lib")
+                jocky_runtime_artifacts::carve_container_artifacts("/var/lib")
                     .map_err(|e| e.to_string())?
             ),
             "carve_browser_artifacts" => append_records!(
-                jockey_runtime_artifacts::carve_browser_artifacts(&option_string("path", "."))
+                jocky_runtime_artifacts::carve_browser_artifacts(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "carve_email_artifacts" => append_records!(
-                jockey_runtime_artifacts::carve_email_artifacts(&option_string("path", "."))
+                jocky_runtime_artifacts::carve_email_artifacts(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "carve_office_artifacts" => append_records!(
-                jockey_runtime_artifacts::carve_office_artifacts(&option_string("path", "."))
+                jocky_runtime_artifacts::carve_office_artifacts(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "analyze_powershell_scripts" => append_records!(
-                jockey_runtime_artifacts::analyze_powershell_scripts(&option_string("path", "."))
+                jocky_runtime_artifacts::analyze_powershell_scripts(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "analyze_wmi_scripts" => append_records!(
-                jockey_runtime_artifacts::analyze_wmi_scripts(&option_string("path", "."))
+                jocky_runtime_artifacts::analyze_wmi_scripts(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "analyze_shell_scripts" => append_records!(
-                jockey_runtime_artifacts::analyze_shell_scripts(&option_string("path", "."))
+                jocky_runtime_artifacts::analyze_shell_scripts(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "analyze_python_scripts" => append_records!(
-                jockey_runtime_artifacts::analyze_python_scripts(&option_string("path", "."))
+                jocky_runtime_artifacts::analyze_python_scripts(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "analyze_javascript_scripts" => append_records!(
-                jockey_runtime_artifacts::analyze_javascript_scripts(&option_string("path", "."))
+                jocky_runtime_artifacts::analyze_javascript_scripts(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "analyze_batch_scripts" => append_records!(
-                jockey_runtime_artifacts::analyze_batch_scripts(&option_string("path", "."))
+                jocky_runtime_artifacts::analyze_batch_scripts(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "analyze_all_scripts" => {
                 let records =
-                    jockey_runtime_artifacts::analyze_all_script_files(&option_string("path", "."))
+                    jocky_runtime_artifacts::analyze_all_script_files(&option_string("path", "."))
                         .map_err(|e| e.to_string())?;
                 let (field, behavior) = match capability.id.as_str() {
                     "script.url.indicators" => (Some("urls"), None),
@@ -5723,36 +5723,36 @@ impl CapabilityRegistry {
                     .collect::<Vec<_>>();
                 append_records!(projected)
             }
-            "parse_pe_metadata" => append_records!(jockey_runtime_artifacts::parse_pe_metadata(
+            "parse_pe_metadata" => append_records!(jocky_runtime_artifacts::parse_pe_metadata(
                 &option_string("path", ".")
             )
             .map_err(|e| e.to_string())?),
-            "parse_elf_metadata" => append_records!(jockey_runtime_artifacts::parse_elf_metadata(
+            "parse_elf_metadata" => append_records!(jocky_runtime_artifacts::parse_elf_metadata(
                 &option_string("path", ".")
             )
             .map_err(|e| e.to_string())?),
             "verify_code_signature" => append_records!(
-                jockey_runtime_artifacts::verify_code_signature(&option_string("path", "."))
+                jocky_runtime_artifacts::verify_code_signature(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "analyze_file_entropy" => append_records!(
-                jockey_runtime_artifacts::analyze_file_entropy(&option_string("path", "."))
+                jocky_runtime_artifacts::analyze_file_entropy(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "detect_binary_anomalies" => append_records!(
-                jockey_runtime_artifacts::detect_binary_anomalies(&option_string("path", "."))
+                jocky_runtime_artifacts::detect_binary_anomalies(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "detect_rootkit_indicators" => append_records!(
-                jockey_runtime_security::detect_rootkit_indicators(&option_string("path", "."))
+                jocky_runtime_security::detect_rootkit_indicators(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
             "enumerate_scheduled_tasks" => {
-                append_records!(jockey_runtime_artifacts::collect_windows_scheduled_tasks()
+                append_records!(jocky_runtime_artifacts::collect_windows_scheduled_tasks()
                     .map_err(|e| e.to_string())?)
             }
             "enumerate_wmi_subscriptions" => append_records!(
-                jockey_runtime_artifacts::collect_windows_wmi_subscriptions()
+                jocky_runtime_artifacts::collect_windows_wmi_subscriptions()
                     .map_err(|e| e.to_string())?
             ),
             "hash_sha256" => {
@@ -5761,7 +5761,7 @@ impl CapabilityRegistry {
                     if path.is_empty() {
                         return Err("A file path is required for file SHA-256 hashing".to_string());
                     }
-                    let sha256 = jockey_runtime_filesystem::calculate_hash(&path, "sha256")
+                    let sha256 = jocky_runtime_filesystem::calculate_hash(&path, "sha256")
                         .map_err(|e| e.to_string())?;
                     append_records!(vec![serde_json::json!({
                         "path": path,
@@ -5854,11 +5854,11 @@ impl CapabilityRegistry {
                 }
                 let records = match capability.id.as_str() {
                     "persistence.autostart" => {
-                        jockey_runtime_artifacts::collect_autostart_entries(None)
+                        jocky_runtime_artifacts::collect_autostart_entries(None)
                     }
-                    "persistence.cron" => jockey_runtime_artifacts::carve_cron_entries(""),
+                    "persistence.cron" => jocky_runtime_artifacts::carve_cron_entries(""),
                     "persistence.systemd.timer" => {
-                        jockey_runtime_artifacts::carve_systemd_units("").map(|units| {
+                        jocky_runtime_artifacts::carve_systemd_units("").map(|units| {
                             units
                                 .into_iter()
                                 .filter(|unit| {
@@ -5870,12 +5870,12 @@ impl CapabilityRegistry {
                                 .collect()
                         })
                     }
-                    "persistence.ssh" => jockey_runtime_artifacts::carve_ssh_config("/etc/ssh"),
+                    "persistence.ssh" => jocky_runtime_artifacts::carve_ssh_config("/etc/ssh"),
                     "persistence.shell.profile" => {
-                        jockey_runtime_artifacts::collect_shell_profiles(None)
+                        jocky_runtime_artifacts::collect_shell_profiles(None)
                     }
                     "persistence.startup.folder" if cfg!(target_os = "linux") => {
-                        jockey_runtime_artifacts::collect_xdg_autostart_entries(None)
+                        jocky_runtime_artifacts::collect_xdg_autostart_entries(None)
                     }
                     "persistence.startup.folder" if cfg!(target_os = "windows") => {
                         let mut startup_records = Vec::new();
@@ -5891,7 +5891,7 @@ impl CapabilityRegistry {
                         .flatten()
                         {
                             startup_records.extend(
-                                jockey_runtime_artifacts::carve_lnk_files(&directory)
+                                jocky_runtime_artifacts::carve_lnk_files(&directory)
                                     .map_err(|e| e.to_string())?,
                             );
                         }
@@ -5900,15 +5900,15 @@ impl CapabilityRegistry {
                     "persistence.scheduled.task" | "persistence.scheduled_tasks"
                         if cfg!(target_os = "linux") =>
                     {
-                        jockey_runtime_artifacts::carve_cron_entries("")
+                        jocky_runtime_artifacts::carve_cron_entries("")
                     }
                     "persistence.scheduled.task" | "persistence.scheduled_tasks"
                         if cfg!(target_os = "windows") =>
                     {
-                        jockey_runtime_artifacts::collect_windows_scheduled_tasks()
+                        jocky_runtime_artifacts::collect_windows_scheduled_tasks()
                     }
                     "persistence.wmi" => {
-                        jockey_runtime_artifacts::collect_windows_wmi_subscriptions()
+                        jocky_runtime_artifacts::collect_windows_wmi_subscriptions()
                     }
                     _ => {
                         return Err(format!(
@@ -5924,20 +5924,20 @@ impl CapabilityRegistry {
             // Security handlers
             "collect_audit_policy" => {
                 append_records!(
-                    jockey_runtime_security::collect_audit_policy().map_err(|e| e.to_string())?
+                    jocky_runtime_security::collect_audit_policy().map_err(|e| e.to_string())?
                 )
             }
             "collect_firewall_rules" => {
                 append_records!(
-                    jockey_runtime_security::collect_firewall_rules().map_err(|e| e.to_string())?
+                    jocky_runtime_security::collect_firewall_rules().map_err(|e| e.to_string())?
                 )
             }
             "detect_av_edr" => {
-                append_records!(jockey_runtime_security::detect_av_edr().map_err(|e| e.to_string())?)
+                append_records!(jocky_runtime_security::detect_av_edr().map_err(|e| e.to_string())?)
             }
             "collect_app_control" => {
                 append_records!(
-                    jockey_runtime_security::collect_app_control().map_err(|e| e.to_string())?
+                    jocky_runtime_security::collect_app_control().map_err(|e| e.to_string())?
                 )
             }
 
@@ -5950,12 +5950,12 @@ impl CapabilityRegistry {
             }
             "inspect_syscall_table" => {
                 append_records!(
-                    jockey_runtime_drivers::inspect_syscall_table().map_err(|e| e.to_string())?
+                    jocky_runtime_drivers::inspect_syscall_table().map_err(|e| e.to_string())?
                 )
             }
             "collect_boot_config" => {
                 append_records!(
-                    jockey_runtime_system::collect_boot_config().map_err(|e| e.to_string())?
+                    jocky_runtime_system::collect_boot_config().map_err(|e| e.to_string())?
                 )
             }
 
@@ -5991,7 +5991,7 @@ impl CapabilityRegistry {
                 let mut evidence = EvidenceCollector::new("capability-evidence-anchor");
                 evidence.set_records(source_records.clone());
                 let hash = evidence.compute_hash("sha256").map_err(|e| e.to_string())?;
-                let anchor = jockey_runtime_evidence::anchor_to_blockchain(&hash)
+                let anchor = jocky_runtime_evidence::anchor_to_blockchain(&hash)
                     .map_err(|e| e.to_string())?;
                 append_records!(vec![serde_json::json!({
                     "evidence_hash": hash,
@@ -6086,7 +6086,7 @@ impl CapabilityRegistry {
     /// Export capability inventory as markdown table
     pub fn to_markdown(&self) -> String {
         let mut md = String::new();
-        md.push_str("# JOCKEY Capability Inventory\n\n");
+        md.push_str("# JOCKY Capability Inventory\n\n");
         md.push_str(&format!(
             "**Total Capabilities:** {} | **Implemented:** {} | **Partial:** {} | **Requires Elevation:** {} | **Platform Restricted:** {} | **Unsupported:** {} | **Coverage:** {:.1}%\n\n",
             self.count(),
@@ -6265,7 +6265,7 @@ mod tests {
         );
         let payload = result.unwrap();
         assert_eq!(payload.status, CollectionStatus::Success);
-        assert_eq!(payload.runtime_module, "jockey_runtime_system");
+        assert_eq!(payload.runtime_module, "jocky_runtime_system");
         assert!(payload.records_count > 0);
         let provenance = payload.evidence_records[0]
             .get("_provenance")
@@ -6346,7 +6346,7 @@ mod tests {
         let binding = reg
             .runtime_binding_for("user.enumerate")
             .expect("user.enumerate should resolve through the authoritative map");
-        assert_eq!(binding.runtime_module, "jockey_runtime_users");
+        assert_eq!(binding.runtime_module, "jocky_runtime_users");
         assert_eq!(binding.runtime_handler, "enumerate_users");
         assert_eq!(
             reg.capability_truth_status("user.enumerate"),
@@ -6414,7 +6414,7 @@ mod tests {
             .invoke_runtime_capability_with_options("file.elf.metadata", &options)
             .unwrap();
         assert_eq!(result.status, CollectionStatus::Success);
-        assert_eq!(result.runtime_module, "jockey_runtime_artifacts");
+        assert_eq!(result.runtime_module, "jocky_runtime_artifacts");
         assert_eq!(result.records_count, 1);
         assert_eq!(result.evidence_records[0]["metadata"]["file_type"], "elf");
         assert_eq!(
@@ -6425,7 +6425,7 @@ mod tests {
 
     #[test]
     fn test_file_hash_capability_hashes_source_bytes() {
-        let path = std::env::temp_dir().join(format!("jockey-hash-{}.bin", std::process::id()));
+        let path = std::env::temp_dir().join(format!("jocky-hash-{}.bin", std::process::id()));
         std::fs::write(&path, b"forensic source bytes").unwrap();
         let mut options = serde_json::Map::new();
         options.insert("path".to_string(), serde_json::json!(path));
@@ -6434,7 +6434,7 @@ mod tests {
             .invoke_runtime_capability_with_options("file.hash.sha256", &options)
             .unwrap();
         let expected =
-            jockey_runtime_filesystem::calculate_hash(options["path"].as_str().unwrap(), "sha256")
+            jocky_runtime_filesystem::calculate_hash(options["path"].as_str().unwrap(), "sha256")
                 .unwrap();
         let _ = std::fs::remove_file(options["path"].as_str().unwrap());
 
@@ -6506,7 +6506,7 @@ mod tests {
 
     #[test]
     fn test_script_url_capability_returns_url_projection() {
-        let root = std::env::temp_dir().join(format!("jockey-script-url-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("jocky-script-url-{}", std::process::id()));
         std::fs::create_dir_all(&root).unwrap();
         std::fs::write(
             root.join("sample.py"),

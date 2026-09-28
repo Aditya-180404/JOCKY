@@ -1,6 +1,6 @@
 # Windows Package Validation Script
 param(
-    [string]$ZipPath = "G:\jockey\jockey_0.1.0_windows_amd64.zip"
+    [string]$ZipPath = "G:\jocky\jocky_0.1.0_windows_amd64.zip"
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,16 +9,16 @@ if (-not (Test-Path $ZipPath)) {
     throw "Zip file not found at: $ZipPath"
 }
 
-$testDir = Join-Path $env:TEMP ("jockey-pkg-test-" + [System.Guid]::NewGuid().ToString())
+$testDir = Join-Path $env:TEMP ("jocky-pkg-test-" + [System.Guid]::NewGuid().ToString())
 New-Item -ItemType Directory -Path $testDir | Out-Null
 
 try {
     Write-Host "[1/6] Extracting $ZipPath to $testDir..." -ForegroundColor Cyan
     Expand-Archive -Path $ZipPath -DestinationPath $testDir
 
-    $exePath = Join-Path $testDir "jockey.exe"
+    $exePath = Join-Path $testDir "jocky.exe"
     if (-not (Test-Path $exePath)) {
-        throw "jockey.exe not found in extracted package root"
+        throw "jocky.exe not found in extracted package root"
     }
 
     Write-Host "[2/6] Verifying PE x64 architecture..." -ForegroundColor Cyan
@@ -33,22 +33,22 @@ try {
     }
     Write-Host "      ✓ PE architecture: AMD64 / x86_64 confirmed" -ForegroundColor Green
 
-    Write-Host "[3/6] Testing jockey.exe --version..." -ForegroundColor Cyan
+    Write-Host "[3/6] Testing jocky.exe --version..." -ForegroundColor Cyan
     $ver = & $exePath --version
     Write-Host "      Version output: $ver"
-    if ($ver -notmatch "jockey 0.1.0") {
+    if ($ver -notmatch "jocky 0.1.0") {
         throw "Unexpected version output: $ver"
     }
     Write-Host "      ✓ Version verified" -ForegroundColor Green
 
-    Write-Host "[4/6] Testing jockey.exe doctor..." -ForegroundColor Cyan
+    Write-Host "[4/6] Testing jocky.exe doctor..." -ForegroundColor Cyan
     $doc = (& $exePath doctor) -join "`n"
     if ($doc -notmatch "Total:\s+247") {
         throw "Doctor output does not report 247 capabilities"
     }
     Write-Host "      ✓ Doctor diagnostic passed" -ForegroundColor Green
 
-    Write-Host "[5/6] Testing jockey.exe capabilities --format json..." -ForegroundColor Cyan
+    Write-Host "[5/6] Testing jocky.exe capabilities --format json..." -ForegroundColor Cyan
     $capsRaw = (& $exePath capabilities --format json) -join "`n"
     $caps = $capsRaw | ConvertFrom-Json
     if ($caps.Length -ne 247) {
@@ -63,8 +63,8 @@ try {
     $exeSize = (Get-Item $exePath).Length
     Write-Host "      Package ZIP Size: $zipSize bytes"
     Write-Host "      Package ZIP SHA256: $hash"
-    Write-Host "      jockey.exe Size: $exeSize bytes"
-    Write-Host "      jockey.exe SHA256: $exeHash"
+    Write-Host "      jocky.exe Size: $exeSize bytes"
+    Write-Host "      jocky.exe SHA256: $exeHash"
 
     Write-Host "`n==================================================" -ForegroundColor Green
     Write-Host "WINDOWS PACKAGE VALIDATION: ALL CHECKS PASSED" -ForegroundColor Green

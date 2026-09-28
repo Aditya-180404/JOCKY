@@ -28,18 +28,18 @@
 //! ## Usage
 //!
 //! ```rust,ignore
-//! use jockey_runtime_lotl::antianalysis::{AntiAnalysisGuard, EnvironmentRisk};
+//! use jocky_runtime_lotl::antianalysis::{AntiAnalysisGuard, EnvironmentRisk};
 //!
 //! let guard = AntiAnalysisGuard::new();
 //! match guard.assess() {
 //!     EnvironmentRisk::Safe => { /* proceed with collection */ }
 //!     EnvironmentRisk::Suspicious(reasons) => {
-//!         eprintln!("[JOCKEY] Suspicious environment: {:?}", reasons);
+//!         eprintln!("[JOCKY] Suspicious environment: {:?}", reasons);
 //!         // Optionally exit:
 //!         // std::process::exit(0);
 //!     }
 //!     EnvironmentRisk::Hostile(reasons) => {
-//!         eprintln!("[JOCKEY] Hostile environment detected, aborting collection.");
+//!         eprintln!("[JOCKY] Hostile environment detected, aborting collection.");
 //!         std::process::exit(0);
 //!     }
 //! }

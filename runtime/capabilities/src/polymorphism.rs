@@ -1,4 +1,4 @@
-//! Polymorphic capability architecture for JOCKEY
+//! Polymorphic capability architecture for JOCKY
 //!
 //! Provides trait-based polymorphic dispatch, platform resolution, and target constraint
 //! enforcement across Windows, Linux, and cross-compilation targets.
@@ -120,12 +120,12 @@ impl ForensicCollector for WindowsFirewallCollector {
     fn collect(&self) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
         #[cfg(target_os = "windows")]
         {
-            jockey_runtime_network::firewall::collect_firewall_policy()
+            jocky_runtime_network::firewall::collect_firewall_policy()
         }
         #[cfg(not(target_os = "windows"))]
         {
             Ok(vec![
-                jockey_runtime_network::firewall::NormalizedFirewallRecord::unsupported(
+                jocky_runtime_network::firewall::NormalizedFirewallRecord::unsupported(
                     "windows-on-non-windows-host",
                 )
                 .to_json(),
@@ -156,12 +156,12 @@ impl ForensicCollector for LinuxFirewallCollector {
     fn collect(&self) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
         #[cfg(target_os = "linux")]
         {
-            jockey_runtime_network::firewall::collect_firewall_policy()
+            jocky_runtime_network::firewall::collect_firewall_policy()
         }
         #[cfg(not(target_os = "linux"))]
         {
             Ok(vec![
-                jockey_runtime_network::firewall::NormalizedFirewallRecord::unsupported(
+                jocky_runtime_network::firewall::NormalizedFirewallRecord::unsupported(
                     "linux-on-non-linux-host",
                 )
                 .to_json(),
@@ -192,12 +192,12 @@ impl ForensicCollector for WindowsProxyCollector {
     fn collect(&self) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
         #[cfg(target_os = "windows")]
         {
-            jockey_runtime_network::proxy::collect_proxy_configuration()
+            jocky_runtime_network::proxy::collect_proxy_configuration()
         }
         #[cfg(not(target_os = "windows"))]
         {
             Ok(vec![
-                jockey_runtime_network::proxy::NormalizedProxyRecord::new(
+                jocky_runtime_network::proxy::NormalizedProxyRecord::new(
                     "direct",
                     None,
                     None,
@@ -235,12 +235,12 @@ impl ForensicCollector for LinuxProxyCollector {
     fn collect(&self) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
         #[cfg(target_os = "linux")]
         {
-            jockey_runtime_network::proxy::collect_proxy_configuration()
+            jocky_runtime_network::proxy::collect_proxy_configuration()
         }
         #[cfg(not(target_os = "linux"))]
         {
             Ok(vec![
-                jockey_runtime_network::proxy::NormalizedProxyRecord::new(
+                jocky_runtime_network::proxy::NormalizedProxyRecord::new(
                     "direct",
                     None,
                     None,
@@ -276,7 +276,7 @@ impl ForensicCollector for WindowsNetworkCollector {
     }
 
     fn collect(&self) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
-        jockey_runtime_network::enumerate_connections()
+        jocky_runtime_network::enumerate_connections()
     }
 }
 
@@ -300,7 +300,7 @@ impl ForensicCollector for LinuxNetworkCollector {
     }
 
     fn collect(&self) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
-        jockey_runtime_network::enumerate_connections()
+        jocky_runtime_network::enumerate_connections()
     }
 }
 

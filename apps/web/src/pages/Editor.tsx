@@ -221,7 +221,7 @@ export function Editor() {
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-b border-forensic-800 bg-forensic-900/50">
         <div className="flex items-center gap-3">
-          <h1 className="text-lg font-semibold text-forensic-100">jockey IDE</h1>
+          <h1 className="text-lg font-semibold text-forensic-100">jocky IDE</h1>
           {tool && (
             <span className="badge badge-info">v{version || '0.1.0'}</span>
           )}
@@ -285,14 +285,14 @@ export function Editor() {
           <div className="flex items-center justify-between px-4 py-2 border-b border-forensic-800 bg-forensic-900/50">
             <span className="text-sm text-forensic-400 font-mono">investigation.jy</span>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-forensic-500">jockey</span>
+              <span className="text-xs text-forensic-500">jocky</span>
             </div>
           </div>
 
           <div className="flex-1 relative">
             <MonacoEditor
               height="100%"
-              defaultLanguage="jockey"
+              defaultLanguage="jocky"
               value={source}
               onChange={handleEditorChange}
               theme="vs-dark"

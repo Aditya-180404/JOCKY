@@ -1,5 +1,5 @@
 [package]
-name = "jockey-runtime-evidence"
+name = "jocky-runtime-evidence"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -7,16 +7,16 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-jockey-runtime-system = { path = "../system" }
-jockey-runtime-process = { path = "../process" }
-jockey-runtime-network = { path = "../network" }
-jockey-runtime-filesystem = { path = "../filesystem" }
-jockey-runtime-logs = { path = "../logs" }
-jockey-runtime-memory = { path = "../memory" }
-jockey-runtime-registry = { path = "../registry" }
-jockey-runtime-artifacts = { path = "../artifacts" }
-jockey-runtime-drivers = { path = "../drivers" }
-jockey-runtime-timeline = { path = "../timeline" }
+jocky-runtime-system = { path = "../system" }
+jocky-runtime-process = { path = "../process" }
+jocky-runtime-network = { path = "../network" }
+jocky-runtime-filesystem = { path = "../filesystem" }
+jocky-runtime-logs = { path = "../logs" }
+jocky-runtime-memory = { path = "../memory" }
+jocky-runtime-registry = { path = "../registry" }
+jocky-runtime-artifacts = { path = "../artifacts" }
+jocky-runtime-drivers = { path = "../drivers" }
+jocky-runtime-timeline = { path = "../timeline" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

@@ -21,27 +21,27 @@ interface GuideSection {
 
 const GUIDE_SECTIONS: GuideSection[] = [
   {
-    id: 'what_is_jockey',
-    title: 'What is jockey?',
+    id: 'what_is_jocky',
+    title: 'What is jocky?',
     category: 'Getting Started',
-    content: `jockey is a domain-specific forensic programming language designed to author, compile, and execute digital incident response investigations deterministically.
-Unlike ad-hoc shell scripts, jockey programs compile into secure, tamper-evident forensic binaries that emit structured evidence bundles verified by SHA-256 cryptographic digests.`,
+    content: `jocky is a domain-specific forensic programming language designed to author, compile, and execute digital incident response investigations deterministically.
+Unlike ad-hoc shell scripts, jocky programs compile into secure, tamper-evident forensic binaries that emit structured evidence bundles verified by SHA-256 cryptographic digests.`,
   },
   {
     id: 'installation',
     title: 'Installation',
     category: 'Getting Started',
-    content: `You can use jockey directly in your browser via the Web IDE, or install the native standalone CLI toolchain and Desktop IDE for Windows or Linux.
+    content: `You can use jocky directly in your browser via the Web IDE, or install the native standalone CLI toolchain and Desktop IDE for Windows or Linux.
 No Rust compiler or development tools are required on target endpoint machines.`,
     codeSnippet: `# Verify and run CLI
-jockey --version
-jockey check investigation.jy`,
+jocky --version
+jocky check investigation.jy`,
   },
   {
     id: 'first_program',
     title: 'First Program',
     category: 'Language Basics',
-    content: `Every jockey file contains an \`investigation\` block defining one or more collectors and an export target.`,
+    content: `Every jocky file contains an \`investigation\` block defining one or more collectors and an export target.`,
     codeSnippet: `investigation "first_triage" {
     collect system_info
     collect processes
@@ -52,7 +52,7 @@ jockey check investigation.jy`,
     id: 'syntax_rules',
     title: 'Syntax & Grammar',
     category: 'Language Basics',
-    content: `jockey syntax uses clean curly-brace blocks without requiring trailing semicolons.
+    content: `jocky syntax uses clean curly-brace blocks without requiring trailing semicolons.
 Keywords include: \`investigation\`, \`metadata\`, \`collect\`, \`export\`, \`evidence\`, \`where\`, \`limit\`, \`hash\`, \`recursive\`.`,
   },
   {
@@ -154,15 +154,15 @@ Keywords include: \`investigation\`, \`metadata\`, \`collect\`, \`export\`, \`ev
     id: 'evidence_model',
     title: 'Evidence & SHA-256',
     category: 'Integrity & Verification',
-    content: `jockey evidence is serialized to structured JSON accompanied by a \`.meta.json\` cryptographic sidecar.
+    content: `jocky evidence is serialized to structured JSON accompanied by a \`.meta.json\` cryptographic sidecar.
 The SHA-256 digest is calculated over the canonical byte stream.`,
   },
   {
     id: 'verification',
     title: 'Integrity Verification',
     category: 'Integrity & Verification',
-    content: `Verify evidence bundles anytime using \`jockey verify <evidence.json>\`. Any modification to the data or metadata triggers a tamper alert.`,
-    codeSnippet: `jockey verify processes.json
+    content: `Verify evidence bundles anytime using \`jocky verify <evidence.json>\`. Any modification to the data or metadata triggers a tamper alert.`,
+    codeSnippet: `jocky verify processes.json
 # Output:
 # Integrity: VALID
 # SHA-256: 5244f44aae2f7445e8d0f868276323132a50e3ecf9169fa60578962851f6405b`,
@@ -171,7 +171,7 @@ The SHA-256 digest is calculated over the canonical byte stream.`,
     id: 'security_model',
     title: 'Security Model & Safety Boundaries',
     category: 'Security',
-    content: `jockey strictly isolates forensic operations:
+    content: `jocky strictly isolates forensic operations:
 - Defensive and read-only collection operations only
 - No arbitrary shell, PowerShell, or Python execution
 - No persistence, evasion, AV/EDR bypass mechanisms

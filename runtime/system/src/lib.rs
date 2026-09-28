@@ -1,4 +1,4 @@
-//! jockey Runtime - System information collection
+//! jocky Runtime - System information collection
 
 use serde::{Deserialize, Serialize};
 

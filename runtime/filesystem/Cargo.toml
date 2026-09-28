@@ -1,5 +1,5 @@
 [package]
-name = "jockey-runtime-filesystem"
+name = "jocky-runtime-filesystem"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }

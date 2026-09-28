@@ -1,5 +1,5 @@
 services:
-  # Backend API (Rust/Axum) - jockey compiler API
+  # Backend API (Rust/Axum) - jocky compiler API
   api:
     build:
       context: .

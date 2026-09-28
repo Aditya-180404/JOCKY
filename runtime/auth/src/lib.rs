@@ -1,4 +1,4 @@
-//! JOCKEY Runtime - Authentication Collection
+//! JOCKY Runtime - Authentication Collection
 //!
 //! Collects authentication events, credential artifacts, and authentication policies.
 

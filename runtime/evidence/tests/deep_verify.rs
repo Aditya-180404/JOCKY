@@ -1,4 +1,4 @@
-use jockey_runtime_evidence::{verify_evidence_deep, EvidenceCollector, VerificationStatus};
+use jocky_runtime_evidence::{verify_evidence_deep, EvidenceCollector, VerificationStatus};
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -8,7 +8,7 @@ fn temp_path(name: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    std::env::temp_dir().join(format!("jockey_test_{}_{}.json", name, nonce))
+    std::env::temp_dir().join(format!("jocky_test_{}_{}.json", name, nonce))
 }
 
 #[test]

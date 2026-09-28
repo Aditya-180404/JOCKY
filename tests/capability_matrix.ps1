@@ -1,8 +1,8 @@
-# JOCKEY Automated Capability Matrix Audit & Verification Suite
+# JOCKY Automated Capability Matrix Audit & Verification Suite
 # Verifies all 247 capabilities across CLI, API, Runtime, and Target Validation
 
 param(
-    [string]$ApiBaseUrl = $(if ($env:JOCKEY_API_BASE_URL) { $env:JOCKEY_API_BASE_URL } else { "http://localhost:8080" })
+    [string]$ApiBaseUrl = $(if ($env:JOCKY_API_BASE_URL) { $env:JOCKY_API_BASE_URL } else { "http://localhost:8080" })
 )
 
 $ErrorActionPreference = "Stop"
@@ -20,12 +20,12 @@ function Report-Test($id, $name, $success, $detail) {
 }
 
 Write-Host "==================================================" -ForegroundColor Cyan
-Write-Host "JOCKEY CAPABILITY MATRIX AUDIT & VERIFICATION" -ForegroundColor Cyan
+Write-Host "JOCKY CAPABILITY MATRIX AUDIT & VERIFICATION" -ForegroundColor Cyan
 Write-Host "==================================================" -ForegroundColor Cyan
 
 # [1] CLI Capabilities Command (Raw Table Output)
 try {
-    $cliTable = (& .\target\release\jockey.exe capabilities) -join "`n"
+    $cliTable = (& .\target\release\jocky.exe capabilities) -join "`n"
     $tableHasHeader = $cliTable -match "ID" -or $cliTable -match "Capability"
     $tableHasSummary = $cliTable -match "Total: 247"
     $test1Success = $tableHasSummary -and ($cliTable -match "Coverage: 97.6%")
@@ -36,7 +36,7 @@ try {
 
 # [2] CLI JSON Capability Export
 try {
-    $rawJson = (& .\target\release\jockey.exe capabilities --format json) -join "`n"
+    $rawJson = (& .\target\release\jocky.exe capabilities --format json) -join "`n"
     $caps = $rawJson | ConvertFrom-Json
     $cliCount = $caps.Length
     $test2Success = ($cliCount -eq 247)
@@ -120,7 +120,7 @@ try {
 
 # [7] CLI Implemented Filter Flag
 try {
-    $cliImplOut = (& .\target\release\jockey.exe capabilities --implemented) -join "`n"
+    $cliImplOut = (& .\target\release\jocky.exe capabilities --implemented) -join "`n"
     $hasSummary = $cliImplOut -match "Implemented: 241"
     $test7Success = $hasSummary
     Report-Test 7 "CLI --implemented Filter" $test7Success "Correctly reports 241 implemented capabilities"
@@ -130,7 +130,7 @@ try {
 
 # [8] CLI Missing / Unimplemented Filter Flag
 try {
-    $cliMissingOut = (& .\target\release\jockey.exe capabilities --missing) -join "`n"
+    $cliMissingOut = (& .\target\release\jocky.exe capabilities --missing) -join "`n"
     $test8Success = ($cliMissingOut -match "Total:" -or $cliMissingOut -match "Coverage:")
     Report-Test 8 "CLI --missing Filter" $test8Success "Filtered unimplemented / restricted capabilities correctly"
 } catch {
@@ -172,7 +172,7 @@ try {
 
 # [12] Unit Test Suite for Capabilities Crate
 try {
-    $testOutput = (& cargo test -p jockey-runtime-capabilities) -join "`n"
+    $testOutput = (& cargo test -p jocky-runtime-capabilities) -join "`n"
     $hasPassed = $testOutput -match "15 passed; 0 failed"
     $test12Success = $hasPassed
     Report-Test 12 "Runtime Capabilities Crate Unit Tests" $test12Success "15/15 unit tests passed with 0 failures"

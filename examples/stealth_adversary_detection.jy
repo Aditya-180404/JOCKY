@@ -1,6 +1,6 @@
 investigation "stealth_adversary_detection" {
     metadata {
-        author = "JOCKEY Defensive Engineering"
+        author = "JOCKY Defensive Engineering"
         classification = "Host Detection"
         case_id = "STEALTH-ADVERSARY-001"
     }

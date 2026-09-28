@@ -38,8 +38,8 @@ members = [
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-authors = ["jockey Team"]
-repository = "https://github.com/Aditya-180404/jockey.git"
+authors = ["jocky Team"]
+repository = "https://github.com/Aditya-180404/jocky.git"
 
 [workspace.dependencies]
 # Core

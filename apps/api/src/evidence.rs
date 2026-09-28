@@ -12,7 +12,7 @@ use std::sync::Arc;
 use tracing::{error, info};
 use uuid::Uuid;
 
-use jockey_shared_types::ErrorResponse;
+use jocky_shared_types::ErrorResponse;
 
 use crate::{AppState, AuthUser};
 
@@ -349,7 +349,7 @@ pub async fn verify_evidence(
     let raw_hash_matches = calculated_hash == evidence.sha256_hash;
 
     // Check if the stored artifact is a canonical EvidenceBundle
-    let bundle_verification = serde_json::from_slice::<jockey_runtime_evidence::EvidenceBundle>(&data)
+    let bundle_verification = serde_json::from_slice::<jocky_runtime_evidence::EvidenceBundle>(&data)
         .ok()
         .map(|bundle| bundle.verify());
 

@@ -2678,17 +2678,17 @@
   },
   {
     "command_line": [
-      "jockey"
+      "jocky"
     ],
-    "name": "jockey",
+    "name": "jocky",
     "pid": 34284,
     "start_time": null
   },
   {
     "command_line": [
-      "jockey-api"
+      "jocky-api"
     ],
-    "name": "jockey-api",
+    "name": "jocky-api",
     "pid": 12692,
     "start_time": null
   },

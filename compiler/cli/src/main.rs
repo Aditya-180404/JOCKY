@@ -1,20 +1,20 @@
-//! jockey CLI - Command-line interface for the jockey compiler
+//! jocky CLI - Command-line interface for the jocky compiler
 
 use clap::{Parser, Subcommand};
-use jockey_backend::{Backend, BackendKind};
-use jockey_ir::{BuildConfig, TargetArch, TargetPlatform};
-use jockey_lexer::Lexer;
-use jockey_parser::Parser as TfParser;
-use jockey_runtime::{verify_evidence, verify_evidence_deep, VerificationStatus};
-use jockey_runtime_capabilities::CapabilityRegistry;
-use jockey_semantic::SemanticAnalyzer;
+use jocky_backend::{Backend, BackendKind};
+use jocky_ir::{BuildConfig, TargetArch, TargetPlatform};
+use jocky_lexer::Lexer;
+use jocky_parser::Parser as TfParser;
+use jocky_runtime::{verify_evidence, verify_evidence_deep, VerificationStatus};
+use jocky_runtime_capabilities::CapabilityRegistry;
+use jocky_semantic::SemanticAnalyzer;
 use std::path::{Path, PathBuf};
 
 #[derive(Parser)]
 #[command(
-    name = "jockey",
+    name = "jocky",
     version,
-    about = "jockey Forensic Investigation Compiler"
+    about = "jocky Forensic Investigation Compiler"
 )]
 struct Cli {
     #[command(subcommand)]
@@ -23,13 +23,13 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Validate a JOCKEY source file (.jy)
+    /// Validate a JOCKY source file (.jy)
     #[command(alias = "check")]
     Validate {
         /// Source file to validate (.jy)
         file: PathBuf,
     },
-    /// Compile a JOCKEY source file (.jy)
+    /// Compile a JOCKY source file (.jy)
     Compile {
         /// Source file to compile (.jy)
         file: PathBuf,
@@ -97,7 +97,7 @@ enum Commands {
         #[arg(long)]
         no_guard: bool,
     },
-    /// Build a JOCKEY source file (.jy) (alias for compile)
+    /// Build a JOCKY source file (.jy) (alias for compile)
     Build {
         /// Source file to build (.jy)
         file: PathBuf,
@@ -155,7 +155,7 @@ enum Commands {
         #[arg(long)]
         no_guard: bool,
     },
-    /// Inspect a JOCKEY source file (.jy) (show AST/IR)
+    /// Inspect a JOCKY source file (.jy) (show AST/IR)
     Inspect {
         /// Source file to inspect (.jy)
         file: PathBuf,
@@ -192,12 +192,12 @@ enum Commands {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
-    /// Initialize a new JOCKEY project
+    /// Initialize a new JOCKY project
     Init {
         /// Project name
         name: String,
     },
-    /// Compile and execute a JOCKEY source file (.jy)
+    /// Compile and execute a JOCKY source file (.jy)
     Run {
         /// Source file to run (.jy)
         file: PathBuf,
@@ -211,7 +211,7 @@ enum Commands {
         #[arg(short, long, default_value = "./build")]
         output: PathBuf,
     },
-    /// Validate and normalize a JOCKEY source file (.jy)
+    /// Validate and normalize a JOCKY source file (.jy)
     Fmt {
         /// Source file to format (.jy)
         file: PathBuf,
@@ -249,7 +249,7 @@ enum Commands {
         #[command(subcommand)]
         command: Option<CapabilityCommands>,
     },
-    /// Log in to the JOCKEY tool repository
+    /// Log in to the JOCKY tool repository
     Login {
         /// User email
         #[arg(short, long)]
@@ -298,7 +298,7 @@ enum Commands {
         #[arg(short, long, default_value = "Initial release")]
         description: String,
     },
-    /// Launch the jockey Desktop / Web IDE
+    /// Launch the jocky Desktop / Web IDE
     Ide {
         /// Port to launch on
         #[arg(short, long, default_value = "3000")]
@@ -532,7 +532,7 @@ fn main() -> anyhow::Result<()> {
 fn run(file: &Path, target: &str, arch: &str, output: &Path) -> anyhow::Result<()> {
     compile(
         file, target, arch, output, "speed", "llvm", false, false, false, false, false,
-        // Obfuscation: all disabled for `jockey run`
+        // Obfuscation: all disabled for `jocky run`
         false, false, false, false, false, false, None,
     )?;
     let output_dir = std::fs::canonicalize(output)?;
@@ -641,7 +641,7 @@ fn arch_suffix(arch: &str) -> anyhow::Result<&'static str> {
 }
 
 fn fmt(file: &Path, write: bool) -> anyhow::Result<()> {
-    jockey_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
+    jocky_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
     let source = std::fs::read_to_string(file)?;
     let mut lexer = Lexer::new(&source);
     let tokens = lexer.tokenize()?;
@@ -777,7 +777,7 @@ fn export_capabilities_markdown(output: &Path) -> anyhow::Result<()> {
 }
 
 fn validate(file: &Path) -> anyhow::Result<()> {
-    jockey_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
+    jocky_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
     println!("Validating {}", file.display());
 
     let source = std::fs::read_to_string(file)?;
@@ -850,7 +850,7 @@ fn compile(
     polymorphic: bool,
     evasion_seed: Option<u64>,
 ) -> anyhow::Result<()> {
-    jockey_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
+    jocky_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
     println!("Compiling {}", file.display());
 
     let source = std::fs::read_to_string(file)?;
@@ -939,15 +939,15 @@ fn compile(
     };
 
     let optimization_level = match opt.to_lowercase().as_str() {
-        "none" => jockey_ir::OptimizationLevel::None,
-        "size" => jockey_ir::OptimizationLevel::Size,
-        "speed" => jockey_ir::OptimizationLevel::Speed,
-        _ => jockey_ir::OptimizationLevel::Speed,
+        "none" => jocky_ir::OptimizationLevel::None,
+        "size" => jocky_ir::OptimizationLevel::Size,
+        "speed" => jocky_ir::OptimizationLevel::Speed,
+        _ => jocky_ir::OptimizationLevel::Speed,
     };
 
     // Build obfuscation config from CLI flags
     let obfuscation = if full_evasion {
-        jockey_ir::ObfuscationConfig::full_polymorphic()
+        jocky_ir::ObfuscationConfig::full_polymorphic()
     } else {
         use std::time::{SystemTime, UNIX_EPOCH};
         let seed = evasion_seed.unwrap_or_else(|| {
@@ -956,7 +956,7 @@ fn compile(
                 .map(|d| d.as_nanos() as u64)
                 .unwrap_or(0)
         });
-        jockey_ir::ObfuscationConfig {
+        jocky_ir::ObfuscationConfig {
             cfg_flattening: cfg_flatten,
             string_encryption: encrypt_strings,
             junk_insertion: junk_instructions,
@@ -1006,7 +1006,7 @@ fn compile(
 
     // --- HIR lowering (for LLVM path and emit flags) ---
     let maybe_hir = if backend_kind == BackendKind::Llvm || emit_hir || emit_all {
-        let hir: jockey_hir::HirInvestigation = (&ir).into();
+        let hir: jocky_hir::HirInvestigation = (&ir).into();
         Some(hir)
     } else {
         None
@@ -1023,7 +1023,7 @@ fn compile(
     // --- MIR lowering (for LLVM path and emit flags) ---
     let maybe_mir = if backend_kind == BackendKind::Llvm || emit_mir || emit_llvm || emit_all {
         if let Some(hir) = &maybe_hir {
-            let mir = jockey_mir::MirLowering::lower(hir)
+            let mir = jocky_mir::MirLowering::lower(hir)
                 .map_err(|e| anyhow::anyhow!("MIR lowering failed: {}", e))?;
             Some(mir)
         } else {
@@ -1045,7 +1045,7 @@ fn compile(
     #[cfg(feature = "llvm")]
     if emit_llvm || emit_all {
         if let Some(mir) = &maybe_mir {
-            let llvm_backend = jockey_backend::LlvmBackend::new(config.clone());
+            let llvm_backend = jocky_backend::LlvmBackend::new(config.clone());
             let llvm_ir = llvm_backend
                 .generate_llvm_ir(mir)
                 .map_err(|e| anyhow::anyhow!("LLVM IR generation failed: {}", e))?;
@@ -1079,7 +1079,7 @@ fn compile(
         #[cfg(feature = "llvm")]
         {
             if let Some(mir) = &maybe_mir {
-                let llvm_backend = jockey_backend::LlvmBackend::new(config.clone());
+                let llvm_backend = jocky_backend::LlvmBackend::new(config.clone());
                 llvm_backend
                     .generate_llvm_ir(mir)
                     .ok()
@@ -1096,7 +1096,7 @@ fn compile(
 
     let mut cap_provenance = Vec::new();
     for op in &ir.operations {
-        if let jockey_ir::IrOperation::Collect(c) = op {
+        if let jocky_ir::IrOperation::Collect(c) = op {
             let (cap_name, stmt_name) = match c.operation.as_str() {
                 "system.info" => ("SYSTEM_INFO_READ", "collect system_info"),
                 "process.enumerate" => ("PROCESS_READ", "collect processes"),
@@ -1171,7 +1171,7 @@ fn compile(
 }
 
 fn inspect(file: &Path, format: &str) -> anyhow::Result<()> {
-    jockey_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
+    jocky_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
     let source = std::fs::read_to_string(file)?;
 
     let mut lexer = Lexer::new(&source);
@@ -1206,7 +1206,7 @@ fn inspect(file: &Path, format: &str) -> anyhow::Result<()> {
                     print_diagnostics(&sem_diags);
                 }
                 if let Some(ir) = ir {
-                    println!("{}", jockey_ir::serialize_ir(&ir)?);
+                    println!("{}", jocky_ir::serialize_ir(&ir)?);
                 }
             }
         }
@@ -1304,7 +1304,7 @@ fn verify_artifact(artifact: &Path) -> anyhow::Result<()> {
             continue;
         }
         let content = std::fs::read(&path)?;
-        if let Ok(metadata) = serde_json::from_slice::<jockey_ir::ArtifactMetadata>(&content) {
+        if let Ok(metadata) = serde_json::from_slice::<jocky_ir::ArtifactMetadata>(&content) {
             if metadata.artifact_hash == actual_hash {
                 matching_metadata = Some((path, metadata));
                 break;
@@ -1532,7 +1532,7 @@ fn generate_report(
         .as_ref()
         .and_then(|m| m.get("investigation_name"))
         .and_then(|v| v.as_str())
-        .unwrap_or("jockey Investigation");
+        .unwrap_or("jocky Investigation");
     let host_id = meta_val
         .as_ref()
         .and_then(|m| m.get("host_identifier"))
@@ -1554,7 +1554,7 @@ fn generate_report(
         .and_then(|v| v.as_str())
         .unwrap_or("N/A");
 
-    let mut correlation = jockey_runtime::correlation::CorrelationEngine::new(inv_name, host_id);
+    let mut correlation = jocky_runtime::correlation::CorrelationEngine::new(inv_name, host_id);
     correlation.ingest_records(items, host_id);
     let graph = correlation.graph();
     let timeline_event_count = correlation
@@ -1587,7 +1587,7 @@ fn generate_report(
         })
         .cloned()
         .collect::<Vec<_>>();
-    let mut security_analyzer = jockey_runtime::security::SecurityAnalyzer::new(host_id);
+    let mut security_analyzer = jocky_runtime::security::SecurityAnalyzer::new(host_id);
     security_analyzer.run_full_analysis_with_context(
         &process_records,
         &connection_records,
@@ -1718,7 +1718,7 @@ fn generate_report(
             csv
         }
         "html" => {
-            let mut html = String::from("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>JOCKEY Forensic Report</title><style>body{font:15px system-ui,sans-serif;margin:2rem;color:#17212b}h1{margin-bottom:.25rem}table{border-collapse:collapse;width:100%;margin-top:1.5rem}th,td{border:1px solid #ccd3d8;padding:.5rem;text-align:left;vertical-align:top}th{background:#edf2f4}pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}.meta{display:grid;grid-template-columns:max-content 1fr;gap:.35rem 1rem}.warn{color:#8b2b1d}</style></head><body>");
+            let mut html = String::from("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>JOCKY Forensic Report</title><style>body{font:15px system-ui,sans-serif;margin:2rem;color:#17212b}h1{margin-bottom:.25rem}table{border-collapse:collapse;width:100%;margin-top:1.5rem}th,td{border:1px solid #ccd3d8;padding:.5rem;text-align:left;vertical-align:top}th{background:#edf2f4}pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}.meta{display:grid;grid-template-columns:max-content 1fr;gap:.35rem 1rem}.warn{color:#8b2b1d}</style></head><body>");
             html.push_str(&format!("<h1>{}</h1><dl class=\"meta\"><dt>Host</dt><dd>{}</dd><dt>Collected</dt><dd>{}</dd><dt>Evidence SHA-256</dt><dd><code>{}</code></dd><dt>Merkle root</dt><dd><code>{}</code></dd><dt>Records</dt><dd>{}</dd><dt>Flagged records</dt><dd class=\"warn\">{}</dd></dl>", html_escape(inv_name), html_escape(host_id), html_escape(collected_at), html_escape(evidence_hash), html_escape(merkle_root), total_items, suspicious_count));
             html.push_str("<table><thead><tr><th>#</th><th>Capability</th><th>Category</th><th>Source</th><th>Details</th></tr></thead><tbody>");
             for (index, item) in items.iter().enumerate() {
@@ -1788,7 +1788,7 @@ fn generate_report(
         }
         "markdown" | "md" => {
             let mut md = String::new();
-            md.push_str(&format!("# jockey Forensic Report: {}\n\n", inv_name));
+            md.push_str(&format!("# jocky Forensic Report: {}\n\n", inv_name));
             md.push_str("## Executive Summary\n\n");
             md.push_str(&format!("- **Investigation Name:** `{}`\n", inv_name));
             md.push_str(&format!("- **Target Host:** `{}`\n", host_id));
@@ -1872,7 +1872,7 @@ fn generate_report(
             term.push_str(
                 "======================================================================\n",
             );
-            term.push_str("             jockey FORENSIC INVESTIGATION REPORT\n");
+            term.push_str("             jocky FORENSIC INVESTIGATION REPORT\n");
             term.push_str(
                 "======================================================================\n",
             );
@@ -2052,14 +2052,14 @@ fn init_project(name: &str) -> anyhow::Result<()> {
 
     // Create README
     let readme = format!(
-        r#"# {} - jockey Investigation
+        r#"# {} - jocky Investigation
 
 This investigation collects system information, process details, and network connections.
 
 ## Building
 
 ```bash
-jockey build {}.jy --target linux --arch x64
+jocky build {}.jy --target linux --arch x64
 ```
 
 ## Running
@@ -2079,7 +2079,7 @@ Evidence will be written to `{}_evidence.json` with a SHA-256 hash for integrity
 
     println!("Created project: {}", dir.display());
     println!("  Edit {}.jy to customize your investigation", name);
-    println!("  Run `jockey build {}.jy` to compile", name);
+    println!("  Run `jocky build {}.jy` to compile", name);
 
     Ok(())
 }
@@ -2100,13 +2100,13 @@ fn calculate_compiler_hash() -> anyhow::Result<String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
-fn print_diagnostics(diags: &[jockey_ast::Diagnostic]) {
+fn print_diagnostics(diags: &[jocky_ast::Diagnostic]) {
     for diag in diags {
         let (prefix, code) = match diag.severity {
-            jockey_ast::Severity::Error => ("error", diag.code.as_deref().unwrap_or("E1001")),
-            jockey_ast::Severity::Warning => ("warning", diag.code.as_deref().unwrap_or("W1001")),
-            jockey_ast::Severity::Info => ("info", diag.code.as_deref().unwrap_or("I1001")),
-            jockey_ast::Severity::Hint => ("help", diag.code.as_deref().unwrap_or("H1001")),
+            jocky_ast::Severity::Error => ("error", diag.code.as_deref().unwrap_or("E1001")),
+            jocky_ast::Severity::Warning => ("warning", diag.code.as_deref().unwrap_or("W1001")),
+            jocky_ast::Severity::Info => ("info", diag.code.as_deref().unwrap_or("I1001")),
+            jocky_ast::Severity::Hint => ("help", diag.code.as_deref().unwrap_or("H1001")),
         };
         if let Some(span) = diag.span {
             eprintln!("{}[{}]: {} (at {})", prefix, code, diag.message, span);
@@ -2127,7 +2127,7 @@ fn get_config_dir() -> PathBuf {
     let home = std::env::var("USERPROFILE")
         .or_else(|_| std::env::var("HOME"))
         .unwrap_or_else(|_| ".".to_string());
-    let dir = PathBuf::from(home).join(".jockey");
+    let dir = PathBuf::from(home).join(".jocky");
     let _ = std::fs::create_dir_all(&dir);
     dir
 }
@@ -2274,7 +2274,7 @@ fn repo_install(tool_name: &str, version: Option<&str>) -> anyhow::Result<()> {
         .unwrap_or_else(|| "http://localhost:8080".to_string());
     let token = cfg
         .token
-        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jockey login first"))?;
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jocky login first"))?;
     println!("Installing '{}'...", tool_id);
     let target_dir = PathBuf::from(".").join("tools");
     std::fs::create_dir_all(&target_dir)?;
@@ -2298,7 +2298,7 @@ fn repo_list() -> anyhow::Result<()> {
         .unwrap_or_else(|| "http://localhost:8080".to_string());
     let token = cfg
         .token
-        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jockey login first"))?;
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jocky login first"))?;
     let response: serde_json::Value = ureq::get(&format!("{}/api/tools", api_url))
         .set("Authorization", &format!("Bearer {}", token))
         .call()
@@ -2318,7 +2318,7 @@ fn repo_info(tool: &str) -> anyhow::Result<()> {
         .unwrap_or_else(|| "http://localhost:8080".to_string());
     let token = cfg
         .token
-        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jockey login first"))?;
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jocky login first"))?;
     let response: serde_json::Value = ureq::get(&format!("{}/api/tools/{}", api_url, tool_id))
         .set("Authorization", &format!("Bearer {}", token))
         .call()
@@ -2335,7 +2335,7 @@ fn repo_update(tool: Option<&str>) -> anyhow::Result<()> {
         .unwrap_or_else(|| "http://localhost:8080".to_string());
     let token = cfg
         .token
-        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jockey login first"))?;
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jocky login first"))?;
 
     match tool {
         Some(name) => {
@@ -2391,11 +2391,11 @@ fn repo_publish(file: &Path, version: &str, description: &str) -> anyhow::Result
 
     let token = cfg
         .token
-        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jockey login first"))?;
+        .ok_or_else(|| anyhow::anyhow!("Not logged in; run jocky login first"))?;
     let tool_name = file
         .file_stem()
         .and_then(|s| s.to_str())
-        .unwrap_or("jockey-tool");
+        .unwrap_or("jocky-tool");
     let tool_response: serde_json::Value = ureq::post(&format!("{}/api/tools", api_url))
         .set("Authorization", &format!("Bearer {}", token))
         .send_json(serde_json::json!({ "name": tool_name, "description": description }))
@@ -2425,7 +2425,7 @@ fn repo_publish(file: &Path, version: &str, description: &str) -> anyhow::Result
 
 fn launch_ide(port: u16) -> anyhow::Result<()> {
     println!("============================================================");
-    println!("  jockey Forensic Programming Environment");
+    println!("  jocky Forensic Programming Environment");
     println!("============================================================");
     println!("  Opening Web IDE...");
     println!("  Local Web URL: http://localhost:{}", port);
@@ -2477,7 +2477,7 @@ fn rustup_installed_targets() -> Vec<String> {
 
 fn doctor_command() -> anyhow::Result<()> {
     println!("============================================================");
-    println!("  JOCKEY System & Environment Diagnostic (jockey doctor)");
+    println!("  JOCKY System & Environment Diagnostic (jocky doctor)");
     println!("============================================================");
     println!();
 
@@ -2593,7 +2593,7 @@ fn doctor_command() -> anyhow::Result<()> {
             println!("  [API]              ✓ Online at http://localhost:8080");
         }
         _ => {
-            println!("  [API]              ! Offline — start with: cargo run -p jockey-api");
+            println!("  [API]              ! Offline — start with: cargo run -p jocky-api");
         }
     }
     println!();
@@ -2602,7 +2602,7 @@ fn doctor_command() -> anyhow::Result<()> {
     let cfg = load_config();
     match &cfg.user_email {
         Some(email) => println!("  [Logged In]        ✓ {}", email),
-        None => println!("  [Auth]             ! Not logged in — run: jockey login"),
+        None => println!("  [Auth]             ! Not logged in — run: jocky login"),
     }
 
     println!();
@@ -2632,16 +2632,16 @@ mod report_tests {
     #[test]
     fn test_cli_accepts_jy_source_extension() {
         let p = std::path::Path::new("examples/complete_forensic_triage.jy");
-        assert!(jockey_ir::validate_source_extension(p).is_ok());
+        assert!(jocky_ir::validate_source_extension(p).is_ok());
     }
 
     #[test]
     fn test_cli_rejects_tfg_source_extension() {
         let p = std::path::Path::new("examples/complete_forensic_triage.tfg");
-        let res = jockey_ir::validate_source_extension(p);
+        let res = jocky_ir::validate_source_extension(p);
         assert!(res.is_err());
         let err = res.unwrap_err();
-        assert!(err.contains("Unsupported JOCKEY source extension '.tfg'"));
+        assert!(err.contains("Unsupported JOCKY source extension '.tfg'"));
         assert!(err.contains("Expected a '.jy' source file"));
     }
 }

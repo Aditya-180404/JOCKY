@@ -1,4 +1,4 @@
-//! jockey Runtime — Forensic artifact carver
+//! jocky Runtime — Forensic artifact carver
 //!
 //! Carves and parses forensic artifacts from the filesystem:
 //! - Windows Prefetch files (`*.pf`)
@@ -3449,7 +3449,7 @@ mod tests {
 
     #[test]
     fn test_detect_binary_anomalies_flags_upx_packers() {
-        let tmp = std::env::temp_dir().join("jockey-binary-anomaly-tests");
+        let tmp = std::env::temp_dir().join("jocky-binary-anomaly-tests");
         let _ = std::fs::create_dir_all(&tmp);
         let path = tmp.join("sample.bin");
         let bytes = b"UPX0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
@@ -3476,7 +3476,7 @@ mod tests {
 
     #[test]
     fn test_collect_autostart_entries_reads_real_paths() {
-        let tmp = std::env::temp_dir().join("jockey-autostart-tests");
+        let tmp = std::env::temp_dir().join("jocky-autostart-tests");
         let _ = std::fs::create_dir_all(&tmp);
         let startup = tmp.join(".bashrc");
         std::fs::write(
@@ -3496,7 +3496,7 @@ mod tests {
 
     #[test]
     fn test_shell_profile_collector_extracts_indicators_not_contents() {
-        let root = std::env::temp_dir().join(format!("jockey-profile-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("jocky-profile-{}", std::process::id()));
         std::fs::create_dir_all(&root).unwrap();
         let profile = root.join(".profile");
         std::fs::write(
@@ -3520,7 +3520,7 @@ mod tests {
 
     #[test]
     fn test_xdg_autostart_parser_reads_desktop_fields() {
-        let root = std::env::temp_dir().join(format!("jockey-xdg-startup-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("jocky-xdg-startup-{}", std::process::id()));
         std::fs::create_dir_all(&root).unwrap();
         std::fs::write(
             root.join("updater.desktop"),

@@ -50,30 +50,30 @@ jobs:
         run: cargo build --workspace --release
 
       # ── Linux acceptance tests ───────────────────────────────────────────────
-      - name: jockey --version
-        run: ./target/release/jockey --version
+      - name: jocky --version
+        run: ./target/release/jocky --version
 
-      - name: jockey doctor
-        run: ./target/release/jockey doctor
+      - name: jocky doctor
+        run: ./target/release/jocky doctor
 
-      - name: jockey check (example)
-        run: ./target/release/jockey check examples/complete_forensic_triage.jy
+      - name: jocky check (example)
+        run: ./target/release/jocky check examples/complete_forensic_triage.jy
 
-      - name: jockey compile linux-x64
-        run: ./target/release/jockey compile examples/complete_forensic_triage.jy --target linux --arch x64 --output ./ci-build/
+      - name: jocky compile linux-x64
+        run: ./target/release/jocky compile examples/complete_forensic_triage.jy --target linux --arch x64 --output ./ci-build/
 
       - name: verify artifact is ELF
         run: |
           file ./ci-build/complete_forensic_triage-linux-x64 | grep -i ELF
 
-      - name: jockey run
-        run: ./target/release/jockey run examples/complete_forensic_triage.jy --output ./ci-build/
+      - name: jocky run
+        run: ./target/release/jocky run examples/complete_forensic_triage.jy --output ./ci-build/
 
-      - name: jockey verify evidence
+      - name: jocky verify evidence
         run: |
           EVIDENCE=$(ls ./ci-build/*.json | grep -v meta | grep -v manifest | head -1)
           META="${EVIDENCE}.meta.json"
-          ./target/release/jockey evidence verify "${EVIDENCE}" --meta "${META}"
+          ./target/release/jocky evidence verify "${EVIDENCE}" --meta "${META}"
 
       - name: tamper test (expect INVALID)
         run: |
@@ -82,7 +82,7 @@ jobs:
           TAMPERED=/tmp/tampered.json
           jq '.[0] |= (. + {"ci_tamper_probe": true})' "${EVIDENCE}" > "${TAMPERED}"
           jq -e 'type == "array" and length > 0 and .[0].ci_tamper_probe == true' "${TAMPERED}" >/dev/null
-          if ./target/release/jockey evidence verify "${TAMPERED}" --meta "${META}" 2>/dev/null; then
+          if ./target/release/jocky evidence verify "${TAMPERED}" --meta "${META}" 2>/dev/null; then
             echo "ERROR: tampered evidence should have failed verification" && exit 1
           else
             echo "✓ Tamper detection working correctly"
@@ -143,17 +143,17 @@ jobs:
           cargo build --workspace --release
 
       # ── Windows acceptance tests ─────────────────────────────────────────────
-      - name: jockey --version
-        run: .\target\release\jockey.exe --version
+      - name: jocky --version
+        run: .\target\release\jocky.exe --version
 
-      - name: jockey doctor
-        run: .\target\release\jockey.exe doctor
+      - name: jocky doctor
+        run: .\target\release\jocky.exe doctor
 
-      - name: jockey check (example)
-        run: .\target\release\jockey.exe check examples\complete_forensic_triage.jy
+      - name: jocky check (example)
+        run: .\target\release\jocky.exe check examples\complete_forensic_triage.jy
 
-      - name: jockey compile windows-x64
-        run: .\target\release\jockey.exe compile examples\complete_forensic_triage.jy --target windows --arch x64 --output .\ci-build\
+      - name: jocky compile windows-x64
+        run: .\target\release\jocky.exe compile examples\complete_forensic_triage.jy --target windows --arch x64 --output .\ci-build\
 
       - name: verify artifact is PE
         shell: pwsh
@@ -165,15 +165,15 @@ jobs:
           }
           Write-Host "✓ PE header verified (MZ magic present)"
 
-      - name: jockey run
-        run: .\target\release\jockey.exe run examples\complete_forensic_triage.jy --output .\ci-build\
+      - name: jocky run
+        run: .\target\release\jocky.exe run examples\complete_forensic_triage.jy --output .\ci-build\
 
-      - name: jockey verify evidence
+      - name: jocky verify evidence
         shell: pwsh
         run: |
           $evidence = (Get-ChildItem .\ci-build\*.json | Where-Object { $_.Name -notmatch "meta|manifest" } | Select-Object -First 1).FullName
           $meta = "$evidence.meta.json"
-          .\target\release\jockey.exe evidence verify $evidence --meta $meta
+          .\target\release\jocky.exe evidence verify $evidence --meta $meta
 
       - name: tamper test (expect INVALID)
         shell: pwsh
@@ -189,12 +189,18 @@ jobs:
           $tamperedJson = ConvertTo-Json -InputObject $records -Depth 100
           [System.IO.File]::WriteAllText($tampered, $tamperedJson, [System.Text.UTF8Encoding]::new($false))
           $null = Get-Content $tampered -Raw | ConvertFrom-Json
-          $result = .\target\release\jockey.exe evidence verify $tampered --meta $meta 2>&1
-          if ($LASTEXITCODE -eq 0) {
-            Write-Error "ERROR: tampered evidence should have failed"; exit 1
-          } else {
-            Write-Host "✓ Tamper detection working correctly"
+
+          $result = & .\target\release\jocky.exe evidence verify $tampered --meta $meta 2>&1
+          $exitCode = $LASTEXITCODE
+
+          if ($exitCode -eq 0) {
+            Write-Error "ERROR: tampered evidence should have failed"
+            exit 1
           }
+
+          Write-Host "✓ Tamper detection working correctly (exit code $exitCode)"
+          Write-Host $result
+          exit 0
 
       - name: Authenticode Signing Pipeline (Dev / Release)
         shell: pwsh
@@ -214,8 +220,8 @@ jobs:
       - name: Upload Windows distribution artifact
         uses: actions/upload-artifact@v4
         with:
-          name: jockey-windows-x64-zip
-          path: jockey_0.1.0_windows_amd64.zip
+          name: jocky-windows-x64-zip
+          path: jocky_0.1.0_windows_amd64.zip
           if-no-files-found: error
 
   # ─── Web checks ──────────────────────────────────────────────────────────────
@@ -260,7 +266,7 @@ jobs:
           cargo --version
 
       - name: Build release CLI
-        run: cargo build --release -p jockey-cli
+        run: cargo build --release -p jocky-cli
 
       - name: Install dpkg-deb
         run: sudo apt-get install -y dpkg
@@ -270,25 +276,25 @@ jobs:
 
       - name: Inspect package
         run: |
-          dpkg-deb --info jockey_0.1.0_amd64.deb
-          dpkg-deb --contents jockey_0.1.0_amd64.deb
+          dpkg-deb --info jocky_0.1.0_amd64.deb
+          dpkg-deb --contents jocky_0.1.0_amd64.deb
 
       - name: Install package
-        run: sudo dpkg -i jockey_0.1.0_amd64.deb
+        run: sudo dpkg -i jocky_0.1.0_amd64.deb
 
       - name: Verify installed binary
         run: |
-          jockey --version
-          jockey doctor
-          jockey capabilities --format json | jq '. | length'
-          jockey check examples/complete_forensic_triage.jy
+          jocky --version
+          jocky doctor
+          jocky capabilities --format json | jq '. | length'
+          jocky check examples/complete_forensic_triage.jy
 
       - name: Remove package
-        run: sudo dpkg -r jockey
+        run: sudo dpkg -r jocky
 
       - name: Upload Debian package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: jockey-debian-amd64-deb
-          path: jockey_0.1.0_amd64.deb
+          name: jocky-debian-amd64-deb
+          path: jocky_0.1.0_amd64.deb
           if-no-files-found: error

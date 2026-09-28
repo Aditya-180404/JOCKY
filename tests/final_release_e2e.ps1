@@ -1,4 +1,4 @@
-# JOCKEY Final End-to-End Release Acceptance Test Suite
+# JOCKY Final End-to-End Release Acceptance Test Suite
 # Tests all 23 release criteria
 
 $ErrorActionPreference = "Stop"
@@ -16,7 +16,7 @@ function Report-Test($id, $name, $success, $detail) {
 }
 
 Write-Host "==================================================" -ForegroundColor Cyan
-Write-Host "JOCKEY FINAL RELEASE E2E ACCEPTANCE TEST SUITE" -ForegroundColor Cyan
+Write-Host "JOCKY FINAL RELEASE E2E ACCEPTANCE TEST SUITE" -ForegroundColor Cyan
 Write-Host "==================================================" -ForegroundColor Cyan
 
 # [1] Source extension (.jy is only DSL extension, no legacy production .tfg)
@@ -36,16 +36,16 @@ try {
 
 # [3] Compiler check
 try {
-    $checkOut = .\target\release\jockey.exe check examples/complete_forensic_triage.jy
+    $checkOut = .\target\release\jocky.exe check examples/complete_forensic_triage.jy
     $test3Success = $LASTEXITCODE -eq 0
-    Report-Test 3 "CLI Check Command" $test3Success "jockey check passed on examples/complete_forensic_triage.jy"
+    Report-Test 3 "CLI Check Command" $test3Success "jocky check passed on examples/complete_forensic_triage.jy"
 } catch {
     Report-Test 3 "CLI Check Command" $false $_.Exception.Message
 }
 
 # [4] CLI Help and Version
 try {
-    $verOut = .\target\release\jockey.exe --version
+    $verOut = .\target\release\jocky.exe --version
     $test4Success = ($LASTEXITCODE -eq 0) -and ($verOut -match "0.1.0")
     Report-Test 4 "CLI Version and Help" $test4Success "Version reported: $verOut"
 } catch {
@@ -55,7 +55,7 @@ try {
 # [5] Windows Compilation
 try {
     if (!(Test-Path "build")) { New-Item -ItemType Directory -Path "build" | Out-Null }
-    $compOut = .\target\release\jockey.exe compile examples/complete_forensic_triage.jy --target windows-x64 --output build/
+    $compOut = .\target\release\jocky.exe compile examples/complete_forensic_triage.jy --target windows-x64 --output build/
     $exePath = "build/complete_forensic_triage-windows-x64.exe"
     $test5Success = (Test-Path $exePath) -and ((Get-Item $exePath).Length -gt 100000)
     Report-Test 5 "Windows Compilation" $test5Success "Generated $exePath ($((Get-Item $exePath).Length) bytes)"
@@ -79,7 +79,7 @@ try {
 
 # [7, 8] Windows Execution & Evidence Generation
 try {
-    $runOut = .\target\release\jockey.exe run examples/basic_system_triage.jy --output build/
+    $runOut = .\target\release\jocky.exe run examples/basic_system_triage.jy --output build/
     $evPath = "build/system_triage.json"
     $metaPath = "build/system_triage.json.meta.json"
     $test7Success = (Test-Path $evPath) -and (Test-Path $metaPath) -and ((Get-Item $evPath).Length -gt 1000)
@@ -92,7 +92,7 @@ try {
 
 # [9] Evidence Cryptographic Verification
 try {
-    $verifyOut = .\target\release\jockey.exe verify build/system_triage.json
+    $verifyOut = .\target\release\jocky.exe verify build/system_triage.json
     $test9Success = ($LASTEXITCODE -eq 0) -and ($verifyOut -match "VALID")
     Report-Test 9 "Evidence Integrity Verification" $test9Success "Verification returned VALID with SHA-256 and Merkle checks"
 } catch {
@@ -104,7 +104,7 @@ try {
     Copy-Item "build/system_triage.json" "build/tamper_test.json" -Force
     Copy-Item "build/system_triage.json.meta.json" "build/tamper_test.json.meta.json" -Force
     (Get-Content "build/tamper_test.json") -replace 'Windows', 'TamperedOS' | Set-Content "build/tamper_test.json"
-    $tamperOut = .\target\release\jockey.exe verify build/tamper_test.json 2>&1
+    $tamperOut = .\target\release\jocky.exe verify build/tamper_test.json 2>&1
     $test10Success = ($LASTEXITCODE -ne 0) -and ($tamperOut -match "TAMPERED|Hash mismatch")
     Report-Test 10 "Cryptographic Tamper Detection" $test10Success "Tampered evidence rejected with non-zero exit code: $tamperOut"
 } catch {
@@ -114,7 +114,7 @@ try {
 # [11] API Health Endpoint
 try {
     $health = Invoke-RestMethod -Uri "http://localhost:8080/health" -Method Get
-    $test11Success = ($health.status -eq "ok") -and ($health.service -eq "jockey-api")
+    $test11Success = ($health.status -eq "ok") -and ($health.service -eq "jocky-api")
     Report-Test 11 "API Server Health" $test11Success "Status: $($health.status), Version: $($health.version)"
 } catch {
     Report-Test 11 "API Server Health" $false $_.Exception.Message
@@ -216,16 +216,16 @@ try {
 
 # [20, 21] Release Package Creation and Inspection
 try {
-    $zipPath = "jockey_0.1.0_windows_amd64.zip"
+    $zipPath = "jocky_0.1.0_windows_amd64.zip"
     $test20Success = (Test-Path $zipPath) -and ((Get-Item $zipPath).Length -gt 1000000)
     Report-Test 20 "Distribution Package Creation" $test20Success "Package $zipPath exists ($((Get-Item $zipPath).Length) bytes)"
     
     # Inspect ZIP contents
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $zipPath).Path)
-    $hasJockeyExe = ($zip.Entries | Where-Object { $_.Name -eq "jockey.exe" }).Count -gt 0
+    $hasJockyExe = ($zip.Entries | Where-Object { $_.Name -eq "jocky.exe" }).Count -gt 0
     $zip.Dispose()
-    Report-Test 21 "Distribution Package Inspection" $hasJockeyExe "ZIP contains genuine standalone jockey.exe"
+    Report-Test 21 "Distribution Package Inspection" $hasJockyExe "ZIP contains genuine standalone jocky.exe"
 } catch {
     Report-Test 20 "Distribution Package Creation" $false $_.Exception.Message
     Report-Test 21 "Distribution Package Inspection" $false $_.Exception.Message
@@ -234,7 +234,7 @@ try {
 # [22] Web IDE Integration Route Check
 try {
     $idePage = Invoke-WebRequest -Uri "http://localhost:3000/ide" -Method Get -UseBasicParsing
-    $test22Success = ($idePage.StatusCode -eq 200) -and ($idePage.Content -match "JOCKEY|html")
+    $test22Success = ($idePage.StatusCode -eq 200) -and ($idePage.Content -match "JOCKY|html")
     Report-Test 22 "Web IDE Frontend Integration" $test22Success "Web IDE served on http://localhost:3000/ide"
 } catch {
     Report-Test 22 "Web IDE Frontend Integration" $false $_.Exception.Message

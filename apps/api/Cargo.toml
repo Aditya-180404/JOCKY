@@ -1,5 +1,5 @@
 [package]
-name = "jockey-api"
+name = "jocky-api"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -7,28 +7,28 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [[bin]]
-name = "jockey-api"
+name = "jocky-api"
 path = "src/main.rs"
 
 [dependencies]
-jockey-shared-types = { path = "../../packages/shared-types" }
-jockey-lexer = { path = "../../compiler/lexer" }
-jockey-parser = { path = "../../compiler/parser" }
-jockey-ast = { path = "../../compiler/ast" }
-jockey-semantic = { path = "../../compiler/semantic" }
-jockey-backend = { path = "../../compiler/backend" }
-jockey-ir = { path = "../../compiler/ir" }
-jockey-runtime = { path = "../../runtime" }
-jockey-runtime-evidence = { path = "../../runtime/evidence" }
-jockey-runtime-system = { path = "../../runtime/system" }
-jockey-runtime-process = { path = "../../runtime/process" }
-jockey-runtime-network = { path = "../../runtime/network" }
-jockey-runtime-filesystem = { path = "../../runtime/filesystem" }
-jockey-runtime-logs = { path = "../../runtime/logs" }
-jockey-runtime-security = { path = "../../runtime/security" }
-jockey-runtime-correlation = { path = "../../runtime/correlation" }
-jockey-runtime-capabilities = { path = "../../runtime/capabilities" }
-jockey-runtime-timeline = { path = "../../runtime/timeline" }
+jocky-shared-types = { path = "../../packages/shared-types" }
+jocky-lexer = { path = "../../compiler/lexer" }
+jocky-parser = { path = "../../compiler/parser" }
+jocky-ast = { path = "../../compiler/ast" }
+jocky-semantic = { path = "../../compiler/semantic" }
+jocky-backend = { path = "../../compiler/backend" }
+jocky-ir = { path = "../../compiler/ir" }
+jocky-runtime = { path = "../../runtime" }
+jocky-runtime-evidence = { path = "../../runtime/evidence" }
+jocky-runtime-system = { path = "../../runtime/system" }
+jocky-runtime-process = { path = "../../runtime/process" }
+jocky-runtime-network = { path = "../../runtime/network" }
+jocky-runtime-filesystem = { path = "../../runtime/filesystem" }
+jocky-runtime-logs = { path = "../../runtime/logs" }
+jocky-runtime-security = { path = "../../runtime/security" }
+jocky-runtime-correlation = { path = "../../runtime/correlation" }
+jocky-runtime-capabilities = { path = "../../runtime/capabilities" }
+jocky-runtime-timeline = { path = "../../runtime/timeline" }
 anyhow = { workspace = true }
 axum = { workspace = true, features = ["multipart"] }
 tokio = { workspace = true }

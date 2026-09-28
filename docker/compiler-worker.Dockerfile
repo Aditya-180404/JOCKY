@@ -1,4 +1,4 @@
-# Compiler Worker Dockerfile - jockey compiler worker
+# Compiler Worker Dockerfile - jocky compiler worker
 FROM rust:latest AS builder
 
 WORKDIR /app
@@ -20,7 +20,7 @@ COPY packages/shared-types ./packages/shared-types
 COPY services/compiler-worker ./services/compiler-worker
 
 # Build the compiler worker
-RUN cargo build --release --bin jockey-compiler-worker
+RUN cargo build --release --bin jocky-compiler-worker
 
 # Runtime stage
 FROM debian:trixie-slim
@@ -35,6 +35,6 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/jockey-compiler-worker /usr/local/bin/jockey-compiler-worker
+COPY --from=builder /app/target/release/jocky-compiler-worker /usr/local/bin/jocky-compiler-worker
 
-CMD ["jockey-compiler-worker"]
+CMD ["jocky-compiler-worker"]

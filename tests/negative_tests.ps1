@@ -1,4 +1,4 @@
-# JOCKEY Comprehensive Negative Test Suite
+# JOCKY Comprehensive Negative Test Suite
 # Tests all error scenarios mandated by Section 17:
 # 1. Invalid syntax
 # 2. Unknown capability
@@ -12,12 +12,12 @@
 # 10. Nonexistent Download Filename
 
 param(
-    [string]$ApiBaseUrl = $(if ($env:JOCKEY_API_BASE_URL) { $env:JOCKEY_API_BASE_URL } else { "http://localhost:8080" })
+    [string]$ApiBaseUrl = $(if ($env:JOCKY_API_BASE_URL) { $env:JOCKY_API_BASE_URL } else { "http://localhost:8080" })
 )
 
 $negativeRunId = [guid]::NewGuid().ToString("N")
-$cliErrorPath = Join-Path $env:TEMP "jockey-negative-cli-$negativeRunId.txt"
-$verifyErrorPath = Join-Path $env:TEMP "jockey-negative-verify-$negativeRunId.txt"
+$cliErrorPath = Join-Path $env:TEMP "jocky-negative-cli-$negativeRunId.txt"
+$verifyErrorPath = Join-Path $env:TEMP "jocky-negative-verify-$negativeRunId.txt"
 
 $passed = 0
 $failed = 0
@@ -33,7 +33,7 @@ function Report-Neg($id, $name, $success, $detail) {
 }
 
 Write-Host "==================================================" -ForegroundColor Cyan
-Write-Host "JOCKEY COMPREHENSIVE NEGATIVE TEST SUITE" -ForegroundColor Cyan
+Write-Host "JOCKY COMPREHENSIVE NEGATIVE TEST SUITE" -ForegroundColor Cyan
 Write-Host "==================================================" -ForegroundColor Cyan
 
 # 1. Invalid syntax
@@ -112,7 +112,7 @@ try {
 
 # 7. Nonexistent Investigation File CLI
 try {
-    $p = Start-Process -FilePath ".\target\release\jockey.exe" -ArgumentList "check nonexistent_file_xyz.jy" -NoNewWindow -Wait -PassThru -RedirectStandardError $cliErrorPath
+    $p = Start-Process -FilePath ".\target\release\jocky.exe" -ArgumentList "check nonexistent_file_xyz.jy" -NoNewWindow -Wait -PassThru -RedirectStandardError $cliErrorPath
     $code = $p.ExitCode
     $err = Get-Content $cliErrorPath -Raw -ErrorAction SilentlyContinue
     $ok = ($code -ne 0)
@@ -123,7 +123,7 @@ try {
 
 # 8. Missing Evidence File Verification
 try {
-    $p = Start-Process -FilePath ".\target\release\jockey.exe" -ArgumentList "verify nonexistent_evidence.json" -NoNewWindow -Wait -PassThru -RedirectStandardError $verifyErrorPath
+    $p = Start-Process -FilePath ".\target\release\jocky.exe" -ArgumentList "verify nonexistent_evidence.json" -NoNewWindow -Wait -PassThru -RedirectStandardError $verifyErrorPath
     $code = $p.ExitCode
     $err = Get-Content $verifyErrorPath -Raw -ErrorAction SilentlyContinue
     $ok = ($code -ne 0)

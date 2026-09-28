@@ -1,4 +1,4 @@
-//! jockey Runtime - Log collection
+//! jocky Runtime - Log collection
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

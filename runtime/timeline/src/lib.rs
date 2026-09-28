@@ -1,4 +1,4 @@
-//! jockey Runtime - Forensic Timeline Engine
+//! jocky Runtime - Forensic Timeline Engine
 //!
 //! Normalizes forensic events from multiple sources (processes, network,
 //! filesystem, logs, security events) into a unified chronological timeline.

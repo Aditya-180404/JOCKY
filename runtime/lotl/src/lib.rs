@@ -1,4 +1,4 @@
-//! JOCKEY Runtime — Living-off-the-Land (LotL) Primitives
+//! JOCKY Runtime — Living-off-the-Land (LotL) Primitives
 #![allow(dead_code, unused_imports, clippy::all)]
 //!
 //! This module implements two core **anti-detection collection primitives**

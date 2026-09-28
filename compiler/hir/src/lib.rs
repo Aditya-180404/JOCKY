@@ -1,9 +1,9 @@
-//! jockey HIR - High-Level Intermediate Representation
+//! jocky HIR - High-Level Intermediate Representation
 //!
 //! HIR captures semantic meaning, resolved capabilities, evidence requirements,
 //! and provenance, separating syntax structure from semantic operations.
 
-use jockey_ast::{
+use jocky_ast::{
     BinaryOp, Capability, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr,
     HashAlgorithm, Investigation, PipelineStage, Span, Stmt,
 };
@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 
-/// High-Level Intermediate Representation of a jockey Investigation
+/// High-Level Intermediate Representation of a jocky Investigation
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct HirInvestigation {
     pub name: String,
@@ -566,12 +566,12 @@ impl HirLowering {
     }
 }
 
-impl From<&jockey_ir::IrInvestigation> for HirInvestigation {
-    fn from(ir: &jockey_ir::IrInvestigation) -> Self {
+impl From<&jocky_ir::IrInvestigation> for HirInvestigation {
+    fn from(ir: &jocky_ir::IrInvestigation) -> Self {
         let mut operations = Vec::new();
         for op in &ir.operations {
             match op {
-                jockey_ir::IrOperation::Collect(c) => match c.operation.as_str() {
+                jocky_ir::IrOperation::Collect(c) => match c.operation.as_str() {
                     "system.info" => {
                         operations.push(invoke_capability_from_ir(c, "system.info.basic"));
                     }
@@ -675,33 +675,33 @@ impl From<&jockey_ir::IrInvestigation> for HirInvestigation {
                         span: c.span,
                     }),
                 },
-                jockey_ir::IrOperation::Export(e) => {
+                jocky_ir::IrOperation::Export(e) => {
                     operations.push(HirOperation::Export {
                         format: e.format.clone(),
                         path: e.path.clone(),
                         span: e.span,
                     });
                 }
-                jockey_ir::IrOperation::Filter(f) => {
+                jocky_ir::IrOperation::Filter(f) => {
                     operations.push(HirOperation::Filter {
                         condition: f.condition.clone(),
                         span: f.span,
                     });
                 }
-                jockey_ir::IrOperation::Where(w) => {
+                jocky_ir::IrOperation::Where(w) => {
                     operations.push(HirOperation::Where {
                         condition: w.condition.clone(),
                         span: w.span,
                     });
                 }
-                jockey_ir::IrOperation::Limit(l) => {
+                jocky_ir::IrOperation::Limit(l) => {
                     let count = l.count.as_u64().unwrap_or(0) as usize;
                     operations.push(HirOperation::Limit {
                         count,
                         span: l.span,
                     });
                 }
-                jockey_ir::IrOperation::Assign(a) => {
+                jocky_ir::IrOperation::Assign(a) => {
                     operations.push(HirOperation::Assign {
                         variable: a.variable.clone(),
                         expr: HirExpr::Literal {
@@ -710,40 +710,40 @@ impl From<&jockey_ir::IrInvestigation> for HirInvestigation {
                         span: a.span,
                     });
                 }
-                jockey_ir::IrOperation::EvidencePipeline(ep) => {
+                jocky_ir::IrOperation::EvidencePipeline(ep) => {
                     let stages = ep
                         .stages
                         .iter()
                         .map(|s| match s {
-                            jockey_ir::IrPipelineStage::Where { condition, span } => {
+                            jocky_ir::IrPipelineStage::Where { condition, span } => {
                                 HirPipelineStage::Where {
                                     condition: condition.clone(),
                                     span: *span,
                                 }
                             }
-                            jockey_ir::IrPipelineStage::Filter { condition, span } => {
+                            jocky_ir::IrPipelineStage::Filter { condition, span } => {
                                 HirPipelineStage::Filter {
                                     condition: condition.clone(),
                                     span: *span,
                                 }
                             }
-                            jockey_ir::IrPipelineStage::Limit { count, span } => {
+                            jocky_ir::IrPipelineStage::Limit { count, span } => {
                                 let lim = count.as_u64().unwrap_or(0) as usize;
                                 HirPipelineStage::Limit {
                                     count: lim,
                                     span: *span,
                                 }
                             }
-                            jockey_ir::IrPipelineStage::Hash { algorithm, span } => {
+                            jocky_ir::IrPipelineStage::Hash { algorithm, span } => {
                                 HirPipelineStage::Hash {
                                     algorithm: algorithm.clone(),
                                     span: *span,
                                 }
                             }
-                            jockey_ir::IrPipelineStage::Timeline { span } => {
+                            jocky_ir::IrPipelineStage::Timeline { span } => {
                                 HirPipelineStage::Timeline { span: *span }
                             }
-                            jockey_ir::IrPipelineStage::Export { path, span } => {
+                            jocky_ir::IrPipelineStage::Export { path, span } => {
                                 HirPipelineStage::Export {
                                     format: "json".to_string(),
                                     path: path.clone(),
@@ -758,7 +758,7 @@ impl From<&jockey_ir::IrInvestigation> for HirInvestigation {
                         span: ep.span,
                     });
                 }
-                jockey_ir::IrOperation::Metadata(..) => {}
+                jocky_ir::IrOperation::Metadata(..) => {}
             }
         }
 
@@ -785,7 +785,7 @@ impl From<&jockey_ir::IrInvestigation> for HirInvestigation {
 }
 
 fn invoke_capability_from_ir(
-    operation: &jockey_ir::IrCollectOperation,
+    operation: &jocky_ir::IrCollectOperation,
     capability_id: &str,
 ) -> HirOperation {
     let mut options = operation.options.clone();
@@ -801,7 +801,7 @@ fn invoke_capability_from_ir(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use jockey_ast::{CollectOptions, CollectTarget, ExportFormat, Investigation, Stmt};
+    use jocky_ast::{CollectOptions, CollectTarget, ExportFormat, Investigation, Stmt};
 
     #[test]
     fn test_hir_lowering_basic() {
@@ -855,7 +855,7 @@ mod tests {
 
     #[test]
     fn test_hir_lowering_all_collectors() {
-        use jockey_ast::HashAlgorithm;
+        use jocky_ast::HashAlgorithm;
 
         let ast = Investigation {
             name: "all_collectors".to_string(),
@@ -953,7 +953,7 @@ mod tests {
 
     #[test]
     fn test_hir_lowering_pipelines_and_filters() {
-        use jockey_ast::{Expr, HashAlgorithm, PipelineStage};
+        use jocky_ast::{Expr, HashAlgorithm, PipelineStage};
 
         let ast = Investigation {
             name: "pipeline_test".to_string(),
@@ -1009,7 +1009,7 @@ mod tests {
 
     #[test]
     fn test_hir_from_ir_roundtrip() {
-        use jockey_ir::{IrCollectOperation, IrExportOperation, IrInvestigation, IrOperation};
+        use jocky_ir::{IrCollectOperation, IrExportOperation, IrInvestigation, IrOperation};
 
         let ir = IrInvestigation {
             name: "from_ir_test".to_string(),
@@ -1041,7 +1041,7 @@ mod tests {
 
     #[test]
     fn test_hir_preserves_unknown_capability_identity_and_options() {
-        use jockey_ir::{IrCollectOperation, IrInvestigation, IrOperation};
+        use jocky_ir::{IrCollectOperation, IrInvestigation, IrOperation};
 
         let mut options = serde_json::Map::new();
         options.insert("path".to_string(), serde_json::json!("/var/log"));
@@ -1071,7 +1071,7 @@ mod tests {
 
     #[test]
     fn test_hir_maps_core_collectors_to_runtime_capability_ids() {
-        use jockey_ir::{IrCollectOperation, IrInvestigation, IrOperation};
+        use jocky_ir::{IrCollectOperation, IrInvestigation, IrOperation};
 
         let operations = [
             "system.info",

@@ -1,5 +1,5 @@
 [package]
-name = "jockey-runtime-users"
+name = "jocky-runtime-users"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }

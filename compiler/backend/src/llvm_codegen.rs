@@ -1,11 +1,11 @@
 //! Programmatic LLVM Code Generation Engine
 #![allow(deprecated)]
 //!
-//! Lowers JOCKEY MIR directly into programmatic LLVM Context, Module, Functions,
+//! Lowers JOCKY MIR directly into programmatic LLVM Context, Module, Functions,
 //! BasicBlocks, Instructions, and Terminators using the LLVM C API.
 //!
 //! Note on Runtime ABI:
-//! Runtime declarations use the `jockey_rt_*` naming scheme as an intentional internal
+//! Runtime declarations use the `jocky_rt_*` naming scheme as an intentional internal
 //! ABI compatibility boundary with the native runtime static library.
 
 use std::collections::HashMap;
@@ -15,8 +15,8 @@ use llvm_sys::core::*;
 use llvm_sys::prelude::*;
 use llvm_sys::LLVMIntPredicate;
 
-use jockey_ir::{TargetArch, TargetPlatform};
-use jockey_mir::{
+use jocky_ir::{TargetArch, TargetPlatform};
+use jocky_mir::{
     BasicBlockId, LocalId, MirCompareOp, MirFunction, MirInstruction, MirProgram, MirTerminator,
     MirType,
 };
@@ -364,7 +364,7 @@ impl ProgrammaticLlvmCodegen {
                         investigation_name,
                         source_hash,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_evidence_init"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_evidence_init"];
                         let name_ptr = get_string_ptr(
                             ctx,
                             mod_ref,
@@ -390,7 +390,7 @@ impl ProgrammaticLlvmCodegen {
                         ctx: ev_ctx,
                         condition_json,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_evidence_filter"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_evidence_filter"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let filter_ptr =
                             get_string_ptr(ctx, mod_ref, builder_ref, string_pool, condition_json);
@@ -409,7 +409,7 @@ impl ProgrammaticLlvmCodegen {
                         ctx: ev_ctx,
                         condition_json,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_evidence_where"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_evidence_where"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let where_ptr =
                             get_string_ptr(ctx, mod_ref, builder_ref, string_pool, condition_json);
@@ -425,7 +425,7 @@ impl ProgrammaticLlvmCodegen {
                         );
                     }
                     MirInstruction::EvidenceSetLimit { ctx: ev_ctx, limit } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_evidence_limit"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_evidence_limit"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let limit_val = LLVMConstInt(i64_ty, *limit as u64, 0);
                         let mut args = [ctx_ptr, limit_val];
@@ -444,7 +444,7 @@ impl ProgrammaticLlvmCodegen {
                         ctx: ev_ctx,
                         algorithm,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_evidence_compute_hash"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_evidence_compute_hash"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let algo_ptr =
                             get_string_ptr(ctx, mod_ref, builder_ref, string_pool, algorithm);
@@ -461,7 +461,7 @@ impl ProgrammaticLlvmCodegen {
                         store_local(builder_ref, &local_allocas, *dest, res)?;
                     }
                     MirInstruction::EvidenceGenerateTimeline { dest, ctx: ev_ctx } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_evidence_generate_timeline"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_evidence_generate_timeline"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let mut args = [ctx_ptr];
                         let c_call_name = CString::new("time_res").unwrap();
@@ -480,7 +480,7 @@ impl ProgrammaticLlvmCodegen {
                         format,
                         path,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_evidence_export"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_evidence_export"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let fmt_ptr =
                             get_string_ptr(ctx, mod_ref, builder_ref, string_pool, format);
@@ -497,7 +497,7 @@ impl ProgrammaticLlvmCodegen {
                         );
 
                         // Also invoke evidence_free to release context
-                        let (free_val, free_ty) = rt_funcs["jockey_rt_evidence_free"];
+                        let (free_val, free_ty) = rt_funcs["jocky_rt_evidence_free"];
                         let mut free_args = [ctx_ptr];
                         let c_free_name = CString::new("").unwrap();
                         LLVMBuildCall2(
@@ -510,7 +510,7 @@ impl ProgrammaticLlvmCodegen {
                         );
                     }
                     MirInstruction::CollectSystemInfo { dest, ctx: ev_ctx } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_system"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_system"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let mut args = [ctx_ptr];
                         let c_call_name = CString::new("collect_sys_res").unwrap();
@@ -530,7 +530,7 @@ impl ProgrammaticLlvmCodegen {
                         fields_json,
                         hash_algo,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_processes"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_processes"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let fields_ptr =
                             get_string_ptr(ctx, mod_ref, builder_ref, string_pool, fields_json);
@@ -550,7 +550,7 @@ impl ProgrammaticLlvmCodegen {
                         store_local(builder_ref, &local_allocas, *dest, res)?;
                     }
                     MirInstruction::CollectProcessTree { dest, ctx: ev_ctx } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_process_tree"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_process_tree"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let mut args = [ctx_ptr];
                         let c_call_name = CString::new("collect_proc_tree_res").unwrap();
@@ -569,7 +569,7 @@ impl ProgrammaticLlvmCodegen {
                         ctx: ev_ctx,
                         pid,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_process_modules"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_process_modules"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let pid_val = LLVMConstInt(i32_ty, *pid as u64, 1);
                         let mut args = [ctx_ptr, pid_val];
@@ -589,7 +589,7 @@ impl ProgrammaticLlvmCodegen {
                         ctx: ev_ctx,
                         pid,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_process_handles"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_process_handles"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let pid_val = LLVMConstInt(i32_ty, *pid as u64, 1);
                         let mut args = [ctx_ptr, pid_val];
@@ -605,7 +605,7 @@ impl ProgrammaticLlvmCodegen {
                         store_local(builder_ref, &local_allocas, *dest, res)?;
                     }
                     MirInstruction::CollectDeletedExecutables { dest, ctx: ev_ctx } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_deleted_executables"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_deleted_executables"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let mut args = [ctx_ptr];
                         let c_call_name = CString::new("collect_del_exec_res").unwrap();
@@ -620,7 +620,7 @@ impl ProgrammaticLlvmCodegen {
                         store_local(builder_ref, &local_allocas, *dest, res)?;
                     }
                     MirInstruction::CollectNetwork { dest, ctx: ev_ctx } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_network"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_network"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let mut args = [ctx_ptr];
                         let c_call_name = CString::new("collect_net_res").unwrap();
@@ -641,7 +641,7 @@ impl ProgrammaticLlvmCodegen {
                         recursive,
                         hash_algo,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_files"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_files"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let path_ptr = get_string_ptr(ctx, mod_ref, builder_ref, string_pool, path);
                         let rec_val = LLVMConstInt(i32_ty, if *recursive { 1 } else { 0 }, 0);
@@ -664,7 +664,7 @@ impl ProgrammaticLlvmCodegen {
                         ctx: ev_ctx,
                         source,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_logs"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_logs"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let src_ptr =
                             get_string_ptr(ctx, mod_ref, builder_ref, string_pool, source);
@@ -681,7 +681,7 @@ impl ProgrammaticLlvmCodegen {
                         store_local(builder_ref, &local_allocas, *dest, res)?;
                     }
                     MirInstruction::CollectDrivers { dest, ctx: ev_ctx } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_drivers"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_drivers"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let mut args = [ctx_ptr];
                         let c_call_name = CString::new("collect_drv_res").unwrap();
@@ -700,7 +700,7 @@ impl ProgrammaticLlvmCodegen {
                         ctx: ev_ctx,
                         pid,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_memory_regions"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_memory_regions"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let pid_val = LLVMConstInt(i32_ty, *pid as u64, 1);
                         let mut args = [ctx_ptr, pid_val];
@@ -721,7 +721,7 @@ impl ProgrammaticLlvmCodegen {
                         hive,
                         key_path,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_registry"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_registry"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let hive_ptr = get_string_ptr(ctx, mod_ref, builder_ref, string_pool, hive);
                         let key_ptr =
@@ -744,7 +744,7 @@ impl ProgrammaticLlvmCodegen {
                         artifact_type,
                         path,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_collect_artifacts"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_collect_artifacts"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let type_ptr =
                             get_string_ptr(ctx, mod_ref, builder_ref, string_pool, artifact_type);
@@ -767,7 +767,7 @@ impl ProgrammaticLlvmCodegen {
                         capability_id,
                         options_json,
                     } => {
-                        let (fn_val, fn_ty) = rt_funcs["jockey_rt_invoke_capability"];
+                        let (fn_val, fn_ty) = rt_funcs["jocky_rt_invoke_capability"];
                         let ctx_ptr = load_local(builder_ref, &local_allocas, *ev_ctx, "ctx_val")?;
                         let capability_ptr =
                             get_string_ptr(ctx, mod_ref, builder_ref, string_pool, capability_id);
@@ -1115,8 +1115,8 @@ impl ProgrammaticLlvmCodegen {
                         // Embed watermark as a global constant in a named section
                         let i8_ty = LLVMInt8TypeInContext(ctx);
                         let array_ty = LLVMArrayType(i8_ty, bytes.len() as u32);
-                        let section_name = format!(".jockey_watermark.{}", tag);
-                        let var_name = format!("__jockey_watermark_{}", tag);
+                        let section_name = format!(".jocky_watermark.{}", tag);
+                        let var_name = format!("__jocky_watermark_{}", tag);
                         let c_var_name = CString::new(var_name).unwrap();
                         let global = LLVMAddGlobal(mod_ref, array_ty, c_var_name.as_ptr());
                         LLVMSetGlobalConstant(global, 1);

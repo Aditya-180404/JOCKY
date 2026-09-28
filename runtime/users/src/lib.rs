@@ -1,4 +1,4 @@
-//! JOCKEY Runtime - User Enumeration
+//! JOCKY Runtime - User Enumeration
 //!
 //! Collects local and domain users with attributes: SID/UID, status, last logon,
 //! password age, group memberships.

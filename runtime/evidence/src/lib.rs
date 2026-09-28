@@ -1,4 +1,4 @@
-//! jockey Runtime - Evidence collection, integrity, and verification
+//! jocky Runtime - Evidence collection, integrity, and verification
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -154,7 +154,7 @@ impl EvidenceCollector {
     pub fn new(investigation_name: &str) -> Self {
         Self {
             investigation_name: investigation_name.to_string(),
-            tool_name: "jockey-tool".to_string(),
+            tool_name: "jocky-tool".to_string(),
             tool_version: "0.1.0".to_string(),
             compiler_version: "0.1.0".to_string(),
             source_hash: None,
@@ -280,7 +280,7 @@ impl EvidenceCollector {
     }
 
     pub fn collect_system_info(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        match jockey_runtime_system::collect_system_info() {
+        match jocky_runtime_system::collect_system_info() {
             Ok(info) => {
                 self.data.push(info);
                 self.record_collector_result(
@@ -310,7 +310,7 @@ impl EvidenceCollector {
         &mut self,
         fields: Vec<String>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        match jockey_runtime_process::enumerate_processes(&fields) {
+        match jocky_runtime_process::enumerate_processes(&fields) {
             Ok(processes) => {
                 let count = processes.len();
                 for proc in processes {
@@ -340,7 +340,7 @@ impl EvidenceCollector {
     }
 
     pub fn collect_network_connections(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        match jockey_runtime_network::enumerate_connections() {
+        match jocky_runtime_network::enumerate_connections() {
             Ok(connections) => {
                 let count = connections.len();
                 for conn in connections {
@@ -370,7 +370,7 @@ impl EvidenceCollector {
     }
 
     pub fn collect_firewall(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        match jockey_runtime_network::enumerate_firewall_policy() {
+        match jocky_runtime_network::enumerate_firewall_policy() {
             Ok(records) => {
                 let count = records.len();
                 let mut status = CollectionStatus::Success;
@@ -404,7 +404,7 @@ impl EvidenceCollector {
     }
 
     pub fn collect_proxy(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        match jockey_runtime_network::enumerate_proxy() {
+        match jocky_runtime_network::enumerate_proxy() {
             Ok(records) => {
                 let count = records.len();
                 for rec in records {
@@ -433,7 +433,7 @@ impl EvidenceCollector {
         recursive: bool,
         hash: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        match jockey_runtime_filesystem::enumerate_files(path, recursive, hash) {
+        match jocky_runtime_filesystem::enumerate_files(path, recursive, hash) {
             Ok(files) => {
                 let count = files.len();
                 for file in files {
@@ -457,7 +457,7 @@ impl EvidenceCollector {
     }
 
     pub fn collect_logs(&mut self, source: &str) -> Result<(), Box<dyn std::error::Error>> {
-        match jockey_runtime_logs::collect_logs(source) {
+        match jocky_runtime_logs::collect_logs(source) {
             Ok(logs) => {
                 let count = logs.len();
                 for log in logs {
@@ -481,7 +481,7 @@ impl EvidenceCollector {
     }
 
     pub fn collect_drivers(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        match jockey_runtime_drivers::enumerate_drivers() {
+        match jocky_runtime_drivers::enumerate_drivers() {
             Ok(drivers) => {
                 let count = drivers.len();
                 for d in drivers {
@@ -514,7 +514,7 @@ impl EvidenceCollector {
         &mut self,
         pid_filter: Option<i32>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        match jockey_runtime_memory::enumerate_memory_regions(pid_filter) {
+        match jocky_runtime_memory::enumerate_memory_regions(pid_filter) {
             Ok(regions) => {
                 let count = regions.len();
                 for region in regions {
@@ -548,7 +548,7 @@ impl EvidenceCollector {
         hive: &str,
         key_path: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        match jockey_runtime_registry::enumerate_registry(hive, key_path) {
+        match jocky_runtime_registry::enumerate_registry(hive, key_path) {
             Ok(entries) => {
                 let count = entries.len();
                 for entry in entries {
@@ -582,7 +582,7 @@ impl EvidenceCollector {
         artifact_type: &str,
         search_path: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        match jockey_runtime_artifacts::carve_artifacts(artifact_type, search_path) {
+        match jocky_runtime_artifacts::carve_artifacts(artifact_type, search_path) {
             Ok(artifacts) => {
                 let count = artifacts.len();
                 for artifact in artifacts {
@@ -618,7 +618,7 @@ impl EvidenceCollector {
         for (i, rec) in records.iter().enumerate() {
             let ref_str = format!("ref-{}", i + 1);
             if let Some(event) =
-                jockey_runtime_timeline::normalize_record(rec, &host, Some(&ref_str))
+                jocky_runtime_timeline::normalize_record(rec, &host, Some(&ref_str))
             {
                 if let Ok(v) = serde_json::to_value(&event) {
                     timeline_records.push(v);
@@ -1009,7 +1009,7 @@ impl Default for DevelopmentBlockchainAdapter {
     fn default() -> Self {
         Self {
             network_name: "dev-local".to_string(),
-            manifest_path: std::env::temp_dir().join("jockey-blockchain-manifest.json"),
+            manifest_path: std::env::temp_dir().join("jocky-blockchain-manifest.json"),
         }
     }
 }
@@ -1646,7 +1646,7 @@ pub fn anchor_to_blockchain(hash: &str) -> Result<BlockchainAnchor, Box<dyn std:
     // Development-only: records to local manifest file
     // A real production adapter would submit to a verifiable public ledger
     let dev_adapter = DevelopmentBlockchainAdapter::new();
-    let tx_id = dev_adapter.anchor(hash, "jockey-evidence")?;
+    let tx_id = dev_adapter.anchor(hash, "jocky-evidence")?;
     Ok(BlockchainAnchor {
         transaction_id: tx_id,
         block_height: 0, // Not applicable for development adapter

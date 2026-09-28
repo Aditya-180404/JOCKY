@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
 
-use jockey_shared_types::{AuditResult, ErrorResponse, PaginatedResponse, Pagination};
+use jocky_shared_types::{AuditResult, ErrorResponse, PaginatedResponse, Pagination};
 
 use crate::{AppState, AuthUser};
 

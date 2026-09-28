@@ -1,5 +1,5 @@
 [package]
-name = "jockey-runtime-security"
+name = "jocky-runtime-security"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -11,4 +11,4 @@ serde = { workspace = true }
 serde_json = "1.0"
 chrono = { workspace = true }
 sha2 = { workspace = true }
-jockey-runtime-network = { path = "../network" }
+jocky-runtime-network = { path = "../network" }

@@ -1,15 +1,15 @@
 <#
 .SYNOPSIS
-    Professional Windows Authenticode signing pipeline for jockey.exe.
+    Professional Windows Authenticode signing pipeline for jocky.exe.
 
 .DESCRIPTION
-    Signs jockey.exe using Authenticode with RFC3161 timestamping, verifies
+    Signs jocky.exe using Authenticode with RFC3161 timestamping, verifies
     the resulting signature, and outputs cryptographic metadata. Supports CI
-    secrets (JOCKEY_SIGNING_CERTIFICATE, JOCKEY_SIGNING_CERTIFICATE_PASSWORD,
-    JOCKEY_TIMESTAMP_URL) without leaking credentials.
+    secrets (JOCKY_SIGNING_CERTIFICATE, JOCKY_SIGNING_CERTIFICATE_PASSWORD,
+    JOCKY_TIMESTAMP_URL) without leaking credentials.
 
 .PARAMETER ExePath
-    Path to jockey.exe (default: target\release\jockey.exe)
+    Path to jocky.exe (default: target\release\jocky.exe)
 
 .PARAMETER CertificateBase64
     Base64-encoded PFX certificate string.
@@ -29,11 +29,11 @@
 
 [CmdletBinding()]
 param(
-    [string]$ExePath = "target\release\jockey.exe",
-    [string]$CertificateBase64 = $env:JOCKEY_SIGNING_CERTIFICATE,
+    [string]$ExePath = "target\release\jocky.exe",
+    [string]$CertificateBase64 = $env:JOCKY_SIGNING_CERTIFICATE,
     [string]$CertificatePath = "",
-    [string]$CertificatePassword = $env:JOCKEY_SIGNING_CERTIFICATE_PASSWORD,
-    [string]$TimestampServer = $env:JOCKEY_TIMESTAMP_URL,
+    [string]$CertificatePassword = $env:JOCKY_SIGNING_CERTIFICATE_PASSWORD,
+    [string]$TimestampServer = $env:JOCKY_TIMESTAMP_URL,
     [switch]$Mandatory = $false
 )
 
@@ -44,7 +44,7 @@ if (-not $TimestampServer) {
 }
 
 Write-Host "============================================================"
-Write-Host "JOCKEY Windows Authenticode Release Signing Pipeline"
+Write-Host "JOCKY Windows Authenticode Release Signing Pipeline"
 Write-Host "============================================================"
 
 # 1. Locate and verify executable
@@ -69,7 +69,7 @@ if ($CertificatePath -and (Test-Path $CertificatePath)) {
 } elseif ($CertificateBase64 -and $CertificateBase64.Trim().Length -gt 0) {
     try {
         $certBytes = [Convert]::FromBase64String($CertificateBase64.Trim())
-        $tempCertPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "jockey_signing_$([System.Guid]::NewGuid().ToString('N')).pfx")
+        $tempCertPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "jocky_signing_$([System.Guid]::NewGuid().ToString('N')).pfx")
         [System.IO.File]::WriteAllBytes($tempCertPath, $certBytes)
         $CertificatePath = $tempCertPath
         $hasCert = $true

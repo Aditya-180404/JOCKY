@@ -27,7 +27,7 @@ export function Landing() {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-mono leading-tight">
-            jockey
+            jocky
           </h1>
 
           <p className="mt-3 text-xl sm:text-2xl font-semibold text-slate-200">
@@ -35,7 +35,7 @@ export function Landing() {
           </p>
 
           <p className="mt-4 text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            jockey is a domain-specific forensic programming language and standalone compiler for building,
+            jocky is a domain-specific forensic programming language and standalone compiler for building,
             executing, and verifying computer and network investigations.
           </p>
 
@@ -114,7 +114,7 @@ export function Landing() {
               <div>
                 <h2 className="text-xl font-bold text-white mb-2">Local-First Execution Model</h2>
                 <p className="text-sm text-slate-400 leading-relaxed">
-                  jockey is an offline-first forensic compiler. Write .jy source, compile to a standalone native binary,
+                  jocky is an offline-first forensic compiler. Write .jy source, compile to a standalone native binary,
                   execute on the target host, and verify evidence integrity with SHA-256.
                 </p>
               </div>
@@ -125,7 +125,7 @@ export function Landing() {
                     <span>LOCAL STANDALONE COMPILER</span>
                   </div>
                   <p className="text-xs text-slate-300 font-mono">
-                    Write .jy → jockey compile → Standalone executable → Execute on target host → SHA-256 sidecar
+                    Write .jy → jocky compile → Standalone executable → Execute on target host → SHA-256 sidecar
                   </p>
                   <p className="text-xs text-slate-400 mt-1">
                     Zero external runtime dependencies. Runs offline on air-gapped systems.
@@ -243,7 +243,7 @@ export function Landing() {
                 </span>
               </div>
               <ul className="space-y-1.5 text-slate-400">
-                <li>✓ jockey DSL Parser, AST, Semantic Analyzer & IR</li>
+                <li>✓ jocky DSL Parser, AST, Semantic Analyzer & IR</li>
                 <li>✓ Linux standalone executable code generation and runtime collectors</li>
                 <li>• Windows target and native collectors are currently stubs</li>
                 <li>✓ CLI Toolchain (`check`, `compile`, `run`, `verify`, `fmt`, `hash`)</li>

@@ -1,10 +1,10 @@
-//! jockey Parser - Parses tokens into AST
+//! jocky Parser - Parses tokens into AST
 
-use jockey_ast::{
+use jocky_ast::{
     BinaryOp, CollectOptions, CollectTarget, Diagnostic, ExportFormat, Expr, HashAlgorithm,
     Investigation, PipelineStage, Span, Stmt, Token, TokenKind, UnaryOp,
 };
-use jockey_lexer::LexerError;
+use jocky_lexer::LexerError;
 use std::vec;
 use thiserror::Error;
 
@@ -1201,7 +1201,7 @@ impl ExprSpan for Expr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use jockey_lexer::Lexer;
+    use jocky_lexer::Lexer;
 
     fn parse_source(source: &str) -> (Option<Investigation>, Vec<Diagnostic>) {
         let mut lexer = Lexer::new(source);

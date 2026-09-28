@@ -1,5 +1,5 @@
 [package]
-name = "jockey-backend"
+name = "jocky-backend"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -7,11 +7,11 @@ authors = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-jockey-ast = { path = "../ast" }
-jockey-ir = { path = "../ir" }
-jockey-hir = { path = "../hir" }
-jockey-mir = { path = "../mir" }
-jockey-runtime = { path = "../../runtime" }
+jocky-ast = { path = "../ast" }
+jocky-ir = { path = "../ir" }
+jocky-hir = { path = "../hir" }
+jocky-mir = { path = "../mir" }
+jocky-runtime = { path = "../../runtime" }
 anyhow = { workspace = true }
 chrono = { workspace = true }
 serde = { workspace = true }
@@ -25,7 +25,7 @@ default = []
 llvm = ["llvm-sys"]
 
 [dev-dependencies]
-jockey-lexer = { path = "../lexer" }
-jockey-parser = { path = "../parser" }
-jockey-semantic = { path = "../semantic" }
-jockey-runtime-evidence = { path = "../../runtime/evidence" }
+jocky-lexer = { path = "../lexer" }
+jocky-parser = { path = "../parser" }
+jocky-semantic = { path = "../semantic" }
+jocky-runtime-evidence = { path = "../../runtime/evidence" }

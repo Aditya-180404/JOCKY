@@ -1,5 +1,5 @@
 [package]
-name = "jockey-runtime-capabilities"
+name = "jocky-runtime-capabilities"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -11,18 +11,18 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 chrono = { workspace = true }
-jockey-runtime-evidence = { path = "../evidence" }
-jockey-runtime-system = { path = "../system" }
-jockey-runtime-process = { path = "../process" }
-jockey-runtime-network = { path = "../network" }
-jockey-runtime-filesystem = { path = "../filesystem" }
-jockey-runtime-users = { path = "../users" }
-jockey-runtime-auth = { path = "../auth" }
-jockey-runtime-services = { path = "../services" }
-jockey-runtime-artifacts = { path = "../artifacts" }
-jockey-runtime-security = { path = "../security" }
-jockey-runtime-logs = { path = "../logs" }
-jockey-runtime-drivers = { path = "../drivers" }
+jocky-runtime-evidence = { path = "../evidence" }
+jocky-runtime-system = { path = "../system" }
+jocky-runtime-process = { path = "../process" }
+jocky-runtime-network = { path = "../network" }
+jocky-runtime-filesystem = { path = "../filesystem" }
+jocky-runtime-users = { path = "../users" }
+jocky-runtime-auth = { path = "../auth" }
+jocky-runtime-services = { path = "../services" }
+jocky-runtime-artifacts = { path = "../artifacts" }
+jocky-runtime-security = { path = "../security" }
+jocky-runtime-logs = { path = "../logs" }
+jocky-runtime-drivers = { path = "../drivers" }
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"

@@ -1,35 +1,35 @@
-//! jockey IR - Intermediate Representation
+//! jocky IR - Intermediate Representation
 
-use jockey_ast::{Capability, Span};
+use jocky_ast::{Capability, Span};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::path::Path;
 
-/// Canonical file extension for JOCKEY DSL source files (without dot).
-pub const JOCKEY_SOURCE_EXTENSION: &str = "jy";
+/// Canonical file extension for JOCKY DSL source files (without dot).
+pub const JOCKY_SOURCE_EXTENSION: &str = "jy";
 
-/// Canonical file extension for JOCKEY DSL source files (with dot).
-pub const JOCKEY_SOURCE_EXTENSION_DOT: &str = ".jy";
+/// Canonical file extension for JOCKY DSL source files (with dot).
+pub const JOCKY_SOURCE_EXTENSION_DOT: &str = ".jy";
 
-/// Check if a path has the official `.jy` JOCKEY source extension.
-pub fn is_jockey_source_file(path: &Path) -> bool {
+/// Check if a path has the official `.jy` JOCKY source extension.
+pub fn is_jocky_source_file(path: &Path) -> bool {
     path.extension()
         .and_then(|ext| ext.to_str())
-        .map(|ext| ext.eq_ignore_ascii_case(JOCKEY_SOURCE_EXTENSION))
+        .map(|ext| ext.eq_ignore_ascii_case(JOCKY_SOURCE_EXTENSION))
         .unwrap_or(false)
 }
 
-/// Validate that a path has the official `.jy` JOCKEY source extension,
+/// Validate that a path has the official `.jy` JOCKY source extension,
 /// returning a clear diagnostic error message if not.
 pub fn validate_source_extension(path: &Path) -> Result<(), String> {
     match path.extension().and_then(|ext| ext.to_str()) {
-        Some(ext) if ext.eq_ignore_ascii_case(JOCKEY_SOURCE_EXTENSION) => Ok(()),
+        Some(ext) if ext.eq_ignore_ascii_case(JOCKY_SOURCE_EXTENSION) => Ok(()),
         Some(ext) => Err(format!(
-            "Unsupported JOCKEY source extension '.{}'.\nExpected a '.jy' source file.\n\nExample:\n  jockey check examples/complete_forensic_triage.jy",
+            "Unsupported JOCKY source extension '.{}'.\nExpected a '.jy' source file.\n\nExample:\n  jocky check examples/complete_forensic_triage.jy",
             ext
         )),
         None => Err(format!(
-            "Missing file extension on '{}'.\nExpected a '.jy' source file.\n\nExample:\n  jockey check examples/complete_forensic_triage.jy",
+            "Missing file extension on '{}'.\nExpected a '.jy' source file.\n\nExample:\n  jocky check examples/complete_forensic_triage.jy",
             path.display()
         )),
     }
@@ -293,20 +293,20 @@ mod tests {
 
     #[test]
     fn test_canonical_extension_constants() {
-        assert_eq!(JOCKEY_SOURCE_EXTENSION, "jy");
-        assert_eq!(JOCKEY_SOURCE_EXTENSION_DOT, ".jy");
+        assert_eq!(JOCKY_SOURCE_EXTENSION, "jy");
+        assert_eq!(JOCKY_SOURCE_EXTENSION_DOT, ".jy");
     }
 
     #[test]
-    fn test_is_jockey_source_file() {
-        assert!(is_jockey_source_file(Path::new("test.jy")));
-        assert!(is_jockey_source_file(Path::new(
+    fn test_is_jocky_source_file() {
+        assert!(is_jocky_source_file(Path::new("test.jy")));
+        assert!(is_jocky_source_file(Path::new(
             "examples/complete_forensic_triage.jy"
         )));
-        assert!(is_jockey_source_file(Path::new("TEST.JY")));
-        assert!(!is_jockey_source_file(Path::new("test.tfg")));
-        assert!(!is_jockey_source_file(Path::new("test.rs")));
-        assert!(!is_jockey_source_file(Path::new("test")));
+        assert!(is_jocky_source_file(Path::new("TEST.JY")));
+        assert!(!is_jocky_source_file(Path::new("test.tfg")));
+        assert!(!is_jocky_source_file(Path::new("test.rs")));
+        assert!(!is_jocky_source_file(Path::new("test")));
     }
 
     #[test]
@@ -320,7 +320,7 @@ mod tests {
         let result = validate_source_extension(Path::new("legacy.tfg"));
         assert!(result.is_err());
         let err = result.unwrap_err();
-        assert!(err.contains("Unsupported JOCKEY source extension '.tfg'"));
+        assert!(err.contains("Unsupported JOCKY source extension '.tfg'"));
         assert!(err.contains("Expected a '.jy' source file"));
     }
 

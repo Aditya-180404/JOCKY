@@ -1,4 +1,4 @@
-# API Dockerfile - jockey compiler API
+# API Dockerfile - jocky compiler API
 FROM rust:latest AS builder
 
 WORKDIR /app
@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Use rust backend instead of LLVM for Docker builds
-ENV JOCKEY_BACKEND=rust
+ENV JOCKY_BACKEND=rust
 
 # Copy workspace Cargo.toml and source
 COPY Cargo.toml Cargo.lock ./
@@ -21,7 +21,7 @@ COPY services/compiler-worker ./services/compiler-worker
 COPY packages/shared-types ./packages/shared-types
 
 # Build the API
-RUN cargo build --release --bin jockey-api
+RUN cargo build --release --bin jocky-api
 
 # Runtime stage
 FROM debian:trixie-slim
@@ -33,8 +33,8 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/jockey-api /usr/local/bin/jockey-api
+COPY --from=builder /app/target/release/jocky-api /usr/local/bin/jocky-api
 
 EXPOSE 8080
 
-CMD ["jockey-api"]
+CMD ["jocky-api"]

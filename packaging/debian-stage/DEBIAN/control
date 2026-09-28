@@ -1,9 +1,9 @@
-Package: jockey
+Package: jocky
 Version: 0.1.0
 Section: utils
 Priority: optional
 Architecture: amd64
-Maintainer: jockey Team <jockey@example.invalid>
-Description: jockey forensic programming CLI
- jockey compiles structured forensic investigation programs and verifies evidence integrity.
+Maintainer: jocky Team <jocky@example.invalid>
+Description: jocky forensic programming CLI
+ jocky compiles structured forensic investigation programs and verifies evidence integrity.
 Depends: libc6

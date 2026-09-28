@@ -1,28 +1,28 @@
-//! JOCKEY Evidence Transport Adapter
+//! JOCKY Evidence Transport Adapter
 //!
 //! Provides a pluggable transport layer for delivering forensic evidence bundles
-//! from field agents to the central JOCKEY management interface, and for
+//! from field agents to the central JOCKY management interface, and for
 //! receiving commands from the server.
 //!
 //! ## Transport Variants
 //!
 //! ### 1. Direct HTTP (`TransportKind::Direct`)
-//! Standard HTTPS POST to a known JOCKEY server URL. Used in controlled
+//! Standard HTTPS POST to a known JOCKY server URL. Used in controlled
 //! lab environments where network monitoring is not a concern.
 //!
 //! ### 2. Domain Fronting (`TransportKind::DomainFronted`)
 //! Routes traffic through a trusted CDN (e.g. Cloudflare, CloudFront, Fastly).
 //! The TLS SNI and outer `Host` header use a trusted CDN domain, while the
 //! `X-Forwarded-Host` or inner HTTP/2 `:authority` pseudo-header specifies
-//! the actual JOCKEY server. The CDN then forwards the request internally.
+//! the actual JOCKY server. The CDN then forwards the request internally.
 //!
 //! This makes the network traffic indistinguishable from legitimate CDN
 //! traffic to a network-layer IDS/DLP that inspects only the SNI.
 //!
 //! ```text
-//! Field Agent ──TLS SNI: cloudflare.com──▶ CDN edge ──internal──▶ JOCKEY API
+//! Field Agent ──TLS SNI: cloudflare.com──▶ CDN edge ──internal──▶ JOCKY API
 //!              Host: cloudflare.com
-//!              X-Jockey-Target: jockey.your-domain.com
+//!              X-Jocky-Target: jocky.your-domain.com
 //! ```
 //!
 //! ### 3. Cloud API Relay (`TransportKind::CloudApiRelay`)
@@ -33,13 +33,13 @@
 //!
 //! ## DSL Integration
 //!
-//! The transport is configured in the JOCKEY `.jy` source file's `config {}` block:
+//! The transport is configured in the JOCKY `.jy` source file's `config {}` block:
 //!
-//! ```jockey
+//! ```jocky
 //! config {
 //!     transport = "domain_fronted"
 //!     cdn_host   = "cloudflare.com"
-//!     relay_url  = "https://jockey.your-domain.com"
+//!     relay_url  = "https://jocky.your-domain.com"
 //! }
 //! ```
 
@@ -51,7 +51,7 @@ use serde::{Deserialize, Serialize};
 pub struct TransportConfig {
     /// Which transport variant to use.
     pub kind: TransportKind,
-    /// The actual JOCKEY server URL (used for Direct, DomainFronted, and Socks5).
+    /// The actual JOCKY server URL (used for Direct, DomainFronted, and Socks5).
     pub relay_url: String,
     /// Direct SOCKS5 proxy URL used when the agent routes traffic through a local proxy.
     pub socks5_proxy_url: Option<String>,
@@ -93,7 +93,7 @@ impl Default for TransportConfig {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum TransportKind {
-    /// Plain HTTPS to the JOCKEY API server.
+    /// Plain HTTPS to the JOCKY API server.
     #[default]
     Direct,
     /// Domain-fronted HTTPS via a CDN edge node.
@@ -145,7 +145,7 @@ pub struct TransportResult {
 /// The transport adapter trait.
 ///
 /// Implementations are responsible for delivering an evidence JSON bundle
-/// (as raw bytes) to the JOCKEY server and for retrieving pending commands.
+/// (as raw bytes) to the JOCKY server and for retrieving pending commands.
 pub trait EvidenceTransport: Send + Sync {
     /// Deliver evidence bytes to the configured destination.
     fn deliver_evidence(
@@ -181,7 +181,7 @@ pub enum TransportError {
 // 1. Direct HTTP Transport
 // ────────────────────────────────────────────────────────────────────────────
 
-/// Delivers evidence via a plain HTTPS POST to the JOCKEY API.
+/// Delivers evidence via a plain HTTPS POST to the JOCKY API.
 pub struct DirectTransport {
     config: TransportConfig,
 }
@@ -207,7 +207,7 @@ impl EvidenceTransport for DirectTransport {
         deliver_via_http(
             &url,
             None, // no custom Host override
-            None, // no X-Jockey-Target header
+            None, // no X-Jocky-Target header
             evidence_bytes,
             self.config.timeout_secs,
             TransportKind::Direct,
@@ -232,7 +232,7 @@ impl EvidenceTransport for DirectTransport {
 ///
 /// The TLS handshake SNI and the outer HTTP `Host` header are set to the CDN
 /// hostname (`cdn_host`), making the connection look like traffic to a trusted
-/// CDN. A custom header (`X-Jockey-Target`) carries the real destination, which
+/// CDN. A custom header (`X-Jocky-Target`) carries the real destination, which
 /// the CDN's origin rules forward to internally.
 pub struct DomainFrontedTransport {
     config: TransportConfig,
@@ -248,7 +248,7 @@ impl DomainFrontedTransport {
         }
         if config.relay_url.is_empty() {
             return Err(TransportError::Config(
-                "DomainFrontedTransport requires relay_url (the real JOCKEY server) to be set"
+                "DomainFrontedTransport requires relay_url (the real JOCKY server) to be set"
                     .to_string(),
             ));
         }
@@ -371,7 +371,7 @@ impl EvidenceTransport for Socks5Transport {
 /// Evidence is uploaded with an HTTPS PUT to a presigned S3/GCS/Azure URL,
 /// which looks like normal cloud storage traffic to network monitors.
 ///
-/// The presigned URL is obtained from the JOCKEY API at agent registration
+/// The presigned URL is obtained from the JOCKY API at agent registration
 /// time or via a domain-fronted bootstrap request.
 pub struct CloudApiRelayTransport {
     config: TransportConfig,
@@ -457,7 +457,7 @@ pub fn build_transport(
 // ────────────────────────────────────────────────────────────────────────────
 
 /// Perform a synchronous HTTPS POST with optional Host override and
-/// X-Jockey-Target header for domain fronting.
+/// X-Jocky-Target header for domain fronting.
 fn deliver_via_http(
     url: &str,
     host_override: Option<&str>,
@@ -478,7 +478,7 @@ fn deliver_via_http(
     //   .post(url)
     //   .set("Content-Type", "application/json")
     //   .set("Host", host_override.unwrap_or(parsed_host))
-    //   .set("X-Jockey-Target", real_target.unwrap_or(""))
+    //   .set("X-Jocky-Target", real_target.unwrap_or(""))
     //   .send_bytes(body)
 
     Ok(TransportResult {
@@ -549,7 +549,7 @@ mod tests {
     fn test_build_direct_transport() {
         let config = TransportConfig {
             kind: TransportKind::Direct,
-            relay_url: "https://jockey.example.com".to_string(),
+            relay_url: "https://jocky.example.com".to_string(),
             ..Default::default()
         };
         let transport = build_transport(config).unwrap();
@@ -560,7 +560,7 @@ mod tests {
     fn test_build_domain_fronted_transport() {
         let config = TransportConfig {
             kind: TransportKind::DomainFronted,
-            relay_url: "https://jockey.example.com".to_string(),
+            relay_url: "https://jocky.example.com".to_string(),
             cdn_host: Some("cloudflare.com".to_string()),
             ..Default::default()
         };
@@ -573,7 +573,7 @@ mod tests {
     fn test_domain_fronted_requires_cdn_host() {
         let config = TransportConfig {
             kind: TransportKind::DomainFronted,
-            relay_url: "https://jockey.example.com".to_string(),
+            relay_url: "https://jocky.example.com".to_string(),
             cdn_host: None, // missing!
             ..Default::default()
         };
@@ -585,7 +585,7 @@ mod tests {
         let config = TransportConfig {
             kind: TransportKind::Socks5,
             socks5_proxy_url: None,
-            relay_url: "https://jockey.example.com".to_string(),
+            relay_url: "https://jocky.example.com".to_string(),
             ..Default::default()
         };
         assert!(build_transport(config).is_err());
@@ -595,7 +595,7 @@ mod tests {
     fn test_build_socks5_transport() {
         let config = TransportConfig {
             kind: TransportKind::Socks5,
-            relay_url: "https://jockey.example.com".to_string(),
+            relay_url: "https://jocky.example.com".to_string(),
             socks5_proxy_url: Some("socks5://127.0.0.1:1080".to_string()),
             ..Default::default()
         };

@@ -12,7 +12,7 @@ use tracing::{error, info};
 use uuid::Uuid;
 use validator::Validate;
 
-use jockey_shared_types::{BuildStatus, ErrorResponse, PaginatedResponse, Pagination};
+use jocky_shared_types::{BuildStatus, ErrorResponse, PaginatedResponse, Pagination};
 
 use crate::middleware::sha256_hash;
 use crate::{AppState, AuthUser};
@@ -289,13 +289,13 @@ pub async fn create_tool_version(
     }
 
     // Validate source code
-    let mut lexer = jockey_lexer::Lexer::new(&payload.source);
+    let mut lexer = jocky_lexer::Lexer::new(&payload.source);
     let tokens = match lexer.tokenize() {
         Ok(t) => t,
         Err(e) => return error_response(StatusCode::BAD_REQUEST, "Invalid source", &e.to_string()),
     };
 
-    let mut parser = jockey_parser::Parser::new(tokens);
+    let mut parser = jocky_parser::Parser::new(tokens);
     let (ast, diags) = parser.parse_with_diagnostics();
 
     if !diags.is_empty() {
@@ -321,7 +321,7 @@ pub async fn create_tool_version(
         }
     };
 
-    let mut analyzer = jockey_semantic::SemanticAnalyzer::new();
+    let mut analyzer = jocky_semantic::SemanticAnalyzer::new();
     let (ir, sem_diags) = analyzer.analyze_with_diagnostics(&ast);
 
     if !sem_diags.is_empty() {

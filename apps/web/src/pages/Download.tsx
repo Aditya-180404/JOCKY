@@ -134,11 +134,11 @@ export function DownloadPage() {
           </div>
 
           <h1 className="text-3xl font-bold font-mono text-white tracking-tight">
-            JOCKEY Compiler &amp; Toolchain Downloads
+            JOCKY Compiler &amp; Toolchain Downloads
           </h1>
 
           <p className="mt-2 text-sm text-slate-400 max-w-3xl leading-relaxed">
-            Download the standalone native JOCKEY compiler for offline incident response and forensic triage.
+            Download the standalone native JOCKY compiler for offline incident response and forensic triage.
             All binaries are standalone, statically linked, and verified with canonical SHA-256 digests.
           </p>
         </div>
@@ -245,14 +245,14 @@ export function DownloadPage() {
               </p>
               <pre className="mt-3 p-3 rounded bg-[#090d15] border border-slate-800 font-mono text-xs text-slate-300">
 {`# Clone and build native release binary on Linux
-git clone https://github.com/Aditya-180404/jockey.git
-cd jockey
-cargo build --release -p jockey-cli
-./target/release/jockey --version`}
+git clone https://github.com/Aditya-180404/jocky.git
+cd jocky
+cargo build --release -p jocky-cli
+./target/release/jocky --version`}
               </pre>
               <p className="mt-3 text-xs text-slate-400">
                 For cross-compilation to Linux ARM64, install the target and use: <br />
-                <code className="font-mono bg-[#090d15] px-1 rounded">rustup target add aarch64-unknown-linux-gnu</code> then <code className="font-mono bg-[#090d15] px-1 rounded">cargo build --release --target aarch64-unknown-linux-gnu -p jockey-cli</code>
+                <code className="font-mono bg-[#090d15] px-1 rounded">rustup target add aarch64-unknown-linux-gnu</code> then <code className="font-mono bg-[#090d15] px-1 rounded">cargo build --release --target aarch64-unknown-linux-gnu -p jocky-cli</code>
               </p>
             </div>
           </div>
@@ -269,7 +269,7 @@ cargo build --release -p jockey-cli
           </p>
           <pre className="p-3 rounded bg-[#090d15] border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto">
 {`# Compute SHA-256 hash in PowerShell
-Get-FileHash .\\jockey_0.1.0_windows_amd64.zip -Algorithm SHA256
+Get-FileHash .\\jocky_0.1.0_windows_amd64.zip -Algorithm SHA256
 
 # Verify that the output matches the published SHA-256 from the download page`}
           </pre>

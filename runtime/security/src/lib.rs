@@ -1,4 +1,4 @@
-//! jockey Runtime - Security Analysis Module
+//! jocky Runtime - Security Analysis Module
 //!
 //! Provides forensic detection capabilities for suspicious system behavior,
 //! including process anomalies, unsigned executables, and unexpected locations.
@@ -661,7 +661,7 @@ pub fn collect_audit_policy() -> Result<Vec<serde_json::Value>, Box<dyn std::err
 }
 
 pub fn collect_firewall_rules() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
-    jockey_runtime_network::firewall::collect_firewall_policy()
+    jocky_runtime_network::firewall::collect_firewall_policy()
 }
 
 /// Detect potential EDR/kernel callback tampering indicators.

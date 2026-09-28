@@ -1,1 +1,1 @@
-//! jockey API library placeholder.
+//! jocky API library placeholder.

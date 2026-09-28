@@ -46,7 +46,7 @@ The authoritative runtime registry, CLI, and API report:
 
 ## Verification Performed
 
-- `jockey capabilities` and `jockey capabilities --format json` report exactly 247 entries.
+- `jocky capabilities` and `jocky capabilities --format json` report exactly 247 entries.
 - `GET /api/compiler/capabilities` returns the authoritative capabilities envelope matching the CLI breakdown.
 - Web IDE target selector and Monaco capability autocompletion consumes all 247 capabilities.
 - All forensic categories (17) verified with complete metadata and privilege schemas.

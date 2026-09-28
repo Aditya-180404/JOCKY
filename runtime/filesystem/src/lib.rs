@@ -1,4 +1,4 @@
-//! jockey Runtime - Filesystem enumeration and hashing
+//! jocky Runtime - Filesystem enumeration and hashing
 
 use md5::Md5;
 use serde::{Deserialize, Serialize};
@@ -380,7 +380,7 @@ mod tests {
 
     #[test]
     fn calculates_supported_hash_algorithms() {
-        let path = std::env::temp_dir().join(format!("jockey-hash-{}.txt", std::process::id()));
+        let path = std::env::temp_dir().join(format!("jocky-hash-{}.txt", std::process::id()));
         fs::write(&path, b"abc").unwrap();
 
         assert_eq!(

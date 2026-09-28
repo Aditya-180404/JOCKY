@@ -1,4 +1,4 @@
-# JOCKEY Defensive Hardening Overview
+# JOCKY Defensive Hardening Overview
 
 **Audience:** Forensic and security engineering teams working in authorized environments  
 **Version:** 0.1.0 | **Date:** 2026-09-28
@@ -7,7 +7,7 @@
 
 ## Overview
 
-JOCKEY is a defensive forensic tooling platform designed for authorized computer and network triage in controlled environments. It supports evidence collection, workflow validation, and integrity checks without relying on covert channels or non-consented behavior.
+JOCKY is a defensive forensic tooling platform designed for authorized computer and network triage in controlled environments. It supports evidence collection, workflow validation, and integrity checks without relying on covert channels or non-consented behavior.
 
 The project intentionally emphasizes safe and auditable behavior:
 
@@ -64,7 +64,7 @@ Any deployed use must respect host ownership, local policies, and incident handl
 
 ## 4. Transport and Evidence Handoff
 
-Approved transport choices should be configured explicitly and mapped to organization policy. JOCKEY supports direct HTTPS, managed relay, SOCKS5 proxy, or cloud object-store upload when those are already part of the security architecture. The design assumes a trusted enterprise connection model rather than covert transfer.
+Approved transport choices should be configured explicitly and mapped to organization policy. JOCKY supports direct HTTPS, managed relay, SOCKS5 proxy, or cloud object-store upload when those are already part of the security architecture. The design assumes a trusted enterprise connection model rather than covert transfer.
 
 This is a controlled evidence handling layer, not an evasion layer.
 

@@ -1,4 +1,4 @@
-//! jockey Runtime - Network connection enumeration
+//! jocky Runtime - Network connection enumeration
 
 pub mod firewall;
 pub mod proxy;
