@@ -234,6 +234,3 @@ All operations are explicit, auditable, permission-controlled, and reproducible.
 - [Capability Implementation Status](docs/capability-implementation-report.md)
 - [Release Readiness Audit](docs/release-readiness-audit.md)
 
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
