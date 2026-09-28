@@ -5485,8 +5485,8 @@ impl CapabilityRegistry {
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
             "enumerate_systemd_units" => {
-                let units = jocky_runtime_services::enumerate_systemd_units()
-                    .map_err(|e| e.to_string())?;
+                let units =
+                    jocky_runtime_services::enumerate_systemd_units().map_err(|e| e.to_string())?;
                 let records = units
                     .into_iter()
                     .map(|unit| serde_json::to_value(unit).map_err(|e| e.to_string()))
@@ -5503,9 +5503,9 @@ impl CapabilityRegistry {
                 let count = records.len();
                 Ok((CollectionStatus::Success, count, records, None, None))
             }
-            "enumerate_interfaces" => append_records!(
-                jocky_runtime_network::enumerate_interfaces().map_err(|e| e.to_string())?
-            ),
+            "enumerate_interfaces" => append_records!(jocky_runtime_network::enumerate_interfaces(
+            )
+            .map_err(|e| e.to_string())?),
             "enumerate_routes" => append_records!(
                 jocky_runtime_network::enumerate_routes().map_err(|e| e.to_string())?
             ),
@@ -5518,21 +5518,21 @@ impl CapabilityRegistry {
             "enumerate_dns_cache" => append_records!(
                 jocky_runtime_network::enumerate_dns_cache().map_err(|e| e.to_string())?
             ),
-            "enumerate_hosts" => append_records!(
-                jocky_runtime_network::enumerate_hosts().map_err(|e| e.to_string())?
-            ),
-            "enumerate_listening_ports" => {
-                append_records!(jocky_runtime_network::enumerate_listening_ports()
-                    .map_err(|e| e.to_string())?)
+            "enumerate_hosts" => {
+                append_records!(jocky_runtime_network::enumerate_hosts().map_err(|e| e.to_string())?)
             }
-            "collect_proxy" | "enumerate_proxy" => {
+            "enumerate_listening_ports" => {
                 append_records!(
-                    jocky_runtime_network::enumerate_proxy().map_err(|e| e.to_string())?
+                    jocky_runtime_network::enumerate_listening_ports().map_err(|e| e.to_string())?
                 )
             }
+            "collect_proxy" | "enumerate_proxy" => {
+                append_records!(jocky_runtime_network::enumerate_proxy().map_err(|e| e.to_string())?)
+            }
             "enumerate_firewall_policy" => {
-                append_records!(jocky_runtime_network::enumerate_firewall_policy()
-                    .map_err(|e| e.to_string())?)
+                append_records!(
+                    jocky_runtime_network::enumerate_firewall_policy().map_err(|e| e.to_string())?
+                )
             }
             "enumerate_shares" => append_records!(
                 jocky_runtime_network::enumerate_shares().map_err(|e| e.to_string())?
@@ -5582,9 +5582,10 @@ impl CapabilityRegistry {
                 ""
             )
             .map_err(|e| e.to_string())?),
-            "carve_systemd_units" => append_records!(
-                jocky_runtime_artifacts::carve_systemd_units("").map_err(|e| e.to_string())?
-            ),
+            "carve_systemd_units" => append_records!(jocky_runtime_artifacts::carve_systemd_units(
+                ""
+            )
+            .map_err(|e| e.to_string())?),
             "carve_ssh_config" => {
                 append_records!(jocky_runtime_artifacts::carve_ssh_config("/etc/ssh")
                     .map_err(|e| e.to_string())?)
@@ -5662,10 +5663,10 @@ impl CapabilityRegistry {
                 jocky_runtime_artifacts::analyze_powershell_scripts(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
             ),
-            "analyze_wmi_scripts" => append_records!(
-                jocky_runtime_artifacts::analyze_wmi_scripts(&option_string("path", "."))
-                    .map_err(|e| e.to_string())?
-            ),
+            "analyze_wmi_scripts" => append_records!(jocky_runtime_artifacts::analyze_wmi_scripts(
+                &option_string("path", ".")
+            )
+            .map_err(|e| e.to_string())?),
             "analyze_shell_scripts" => append_records!(
                 jocky_runtime_artifacts::analyze_shell_scripts(&option_string("path", "."))
                     .map_err(|e| e.to_string())?
@@ -5751,10 +5752,10 @@ impl CapabilityRegistry {
                 append_records!(jocky_runtime_artifacts::collect_windows_scheduled_tasks()
                     .map_err(|e| e.to_string())?)
             }
-            "enumerate_wmi_subscriptions" => append_records!(
-                jocky_runtime_artifacts::collect_windows_wmi_subscriptions()
-                    .map_err(|e| e.to_string())?
-            ),
+            "enumerate_wmi_subscriptions" => {
+                append_records!(jocky_runtime_artifacts::collect_windows_wmi_subscriptions()
+                    .map_err(|e| e.to_string())?)
+            }
             "hash_sha256" => {
                 if capability.id.starts_with("file.") {
                     let path = option_string("path", "");
@@ -5857,8 +5858,8 @@ impl CapabilityRegistry {
                         jocky_runtime_artifacts::collect_autostart_entries(None)
                     }
                     "persistence.cron" => jocky_runtime_artifacts::carve_cron_entries(""),
-                    "persistence.systemd.timer" => {
-                        jocky_runtime_artifacts::carve_systemd_units("").map(|units| {
+                    "persistence.systemd.timer" => jocky_runtime_artifacts::carve_systemd_units("")
+                        .map(|units| {
                             units
                                 .into_iter()
                                 .filter(|unit| {
@@ -5868,8 +5869,7 @@ impl CapabilityRegistry {
                                         == Some("timer")
                                 })
                                 .collect()
-                        })
-                    }
+                        }),
                     "persistence.ssh" => jocky_runtime_artifacts::carve_ssh_config("/etc/ssh"),
                     "persistence.shell.profile" => {
                         jocky_runtime_artifacts::collect_shell_profiles(None)

@@ -71,10 +71,7 @@ pub unsafe extern "C" fn jocky_rt_invoke_capability(
         match serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(json) {
             Ok(options) => options,
             Err(error) => {
-                eprintln!(
-                    "[jocky Runtime] Invalid capability options JSON: {}",
-                    error
-                );
+                eprintln!("[jocky Runtime] Invalid capability options JSON: {}", error);
                 return -1;
             }
         }

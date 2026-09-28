@@ -82,11 +82,13 @@ jobs:
           TAMPERED=/tmp/tampered.json
           jq '.[0] |= (. + {"ci_tamper_probe": true})' "${EVIDENCE}" > "${TAMPERED}"
           jq -e 'type == "array" and length > 0 and .[0].ci_tamper_probe == true' "${TAMPERED}" >/dev/null
+          # Run verify — we EXPECT a non-zero exit code (tampered evidence must be rejected)
           if ./target/release/jocky evidence verify "${TAMPERED}" --meta "${META}" 2>/dev/null; then
-            echo "ERROR: tampered evidence should have failed verification" && exit 1
-          else
-            echo "✓ Tamper detection working correctly"
+            echo "ERROR: tampered evidence was accepted as VALID — tamper detection broken" >&2
+            exit 1
           fi
+          echo "✓ Tamper detection working correctly (verify correctly rejected tampered evidence)"
+          exit 0
 
   # ─── Windows Rust checks ─────────────────────────────────────────────────────
   rust-windows:
@@ -178,29 +180,47 @@ jobs:
       - name: tamper test (expect INVALID)
         shell: pwsh
         run: |
-          $evidence = (Get-ChildItem .\ci-build\*.json | Where-Object { $_.Name -notmatch "meta|manifest" } | Select-Object -First 1).FullName
-          $meta = "$evidence.meta.json"
-          $tampered = "$env:TEMP\tampered.json"
+          # Disable Stop-on-error so jocky.exe verify's non-zero exit doesn't abort
+          # the script before we can inspect $LASTEXITCODE ourselves.
+          $ErrorActionPreference = 'Continue'
+
+          $evidence = (Get-ChildItem .\ci-build\*.json |
+            Where-Object { $_.Name -notmatch 'meta|manifest' } |
+            Select-Object -First 1).FullName
+
+          if (-not $evidence) {
+            Write-Error 'No evidence file found in .\ci-build\'
+            exit 1
+          }
+
+          $meta     = "$evidence.meta.json"
+          $tampered = Join-Path $env:TEMP 'jocky-ci-tampered.json'
+
+          # Deserialise, mutate, re-serialise — strict UTF-8 no BOM
           $records = Get-Content $evidence -Raw | ConvertFrom-Json
           if ($records -isnot [array] -or $records.Count -eq 0) {
-            throw "Evidence must be a non-empty JSON array before tampering"
+            Write-Error 'Evidence must be a non-empty JSON array'
+            exit 1
           }
           $records[0] | Add-Member -NotePropertyName ci_tamper_probe -NotePropertyValue $true -Force
           $tamperedJson = ConvertTo-Json -InputObject $records -Depth 100
           [System.IO.File]::WriteAllText($tampered, $tamperedJson, [System.Text.UTF8Encoding]::new($false))
+
+          # Sanity-check: the tamper field is present in the written file
           $null = Get-Content $tampered -Raw | ConvertFrom-Json
 
-          $result = & .\target\release\jocky.exe evidence verify $tampered --meta $meta 2>&1
-          $exitCode = $LASTEXITCODE
+          # ── Run evidence verify — MUST return non-zero (tampered evidence) ──
+          $result   = & .\target\release\jocky.exe evidence verify $tampered --meta $meta 2>&1
+          $exitCode = $LASTEXITCODE   # capture immediately before anything else runs
 
           if ($exitCode -eq 0) {
-            Write-Error "ERROR: tampered evidence should have failed"
+            Write-Error "FAIL: tampered evidence was accepted as VALID — tamper detection broken"
             exit 1
           }
 
-          Write-Host "✓ Tamper detection working correctly (exit code $exitCode)"
+          Write-Host "✓ Tamper detection working correctly (jocky.exe exited $exitCode — tampered evidence rejected)"
           Write-Host $result
-          exit 0
+          exit 0   # explicit clean exit so $LASTEXITCODE from verify does NOT leak
 
       - name: Authenticode Signing Pipeline (Dev / Release)
         shell: pwsh
