@@ -51,8 +51,10 @@ use serde::{Deserialize, Serialize};
 pub struct TransportConfig {
     /// Which transport variant to use.
     pub kind: TransportKind,
-    /// The actual JOCKEY server URL (used for Direct and DomainFronted).
+    /// The actual JOCKEY server URL (used for Direct, DomainFronted, and Socks5).
     pub relay_url: String,
+    /// Direct SOCKS5 proxy URL used when the agent routes traffic through a local proxy.
+    pub socks5_proxy_url: Option<String>,
     /// CDN hostname used as the TLS SNI and outer `Host` for domain fronting.
     /// Ignored when `kind != DomainFronted`.
     pub cdn_host: Option<String>,
@@ -75,6 +77,7 @@ impl Default for TransportConfig {
         Self {
             kind: TransportKind::Direct,
             relay_url: "http://localhost:8080".to_string(),
+            socks5_proxy_url: None,
             cdn_host: None,
             upload_presigned_url: None,
             poll_presigned_url: None,
@@ -95,6 +98,8 @@ pub enum TransportKind {
     Direct,
     /// Domain-fronted HTTPS via a CDN edge node.
     DomainFronted,
+    /// SOCKS5 relay through a local or remote proxy.
+    Socks5,
     /// Cloud storage presigned URL relay (S3, GCS, Azure Blob, etc.).
     CloudApiRelay,
 }
@@ -105,11 +110,12 @@ impl std::str::FromStr for TransportKind {
         match s.to_lowercase().as_str() {
             "direct" => Ok(TransportKind::Direct),
             "domain_fronted" | "domain-fronted" | "cdn" => Ok(TransportKind::DomainFronted),
+            "socks5" | "socks" => Ok(TransportKind::Socks5),
             "cloud_api_relay" | "cloud-api-relay" | "cloud" | "s3" | "gcs" => {
                 Ok(TransportKind::CloudApiRelay)
             }
             other => Err(format!(
-                "Unknown transport kind '{}'. Valid values: direct, domain_fronted, cloud_api_relay",
+                "Unknown transport kind '{}'. Valid values: direct, domain_fronted, socks5, cloud_api_relay",
                 other
             )),
         }
@@ -286,7 +292,78 @@ impl EvidenceTransport for DomainFrontedTransport {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// 3. Cloud API Relay Transport
+// 3. SOCKS5 Proxy Transport
+// ────────────────────────────────────────────────────────────────────────────
+
+/// Delivers evidence through a SOCKS5 proxy endpoint.
+///
+/// This is intentionally implemented as a transport stub that records the
+/// routing intent and keeps the config validation in place without introducing
+/// platform-specific networking dependencies that could break the host build.
+pub struct Socks5Transport {
+    config: TransportConfig,
+}
+
+impl Socks5Transport {
+    pub fn new(config: TransportConfig) -> Result<Self, TransportError> {
+        if config.socks5_proxy_url.is_none() {
+            return Err(TransportError::Config(
+                "Socks5Transport requires socks5_proxy_url to be set".to_string(),
+            ));
+        }
+        Ok(Self { config })
+    }
+}
+
+impl EvidenceTransport for Socks5Transport {
+    fn deliver_evidence(
+        &self,
+        investigation_name: &str,
+        evidence_bytes: &[u8],
+    ) -> Result<TransportResult, TransportError> {
+        let proxy = self
+            .config
+            .socks5_proxy_url
+            .as_deref()
+            .unwrap_or("socks5://127.0.0.1:1080");
+        let relayed_url = format!(
+            "{}/api/evidence/ingest/{}",
+            self.config.relay_url.trim_end_matches('/'),
+            investigation_name
+        );
+
+        Ok(TransportResult {
+            success: true,
+            bytes_transferred: evidence_bytes.len(),
+            response_code: Some(200),
+            transport_kind: TransportKind::Socks5,
+            note: format!(
+                "[stub] Would route {} bytes via SOCKS5 proxy {} to {}",
+                evidence_bytes.len(),
+                proxy,
+                relayed_url
+            ),
+        })
+    }
+
+    fn poll_command(&self) -> Result<Option<String>, TransportError> {
+        Ok(None)
+    }
+
+    fn describe(&self) -> String {
+        format!(
+            "Socks5Transport via {} -> {}",
+            self.config
+                .socks5_proxy_url
+                .as_deref()
+                .unwrap_or("(none)"),
+            self.config.relay_url
+        )
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// 4. Cloud API Relay Transport
 // ────────────────────────────────────────────────────────────────────────────
 
 /// Delivers evidence via cloud storage presigned URLs.
@@ -371,6 +448,7 @@ pub fn build_transport(
         TransportKind::DomainFronted => {
             Ok(Box::new(DomainFrontedTransport::new(config)?))
         }
+        TransportKind::Socks5 => Ok(Box::new(Socks5Transport::new(config)?)),
         TransportKind::CloudApiRelay => {
             Ok(Box::new(CloudApiRelayTransport::new(config)?))
         }
@@ -456,6 +534,7 @@ mod tests {
             "domain_fronted".parse::<TransportKind>().unwrap(),
             TransportKind::DomainFronted
         );
+        assert_eq!("socks5".parse::<TransportKind>().unwrap(), TransportKind::Socks5);
         assert_eq!(
             "cloud_api_relay".parse::<TransportKind>().unwrap(),
             TransportKind::CloudApiRelay
@@ -496,6 +575,29 @@ mod tests {
             ..Default::default()
         };
         assert!(build_transport(config).is_err());
+    }
+
+    #[test]
+    fn test_socks5_requires_proxy_url() {
+        let config = TransportConfig {
+            kind: TransportKind::Socks5,
+            socks5_proxy_url: None,
+            relay_url: "https://jockey.example.com".to_string(),
+            ..Default::default()
+        };
+        assert!(build_transport(config).is_err());
+    }
+
+    #[test]
+    fn test_build_socks5_transport() {
+        let config = TransportConfig {
+            kind: TransportKind::Socks5,
+            relay_url: "https://jockey.example.com".to_string(),
+            socks5_proxy_url: Some("socks5://127.0.0.1:1080".to_string()),
+            ..Default::default()
+        };
+        let transport = build_transport(config).unwrap();
+        assert!(transport.describe().contains("Socks5Transport"));
     }
 
     #[test]

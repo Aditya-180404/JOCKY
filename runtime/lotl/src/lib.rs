@@ -44,10 +44,16 @@ pub mod peb_resolve;
 pub mod direct_syscall;
 pub mod antianalysis;
 pub mod transport;
+pub mod unhook;
+pub mod in_memory_exec;
 
 pub use peb_resolve::{PebResolver, ResolvedFn};
 pub use direct_syscall::{DirectSyscall, SyscallResult};
 pub use antianalysis::{AntiAnalysisGuard, EnvironmentRisk};
+pub use in_memory_exec::{
+    InMemoryExecutionError, InMemoryExecutionResult, InMemoryScriptRunner,
+};
 pub use transport::{
     build_transport, EvidenceTransport, TransportConfig, TransportKind, TransportResult,
 };
+pub use unhook::{ApiUnhooker, UnhookError, UnhookResult};

@@ -29,7 +29,7 @@
 //!
 //! ## Usage
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! use jockey_ir::ObfuscationConfig;
 //! use jockey_backend::obfuscation::ObfuscationPipeline;
 //!

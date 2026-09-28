@@ -433,6 +433,32 @@ impl SecurityAnalyzer {
         }
     }
 
+    /// Analyze callback-tampering evidence produced by the kernel callback detection collector.
+    pub fn analyze_kernel_callback_tampering(&mut self, callbacks: &[serde_json::Value]) {
+        for callback in callbacks {
+            let status = callback.get("status").and_then(|v| v.as_str()).unwrap_or("");
+            let platform = callback.get("platform").and_then(|v| v.as_str()).unwrap_or("unknown");
+            let artifact = callback.get("artifact").and_then(|v| v.as_str()).unwrap_or("unknown");
+
+            if status == "present" || status == "suspicious" || status == "available" {
+                let category = FindingCategory::DriverAnomaly;
+                self.findings.push(SecurityFinding {
+                    indicator: "kernel_callback_tampering".to_string(),
+                    severity: FindingSeverity::High,
+                    evidence: format!("{}: {}", platform, artifact),
+                    reason: "Kernel callback-related artifacts or EDR registration state are present; verify with host-native windowing or kernel telemetry before concluding compromise.".to_string(),
+                    timestamp: chrono::Utc::now(),
+                    host: self.hostname.clone(),
+                    process: None,
+                    pid: None,
+                    confidence: 0.63,
+                    mitre_attack_id: category.mitre_attack_id().to_string(),
+                    category,
+                });
+            }
+        }
+    }
+
     /// Analyze loaded driver records for BYOVD or kernel abuse indicators.
     pub fn analyze_driver_anomalies(&mut self, drivers: &[serde_json::Value]) {
         for driver in drivers {
@@ -627,6 +653,91 @@ pub fn collect_audit_policy() -> Result<Vec<serde_json::Value>, Box<dyn std::err
 
 pub fn collect_firewall_rules() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
     jockey_runtime_network::firewall::collect_firewall_policy()
+}
+
+/// Detect potential EDR/kernel callback tampering indicators.
+///
+/// This function intentionally does not assert a Windows-only callback hook as a
+/// fact on Linux. Instead, it performs a conservative, host-aware check for
+/// suspicious callback registration artifacts where the OS exposes them. On
+/// Linux, it returns a non-actionable "not_detected" result with a note that
+/// `ObRegisterCallbacks` and similar Windows-specific callback registries are not
+/// available to userland inspection.
+pub fn detect_kernel_callback_tampering(
+) -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    let mut results = Vec::new();
+
+    #[cfg(target_os = "windows")]
+    {
+        let suspicious_registry_keys = [
+            r"\Registry\Machine\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management",
+            r"\Registry\Machine\SYSTEM\CurrentControlSet\Control\Lsa",
+        ];
+
+        for key in suspicious_registry_keys {
+            let appears_present = std::path::Path::new(key).exists();
+            if appears_present {
+                results.push(serde_json::json!({
+                    "collector": "kernel_callback_tampering",
+                    "platform": "windows",
+                    "artifact": key,
+                    "status": "present",
+                    "note": "Potential callback-related object exists; corroboration requires Windows kernel evidence."
+                }));
+            }
+        }
+
+        if results.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "kernel_callback_tampering",
+                "platform": "windows",
+                "status": "not_detected",
+                "note": "No callback-tampering indicators were observed in the current Windows userland view."
+            }));
+        }
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        let kernel_paths = [
+            "/proc/modules",
+            "/sys/kernel/security",
+            "/sys/kernel/debug",
+        ];
+
+        for path in kernel_paths {
+            let p = std::path::Path::new(path);
+            if p.exists() {
+                let mut sample = String::new();
+                if let Ok(contents) = std::fs::read_to_string(p) {
+                    sample = contents
+                        .lines()
+                        .take(10)
+                        .collect::<Vec<_>>()
+                        .join("\n");
+                }
+                results.push(serde_json::json!({
+                    "collector": "kernel_callback_tampering",
+                    "platform": "linux",
+                    "artifact": path,
+                    "status": "available",
+                    "sample": sample,
+                    "note": "Linux does not surface Windows ObRegisterCallbacks state; this is only an environment inventory check."
+                }));
+            }
+        }
+
+        if results.is_empty() {
+            results.push(serde_json::json!({
+                "collector": "kernel_callback_tampering",
+                "platform": "linux",
+                "status": "not_detected",
+                "note": "No kernel callback tampering evidence is available from the current Linux environment."
+            }));
+        }
+    }
+
+    Ok(results)
 }
 
 pub fn detect_av_edr() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
@@ -1280,5 +1391,19 @@ mod tests {
 
         let edr = detect_av_edr();
         assert!(edr.is_ok(), "AV/EDR inventory should return a result");
+    }
+
+    #[test]
+    fn test_kernel_callback_tampering_detection_is_host_safe() {
+        let detector = detect_kernel_callback_tampering();
+        assert!(detector.is_ok(), "kernel callback detection should return a result");
+        let entries = detector.unwrap();
+        assert!(!entries.is_empty());
+        assert!(entries.iter().any(|entry| {
+            entry.get("collector")
+                .and_then(|v| v.as_str())
+                .map(|v| v == "kernel_callback_tampering")
+                .unwrap_or(false)
+        }));
     }
 }

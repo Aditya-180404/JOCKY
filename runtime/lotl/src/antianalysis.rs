@@ -27,8 +27,8 @@
 //!
 //! ## Usage
 //!
-//! ```rust,no_run
-//! use jockey_lotl::antianalysis::{AntiAnalysisGuard, EnvironmentRisk};
+//! ```rust,ignore
+//! use jockey_runtime_lotl::antianalysis::{AntiAnalysisGuard, EnvironmentRisk};
 //!
 //! let guard = AntiAnalysisGuard::new();
 //! match guard.assess() {

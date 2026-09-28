@@ -6,6 +6,7 @@
 
 use jockey_ir::{ArtifactMetadata, BuildConfig, TargetArch, TargetPlatform};
 use jockey_mir::MirProgram;
+use jockey_backend::obfuscation::ObfuscationPipeline;
 use std::path::{Path, PathBuf};
 
 /// LLVM backend configuration and compilation driver
@@ -20,11 +21,19 @@ impl LlvmBackend {
 
     /// Generate valid LLVM IR string from programmatic LLVM module
     pub fn generate_llvm_ir(&self, mir: &MirProgram) -> Result<String, String> {
+        // Apply obfuscation pipeline if enabled
+        let mir = if self.config.obfuscation.is_any_enabled() {
+            let pipeline = ObfuscationPipeline::new(&self.config.obfuscation);
+            pipeline.run(mir.clone())
+        } else {
+            mir.clone()
+        };
+
         let codegen = crate::llvm_codegen::ProgrammaticLlvmCodegen::new(
             self.config.target_platform,
             self.config.target_arch,
         );
-        let res = codegen.emit_module(mir).map_err(|e| e.to_string())?;
+        let res = codegen.emit_module(&mir).map_err(|e| e.to_string())?;
         Ok(res.module.print_ir())
     }
 
@@ -42,12 +51,20 @@ impl LlvmBackend {
 
         std::fs::create_dir_all(output_dir)?;
 
+        // 0. Apply obfuscation pipeline if enabled
+        let mir = if self.config.obfuscation.is_any_enabled() {
+            let pipeline = ObfuscationPipeline::new(&self.config.obfuscation);
+            pipeline.run(mir.clone())
+        } else {
+            mir.clone()
+        };
+
         // 1. Generate and verify programmatic LLVM module
         let codegen = crate::llvm_codegen::ProgrammaticLlvmCodegen::new(
             self.config.target_platform,
             self.config.target_arch,
         );
-        let res = codegen.emit_module(mir)?;
+        let res = codegen.emit_module(&mir)?;
         let llvm_ir = res.module.print_ir();
 
         // 2. Write .ll file (debug representation serialized from real LLVM module)
@@ -180,6 +197,10 @@ impl LlvmBackend {
                 .map(|c| c.as_str().to_string())
                 .collect(),
             ir_version: "2.0-llvm".to_string(),
+            build_hash: Some(artifact_hash.clone()),
+            unique_binary: self.config.obfuscation.is_any_enabled(),
+            obfuscation_seed: self.config.obfuscation.build_seed,
+            watermark_section_offset: None, // TODO: calculate actual offset if watermark enabled
         };
 
         Ok(metadata)

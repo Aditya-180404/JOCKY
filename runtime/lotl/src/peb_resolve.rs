@@ -51,6 +51,11 @@ pub mod fn_hashes {
     pub const NT_ENUMERATE_VALUE_KEY: u32 = djb2_hash(b"NtEnumerateValueKey");
     pub const RTL_GET_VERSION: u32 = djb2_hash(b"RtlGetVersion");
     pub const VIRTUAL_QUERY_EX: u32 = djb2_hash(b"VirtualQueryEx");
+    pub const NT_PROTECT_VIRTUAL_MEMORY: u32 = djb2_hash(b"NtProtectVirtualMemory");
+    pub const NT_CLOSE: u32 = djb2_hash(b"NtClose");
+    pub const NT_OPEN_SECTION: u32 = djb2_hash(b"NtOpenSection");
+    pub const NT_MAP_VIEW_OF_SECTION: u32 = djb2_hash(b"NtMapViewOfSection");
+    pub const NT_UNMAP_VIEW_OF_SECTION: u32 = djb2_hash(b"NtUnmapViewOfSection");
 }
 
 /// A resolved function pointer (raw address).
@@ -113,6 +118,177 @@ impl PebResolver {
             djb2_hash(dll_name.as_bytes()),
             djb2_hash(fn_name.as_bytes()),
         )
+    }
+
+    /// Get the base address of a loaded module by its DJB2 hash.
+    ///
+    /// Returns the module base address (DllBase) without resolving a specific
+    /// export. Useful for getting ntdll.dll base for PE parsing.
+    pub fn get_module_base(&self, dll_name_hash: u32) -> Option<usize> {
+        #[cfg(target_os = "windows")]
+        {
+            unsafe { self.get_module_base_windows(dll_name_hash) }
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            let _ = dll_name_hash;
+            None
+        }
+    }
+
+    #[cfg(target_os = "windows")]
+    unsafe fn get_module_base_windows(&self, dll_name_hash: u32) -> Option<usize> {
+        // ── Step 1: Get PEB address from gs:[0x60] ────────────────────────────
+        let peb: *const u8;
+        std::arch::asm!(
+            "mov {peb}, gs:[0x60]",
+            peb = out(reg) peb,
+            options(nostack, preserves_flags)
+        );
+
+        if peb.is_null() {
+            return None;
+        }
+
+        // ── Step 2: PEB.Ldr at offset 0x18 ───────────────────────────────────
+        let ldr = *(peb.add(0x18) as *const *const u8);
+        if ldr.is_null() {
+            return None;
+        }
+
+        // ── Step 3: PEB_LDR_DATA.InMemoryOrderModuleList at offset 0x20 ──────
+        let list_head = ldr.add(0x20) as *const *const u8;
+        let mut flink = *list_head;
+
+        // Walk list (sentinel: flink returns to list_head)
+        loop {
+            if flink.is_null() || flink == list_head as *const u8 {
+                break;
+            }
+
+            // InMemoryOrderLinks are at offset 0x10 inside the entry, so the
+            // entry base is flink - 0x10
+            let entry = flink.sub(0x10);
+
+            // DllBase at offset 0x30 from entry
+            let dll_base = *(entry.add(0x30) as *const usize);
+
+            // BaseDllName at offset 0x58: UNICODE_STRING { len(u16), max(u16), pad(u32), buf(*u16) }
+            let base_name_len = *(entry.add(0x58) as *const u16) as usize;
+            let base_name_buf = *(entry.add(0x60) as *const *const u16);
+
+            // Compute DJB2 hash of the DLL base name (Unicode → lowercase ASCII)
+            if !base_name_buf.is_null() && base_name_len > 0 {
+                let char_count = base_name_len / 2;
+                let mut computed_hash: u32 = 5381;
+                for i in 0..char_count {
+                    let wc = *base_name_buf.add(i) as u8;
+                    let lc = if wc >= b'A' && wc <= b'Z' { wc + 32 } else { wc };
+                    computed_hash = computed_hash
+                        .wrapping_shl(5)
+                        .wrapping_add(computed_hash)
+                        .wrapping_add(lc as u32);
+                }
+
+                if computed_hash == dll_name_hash && dll_base != 0 {
+                    return Some(dll_base);
+                }
+            }
+
+            // Advance: Flink is the first field of InMemoryOrderLinks
+            flink = *(flink as *const *const u8);
+        }
+
+        None
+    }
+
+    /// Resolve an export from a specific module base address by function hash.
+    ///
+    /// This is a standalone version that doesn't walk the PEB - it parses the
+    /// export directory of the given module base directly.
+    pub fn resolve_export(
+        &self,
+        dll_base: *const u8,
+        fn_name_hash: u32,
+    ) -> Option<ResolvedFn> {
+        #[cfg(target_os = "windows")]
+        {
+            unsafe { self.resolve_export_windows(dll_base, fn_name_hash) }
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            let _ = (dll_base, fn_name_hash);
+            None
+        }
+    }
+
+    #[cfg(target_os = "windows")]
+    unsafe fn resolve_export_windows(
+        &self,
+        dll_base: *const u8,
+        fn_name_hash: u32,
+    ) -> Option<ResolvedFn> {
+        // MZ/PE header navigation
+        // IMAGE_DOS_HEADER.e_lfanew at offset 0x3C
+        let e_lfanew = *(dll_base.add(0x3C) as *const u32) as usize;
+        let pe_header = dll_base.add(e_lfanew);
+
+        // IMAGE_NT_HEADERS: Signature(4) + FileHeader(20) + OptionalHeader
+        // IMAGE_OPTIONAL_HEADER64.DataDirectory[0] = Export at offset 0x70 from OptHdr start
+        // OptHdr start = pe_header + 4 (sig) + 20 (file hdr) = pe_header + 24
+        let opt_hdr = pe_header.add(24);
+        let export_dir_rva = *(opt_hdr.add(0x70) as *const u32) as usize;
+        if export_dir_rva == 0 {
+            return None;
+        }
+
+        let exp_dir = dll_base.add(export_dir_rva);
+
+        // IMAGE_EXPORT_DIRECTORY layout:
+        //   0x00 Characteristics
+        //   0x04 TimeDateStamp
+        //   0x08 MajorVersion / MinorVersion
+        //   0x0C Name (RVA)
+        //   0x10 Base
+        //   0x14 NumberOfFunctions
+        //   0x18 NumberOfNames
+        //   0x1C AddressOfFunctions (RVA to array of u32 RVAs)
+        //   0x20 AddressOfNames     (RVA to array of u32 RVAs)
+        //   0x24 AddressOfNameOrdinals (RVA to array of u16)
+        let num_names = *(exp_dir.add(0x18) as *const u32) as usize;
+        let addr_of_functions = *(exp_dir.add(0x1C) as *const u32) as usize;
+        let addr_of_names = *(exp_dir.add(0x20) as *const u32) as usize;
+        let addr_of_ordinals = *(exp_dir.add(0x24) as *const u32) as usize;
+
+        let names_table = dll_base.add(addr_of_names) as *const u32;
+        let ordinals_table = dll_base.add(addr_of_ordinals) as *const u16;
+        let functions_table = dll_base.add(addr_of_functions) as *const u32;
+
+        for i in 0..num_names {
+            let name_rva = *names_table.add(i) as usize;
+            let name_ptr = dll_base.add(name_rva);
+
+            // Compute DJB2 of this export name
+            let mut hash: u32 = 5381;
+            let mut c = name_ptr;
+            loop {
+                let byte = *c;
+                if byte == 0 {
+                    break;
+                }
+                hash = hash.wrapping_shl(5).wrapping_add(hash).wrapping_add(byte as u32);
+                c = c.add(1);
+            }
+
+            if hash == fn_name_hash {
+                let ordinal = *ordinals_table.add(i) as usize;
+                let fn_rva = *functions_table.add(ordinal) as usize;
+                let fn_addr = dll_base.add(fn_rva) as usize;
+                return Some(ResolvedFn(fn_addr));
+            }
+        }
+
+        None
     }
 
     #[cfg(target_os = "windows")]
