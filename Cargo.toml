@@ -28,6 +28,7 @@ members = [
     "runtime/auth",
     "runtime/users",
     "runtime/services",
+    "runtime/lotl",
     "apps/api",
     "services/compiler-worker",
     "packages/shared-types",

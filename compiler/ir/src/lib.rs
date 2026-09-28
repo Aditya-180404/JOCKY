@@ -186,6 +186,64 @@ pub enum TargetArch {
     Arm64,
 }
 
+/// Obfuscation configuration for polymorphic binary generation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObfuscationConfig {
+    /// Enable CFG flattening: converts linear control flow into a state-machine dispatcher
+    pub cfg_flattening: bool,
+    /// Encrypt string/constant literals with a per-build XOR key
+    pub string_encryption: bool,
+    /// Insert junk (dead) instructions to defeat signature matching
+    pub junk_insertion: bool,
+    /// Insert opaque predicate branches that always evaluate the same way
+    pub opaque_predicates: bool,
+    /// Append a unique random watermark section so each build has a unique hash
+    pub polymorphic_watermark: bool,
+    /// Per-build random seed (generated at compile time; ensures unique binaries)
+    pub build_seed: u64,
+}
+
+impl Default for ObfuscationConfig {
+    fn default() -> Self {
+        Self {
+            cfg_flattening: false,
+            string_encryption: false,
+            junk_insertion: false,
+            opaque_predicates: false,
+            polymorphic_watermark: false,
+            build_seed: 0,
+        }
+    }
+}
+
+impl ObfuscationConfig {
+    /// Return true if any obfuscation pass is enabled
+    pub fn is_any_enabled(&self) -> bool {
+        self.cfg_flattening
+            || self.string_encryption
+            || self.junk_insertion
+            || self.opaque_predicates
+            || self.polymorphic_watermark
+    }
+
+    /// Create a fully-enabled polymorphic config with a freshly generated random seed
+    pub fn full_polymorphic() -> Self {
+        use std::time::{SystemTime, UNIX_EPOCH};
+        let seed = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_nanos() as u64)
+            .unwrap_or(0xDEADBEEFCAFEBABE);
+        Self {
+            cfg_flattening: true,
+            string_encryption: true,
+            junk_insertion: true,
+            opaque_predicates: true,
+            polymorphic_watermark: true,
+            build_seed: seed,
+        }
+    }
+}
+
 /// Build configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BuildConfig {
@@ -194,6 +252,8 @@ pub struct BuildConfig {
     pub optimization_level: OptimizationLevel,
     pub debug_symbols: bool,
     pub strip_symbols: bool,
+    /// Obfuscation and polymorphism options (default: all disabled)
+    pub obfuscation: ObfuscationConfig,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -211,6 +271,7 @@ impl Default for BuildConfig {
             optimization_level: OptimizationLevel::Speed,
             debug_symbols: false,
             strip_symbols: true,
+            obfuscation: ObfuscationConfig::default(),
         }
     }
 }
@@ -228,6 +289,14 @@ pub struct ArtifactMetadata {
     pub artifact_hash: String,
     pub required_capabilities: Vec<String>,
     pub ir_version: String,
+    /// SHA-256 hash of the emitted binary (set after compilation)
+    pub build_hash: Option<String>,
+    /// Whether this binary was produced with polymorphic obfuscation
+    pub unique_binary: bool,
+    /// The per-build seed used for obfuscation (0 if not obfuscated)
+    pub obfuscation_seed: u64,
+    /// Byte offset of the polymorphic watermark section in the binary (None if not present)
+    pub watermark_section_offset: Option<u64>,
 }
 
 #[cfg(test)]

@@ -63,6 +63,39 @@ enum Commands {
         /// Verbose compiler pipeline output
         #[arg(short, long)]
         verbose: bool,
+        // ── Obfuscation / Polymorphism flags ────────────────────────────────
+        /// Enable ALL obfuscation passes (CFG flattening, string encryption,
+        /// junk instructions, opaque predicates, polymorphic watermark).
+        /// Produces a binary that defeats signature-based AV, file-reputation
+        /// databases, and static CFG analysis. Equivalent to -FEJOP.
+        #[arg(long, short = 'X')]
+        full_evasion: bool,
+        /// Enable CFG flattening: converts control flow into a state-machine
+        /// dispatcher that defeats CFG-based signature matching.
+        #[arg(long, short = 'F')]
+        cfg_flatten: bool,
+        /// Encrypt string and constant literals with a per-build XOR key.
+        /// Strings are decrypted inline at runtime; not visible via strings(1).
+        #[arg(long, short = 'E')]
+        encrypt_strings: bool,
+        /// Insert dead arithmetic/bitwise instructions to break byte-pattern signatures.
+        #[arg(long, short = 'J')]
+        junk_instructions: bool,
+        /// Insert opaque predicate branches that always take the same path.
+        #[arg(long)]
+        opaque_predicates: bool,
+        /// Embed a unique per-build random watermark so every compiled binary
+        /// has a different SHA-256 hash, defeating file-reputation blocklists.
+        #[arg(long, short = 'P')]
+        polymorphic: bool,
+        /// Custom build seed for obfuscation (default: current nanosecond timestamp).
+        /// Use a fixed seed to get reproducible obfuscated output for testing.
+        #[arg(long)]
+        evasion_seed: Option<u64>,
+        /// Disable anti-debugging and anti-analysis environment guards.
+        /// Use in controlled lab/CI environments where guard checks may false-positive.
+        #[arg(long)]
+        no_guard: bool,
     },
     /// Build a JOCKEY source file (.jy) (alias for compile)
     Build {
@@ -95,6 +128,32 @@ enum Commands {
         /// Verbose compiler pipeline output
         #[arg(short, long)]
         verbose: bool,
+        // ── Obfuscation / Polymorphism flags ────────────────────────────────
+        /// Enable ALL obfuscation passes (CFG flattening, string encryption,
+        /// junk instructions, opaque predicates, polymorphic watermark).
+        #[arg(long, short = 'X')]
+        full_evasion: bool,
+        /// Enable CFG flattening pass
+        #[arg(long, short = 'F')]
+        cfg_flatten: bool,
+        /// Enable string/constant encryption
+        #[arg(long, short = 'E')]
+        encrypt_strings: bool,
+        /// Enable junk instruction insertion
+        #[arg(long, short = 'J')]
+        junk_instructions: bool,
+        /// Enable opaque predicate insertion
+        #[arg(long)]
+        opaque_predicates: bool,
+        /// Enable polymorphic watermark (unique SHA-256 per build)
+        #[arg(long, short = 'P')]
+        polymorphic: bool,
+        /// Custom build seed for obfuscation (default: current nanosecond timestamp)
+        #[arg(long)]
+        evasion_seed: Option<u64>,
+        /// Disable anti-debugging environment guards
+        #[arg(long)]
+        no_guard: bool,
     },
     /// Inspect a JOCKEY source file (.jy) (show AST/IR)
     Inspect {
@@ -326,9 +385,19 @@ fn main() -> anyhow::Result<()> {
             emit_llvm,
             emit_all,
             verbose,
+            full_evasion,
+            cfg_flatten,
+            encrypt_strings,
+            junk_instructions,
+            opaque_predicates,
+            polymorphic,
+            evasion_seed,
+            no_guard: _,
         } => compile(
             &file, &target, &arch, &output, &opt, &backend, emit_hir, emit_mir, emit_llvm,
             emit_all, verbose,
+            full_evasion, cfg_flatten, encrypt_strings, junk_instructions, opaque_predicates,
+            polymorphic, evasion_seed,
         ),
         Commands::Build {
             file,
@@ -341,9 +410,19 @@ fn main() -> anyhow::Result<()> {
             emit_llvm,
             emit_all,
             verbose,
+            full_evasion,
+            cfg_flatten,
+            encrypt_strings,
+            junk_instructions,
+            opaque_predicates,
+            polymorphic,
+            evasion_seed,
+            no_guard: _,
         } => compile(
             &file, &target, &arch, &output, "speed", &backend, emit_hir, emit_mir, emit_llvm,
             emit_all, verbose,
+            full_evasion, cfg_flatten, encrypt_strings, junk_instructions, opaque_predicates,
+            polymorphic, evasion_seed,
         ),
         Commands::Inspect { file, format } => inspect(&file, &format),
         Commands::Hash { file } => hash_file(&file),
@@ -425,6 +504,8 @@ fn main() -> anyhow::Result<()> {
 fn run(file: &Path, target: &str, arch: &str, output: &Path) -> anyhow::Result<()> {
     compile(
         file, target, arch, output, "speed", "llvm", false, false, false, false, false,
+        // Obfuscation: all disabled for `jockey run`
+        false, false, false, false, false, false, None,
     )?;
     let output_dir = std::fs::canonicalize(output)?;
 
@@ -720,6 +801,7 @@ fn validate(file: &Path) -> anyhow::Result<()> {
 }
 
 #[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)]
 fn compile(
     file: &Path,
     target: &str,
@@ -732,6 +814,14 @@ fn compile(
     emit_llvm: bool,
     emit_all: bool,
     verbose: bool,
+    // Obfuscation flags
+    full_evasion: bool,
+    cfg_flatten: bool,
+    encrypt_strings: bool,
+    junk_instructions: bool,
+    opaque_predicates: bool,
+    polymorphic: bool,
+    evasion_seed: Option<u64>,
 ) -> anyhow::Result<()> {
     jockey_ir::validate_source_extension(file).map_err(|e| anyhow::anyhow!(e))?;
     println!("Compiling {}", file.display());
@@ -828,12 +918,34 @@ fn compile(
         _ => jockey_ir::OptimizationLevel::Speed,
     };
 
+    // Build obfuscation config from CLI flags
+    let obfuscation = if full_evasion {
+        jockey_ir::ObfuscationConfig::full_polymorphic()
+    } else {
+        use std::time::{SystemTime, UNIX_EPOCH};
+        let seed = evasion_seed.unwrap_or_else(|| {
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .map(|d| d.as_nanos() as u64)
+                .unwrap_or(0)
+        });
+        jockey_ir::ObfuscationConfig {
+            cfg_flattening: cfg_flatten,
+            string_encryption: encrypt_strings,
+            junk_insertion: junk_instructions,
+            opaque_predicates,
+            polymorphic_watermark: polymorphic,
+            build_seed: seed,
+        }
+    };
+
     let config = BuildConfig {
         target_platform,
         target_arch,
         optimization_level,
         debug_symbols: false,
         strip_symbols: true,
+        obfuscation,
     };
 
     // --- Resolve backend kind ---

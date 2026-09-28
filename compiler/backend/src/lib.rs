@@ -50,6 +50,12 @@ pub mod llvm_types;
 #[cfg(feature = "llvm")]
 pub use llvm::LlvmBackend;
 
+/// Polymorphic obfuscation pass pipeline.
+/// Always compiled (not gated on LLVM feature) so the CLI and API can
+/// describe/report obfuscation options even when the LLVM backend is absent.
+pub mod obfuscation;
+pub use obfuscation::{ObfuscationPipeline, ObfuscationReport};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, Default)]
 pub enum BackendKind {
     Rust,
@@ -392,6 +398,10 @@ impl Backend {
                 .map(|c| c.as_str().to_string())
                 .collect(),
             ir_version: jockey_ir::IR_VERSION.to_string(),
+            build_hash: None,
+            unique_binary: self.config.obfuscation.is_any_enabled(),
+            obfuscation_seed: self.config.obfuscation.build_seed,
+            watermark_section_offset: None,
         };
 
         let manifest_path = output_dir.join(format!("{}.manifest.json", ir.name));
@@ -500,6 +510,10 @@ impl Backend {
                 .map(|c| c.as_str().to_string())
                 .collect(),
             ir_version: jockey_ir::IR_VERSION.to_string(),
+            build_hash: None,
+            unique_binary: self.config.obfuscation.is_any_enabled(),
+            obfuscation_seed: self.config.obfuscation.build_seed,
+            watermark_section_offset: None,
         };
 
         let manifest_path = output_dir.join(format!("{}.manifest.json", ir.name));

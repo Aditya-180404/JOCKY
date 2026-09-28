@@ -1,0 +1,16 @@
+[package]
+name = "jockey-runtime-lotl"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+description = "JOCKEY Living-off-the-Land primitives: PEB resolver, direct syscalls, anti-analysis guards"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+# No extra dev deps needed
