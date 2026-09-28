@@ -42,7 +42,10 @@ mod in_memory {
     #[test]
     fn empty_script_is_rejected() {
         let r = InMemoryScriptRunner::new();
-        assert!(matches!(r.run_script(""), Err(InMemoryExecutionError::EmptyScript)));
+        assert!(matches!(
+            r.run_script(""),
+            Err(InMemoryExecutionError::EmptyScript)
+        ));
     }
 
     #[test]
@@ -57,7 +60,10 @@ mod in_memory {
     #[test]
     fn empty_payload_is_rejected() {
         let r = InMemoryScriptRunner::new();
-        assert!(matches!(r.run_payload(&[]), Err(InMemoryExecutionError::EmptyScript)));
+        assert!(matches!(
+            r.run_payload(&[]),
+            Err(InMemoryExecutionError::EmptyScript)
+        ));
     }
 
     #[test]
@@ -158,7 +164,9 @@ mod in_memory {
             extern "C" {
                 fn close(fd: std::ffi::c_int) -> std::ffi::c_int;
             }
-            unsafe { close(fd); }
+            unsafe {
+                close(fd);
+            }
         }
 
         #[test]
@@ -417,7 +425,9 @@ mod direct_syscalls {
 
     #[test]
     fn syscall_error_export_not_found_serializes() {
-        let e = SyscallError::ExportNotFound { fn_name_hash: 0xDEADBEEF };
+        let e = SyscallError::ExportNotFound {
+            fn_name_hash: 0xDEADBEEF,
+        };
         let j = serde_json::to_string(&e).unwrap();
         assert!(j.contains("ExportNotFound") || j.contains("fn_name_hash"));
     }
@@ -431,7 +441,9 @@ mod direct_syscalls {
 
     #[test]
     fn syscall_error_nt_status_failed_serializes() {
-        let e = SyscallError::NtStatusFailed { ntstatus: 0xC0000001 };
+        let e = SyscallError::NtStatusFailed {
+            ntstatus: 0xC0000001,
+        };
         let j = serde_json::to_string(&e).unwrap();
         assert!(j.contains("NtStatusFailed") || j.contains("ntstatus"));
     }
@@ -567,7 +579,10 @@ mod anti_analysis {
         }
         // Suspicious variants must have at least one reason
         if let EnvironmentRisk::Suspicious(ref reasons) = risk {
-            assert!(!reasons.is_empty(), "Suspicious result must include reason(s)");
+            assert!(
+                !reasons.is_empty(),
+                "Suspicious result must include reason(s)"
+            );
         }
     }
 }

