@@ -164,60 +164,59 @@ Step "Downloading JOCKY $Version"
 
 $VerStripped = $Version.TrimStart("v")
 $AssetName   = "jocky_${VerStripped}_windows_amd64.zip"
-$DownloadUrl = "https://github.com/$REPO/releases/download/$Version/jocky_${VerStripped}_windows_x86_64.zip"
 
 $TmpDir  = Join-Path $env:TEMP "jocky_install_$(Get-Random)"
 New-Item -ItemType Directory -Path $TmpDir -Force | Out-Null
 
-Log "URL: $DownloadUrl"
-try {
-    Invoke-WebRequest -Uri $DownloadUrl -OutFile (Join-Path $TmpDir $AssetName) -UseBasicParsing
-    Ok "Downloaded $AssetName"
-    Expand-Archive -Path (Join-Path $TmpDir $AssetName) -DestinationPath $TmpDir -Force
-    $extractedExe = Get-ChildItem -Path $TmpDir -Recurse -Filter "jocky.exe" | Select-Object -First 1
-    if (-not $extractedExe) { Err "jocky.exe not found in archive." }
-} catch {
-    # Fallback 1: try raw exe download from GitHub
-    $RawUrl = "https://github.com/$REPO/releases/download/$Version/jocky-windows-x86_64.exe"
-    Log "GitHub asset not found, trying raw binary: $RawUrl"
-    $downloadSuccess = $false
-    try {
-        $rawPath = Join-Path $TmpDir "jocky.exe"
-        Invoke-WebRequest -Uri $RawUrl -OutFile $rawPath -UseBasicParsing
-        $extractedExe = Get-Item $rawPath
-        Ok "Downloaded raw binary"
-        $downloadSuccess = $true
-    } catch {
-        # Fallback 2: try server download endpoint
-        $ServerUrl = if ($env:JOCKY_SERVER) { "$env:JOCKY_SERVER/api/downloads/windows" } else { "http://localhost:8080/api/downloads/windows" }
-        Log "Trying server download: $ServerUrl"
-        try {
-            $zipPath = Join-Path $TmpDir "jocky_server.zip"
-            Invoke-WebRequest -Uri $ServerUrl -OutFile $zipPath -UseBasicParsing
-            Expand-Archive -Path $zipPath -DestinationPath $TmpDir -Force
-            $extractedExe = Get-ChildItem -Path $TmpDir -Recurse -Filter "jocky.exe" | Select-Object -First 1
-            if ($extractedExe) {
-                Ok "Downloaded and extracted from server"
-                $downloadSuccess = $true
-            }
-        } catch {
-            Log "Server zip unavailable, checking server exe..."
-        }
+$downloadSuccess = $false
+$extractedExe = $null
 
-        if (-not $downloadSuccess) {
-            # Fallback 3: try direct jocky.exe from server
-            $ServerExe = if ($env:JOCKY_SERVER) { "$env:JOCKY_SERVER/api/downloads/jocky.exe" } else { "http://localhost:8080/api/downloads/jocky.exe" }
-            try {
-                $rawPath = Join-Path $TmpDir "jocky.exe"
-                Invoke-WebRequest -Uri $ServerExe -OutFile $rawPath -UseBasicParsing
-                $extractedExe = Get-Item $rawPath
-                Ok "Downloaded jocky.exe from server"
+# Candidate download sources in order of preference:
+$candidateSources = @(
+    @{ Type = "zip"; Url = "https://github.com/$REPO/releases/download/$Version/jocky_${VerStripped}_windows_x86_64.zip"; Desc = "GitHub Release Archive" },
+    @{ Type = "zip"; Url = "https://raw.githubusercontent.com/$REPO/main/jocky_0.1.0_windows_amd64.zip";                  Desc = "GitHub Repository Archive" },
+    @{ Type = "exe"; Url = "https://raw.githubusercontent.com/$REPO/main/jocky.exe";                                      Desc = "GitHub Repository Executable" },
+    @{ Type = "exe"; Url = "https://github.com/$REPO/releases/download/$Version/jocky-windows-x86_64.exe";                Desc = "GitHub Release Executable" }
+)
+
+if ($env:JOCKY_SERVER) {
+    $candidateSources += @(
+        @{ Type = "zip"; Url = "$env:JOCKY_SERVER/api/downloads/windows"; Desc = "Server Archive" },
+        @{ Type = "exe"; Url = "$env:JOCKY_SERVER/api/downloads/jocky.exe"; Desc = "Server Executable" }
+    )
+}
+
+foreach ($src in $candidateSources) {
+    Log "Trying $($src.Desc)..."
+    try {
+        if ($src.Type -eq "zip") {
+            $zipPath = Join-Path $TmpDir "jocky_download.zip"
+            Invoke-WebRequest -Uri $src.Url -OutFile $zipPath -UseBasicParsing -TimeoutSec 60
+            Expand-Archive -Path $zipPath -DestinationPath $TmpDir -Force
+            $found = Get-ChildItem -Path $TmpDir -Recurse -Filter "jocky.exe" | Select-Object -First 1
+            if ($found) {
+                $extractedExe = $found
                 $downloadSuccess = $true
-            } catch {
-                Err "Download failed. Visit: https://github.com/$REPO/releases"
+                Ok "Downloaded and extracted $($src.Desc)"
+                break
+            }
+        } elseif ($src.Type -eq "exe") {
+            $rawPath = Join-Path $TmpDir "jocky.exe"
+            Invoke-WebRequest -Uri $src.Url -OutFile $rawPath -UseBasicParsing -TimeoutSec 60
+            if (Test-Path $rawPath) {
+                $extractedExe = Get-Item $rawPath
+                $downloadSuccess = $true
+                Ok "Downloaded $($src.Desc)"
+                break
             }
         }
+    } catch {
+        # Try next candidate
     }
+}
+
+if (-not $downloadSuccess -or -not $extractedExe) {
+    Err "Download failed from all sources. Visit: https://github.com/$REPO"
 }
 
 # ─── Install ──────────────────────────────────────────────────────────────────
