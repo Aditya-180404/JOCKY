@@ -119,7 +119,7 @@ const EXAMPLES = [
   {
     id: 'process_investigation',
     filename: 'process_investigation.jy',
-    name: 'Process Investigation',
+    name: 'Process Investigation & Hashing',
     description: 'Inspect processes with parent PID, command line, user, and SHA-256 binary hash.',
     code: `investigation "process_investigation" {
     collect processes {
@@ -135,23 +135,206 @@ const EXAMPLES = [
 }`,
   },
   {
+    id: 'process_tree_analysis',
+    filename: 'process_tree_analysis.jy',
+    name: 'Process Tree & Injected Binaries',
+    description: 'Reconstruct complete process tree hierarchy and detect unlinked or deleted executables in memory.',
+    code: `investigation "process_tree_analysis" {
+    metadata {
+        priority = "High"
+        category = "Process Tree & Injected Binaries"
+        classification = "Defense Evasion Detection"
+    }
+
+    collect process_tree
+
+    collect deleted_executables
+
+    export evidence "process_tree_evidence.json"
+}`,
+  },
+  {
+    id: 'process_modules_handles',
+    filename: 'process_modules_handles.jy',
+    name: 'Process Modules & Open Handles',
+    description: 'Deep inspection of loaded shared libraries / DLLs and open system handles.',
+    code: `investigation "process_modules_handles" {
+    metadata {
+        priority = "High"
+        category = "Deep Process Forensics"
+    }
+
+    collect processes {
+        pid
+        name
+        user
+    }
+
+    collect process_modules 0
+
+    collect process_handles 0
+
+    export evidence "modules_handles_evidence.json"
+}`,
+  },
+  {
     id: 'network_investigation',
     filename: 'network_investigation.jy',
-    name: 'Network Investigation',
-    description: 'Capture active socket listening ports, protocols, and endpoints alongside host info.',
+    name: 'Network Sockets & Activity',
+    description: 'Capture active TCP/UDP socket table, listening ports, and remote endpoints alongside host info.',
     code: `investigation "network_investigation" {
     collect system_info
 
-    collect network_connections
+    collect network_connections {
+        pid
+        process_name
+        local_address
+        local_port
+        remote_address
+        remote_port
+        state
+    }
 
     export evidence "network_evidence.json"
 }`,
   },
   {
+    id: 'memory_process_triage',
+    filename: 'memory_process_triage.jy',
+    name: 'Memory Forensics & Shellcode',
+    description: 'Audit process virtual memory pages for injected shellcode, hollowed sections, and RWX anonymous mappings.',
+    code: `investigation "memory_process_triage" {
+    metadata {
+        priority = "Critical"
+        category = "Memory Forensics"
+    }
+
+    collect memory_regions
+
+    export evidence "memory_triage.json"
+}`,
+  },
+  {
+    id: 'filesystem_investigation',
+    filename: 'filesystem_investigation.jy',
+    name: 'Filesystem Multi-Hash Audit',
+    description: 'Inspect configuration and system paths with multi-algorithm SHA-256, SHA-1, and MD5 hashes.',
+    code: `investigation "filesystem_investigation" {
+    collect system_info
+
+    collect files "/etc" {
+        recursive
+        hash.sha256
+        hash.sha1
+        hash.md5
+    } limit 50
+
+    export evidence "filesystem_evidence.json"
+}`,
+  },
+  {
+    id: 'windows_registry_audit',
+    filename: 'windows_registry_audit.jy',
+    name: 'Windows Registry Persistence Audit',
+    description: 'Enumerate persistence auto-start mechanisms in the Windows Registry (Run keys, Services, Winlogon).',
+    code: `investigation "windows_registry_audit" {
+    metadata {
+        category = "Persistence Detection"
+        platform = "Windows"
+    }
+
+    collect registry "HKLM" "SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Run"
+    collect registry "HKLM" "SYSTEM\\\\CurrentControlSet\\\\Services"
+
+    export evidence "registry_audit.json"
+}`,
+  },
+  {
+    id: 'artifact_carving',
+    filename: 'artifact_carving.jy',
+    name: 'Forensic Artifact Carving',
+    description: 'Extract forensic artifacts (Prefetch, Shimcache, Event Logs) to reconstruct historical system execution.',
+    code: `investigation "artifact_carving" {
+    metadata {
+        category = "Artifact Analysis"
+        platform = "Windows"
+        author   = "DFIR Team"
+    }
+
+    collect artifacts "prefetch" "C:\\\\Windows\\\\Prefetch"
+    collect artifacts "shimcache" ""
+    collect artifacts "eventlog" ""
+
+    export evidence "artifact_carving.json"
+}`,
+  },
+  {
+    id: 'driver_rootkit_hunt',
+    filename: 'driver_rootkit_hunt.jy',
+    name: 'Driver & Rootkit Hunt',
+    description: 'Enumerate and audit loaded kernel modules and drivers to detect unsigned or hidden rootkit drivers.',
+    code: `investigation "driver_rootkit_hunt" {
+    metadata {
+        priority = "Critical"
+        category = "Kernel Rootkit Defense"
+    }
+
+    collect system_info
+
+    collect drivers
+
+    export evidence "driver_audit.json"
+}`,
+  },
+  {
+    id: 'timeline_correlation',
+    filename: 'timeline_correlation.jy',
+    name: 'Event Timeline Correlation',
+    description: 'Unified chronological event timeline correlating process launches, network sockets, and file writes.',
+    code: `investigation "timeline_correlation" {
+    metadata {
+        category = "Timeline Reconstruction"
+        priority = "High"
+    }
+
+    collect timeline {
+        process
+        network
+        file
+    }
+
+    export evidence "timeline_evidence.json"
+}`,
+  },
+  {
+    id: 'log_threat_hunt',
+    filename: 'log_threat_hunt.jy',
+    name: 'Log-Based Threat Hunt',
+    description: 'Correlate authentication and system logs with privileged user process activity.',
+    code: `investigation "log_threat_hunt" {
+    metadata {
+        priority = "High"
+        category = "Log Correlation"
+    }
+
+    collect logs "auth"
+    collect logs "system"
+
+    collect processes {
+        pid
+        name
+        user
+        parent
+    } where user == "root"
+
+    export evidence "threat_hunt.json"
+}`,
+  },
+  {
     id: 'user_investigation',
     filename: 'user_investigation.jy',
-    name: 'User Investigation',
-    description: 'Filter process tree specifically for privileged account activity.',
+    name: 'Privileged User Activity',
+    description: 'Filter process tree specifically for privileged root account activity and lateral execution.',
     code: `investigation "user_investigation" {
     collect system_info
 
@@ -165,46 +348,15 @@ const EXAMPLES = [
 }`,
   },
   {
-    id: 'filesystem_investigation',
-    filename: 'filesystem_investigation.jy',
-    name: 'Filesystem Investigation',
-    description: 'Inspect critical configuration directories with recursive SHA-256 hashes.',
-    code: `investigation "filesystem_investigation" {
-    collect system_info
-
-    collect files "/etc" {
-        recursive
-        hash.sha256
-    } limit 50
-
-    export evidence "filesystem_evidence.json"
-}`,
-  },
-  {
-    id: 'evidence_hashing',
-    filename: 'evidence_hashing.jy',
-    name: 'Evidence Hashing',
-    description: 'Deterministic binary hashing of active processes for malware triage.',
-    code: `investigation "evidence_hashing" {
-    collect processes {
-        pid
-        name
-        hash.sha256
-    }
-
-    export evidence "hashed_evidence.json"
-}`,
-  },
-  {
-    id: 'complete_basic_triage',
-    filename: 'complete_basic_triage.jy',
-    name: 'Complete Basic Triage',
-    description: 'Full multi-collector incident response triage with metadata tags.',
-    code: `investigation "complete_basic_triage" {
+    id: 'stealth_adversary_detection',
+    filename: 'stealth_adversary_detection.jy',
+    name: 'Stealth Adversary & LotL Detection',
+    description: 'Comprehensive living-off-the-land detection sweep across host processes, sockets, memory, and kernel drivers.',
+    code: `investigation "stealth_adversary_detection" {
     metadata {
-        author = "Forensic Analyst"
-        priority = "High"
-        category = "Incident Response"
+        author = "JOCKY Defensive Engineering"
+        classification = "Host Detection"
+        case_id = "STEALTH-ADVERSARY-001"
     }
 
     collect system_info
@@ -220,121 +372,51 @@ const EXAMPLES = [
 
     collect network_connections
 
-    export evidence "complete_triage_evidence.json"
+    collect drivers
+
+    collect memory_regions
+
+    export evidence "stealth_adversary_detection.json"
 }`,
   },
   {
-    id: 'memory_process_triage',
-    filename: 'memory_process_triage.jy',
-    name: 'Memory Region Triage',
-    description: 'Dump virtual memory maps of a target process to detect injected shellcode or hollowed sections.',
-    code: `investigation "memory_process_triage" {
+    id: 'complete_forensic_triage',
+    filename: 'complete_forensic_triage.jy',
+    name: 'Full Master Forensic Triage',
+    description: 'Comprehensive full-spectrum incident response playbook with cryptographic integrity sealing.',
+    code: `investigation "complete_forensic_triage" {
     metadata {
+        author = "DFIR Lead Specialist"
         priority = "Critical"
-        category = "Memory Forensics"
+        classification = "Forensic Incident Response"
+        case_id = "IR-2026-0929"
     }
+
+    collect system_info
 
     collect processes {
         pid
         name
+        parent
+        command_line
+        user
         hash.sha256
     }
 
-    collect memory_regions pid=1234
+    collect process_tree
 
-    export evidence "memory_triage.json"
-}`,
-  },
-  {
-    id: 'windows_registry_audit',
-    filename: 'windows_registry_audit.jy',
-    name: 'Windows Registry Audit',
-    description: 'Enumerate persistence keys in the Windows Registry (Run, Services).',
-    code: `investigation "windows_registry_audit" {
-    metadata {
-        category = "Persistence Detection"
-        platform = "Windows"
-    }
+    collect network_connections
 
-    collect registry hive="HKLM" key="SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"
-    collect registry hive="HKLM" key="SYSTEM\\CurrentControlSet\\Services"
-
-    export evidence "registry_audit.json"
-}`,
-  },
-  {
-    id: 'artifact_carving',
-    filename: 'artifact_carving.jy',
-    name: 'Forensic Artifact Carving',
-    description: 'Extract Prefetch, Shimcache, and Event Log artifacts to reconstruct execution history.',
-    code: `investigation "artifact_carving" {
-    metadata {
-        category = "Artifact Analysis"
-        author   = "DFIR Team"
-    }
-
-    collect artifacts type="prefetch"  path="C:\\Windows\\Prefetch"
-    collect artifacts type="shimcache"
-    collect artifacts type="eventlog"
-
-    export evidence "artifact_carving.json"
-}`,
-  },
-  {
-    id: 'log_threat_hunt',
-    filename: 'log_threat_hunt.jy',
-    name: 'Log-Based Threat Hunt',
-    description: 'Correlate auth logs with privileged process activity to detect privilege escalation.',
-    code: `investigation "log_threat_hunt" {
-    metadata { priority = "High" }
-
-    collect system_info
-    collect logs source="auth"
-    collect logs source="system"
-
-    collect processes {
-        pid
-        name
-        user
-        parent
-    } where user == "root"
-
-    export evidence "threat_hunt.json"
-}`,
-  },
-  {
-    id: 'driver_rootkit_hunt',
-    filename: 'driver_rootkit_hunt.jy',
-    name: 'Driver & Rootkit Hunt',
-    description: 'Enumerate and hash loaded kernel modules to detect unsigned or injected rootkit drivers.',
-    code: `investigation "driver_rootkit_hunt" {
-    metadata { priority = "Critical" }
-
-    collect system_info
     collect drivers
 
-    export evidence "driver_audit.json"
-}`,
-  },
-  {
-    id: 'full_incident_triage',
-    filename: 'full_incident_triage.jy',
-    name: 'Full Incident Response Triage',
-    description: 'Comprehensive sweep covering system, processes, network, filesystem, and logs.',
-    code: `investigation "full_incident_triage" {
-    metadata {
-        author   = "DFIR Team"
-        priority = "High"
-        category = "Incident Response"
-    }
+    collect memory_regions
 
-    collect system_info
-    collect processes { pid name parent command_line user hash.sha256 }
-    collect network_connections
-    collect files "/tmp" { recursive hash.sha256 } limit 100
-    collect logs source="auth"
+    collect files "/tmp" {
+        recursive
+        hash.sha256
+    } limit 100
 
-    export evidence "incident_triage.json"
+    export evidence "complete_forensic_evidence.json"
 }`,
   },
 ];
@@ -361,6 +443,37 @@ export function WebIDE() {
   const [showBottomPanel, setShowBottomPanel] = useState(true);
   const [bottomPanelTab, setBottomPanelTab] = useState<'problems' | 'output' | 'evidence' | 'integrity' | 'artifact'>('output');
   const [inspectorTab, setInspectorTab] = useState<'diagnostics' | 'capabilities' | 'artifact'>('diagnostics');
+  const [terminalHeight, setTerminalHeight] = useState<number>(240);
+  const [isDraggingTerminal, setIsDraggingTerminal] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
+
+  const toggleMaximizeTerminal = useCallback(() => {
+    setIsMaximized((prev) => !prev);
+    setShowBottomPanel(true);
+  }, []);
+
+  const handleMouseDownResize = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingTerminal(true);
+    const startY = e.clientY;
+    const startHeight = terminalHeight;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaY = startY - moveEvent.clientY;
+      const newHeight = Math.min(Math.max(startHeight + deltaY, 120), 750);
+      setTerminalHeight(newHeight);
+      setIsMaximized(false);
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingTerminal(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [terminalHeight]);
 
   // Compiler state
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
@@ -1257,8 +1370,23 @@ export function WebIDE() {
             />
           </div>
 
-          {/* Bottom Panel (Collapsible) */}
-          <div className="border-t border-slate-800 bg-[#0e1422] flex flex-col">
+          {/* Bottom Panel (Collapsible & Resizable) */}
+          <div className="border-t border-slate-800 bg-[#0e1422] flex flex-col flex-shrink-0 relative">
+            {/* Draggable Resize Handle */}
+            <div
+              onMouseDown={handleMouseDownResize}
+              onDoubleClick={toggleMaximizeTerminal}
+              className={clsx(
+                "h-2 w-full cursor-row-resize bg-slate-800/80 hover:bg-blue-500/90 active:bg-blue-600 transition-colors flex items-center justify-center group select-none relative z-10",
+                isDraggingTerminal && "bg-blue-500 ring-1 ring-blue-400"
+              )}
+              title="Drag up/down to resize terminal height • Double-click to Maximize/Restore"
+            >
+              <div className="w-12 h-1 bg-slate-500 group-hover:bg-white rounded-full transition-colors flex items-center justify-center">
+                <GripHorizontal className="h-3 w-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+
             {/* Panel Tabs Header */}
             <div className="h-8 bg-[#111827] border-b border-slate-800 flex items-center justify-between px-3 text-xs select-none">
               <div className="flex items-center gap-1">
@@ -1343,23 +1471,104 @@ export function WebIDE() {
                 </button>
               </div>
 
-              {/* Panel Toggle */}
-              <button
-                onClick={() => setShowBottomPanel(!showBottomPanel)}
-                className="text-slate-400 hover:text-slate-200 p-1 rounded"
-                title={showBottomPanel ? 'Collapse Panel' : 'Expand Panel'}
-              >
-                {showBottomPanel ? (
-                  <ChevronDown className="h-3.5 w-3.5" />
-                ) : (
-                  <ChevronUp className="h-3.5 w-3.5" />
+              {/* Panel Controls: S/M/L presets, Maximize, Collapse */}
+              <div className="flex items-center gap-1.5">
+                {showBottomPanel && (
+                  <>
+                    {/* Quick Size Presets: S, M, L */}
+                    <div className="flex items-center bg-slate-850 rounded p-0.5 border border-slate-700/60 text-[10px] font-mono mr-1">
+                      <button
+                        onClick={() => {
+                          setTerminalHeight(180);
+                          setIsMaximized(false);
+                          setShowBottomPanel(true);
+                        }}
+                        className={clsx(
+                          "px-1.5 py-0.5 rounded transition-colors",
+                          !isMaximized && terminalHeight <= 200
+                            ? "bg-blue-600 text-white font-bold"
+                            : "text-slate-400 hover:text-slate-200"
+                        )}
+                        title="Small Height (180px)"
+                      >
+                        S
+                      </button>
+                      <button
+                        onClick={() => {
+                          setTerminalHeight(340);
+                          setIsMaximized(false);
+                          setShowBottomPanel(true);
+                        }}
+                        className={clsx(
+                          "px-1.5 py-0.5 rounded transition-colors",
+                          !isMaximized && terminalHeight > 200 && terminalHeight <= 420
+                            ? "bg-blue-600 text-white font-bold"
+                            : "text-slate-400 hover:text-slate-200"
+                        )}
+                        title="Medium Height (340px)"
+                      >
+                        M
+                      </button>
+                      <button
+                        onClick={() => {
+                          setTerminalHeight(540);
+                          setIsMaximized(false);
+                          setShowBottomPanel(true);
+                        }}
+                        className={clsx(
+                          "px-1.5 py-0.5 rounded transition-colors",
+                          !isMaximized && terminalHeight > 420
+                            ? "bg-blue-600 text-white font-bold"
+                            : "text-slate-400 hover:text-slate-200"
+                        )}
+                        title="Large Height (540px)"
+                      >
+                        L
+                      </button>
+                    </div>
+
+                    {/* Maximize / Restore Toggle */}
+                    <button
+                      onClick={toggleMaximizeTerminal}
+                      className="text-slate-400 hover:text-slate-200 hover:bg-slate-800 p-1 rounded transition-colors"
+                      title={isMaximized ? "Restore Terminal Size" : "Maximize Terminal"}
+                    >
+                      {isMaximized ? (
+                        <Minimize2 className="h-3.5 w-3.5 text-blue-400" />
+                      ) : (
+                        <Maximize2 className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </>
                 )}
-              </button>
+
+                {/* Panel Collapse Toggle */}
+                <button
+                  onClick={() => setShowBottomPanel(!showBottomPanel)}
+                  className="text-slate-400 hover:text-slate-200 hover:bg-slate-800 p-1 rounded transition-colors"
+                  title={showBottomPanel ? 'Collapse Panel' : 'Expand Panel'}
+                >
+                  {showBottomPanel ? (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Panel Body */}
             {showBottomPanel && (
-              <div className="h-48 overflow-y-auto p-3 font-mono text-xs bg-[#090d15] text-slate-300">
+              <div
+                style={{
+                  height: isMaximized ? 'calc(100vh - 250px)' : `${terminalHeight}px`,
+                  maxHeight: isMaximized ? 'calc(100vh - 250px)' : `${terminalHeight}px`,
+                }}
+                className={clsx(
+                  "overflow-y-auto p-3 font-mono text-xs bg-[#090d15] text-slate-300 transition-[height] duration-75",
+                  isDraggingTerminal && "select-none"
+                )}
+              >
                 {/* 1. Compiler Output */}
                 {bottomPanelTab === 'output' && (
                   <div className="space-y-3 font-mono text-xs">
