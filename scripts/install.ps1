@@ -42,7 +42,7 @@
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [string] $Version      = "latest",
-    [string] $InstallDir   = "$env:ProgramFiles\JOCKY",
+    [string] $InstallDir   = "",
     [switch] $Uninstall,
     [switch] $NoModifyPath,
     [switch] $NoFirewall
@@ -53,12 +53,29 @@ $REPO        = "Aditya-180404/JOCKY"
 $BINARY_NAME = "jocky.exe"
 $FW_RULE     = "JOCKY - Compiler inbound (TCP)"
 
+# Enable TLS 1.2 / TLS 1.3 for older Windows PowerShell 5.1 environments
+try {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+} catch {}
+
 # ─── Colors via Write-Host ────────────────────────────────────────────────────
 function Log   { param($m) Write-Host "[JOCKY] $m" -ForegroundColor Cyan }
 function Ok    { param($m) Write-Host "  [OK] $m"   -ForegroundColor Green }
 function Warn  { param($m) Write-Host "  [!]  $m"   -ForegroundColor Yellow }
 function Err   { param($m) Write-Error "  [X]  $m";  exit 1 }
 function Step  { param($m) Write-Host "`n── $m ──" -ForegroundColor White }
+
+# ─── Privilege & Directory Detection ──────────────────────────────────────────
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+    [Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if ([string]::IsNullOrWhiteSpace($InstallDir)) {
+    if ($isAdmin) {
+        $InstallDir = "$env:ProgramFiles\JOCKY"
+    } else {
+        $InstallDir = "$env:LOCALAPPDATA\Programs\JOCKY"
+    }
+}
 
 # ─── Banner ───────────────────────────────────────────────────────────────────
 Write-Host ""
@@ -72,41 +89,56 @@ if ($Uninstall) {
 Write-Host "  ╚══════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
 
-# ─── Admin check ──────────────────────────────────────────────────────────────
-$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-    [Security.Principal.WindowsBuiltInRole]::Administrator)
-
-if (-not $isAdmin) {
-    Warn "Not running as Administrator — relaunching elevated..."
-    Start-Process pwsh -ArgumentList "-ExecutionPolicy Bypass -File `"$PSCommandPath`" $($MyInvocation.UnboundArguments)" -Verb RunAs
-    exit 0
+if ($isAdmin) {
+    Log "Running elevated as Administrator — installing system-wide to: $InstallDir"
+} else {
+    Log "Running in user mode — installing for current user to: $InstallDir"
+    Log "(Tip: To install system-wide into Program Files, run PowerShell as Administrator)"
 }
 
 # ─── Uninstall ────────────────────────────────────────────────────────────────
 if ($Uninstall) {
     Step "Uninstalling JOCKY"
 
-    $dest = Join-Path $InstallDir $BINARY_NAME
-    if (Test-Path $dest) {
-        Remove-Item $dest -Force
-        Ok "Removed $dest"
-    } else {
-        Warn "Binary not found at $dest"
+    $targets = @(
+        $InstallDir,
+        "$env:ProgramFiles\JOCKY",
+        "$env:LOCALAPPDATA\Programs\JOCKY"
+    ) | Select-Object -Unique
+
+    foreach ($dir in $targets) {
+        $dest = Join-Path $dir $BINARY_NAME
+        if (Test-Path $dest) {
+            Remove-Item $dest -Force -ErrorAction SilentlyContinue
+            Ok "Removed $dest"
+        }
+        if ((Test-Path $dir) -and -not (Get-ChildItem -Path $dir -ErrorAction SilentlyContinue)) {
+            Remove-Item $dir -Force -ErrorAction SilentlyContinue
+        }
     }
 
-    # Remove from PATH
-    $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
-    if ($machinePath -like "*$InstallDir*") {
-        $newPath = ($machinePath -split ";" | Where-Object { $_ -ne $InstallDir }) -join ";"
-        [Environment]::SetEnvironmentVariable("Path", $newPath, "Machine")
-        Ok "Removed $InstallDir from system PATH"
+    # Remove from User and Machine PATH
+    foreach ($scope in @("User", "Machine")) {
+        try {
+            $p = [Environment]::GetEnvironmentVariable("Path", $scope)
+            if ($p) {
+                $parts = $p -split ";" | Where-Object { $_ -and -not ($_ -like "*\JOCKY*") }
+                $newPath = $parts -join ";"
+                if ($newPath -ne $p) {
+                    [Environment]::SetEnvironmentVariable("Path", $newPath, $scope)
+                    Ok "Cleaned JOCKY from $scope PATH"
+                }
+            }
+        } catch {}
     }
 
-    # Remove firewall rule
-    $rule = Get-NetFirewallRule -DisplayName $FW_RULE -ErrorAction SilentlyContinue
-    if ($rule) {
-        Remove-NetFirewallRule -DisplayName $FW_RULE
-        Ok "Removed firewall rule"
+    # Remove firewall rule if elevated
+    if ($isAdmin) {
+        $rule = Get-NetFirewallRule -DisplayName $FW_RULE -ErrorAction SilentlyContinue
+        if ($rule) {
+            Remove-NetFirewallRule -DisplayName $FW_RULE -ErrorAction SilentlyContinue
+            Ok "Removed firewall rule"
+        }
     }
 
     Write-Host "`nJOCKY has been uninstalled." -ForegroundColor Green
@@ -203,35 +235,51 @@ Remove-Item -Path $TmpDir -Recurse -Force -ErrorAction SilentlyContinue
 Step "Configuring PATH"
 
 if (-not $NoModifyPath) {
-    $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
-    if ($machinePath -notlike "*$InstallDir*") {
-        [Environment]::SetEnvironmentVariable("Path", "$machinePath;$InstallDir", "Machine")
-        Ok "Added $InstallDir to system PATH"
-        Warn "Open a new terminal (or run: refreshenv) to use 'jocky' everywhere"
-    } else {
-        Ok "$InstallDir already in PATH"
+    $pathScope = if ($isAdmin) { "Machine" } else { "User" }
+    try {
+        $currentPath = [Environment]::GetEnvironmentVariable("Path", $pathScope)
+        if ($currentPath -notlike "*$InstallDir*") {
+            $separator = if ($currentPath -and -not $currentPath.EndsWith(";")) { ";" } else { "" }
+            [Environment]::SetEnvironmentVariable("Path", "$currentPath$separator$InstallDir", $pathScope)
+            Ok "Added $InstallDir to $pathScope PATH"
+            Warn "Open a new terminal (or run: refreshenv) to use 'jocky' everywhere"
+        } else {
+            Ok "$InstallDir already in $pathScope PATH"
+        }
+    } catch {
+        Warn "Could not update $pathScope PATH: $_"
+    }
+
+    # Always update current session PATH so jocky works right away!
+    if ($env:Path -notlike "*$InstallDir*") {
+        $env:Path = "$env:Path;$InstallDir"
     }
 } else {
     Warn "Skipping PATH update (-NoModifyPath). Add manually: $InstallDir"
 }
 
 # ─── Firewall ─────────────────────────────────────────────────────────────────
-Step "Windows Firewall rule"
+if ($isAdmin -and -not $NoFirewall) {
+    Step "Windows Firewall rule"
+    try {
+        $existing = Get-NetFirewallRule -DisplayName $FW_RULE -ErrorAction SilentlyContinue
+        if ($existing) { Remove-NetFirewallRule -DisplayName $FW_RULE -ErrorAction SilentlyContinue }
 
-if (-not $NoFirewall) {
-    $existing = Get-NetFirewallRule -DisplayName $FW_RULE -ErrorAction SilentlyContinue
-    if ($existing) { Remove-NetFirewallRule -DisplayName $FW_RULE }
-
-    New-NetFirewallRule `
-        -DisplayName  $FW_RULE `
-        -Description  "Allows inbound TCP connections to jocky.exe (JOCKY compiler)." `
-        -Direction    Inbound `
-        -Protocol     TCP `
-        -Action       Allow `
-        -Program      $destExe `
-        -Profile      Any `
-        -Enabled      True | Out-Null
-    Ok "Firewall rule created: $FW_RULE"
+        New-NetFirewallRule `
+            -DisplayName  $FW_RULE `
+            -Description  "Allows inbound TCP connections to jocky.exe (JOCKY compiler)." `
+            -Direction    Inbound `
+            -Protocol     TCP `
+            -Action       Allow `
+            -Program      $destExe `
+            -Profile      Any `
+            -Enabled      True -ErrorAction SilentlyContinue | Out-Null
+        Ok "Firewall rule created: $FW_RULE"
+    } catch {
+        Warn "Could not create firewall rule: $_"
+    }
+} elseif (-not $isAdmin) {
+    Log "Skipping Windows Firewall rule (requires Administrator privileges)."
 } else {
     Warn "Skipping firewall rule (-NoFirewall)"
 }
