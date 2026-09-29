@@ -1,0 +1,22 @@
+investigation "lotl_unhook" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "Defense Evasion"
+        platform = "Linux"
+    }
+
+    collect system_info
+
+    collect drivers
+
+    collect processes {
+        pid
+        name
+        parent
+        user
+    }
+
+    collect process_modules 0
+
+    export evidence "lotl_unhook.json"
+}

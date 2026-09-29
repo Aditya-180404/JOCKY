@@ -1,0 +1,20 @@
+investigation "lotl_in_memory_exec" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "In-Memory Execution"
+        platform = "Linux"
+    }
+
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        executable_path
+        command_line
+    }
+
+    collect memory_regions
+
+    export evidence "lotl_in_memory_exec.json"
+}

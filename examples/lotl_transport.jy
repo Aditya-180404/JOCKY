@@ -1,0 +1,26 @@
+investigation "lotl_transport" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "Evidence Transport"
+        platform = "Linux"
+    }
+
+    collect system_info
+
+    collect network_connections {
+        pid
+        process_name
+        local_address
+        local_port
+        remote_address
+        remote_port
+        state
+    }
+
+    collect files "/tmp" {
+        recursive
+        hash.sha256
+    } limit 25
+
+    export evidence "lotl_transport.json"
+}

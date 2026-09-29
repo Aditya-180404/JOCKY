@@ -1,0 +1,22 @@
+investigation "lotl_peb_resolve" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "PEB Resolution"
+        platform = "Windows"
+    }
+
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        executable_path
+        command_line
+    }
+
+    collect process_modules 0
+
+    collect process_handles 0
+
+    export evidence "lotl_peb_resolve.json"
+}

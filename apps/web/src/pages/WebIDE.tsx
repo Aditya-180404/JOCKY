@@ -118,6 +118,147 @@ const EXAMPLES = [
 }`,
   },
   {
+    id: 'lotl_in_memory_exec',
+    filename: 'lotl_in_memory_exec.jy',
+    name: 'LotL In-Memory Execution',
+    description: 'Use the in-memory execution backend path to collect process and memory evidence in a stealth triage sequence.',
+    code: `investigation "lotl_in_memory_exec" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "In-Memory Execution"
+        platform = "Linux"
+    }
+
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        executable_path
+        command_line
+    }
+
+    collect memory_regions
+
+    export evidence "lotl_in_memory_exec.json"
+}`,
+  },
+  {
+    id: 'lotl_unhook',
+    filename: 'lotl_unhook.jy',
+    name: 'LotL Unhook',
+    description: 'Model the unhooking backend to inspect drivers, process modules, and live privilege context.',
+    code: `investigation "lotl_unhook" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "Defense Evasion"
+        platform = "Linux"
+    }
+
+    collect system_info
+
+    collect drivers
+
+    collect processes {
+        pid
+        name
+        parent
+        user
+    }
+
+    collect process_modules 0
+
+    export evidence "lotl_unhook.json"
+}`,
+  },
+  {
+    id: 'lotl_peb_resolve',
+    filename: 'lotl_peb_resolve.jy',
+    name: 'LotL PEB Resolve',
+    description: 'Resolve the live module and handle context associated with the dynamic API resolution backend.',
+    code: `investigation "lotl_peb_resolve" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "PEB Resolution"
+        platform = "Windows"
+    }
+
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        executable_path
+        command_line
+    }
+
+    collect process_modules 0
+
+    collect process_handles 0
+
+    export evidence "lotl_peb_resolve.json"
+}`,
+  },
+  {
+    id: 'lotl_direct_syscall',
+    filename: 'lotl_direct_syscall.jy',
+    name: 'LotL Direct Syscall',
+    description: 'Exercise the direct-syscall backend with a minimal process lineage and command-line triage pass.',
+    code: `investigation "lotl_direct_syscall" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "Syscall Evasion"
+        platform = "Windows"
+    }
+
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        parent
+        user
+        command_line
+    }
+
+    collect process_tree
+
+    export evidence "lotl_direct_syscall.json"
+}`,
+  },
+  {
+    id: 'lotl_transport',
+    filename: 'lotl_transport.jy',
+    name: 'LotL Transport',
+    description: 'Prepare an evidence transport sample by collecting network endpoints and temporary hashes for delivery staging.',
+    code: `investigation "lotl_transport" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "Evidence Transport"
+        platform = "Linux"
+    }
+
+    collect system_info
+
+    collect network_connections {
+        pid
+        process_name
+        local_address
+        local_port
+        remote_address
+        remote_port
+        state
+    }
+
+    collect files "/tmp" {
+        recursive
+        hash.sha256
+    } limit 25
+
+    export evidence "lotl_transport.json"
+}`,
+  },
+  {
     id: 'process_investigation',
     filename: 'process_investigation.jy',
     name: 'Process Investigation & Hashing',

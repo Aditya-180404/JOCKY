@@ -24,6 +24,142 @@ const EXAMPLES = [
 }`,
   },
   {
+    title: 'LotL In-Memory Execution',
+    category: 'LotL Backend',
+    description: 'Exercise the in-memory execution backend path by collecting process and memory evidence in a compact Linux triage pass.',
+    code: `investigation "lotl_in_memory_exec" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "In-Memory Execution"
+        platform = "Linux"
+    }
+
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        executable_path
+        command_line
+    }
+
+    collect memory_regions
+
+    export evidence "lotl_in_memory_exec.json"
+}`,
+  },
+  {
+    title: 'LotL Unhook',
+    category: 'LotL Backend',
+    description: 'Model the unhooking backend flow by inspecting drivers, process modules, and privilege context for EDR evasion surface.',
+    code: `investigation "lotl_unhook" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "Defense Evasion"
+        platform = "Linux"
+    }
+
+    collect system_info
+
+    collect drivers
+
+    collect processes {
+        pid
+        name
+        parent
+        user
+    }
+
+    collect process_modules 0
+
+    export evidence "lotl_unhook.json"
+}`,
+  },
+  {
+    title: 'LotL PEB Resolve',
+    category: 'LotL Backend',
+    description: 'Capture the dynamic API resolution path by checking loaded modules and process handles from the live process tree.',
+    code: `investigation "lotl_peb_resolve" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "PEB Resolution"
+        platform = "Windows"
+    }
+
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        executable_path
+        command_line
+    }
+
+    collect process_modules 0
+
+    collect process_handles 0
+
+    export evidence "lotl_peb_resolve.json"
+}`,
+  },
+  {
+    title: 'LotL Direct Syscall',
+    category: 'LotL Backend',
+    description: 'Exercise the raw-syscall backend path by enumerating the process lineage and command context for a stealth triage run.',
+    code: `investigation "lotl_direct_syscall" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "Syscall Evasion"
+        platform = "Windows"
+    }
+
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        parent
+        user
+        command_line
+    }
+
+    collect process_tree
+
+    export evidence "lotl_direct_syscall.json"
+}`,
+  },
+  {
+    title: 'LotL Transport',
+    category: 'LotL Backend',
+    description: 'Prepare a transport-focused evidence bundle by collecting network endpoints and temporary-file hashes for staging delivery.',
+    code: `investigation "lotl_transport" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "Evidence Transport"
+        platform = "Linux"
+    }
+
+    collect system_info
+
+    collect network_connections {
+        pid
+        process_name
+        local_address
+        local_port
+        remote_address
+        remote_port
+        state
+    }
+
+    collect files "/tmp" {
+        recursive
+        hash.sha256
+    } limit 25
+
+    export evidence "lotl_transport.json"
+}`,
+  },
+  {
     title: 'Process Investigation & Hashes',
     category: 'Process Forensics',
     description: 'Extract running processes with PID, parent PID, command lines, users, and SHA-256 binary digests.',
@@ -130,7 +266,7 @@ export function ExamplesPage() {
   const [filter, setFilter] = useState('All');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  const categories = ['All', 'Triage', 'Process Forensics', 'Network Forensics', 'User Auditing', 'Filesystem', 'Incident Response'];
+  const categories = ['All', 'Triage', 'LotL Backend', 'Process Forensics', 'Network Forensics', 'User Auditing', 'Filesystem', 'Incident Response'];
 
   const filteredExamples =
     filter === 'All' ? EXAMPLES : EXAMPLES.filter((ex) => ex.category === filter);

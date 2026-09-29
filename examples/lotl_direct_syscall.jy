@@ -1,0 +1,21 @@
+investigation "lotl_direct_syscall" {
+    metadata {
+        author = "JOCKY LotL"
+        category = "Syscall Evasion"
+        platform = "Windows"
+    }
+
+    collect system_info
+
+    collect processes {
+        pid
+        name
+        parent
+        user
+        command_line
+    }
+
+    collect process_tree
+
+    export evidence "lotl_direct_syscall.json"
+}
