@@ -15,26 +15,29 @@ import {
 
 export function Landing() {
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col">
+    <div className="t-page">
       <SiteHeader />
 
       {/* Hero Section */}
-      <section className="border-b border-slate-800 bg-[#0e1422] py-16">
+      <section className="border-b py-16" style={{ backgroundColor: 'var(--page-bg-dark)', borderColor: 'var(--border)' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded border border-blue-500/30 bg-blue-500/10 text-blue-300 text-xs font-mono mb-6">
-            <ShieldCheck className="h-3.5 w-3.5 text-blue-400" />
-            <span>Digital Forensic Programming Language & Toolchain</span>
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded border text-xs font-mono mb-6"
+            style={{ borderColor: 'rgba(59,130,246,0.3)', backgroundColor: 'rgba(59,130,246,0.08)', color: '#60a5fa' }}
+          >
+            <ShieldCheck className="h-3.5 w-3.5" />
+            <span>Digital Forensic Programming Language &amp; Toolchain</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-mono leading-tight">
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight font-mono leading-tight" style={{ color: 'var(--text)' }}>
             jocky
           </h1>
 
-          <p className="mt-3 text-xl sm:text-2xl font-semibold text-slate-200">
+          <p className="mt-3 text-xl sm:text-2xl font-semibold" style={{ color: 'var(--text)' }}>
             Forensic Programming. Built for Investigation.
           </p>
 
-          <p className="mt-4 text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-4 text-base max-w-2xl mx-auto leading-relaxed" style={{ color: 'var(--text-muted)' }}>
             jocky is a domain-specific forensic programming language and standalone compiler for building,
             executing, and verifying computer and network investigations.
           </p>
@@ -43,7 +46,7 @@ export function Landing() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
               to="/ide"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors shadow-sm"
             >
               <Play className="h-4 w-4 fill-current" />
               Open Web IDE
@@ -51,7 +54,8 @@ export function Landing() {
 
             <Link
               to="/download"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-sm transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded font-medium text-sm transition-colors border"
+              style={{ backgroundColor: 'var(--surface)', color: 'var(--text)', borderColor: 'var(--border)' }}
             >
               <Download className="h-4 w-4" />
               Download Compiler
@@ -59,7 +63,8 @@ export function Landing() {
 
             <Link
               to="/docs"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded text-slate-300 hover:text-white hover:bg-slate-800/60 font-medium text-sm transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded font-medium text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-800/60"
+              style={{ color: 'var(--text-muted)' }}
             >
               <BookOpen className="h-4 w-4" />
               Read Documentation
@@ -67,7 +72,8 @@ export function Landing() {
 
             <Link
               to="/examples"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded text-slate-300 hover:text-white hover:bg-slate-800/60 font-medium text-sm transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded font-medium text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-800/60"
+              style={{ color: 'var(--text-muted)' }}
             >
               <Code2 className="h-4 w-4" />
               View Examples
@@ -77,12 +83,12 @@ export function Landing() {
       </section>
 
       {/* Code Preview & Dual Model Section */}
-      <section className="py-12 border-b border-slate-800 bg-[#090d15]">
+      <section className="py-12 border-b" style={{ backgroundColor: 'var(--page-bg-alt)', borderColor: 'var(--border)' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            {/* Left: Code Box */}
-            <div className="rounded border border-slate-800 bg-[#0c111c] overflow-hidden">
-              <div className="h-9 bg-[#111827] border-b border-slate-800 px-4 flex items-center justify-between">
+            {/* Left: Code Box — always dark */}
+            <div className="rounded border overflow-hidden" style={{ backgroundColor: '#0c111c', borderColor: '#1e293b' }}>
+              <div className="h-9 border-b px-4 flex items-center justify-between" style={{ backgroundColor: '#111827', borderColor: '#1e293b' }}>
                 <span className="font-mono text-xs text-slate-300">process_triage.jy</span>
                 <span className="font-mono text-[11px] text-emerald-400">Validated</span>
               </div>
@@ -112,34 +118,34 @@ export function Landing() {
             {/* Right: Execution Model */}
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-2">Local-First Execution Model</h2>
-                <p className="text-sm text-slate-400 leading-relaxed">
+                <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--text)' }}>Local-First Execution Model</h2>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                   jocky is an offline-first forensic compiler. Write .jy source, compile to a standalone native binary,
                   execute on the target host, and verify evidence integrity with SHA-256.
                 </p>
               </div>
 
               <div className="space-y-4">
-                <div className="p-3.5 rounded border border-slate-800 bg-[#111827]">
-                  <div className="flex items-center gap-2 font-mono text-xs font-semibold text-blue-400 mb-1">
+                <div className="p-3.5 rounded border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                  <div className="flex items-center gap-2 font-mono text-xs font-semibold text-blue-500 dark:text-blue-400 mb-1">
                     <span>LOCAL STANDALONE COMPILER</span>
                   </div>
-                  <p className="text-xs text-slate-300 font-mono">
+                  <p className="text-xs font-mono" style={{ color: 'var(--text)' }}>
                     Write .jy → jocky compile → Standalone executable → Execute on target host → SHA-256 sidecar
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                     Zero external runtime dependencies. Runs offline on air-gapped systems.
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded border border-slate-800 bg-[#111827]">
-                  <div className="flex items-center gap-2 font-mono text-xs font-semibold text-emerald-400 mb-1">
-                    <span>WEB IDE FOR AUTHORING & VALIDATION</span>
+                <div className="p-3.5 rounded border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                  <div className="flex items-center gap-2 font-mono text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1">
+                    <span>WEB IDE FOR AUTHORING &amp; VALIDATION</span>
                   </div>
-                  <p className="text-xs text-slate-300 font-mono">
+                  <p className="text-xs font-mono" style={{ color: 'var(--text)' }}>
                     Browser-based authoring with Monaco editor, live compiler diagnostics, and artifact download
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                     Compile in the browser, download the native binary, run locally. No sandbox execution.
                   </p>
                 </div>
@@ -150,166 +156,74 @@ export function Landing() {
       </section>
 
       {/* Product Pillars */}
-      <section className="py-14 border-b border-slate-800 bg-[#0b0f17]">
+      <section className="py-14 border-b" style={{ backgroundColor: 'var(--page-bg)', borderColor: 'var(--border)' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-10 text-center">
-            <h2 className="text-2xl font-bold text-white font-mono">Core Forensic Subsystems</h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <h2 className="text-2xl font-bold font-mono" style={{ color: 'var(--text)' }}>Core Forensic Subsystems</h2>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
               Purpose-built capabilities engineered specifically for digital incident response.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* 1. Language */}
-            <div className="p-5 rounded border border-slate-800 bg-[#111827]">
-              <Code2 className="h-5 w-5 text-blue-400 mb-3" />
-              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Forensic Language (.jy)</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Declarative syntax designed for digital evidence collection. Define metadata, target forensic
-                artifacts, apply field projections, and specify strict export paths without procedural boilerplate.
-              </p>
-            </div>
-
-            {/* 2. Toolchain */}
-            <div className="p-5 rounded border border-slate-800 bg-[#111827]">
-              <Cpu className="h-5 w-5 text-blue-400 mb-3" />
-              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Cross-Platform Toolchain</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  The compiler models Windows x64 and Linux x86_64 targets. Linux collection is implemented; Windows
-                  runtime collectors and native artifact delivery remain in development.
-              </p>
-            </div>
-
-            {/* 3. Web IDE */}
-            <div className="p-5 rounded border border-slate-800 bg-[#111827]">
-              <Play className="h-5 w-5 text-blue-400 mb-3" />
-              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Web IDE</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Browser-based authoring with Monaco editor, live compiler diagnostics, and native artifact download.
-                Write, validate, and compile investigations directly in the browser.
-              </p>
-            </div>
-
-            {/* 4. Evidence Integrity */}
-            <div className="p-5 rounded border border-slate-800 bg-[#111827]">
-              <ShieldCheck className="h-5 w-5 text-emerald-400 mb-3" />
-              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Evidence Integrity</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Deterministic SHA-256 sidecars (.meta.json), cryptographic hashes, and Merkle tree verification.
-                Any byte alteration of exported evidence is detected immediately.
-              </p>
-            </div>
-
-            {/* 5. Report Generation */}
-            <div className="p-5 rounded border border-slate-800 bg-[#111827]">
-              <FileText className="h-5 w-5 text-blue-400 mb-3" />
-              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Report Generation</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Generate forensic reports in HTML, Markdown, JSON, or terminal format from verified evidence bundles.
-                Built-in suspicious finding detection and chain of custody documentation.
-              </p>
-            </div>
-
-            {/* 6. Local-First Design */}
-            <div className="p-5 rounded border border-slate-800 bg-[#111827]">
-              <Lock className="h-5 w-5 text-blue-400 mb-3" />
-              <h3 className="text-sm font-bold text-white mb-1.5 font-mono">Local-First Safety</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Read-only safety guarantees: no kernel hooking, no process injection, no persistence creation,
-                no credential access. Fully functional in offline, classified environments.
-              </p>
-            </div>
+            {[
+              { icon: <Code2 className="h-5 w-5 text-blue-500 dark:text-blue-400 mb-3" />, title: 'Forensic Language (.jy)', desc: 'Declarative syntax designed for digital evidence collection. Define metadata, target forensic artifacts, apply field projections, and specify strict export paths without procedural boilerplate.' },
+              { icon: <Cpu className="h-5 w-5 text-blue-500 dark:text-blue-400 mb-3" />, title: 'Cross-Platform Toolchain', desc: 'The compiler models Windows x64 and Linux x86_64 targets. Linux collection is implemented; Windows runtime collectors and native artifact delivery remain in development.' },
+              { icon: <Play className="h-5 w-5 text-blue-500 dark:text-blue-400 mb-3" />, title: 'Web IDE', desc: 'Browser-based authoring with Monaco editor, live compiler diagnostics, and native artifact download. Write, validate, and compile investigations directly in the browser.' },
+              { icon: <ShieldCheck className="h-5 w-5 text-emerald-500 dark:text-emerald-400 mb-3" />, title: 'Evidence Integrity', desc: 'Deterministic SHA-256 sidecars (.meta.json), cryptographic hashes, and Merkle tree verification. Any byte alteration of exported evidence is detected immediately.' },
+              { icon: <FileText className="h-5 w-5 text-blue-500 dark:text-blue-400 mb-3" />, title: 'Report Generation', desc: 'Generate forensic reports in HTML, Markdown, JSON, or terminal format from verified evidence bundles. Built-in suspicious finding detection and chain of custody documentation.' },
+              { icon: <Lock className="h-5 w-5 text-blue-500 dark:text-blue-400 mb-3" />, title: 'Local-First Safety', desc: 'Read-only safety guarantees: no kernel hooking, no process injection, no persistence creation, no credential access. Fully functional in offline, classified environments.' },
+            ].map((item) => (
+              <div key={item.title} className="p-5 rounded border transition-all hover:shadow-md" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                {item.icon}
+                <h3 className="text-sm font-bold mb-1.5 font-mono" style={{ color: 'var(--text)' }}>{item.title}</h3>
+                <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{item.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Platform Roadmap / Future Scope */}
-      <section className="py-14 border-b border-slate-800 bg-[#090d15]">
+      {/* Platform Roadmap */}
+      <section className="py-14 border-b" style={{ backgroundColor: 'var(--page-bg-alt)', borderColor: 'var(--border)' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h2 className="text-xl font-bold text-white font-mono">Compiler Status & Roadmap</h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <h2 className="text-xl font-bold font-mono" style={{ color: 'var(--text)' }}>Compiler Status &amp; Roadmap</h2>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
               Transparent disclosure of current production components versus roadmap expansion.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            {/* Available */}
-            <div className="p-4 rounded border border-slate-800 bg-[#0e1422]">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-white">Current Core Subsystems</span>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  AVAILABLE
-                </span>
+            {[
+              { label: 'Current Core Subsystems', badge: 'AVAILABLE', badgeColor: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30', items: ['✓ jocky DSL Parser, AST, Semantic Analyzer & IR', '✓ Linux standalone executable code generation and runtime collectors', '• Windows target and native collectors are currently stubs', '✓ CLI Toolchain (`check`, `compile`, `run`, `verify`, `fmt`, `hash`)', '✓ SHA-256 Sidecar Generation & Tamper Detection', '✓ Web IDE with Monaco Editor & Real Compiler Integration'] },
+              { label: 'Compiler Enhancements', badge: 'IN DEVELOPMENT', badgeColor: 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30', items: ['• Windows native collectors (processes, registry, artifacts, ETW)', '• Linux ARM64 native compilation target', '• LLVM/Inkwell Direct Codegen (replacing Rust backend)', '• Cross-compilation from Linux to Windows via MinGW in CI', '• Additional report formats (CSV, Sigma rules export)'] },
+              { label: 'Ecosystem & Integrations', badge: 'PLANNED', badgeColor: 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30', items: ['• Signed Cryptographic Tool Packages & Verifiable Attestations', '• Automated Forensic Timeline Reconstruction', '• IDE Language Server Protocol (LSP) Support', '• Package Manager for Shared Investigation Modules'] },
+              { label: 'Research & Advanced Integrity', badge: 'RESEARCH', badgeColor: 'bg-slate-500/20 text-slate-500 dark:text-slate-400 border-slate-500/30', items: ['• Immutable Public Blockchain Anchoring (Ethereum/Polygon)', '• Zero-Knowledge Proofs for Redacted Evidence Verification', '• Advanced Memory Forensics & Anomaly Heuristics'] },
+            ].map((block) => (
+              <div key={block.label} className="p-4 rounded border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold" style={{ color: 'var(--text)' }}>{block.label}</span>
+                  <span className={`font-mono text-[10px] px-2 py-0.5 rounded border ${block.badgeColor}`}>
+                    {block.badge}
+                  </span>
+                </div>
+                <ul className="space-y-1.5" style={{ color: 'var(--text-muted)' }}>
+                  {block.items.map((item) => <li key={item}>{item}</li>)}
+                </ul>
               </div>
-              <ul className="space-y-1.5 text-slate-400">
-                <li>✓ jocky DSL Parser, AST, Semantic Analyzer & IR</li>
-                <li>✓ Linux standalone executable code generation and runtime collectors</li>
-                <li>• Windows target and native collectors are currently stubs</li>
-                <li>✓ CLI Toolchain (`check`, `compile`, `run`, `verify`, `fmt`, `hash`)</li>
-                <li>✓ SHA-256 Sidecar Generation & Tamper Detection</li>
-                <li>✓ Web IDE with Monaco Editor & Real Compiler Integration</li>
-              </ul>
-            </div>
-
-            {/* In Development */}
-            <div className="p-4 rounded border border-slate-800 bg-[#0e1422]">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-white">Compiler Enhancements</span>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                  IN DEVELOPMENT
-                </span>
-              </div>
-              <ul className="space-y-1.5 text-slate-400">
-                <li>• Windows native collectors (processes, registry, artifacts, ETW)</li>
-                <li>• Linux ARM64 native compilation target</li>
-                <li>• LLVM/Inkwell Direct Codegen (replacing Rust backend)</li>
-                <li>• Cross-compilation from Linux to Windows via MinGW in CI</li>
-                <li>• Additional report formats (CSV, Sigma rules export)</li>
-              </ul>
-            </div>
-
-            {/* Planned */}
-            <div className="p-4 rounded border border-slate-800 bg-[#0e1422]">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-white">Ecosystem & Integrations</span>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                  PLANNED
-                </span>
-              </div>
-              <ul className="space-y-1.5 text-slate-400">
-                <li>• Signed Cryptographic Tool Packages & Verifiable Attestations</li>
-                <li>• Automated Forensic Timeline Reconstruction</li>
-                <li>• IDE Language Server Protocol (LSP) Support</li>
-                <li>• Package Manager for Shared Investigation Modules</li>
-              </ul>
-            </div>
-
-            {/* Research */}
-            <div className="p-4 rounded border border-slate-800 bg-[#0e1422]">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-white">Research & Advanced Integrity</span>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
-                  RESEARCH
-                </span>
-              </div>
-              <ul className="space-y-1.5 text-slate-400">
-                <li>• Immutable Public Blockchain Anchoring (Ethereum/Polygon)</li>
-                <li>• Zero-Knowledge Proofs for Redacted Evidence Verification</li>
-                <li>• Advanced Memory Forensics & Anomaly Heuristics</li>
-              </ul>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Footer Section */}
-      <section className="py-12 bg-[#0c101a] text-center">
+      <section className="py-12 text-center" style={{ backgroundColor: 'var(--page-bg-dark)' }}>
         <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-xl font-bold text-white font-mono mb-2">
+          <h2 className="text-xl font-bold font-mono mb-2" style={{ color: 'var(--text)' }}>
             Start Authoring Forensic Investigations
           </h2>
-          <p className="text-xs text-slate-400 mb-6">
+          <p className="text-xs mb-6" style={{ color: 'var(--text-muted)' }}>
             Test canonical scripts directly in the Web IDE or download the standalone compiler for offline triage.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -321,7 +235,8 @@ export function Landing() {
             </Link>
             <Link
               to="/download"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded font-medium text-xs transition-colors border"
+              style={{ backgroundColor: 'var(--surface)', color: 'var(--text)', borderColor: 'var(--border)' }}
             >
               Download Compiler v0.1.0
             </Link>

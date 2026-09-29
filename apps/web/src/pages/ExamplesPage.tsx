@@ -153,20 +153,20 @@ export function ExamplesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
+    <div className="t-page font-sans">
       <SiteHeader />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         {/* Page Title */}
-        <div className="border-b border-slate-800 pb-8 mb-8 text-center max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-mono mb-3">
+        <div className="border-b border-slate-200 dark:border-slate-800 pb-8 mb-8 text-center max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 text-xs font-mono mb-3">
             <Code2 className="h-3.5 w-3.5" />
             <span>Canonical Investigation Scripts</span>
           </div>
-          <h1 className="text-3xl font-bold font-mono text-white">
+          <h1 className="text-3xl font-bold font-mono text-slate-900 dark:text-white">
             jocky Examples
           </h1>
-          <p className="mt-2 text-xs text-slate-400">
+          <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
             Explore ready-to-run forensic investigations. Open any example in the Web IDE or download the `.jy` source.
           </p>
         </div>
@@ -179,8 +179,8 @@ export function ExamplesPage() {
               onClick={() => setFilter(cat)}
               className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                 filter === cat
-                  ? 'bg-blue-600 text-white font-medium'
-                  : 'bg-[#0e1422] border border-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-blue-600 text-white font-medium shadow-sm'
+                  : 'bg-white dark:bg-[#0e1422] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 shadow-sm'
               }`}
             >
               {cat}
@@ -193,32 +193,32 @@ export function ExamplesPage() {
           {filteredExamples.map((ex, index) => (
             <div
               key={ex.title}
-              className="bg-[#0e1422] border border-slate-800 rounded flex flex-col justify-between"
+              className="bg-white dark:bg-[#0e1422] border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm flex flex-col justify-between overflow-hidden"
             >
               <div className="p-5">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800/40">
+                  <span className="text-[10px] font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800/40">
                     {ex.category}
                   </span>
                 </div>
-                <h3 className="text-sm font-bold font-mono text-white">{ex.title}</h3>
-                <p className="mt-1 text-xs text-slate-400">{ex.description}</p>
+                <h3 className="text-sm font-bold font-mono text-slate-900 dark:text-white">{ex.title}</h3>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{ex.description}</p>
 
                 {/* Code Box */}
-                <div className="mt-3 p-3.5 rounded bg-[#090d15] border border-slate-800 font-mono text-xs text-slate-200 overflow-x-auto max-h-48">
+                <div className="mt-3 p-3.5 rounded bg-slate-900 dark:bg-[#090d15] border border-slate-800 font-mono text-xs text-slate-100 dark:text-slate-200 overflow-x-auto max-h-48">
                   <pre>{ex.code}</pre>
                 </div>
               </div>
 
               {/* Action Toolbar */}
-              <div className="px-5 py-2.5 bg-[#090d15] border-t border-slate-800 flex items-center justify-between text-xs">
+              <div className="px-5 py-2.5 bg-slate-50 dark:bg-[#090d15] border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => handleCopy(ex.code, index)}
-                    className="flex items-center gap-1 text-slate-400 hover:text-slate-200"
+                    className="flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
                   >
                     {copiedIndex === index ? (
-                      <Check className="h-3.5 w-3.5 text-emerald-400" />
+                      <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />
                     ) : (
                       <Copy className="h-3.5 w-3.5" />
                     )}
@@ -227,7 +227,7 @@ export function ExamplesPage() {
 
                   <button
                     onClick={() => handleDownload(ex.code, ex.title)}
-                    className="flex items-center gap-1 text-slate-400 hover:text-slate-200"
+                    className="flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
                   >
                     <Download className="h-3.5 w-3.5" />
                     <span>Download</span>
@@ -236,7 +236,7 @@ export function ExamplesPage() {
 
                 <Link
                   to={`/ide?example=${encodeURIComponent(ex.code.match(/investigation\s+"([^"]+)"/)?.[1] || '')}`}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors shadow-sm"
                 >
                   <Play className="h-3 w-3 fill-current" />
                   <span>Open in Web IDE</span>

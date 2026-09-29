@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   LayoutDashboard,
   Terminal,
@@ -13,6 +14,8 @@ import {
   Shield,
   Activity,
   Menu,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -30,6 +33,7 @@ const adminNavigation = [
 
 export function Layout() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen]   = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -197,10 +201,19 @@ export function Layout() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-forensic-800/50 rounded-lg border border-forensic-700">
-              <Shield className="h-4 w-4 text-accent-green" />
-              <span className="text-sm text-forensic-300">Secured</span>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border" style={{ backgroundColor: 'var(--surface-muted)', borderColor: 'var(--border)' }}>
+              <Shield className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Secured</span>
             </div>
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="theme-toggle"
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
           </div>
         </header>
 

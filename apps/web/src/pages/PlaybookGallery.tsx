@@ -172,21 +172,21 @@ export function PlaybookGallery() {
   }, [query, activeCategory, activeDifficulty]);
 
   return (
-    <div className="min-h-screen bg-[#080d15] text-slate-200 font-sans">
+    <div className="t-page">
       <SiteHeader />
 
       {/* Hero */}
-      <section className="relative border-b border-slate-800/60 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/30 via-[#080d15] to-[#080d15]" />
+      <section className="relative border-b border-slate-200 dark:border-slate-800/60 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-slate-50 to-slate-100 dark:from-blue-950/30 dark:via-[#080d15] dark:to-[#080d15]" />
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-20 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/60 border border-blue-800/40 text-blue-300 text-xs font-semibold mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/40 text-blue-600 dark:text-blue-300 text-xs font-semibold mb-6 shadow-sm">
             <BookOpen className="h-3.5 w-3.5" />
             Playbook Gallery
           </div>
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-4">
             Forensic Investigation Playbooks
           </h1>
-          <p className="text-slate-400 text-sm sm:text-lg max-w-2xl mx-auto">
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-lg max-w-2xl mx-auto">
             Production-ready jocky investigations for incident response, threat hunting, and digital forensics.
             Click any playbook to open it instantly in the Web IDE.
           </p>
@@ -194,16 +194,16 @@ export function PlaybookGallery() {
       </section>
 
       {/* Filters — sticky below the 56px SiteHeader */}
-      <section className="sticky top-14 z-10 border-b border-slate-800/60 bg-[#080d15]/95 backdrop-blur-sm">
+      <section className="sticky top-14 z-10 border-b border-slate-200 dark:border-slate-800/60 bg-white/95 dark:bg-[#080d15]/95 backdrop-blur-sm shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3">
           <div className="relative w-full sm:flex-1 sm:min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
               placeholder="Search playbooks, collectors, tags…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-600 transition-colors"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-600 transition-colors shadow-sm"
             />
           </div>
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -211,10 +211,10 @@ export function PlaybookGallery() {
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors border ${
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors border shadow-sm ${
                   activeCategory === cat
-                    ? 'bg-blue-700 border-blue-600 text-white'
-                    : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'
+                    ? 'bg-blue-600 border-blue-600 text-white font-semibold'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
                 {cat}
@@ -226,10 +226,10 @@ export function PlaybookGallery() {
               <button
                 key={d}
                 onClick={() => setActiveDifficulty(d)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors border ${
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors border shadow-sm ${
                   activeDifficulty === d
-                    ? 'bg-blue-700 border-blue-600 text-white'
-                    : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'
+                    ? 'bg-blue-600 border-blue-600 text-white font-semibold'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
                 {d}
@@ -251,10 +251,10 @@ export function PlaybookGallery() {
             {filtered.map((playbook) => (
               <article
                 key={playbook.id}
-                className="group flex flex-col bg-[#0d1424] border border-slate-800 rounded-xl p-5 hover:border-blue-700/60 hover:shadow-lg hover:shadow-blue-900/20 transition-all duration-200"
+                className="group flex flex-col bg-white dark:bg-[#0d1424] border border-slate-200 dark:border-slate-800 rounded-xl p-5 hover:border-blue-500/60 dark:hover:border-blue-700/60 hover:shadow-lg transition-all duration-200 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="flex items-center gap-2 text-blue-400">
+                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                     {CATEGORY_ICONS[playbook.category] ?? <Shield className="h-4 w-4" />}
                     <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
                       {playbook.category}
@@ -264,22 +264,22 @@ export function PlaybookGallery() {
                     {playbook.difficulty}
                   </span>
                 </div>
-                <h2 className="text-base font-bold text-slate-100 mb-2 group-hover:text-blue-300 transition-colors">
+                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors">
                   {playbook.name}
                 </h2>
-                <p className="text-sm text-slate-400 leading-relaxed flex-1 mb-4">
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed flex-1 mb-4">
                   {playbook.description}
                 </p>
                 <div className="flex flex-wrap gap-1.5 mb-4">
                   {playbook.collectors.map((c) => (
-                    <span key={c} className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-blue-300 border border-slate-700">
+                    <span key={c} className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-300 border border-slate-200 dark:border-slate-700">
                       {c}
                     </span>
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-1 mb-5">
                   {playbook.tags.map((t) => (
-                    <span key={t} className="flex items-center gap-1 text-[10px] text-slate-500">
+                    <span key={t} className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
                       <Tag className="h-2.5 w-2.5" />
                       {t}
                     </span>
@@ -287,7 +287,7 @@ export function PlaybookGallery() {
                 </div>
                 <Link
                   to={`/ide?example=${playbook.id}`}
-                  className="mt-auto flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-blue-700/20 border border-blue-700/40 text-blue-300 text-sm font-medium hover:bg-blue-700/40 hover:border-blue-600 transition-colors"
+                  className="mt-auto flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-blue-50 dark:bg-blue-700/20 border border-blue-200 dark:border-blue-700/40 text-blue-600 dark:text-blue-300 text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-700/40 hover:border-blue-300 dark:hover:border-blue-600 transition-colors shadow-sm"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   Open in IDE

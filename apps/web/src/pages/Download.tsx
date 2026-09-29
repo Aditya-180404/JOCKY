@@ -181,8 +181,8 @@ export function DownloadPage() {
         />
       </div>
 
-      <div className="p-5 rounded-lg border border-slate-700/50 bg-[#0e1422]">
-        <h4 className="text-xs font-bold text-white mb-3 font-mono uppercase tracking-wider">Install Options</h4>
+      <div className="p-5 rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#0e1422] shadow-sm">
+        <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-3 font-mono uppercase tracking-wider">Install Options</h4>
         <CodeBlock
           id="linux-opts"
           code={`# Install specific version
@@ -196,25 +196,25 @@ curl -fsSL ${RAW_BASE}/install.sh | bash -s -- --uninstall`}
         />
       </div>
 
-      <div className="p-5 rounded-lg border border-slate-700/50 bg-[#0e1422]">
-        <h4 className="text-xs font-bold text-white mb-3 font-mono uppercase tracking-wider">Build from Source</h4>
+      <div className="p-5 rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#0e1422] shadow-sm">
+        <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-3 font-mono uppercase tracking-wider">Build from Source</h4>
         <CodeBlock
           id="linux-source"
           code={`# Prerequisites: Rust (rustup.rs) + LLVM 21
 git clone https://github.com/${GITHUB_REPO}.git
 cd JOCKY
 python3 scripts/setup-llvm-linux.py
-cargo build --release -p jocky-compiler-cli
+cargo build --release -p jocky-cli
 sudo cp target/release/jocky /usr/local/bin/
 jocky --version`}
         />
         <p className="mt-3 text-xs text-slate-500">
-          For ARM64: <code className="bg-[#090d15] px-1 rounded">rustup target add aarch64-unknown-linux-gnu</code> then build with <code className="bg-[#090d15] px-1 rounded">--target aarch64-unknown-linux-gnu</code>
+          For ARM64: <code className="bg-slate-100 dark:bg-[#090d15] text-slate-800 dark:text-slate-300 px-1 rounded border border-slate-200 dark:border-slate-800">rustup target add aarch64-unknown-linux-gnu</code> then build with <code className="bg-slate-100 dark:bg-[#090d15] text-slate-800 dark:text-slate-300 px-1 rounded border border-slate-200 dark:border-slate-800">--target aarch64-unknown-linux-gnu</code>
         </p>
       </div>
 
-      <div className="p-5 rounded-lg border border-slate-700/50 bg-[#0e1422]">
-        <h4 className="text-xs font-bold text-white mb-3 font-mono uppercase tracking-wider">After Installation</h4>
+      <div className="p-5 rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#0e1422] shadow-sm">
+        <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-3 font-mono uppercase tracking-wider">After Installation</h4>
         <CodeBlock
           id="linux-after"
           code={`jocky --version           # verify install
@@ -243,8 +243,8 @@ jocky script.jy           # compile to native binary`}
         />
       </div>
 
-      <div className="p-5 rounded-lg border border-slate-700/50 bg-[#0e1422]">
-        <h4 className="text-xs font-bold text-white mb-3 font-mono uppercase tracking-wider">PowerShell Options</h4>
+      <div className="p-5 rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#0e1422] shadow-sm">
+        <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-3 font-mono uppercase tracking-wider">PowerShell Options</h4>
         <CodeBlock
           id="win-opts"
           lang="powershell"
@@ -262,9 +262,9 @@ jocky script.jy           # compile to native binary`}
         />
       </div>
 
-      <div className="p-5 rounded-lg border border-slate-700/50 bg-[#0e1422]">
-        <h4 className="text-xs font-bold text-white mb-3 font-mono uppercase tracking-wider">Manual ZIP Install</h4>
-        <p className="text-xs text-slate-400 mb-3">
+      <div className="p-5 rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#0e1422] shadow-sm">
+        <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-3 font-mono uppercase tracking-wider">Manual ZIP Install</h4>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
           Download the ZIP from Releases, extract it, and run the bundled installer:
         </p>
         <CodeBlock
@@ -286,8 +286,8 @@ jocky --version`}
         />
       </div>
 
-      <div className="p-5 rounded-lg border border-slate-700/50 bg-[#0e1422]">
-        <h4 className="text-xs font-bold text-white mb-3 font-mono uppercase tracking-wider">Verify SHA-256</h4>
+      <div className="p-5 rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#0e1422] shadow-sm">
+        <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-3 font-mono uppercase tracking-wider">Verify SHA-256</h4>
         <CodeBlock
           id="win-sha"
           lang="powershell"
@@ -328,8 +328,8 @@ jocky --version`}
         />
       </div>
 
-      <div className="p-5 rounded-lg border border-slate-700/50 bg-[#0e1422]">
-        <h4 className="text-xs font-bold text-white mb-3 font-mono uppercase tracking-wider">Specific Version</h4>
+      <div className="p-5 rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#0e1422] shadow-sm">
+        <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-3 font-mono uppercase tracking-wider">Specific Version</h4>
         <CodeBlock
           id="deb-specific"
           code={`# Download a specific version
@@ -338,8 +338,8 @@ sudo dpkg -i jocky.deb`}
         />
       </div>
 
-      <div className="p-5 rounded-lg border border-slate-700/50 bg-[#0e1422]">
-        <h4 className="text-xs font-bold text-white mb-3 font-mono uppercase tracking-wider">Uninstall</h4>
+      <div className="p-5 rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#0e1422] shadow-sm">
+        <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-3 font-mono uppercase tracking-wider">Uninstall</h4>
         <CodeBlock
           id="deb-uninstall"
           code={`sudo dpkg -r jocky        # remove binary, keep config
@@ -356,7 +356,7 @@ sudo dpkg -P jocky        # purge completely`}
   ];
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
+    <div className="t-page font-sans">
       <SiteHeader />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
@@ -407,13 +407,13 @@ sudo dpkg -P jocky        # purge completely`}
 
         {/* ── Quick Install — Platform Tabs ── */}
         <section className="mb-12">
-          <h2 className="text-lg font-bold text-white font-mono mb-1">⚡ Quick Install</h2>
-          <p className="text-xs text-slate-400 mb-5">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white font-mono mb-1">⚡ Quick Install</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-5">
             One command — downloads the binary, installs globally, and configures your PATH. No Rust or LLVM required.
           </p>
 
           {/* Tab bar */}
-          <div className="flex gap-1 mb-6 p-1 rounded-lg bg-[#0e1422] border border-slate-800 overflow-x-auto w-full sm:w-fit">
+          <div className="flex gap-1 mb-6 p-1 rounded-lg bg-slate-100 dark:bg-[#0e1422] border border-slate-200 dark:border-slate-800 overflow-x-auto w-full sm:w-fit shadow-sm">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
@@ -423,7 +423,7 @@ sudo dpkg -P jocky        # purge completely`}
                   inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all
                   ${activeTab === tab.id
                     ? 'bg-blue-600 text-white shadow'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'}
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/60'}
                 `}
               >
                 {tab.icon}
@@ -442,18 +442,18 @@ sudo dpkg -P jocky        # purge completely`}
 
         {/* ── Available API Packages ── */}
         <section className="mb-12">
-          <h2 className="text-lg font-bold text-white font-mono mb-1">Available Release Packages</h2>
-          <p className="text-xs text-slate-400 mb-5">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white font-mono mb-1">Available Release Packages</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-5">
             Pre-built binaries served directly from this server — SHA-256 verified on download.
           </p>
 
           {packages.length === 0 ? (
-            <div className="p-5 rounded border border-slate-800 bg-[#0e1422]">
+            <div className="p-5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0e1422] shadow-sm">
               <div className="flex items-start gap-3">
-                <Info className="h-5 w-5 text-slate-500 shrink-0 mt-0.5" />
+                <Info className="h-5 w-5 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-slate-300 font-medium mb-1">No server packages published yet</p>
-                  <p className="text-xs text-slate-400 leading-relaxed">
+                  <p className="text-sm text-slate-900 dark:text-slate-300 font-medium mb-1">No server packages published yet</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     Binaries are not yet published via this API. Use the one-liner installers above to download from GitHub Releases,
                     or build from source.
                   </p>
@@ -461,7 +461,7 @@ sudo dpkg -P jocky        # purge completely`}
                     href={RELEASES_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                    className="mt-3 inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors"
                   >
                     Browse GitHub Releases <ExternalLink className="h-3 w-3" />
                   </a>
@@ -473,45 +473,45 @@ sudo dpkg -P jocky        # purge completely`}
               {packages.map((pkg) => (
                 <div
                   key={pkg.filename}
-                  className="p-5 rounded border border-slate-800 bg-[#0e1422] flex flex-col justify-between"
+                  className="p-5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0e1422] flex flex-col justify-between shadow-sm"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-mono text-xs text-blue-400 font-semibold px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20">
+                      <span className="font-mono text-xs text-blue-600 dark:text-blue-400 font-semibold px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20">
                         {pkg.platform} {pkg.arch}
                       </span>
-                      <span className="font-mono text-xs text-slate-400">{formatSize(pkg.size_bytes)}</span>
+                      <span className="font-mono text-xs text-slate-500 dark:text-slate-400">{formatSize(pkg.size_bytes)}</span>
                     </div>
 
-                    <h3 className="text-base font-bold text-white mb-1">{pkg.name}</h3>
-                    <p className="text-xs text-slate-400 mb-1">
-                      <span className="font-mono text-slate-300">{pkg.filename}</span>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">{pkg.name}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      <span className="font-mono text-slate-700 dark:text-slate-300">{pkg.filename}</span>
                     </p>
-                    <p className="text-xs text-slate-400 mb-4">{pkg.requirements}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">{pkg.requirements}</p>
 
-                    <div className="p-2.5 rounded bg-[#090d15] border border-slate-800/80 mb-4 font-mono text-[11px]">
-                      <div className="text-slate-400 mb-1 flex items-center justify-between">
+                    <div className="p-2.5 rounded bg-slate-100 dark:bg-[#090d15] border border-slate-200 dark:border-slate-800/80 mb-4 font-mono text-[11px]">
+                      <div className="text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
                         <span>SHA-256 Digest:</span>
                         <button
                           onClick={() => handleCopy(pkg.sha256, `hash-${pkg.filename}`)}
-                          className="text-slate-400 hover:text-slate-200 inline-flex items-center gap-1"
+                          className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 inline-flex items-center gap-1"
                         >
                           {copiedId === `hash-${pkg.filename}` ? (
-                            <Check className="h-3 w-3 text-emerald-400" />
+                            <Check className="h-3 w-3 text-emerald-500 dark:text-emerald-400" />
                           ) : (
                             <Copy className="h-3 w-3" />
                           )}
                           <span>{copiedId === `hash-${pkg.filename}` ? 'Copied' : 'Copy'}</span>
                         </button>
                       </div>
-                      <div className="text-slate-300 break-all">{pkg.sha256}</div>
+                      <div className="text-slate-800 dark:text-slate-300 break-all">{pkg.sha256}</div>
                     </div>
                   </div>
 
                   <button
                     onClick={() => handleDownload(pkg)}
                     disabled={downloading === pkg.filename}
-                    className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-wait text-white font-medium text-xs transition-colors"
+                    className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-wait text-white font-medium text-xs transition-colors shadow-sm"
                   >
                     {downloading === pkg.filename ? (
                       <>
@@ -533,16 +533,16 @@ sudo dpkg -P jocky        # purge completely`}
 
         {/* ── Verification Guide ── */}
         <section className="mb-12">
-          <h2 className="text-lg font-bold text-white font-mono mb-1">Verifying Download Integrity</h2>
-          <p className="text-xs text-slate-400 mb-5">
-            All releases include <code className="bg-[#090d15] px-1 rounded">.sha256</code> checksum files. Verify before running.
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white font-mono mb-1">Verifying Download Integrity</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-5">
+            All releases include <code className="bg-slate-100 dark:bg-[#090d15] text-slate-800 dark:text-slate-300 px-1 rounded border border-slate-200 dark:border-slate-800">.sha256</code> checksum files. Verify before running.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="p-5 rounded border border-slate-800 bg-[#0e1422]">
+            <div className="p-5 rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0e1422] shadow-sm">
               <div className="flex items-center gap-2 mb-3">
-                <Terminal className="h-4 w-4 text-blue-400" />
-                <h3 className="text-sm font-bold text-white font-mono">Linux</h3>
+                <Terminal className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white font-mono">Linux</h3>
               </div>
               <div className="relative mt-0">
                 <pre className="p-4 rounded bg-[#060a12] border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto leading-relaxed">
@@ -556,10 +556,10 @@ sha256sum -c jocky_0.1.0_linux_x86_64.tar.gz.sha256`}
               </div>
             </div>
 
-            <div className="p-5 rounded border border-slate-800 bg-[#0e1422]">
+            <div className="p-5 rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0e1422] shadow-sm">
               <div className="flex items-center gap-2 mb-3">
-                <Monitor className="h-4 w-4 text-blue-400" />
-                <h3 className="text-sm font-bold text-white font-mono">Windows PowerShell</h3>
+                <Monitor className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white font-mono">Windows PowerShell</h3>
               </div>
               <div className="relative mt-0">
                 <pre className="p-4 rounded bg-[#060a12] border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto leading-relaxed">

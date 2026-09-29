@@ -1077,7 +1077,7 @@ Commands:
 
 - **Debian .deb package** — `jocky_0.1.0_amd64.deb` (built in CI)
 - **Windows ZIP archive** — `jocky_0.1.0_windows_amd64.zip`
-- **Pre-built binaries** — `jockey.exe` (Windows x64), `test-linux-x64` (Linux x64)
+- **Pre-built binaries** — `jocky.exe` (Windows x64), `test-linux-x64` (Linux x64)
 
 ### ✅ 172-Capability Registry
 

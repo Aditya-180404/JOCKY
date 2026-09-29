@@ -1365,6 +1365,7 @@ fn execute_native_program(source: &str, target_str: &str) -> RunResponse {
                 .unwrap_or_default();
             if fname.ends_with(".json")
                 && !fname.ends_with(".meta.json")
+                && !fname.ends_with(".bundle.json")
                 && !fname.ends_with(".manifest.json")
                 && !fname.ends_with(".ast.json")
                 && !fname.ends_with(".hir.json")
@@ -1376,13 +1377,15 @@ fn execute_native_program(source: &str, target_str: &str) -> RunResponse {
                         evidence_val = Some(val);
                     }
                 }
-                let meta_path = if path.with_extension("json.meta.json").exists() {
-                    path.with_extension("json.meta.json")
-                } else {
-                    let mut p = path.clone();
-                    p.set_extension("meta.json");
-                    p
-                };
+                let meta_candidates = [
+                    output_dir.join(format!("{}.meta.json", fname)),
+                    path.with_extension("json.meta.json"),
+                    path.with_extension("meta.json"),
+                ];
+                let meta_path = meta_candidates
+                    .into_iter()
+                    .find(|p| p.is_file())
+                    .unwrap_or_else(|| output_dir.join(format!("{}.meta.json", fname)));
                 if meta_path.is_file() {
                     if let Ok(meta_content) = std::fs::read_to_string(&meta_path) {
                         if let Ok(meta_val) =

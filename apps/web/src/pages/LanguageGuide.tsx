@@ -203,24 +203,24 @@ export function LanguageGuide() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
+    <div className="t-page font-sans">
       <SiteHeader />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col md:flex-row gap-8">
         {/* Left Table of Contents */}
         <aside className="w-full md:w-64 shrink-0 space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
               placeholder="Search guide..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 rounded bg-[#0e1422] border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+              className="w-full pl-9 pr-3 py-1.5 rounded bg-white dark:bg-[#0e1422] border border-slate-300 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors shadow-sm"
             />
           </div>
 
-          <div className="bg-[#0e1422] border border-slate-800 rounded p-3 space-y-4 max-h-48 md:max-h-[calc(100vh-220px)] overflow-y-auto">
+          <div className="bg-white dark:bg-[#0e1422] border border-slate-200 dark:border-slate-800 rounded-lg p-3 space-y-4 max-h-48 md:max-h-[calc(100vh-220px)] overflow-y-auto shadow-sm">
             {categories.map((cat) => {
               const catSections = filteredSections.filter((s) => s.category === cat);
               if (catSections.length === 0) return null;
@@ -236,8 +236,8 @@ export function LanguageGuide() {
                       className={clsx(
                         'w-full text-left px-2 py-1 rounded text-xs transition-colors flex items-center justify-between',
                         selectedId === sec.id
-                          ? 'bg-blue-600/15 text-blue-400 font-semibold border border-blue-500/30'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                          ? 'bg-blue-50 dark:bg-blue-600/15 text-blue-600 dark:text-blue-400 font-semibold border border-blue-200 dark:border-blue-500/30'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60'
                       )}
                     >
                       <span>{sec.title}</span>
@@ -251,31 +251,31 @@ export function LanguageGuide() {
         </aside>
 
         {/* Right Content Panel */}
-        <article className="flex-1 bg-[#0e1422] border border-slate-800 rounded p-6 sm:p-8 space-y-6">
-          <div className="border-b border-slate-800 pb-4">
-            <span className="text-[11px] font-mono text-blue-400 uppercase tracking-wider">
+        <article className="flex-1 bg-white dark:bg-[#0e1422] border border-slate-200 dark:border-slate-800 rounded-lg p-6 sm:p-8 space-y-6 shadow-sm">
+          <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
+            <span className="text-[11px] font-mono text-blue-600 dark:text-blue-400 uppercase tracking-wider font-semibold">
               {selectedSection.category}
             </span>
-            <h1 className="text-2xl font-bold font-mono text-white mt-1">
+            <h1 className="text-2xl font-bold font-mono text-slate-900 dark:text-white mt-1">
               {selectedSection.title}
             </h1>
           </div>
 
-          <div className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap font-sans">
+          <div className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap font-sans">
             {selectedSection.content}
           </div>
 
           {selectedSection.codeSnippet && (
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-mono">
                 <span>Code Example:</span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleCopyCode(selectedSection.codeSnippet!)}
-                    className="flex items-center gap-1 text-slate-400 hover:text-slate-200"
+                    className="flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
                   >
                     {copied === selectedSection.codeSnippet ? (
-                      <Check className="h-3.5 w-3.5 text-emerald-400" />
+                      <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />
                     ) : (
                       <Copy className="h-3.5 w-3.5" />
                     )}
@@ -283,14 +283,14 @@ export function LanguageGuide() {
                   </button>
                   <Link
                     to="/ide"
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-blue-600/20 text-blue-300 border border-blue-500/30 hover:bg-blue-600/30"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-blue-600/15 text-blue-600 dark:text-blue-300 border border-blue-500/30 hover:bg-blue-600/25 transition-colors text-xs"
                   >
                     <Play className="h-3 w-3" />
                     Open in Web IDE
                   </Link>
                 </div>
               </div>
-              <div className="p-3.5 rounded bg-[#090d15] font-mono text-xs text-slate-200 border border-slate-800 overflow-x-auto">
+              <div className="p-3.5 rounded bg-slate-900 dark:bg-[#090d15] font-mono text-xs text-slate-100 dark:text-slate-200 border border-slate-800 overflow-x-auto">
                 <pre>{selectedSection.codeSnippet}</pre>
               </div>
             </div>

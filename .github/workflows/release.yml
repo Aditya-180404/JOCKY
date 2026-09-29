@@ -43,7 +43,7 @@ jobs:
 
       - name: Build release binary (Linux x86_64)
         run: |
-          cargo build --release -p jocky-compiler-cli --target x86_64-unknown-linux-gnu
+          cargo build --release -p jocky-cli --target x86_64-unknown-linux-gnu
           # Also try the workspace root binary name
           cargo build --release --target x86_64-unknown-linux-gnu 2>/dev/null || true
 
@@ -109,7 +109,7 @@ jobs:
 
       - name: Build release binary (Linux aarch64)
         run: |
-          cargo build --release -p jocky-compiler-cli --target aarch64-unknown-linux-gnu 2>/dev/null || \
+          cargo build --release -p jocky-cli --target aarch64-unknown-linux-gnu 2>/dev/null || \
           cargo build --release --target aarch64-unknown-linux-gnu
 
       - name: Package tarball

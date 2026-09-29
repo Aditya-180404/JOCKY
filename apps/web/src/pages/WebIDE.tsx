@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import MonacoEditor, { OnMount } from '@monaco-editor/react';
 import { useSearchParams } from 'react-router-dom';
 import { SiteHeader } from '../components/SiteHeader';
+import { useTheme } from '../contexts/ThemeContext';
 import { api } from '../services/api';
 import {
   Play,
@@ -429,6 +430,7 @@ interface TargetOption {
 }
 
 export function WebIDE() {
+  const { theme } = useTheme();
   const [searchParams] = useSearchParams();
   const requestedExample = searchParams.get('example');
   const initialExample = EXAMPLES.find((example) => example.id === requestedExample) || EXAMPLES[0];
@@ -680,7 +682,7 @@ export function WebIDE() {
       });
     }
 
-    // Professional, restrained editor theme
+    // Professional, restrained editor theme - dark
     monaco.editor.defineTheme('jocky-pro', {
       base: 'vs-dark',
       inherit: true,
@@ -705,8 +707,40 @@ export function WebIDE() {
       },
     });
 
-    monaco.editor.setTheme('jocky-pro');
+    // Professional, clean editor theme - light
+    monaco.editor.defineTheme('jocky-light', {
+      base: 'vs',
+      inherit: true,
+      rules: [
+        { token: 'keyword', foreground: '2563eb', fontStyle: 'bold' },
+        { token: 'string', foreground: '059669' },
+        { token: 'number', foreground: 'd97706' },
+        { token: 'comment', foreground: '94a3b8', fontStyle: 'italic' },
+        { token: 'identifier', foreground: '0f172a' },
+        { token: 'operator', foreground: '475569' },
+        { token: '@brackets', foreground: '334155' },
+      ],
+      colors: {
+        'editor.background': '#ffffff',
+        'editor.foreground': '#0f172a',
+        'editorLineNumber.foreground': '#94a3b8',
+        'editorLineNumber.activeForeground': '#2563eb',
+        'editor.selectionBackground': '#e2e8f0',
+        'editor.lineHighlightBackground': '#f8fafc',
+        'editorCursor.foreground': '#2563eb',
+        'editorWhitespace.foreground': '#e2e8f0',
+      },
+    });
+
+    monaco.editor.setTheme(theme === 'dark' ? 'jocky-pro' : 'jocky-light');
   };
+
+  // Sync Monaco editor theme whenever theme changes
+  useEffect(() => {
+    if (monacoRef.current) {
+      monacoRef.current.editor.setTheme(theme === 'dark' ? 'jocky-pro' : 'jocky-light');
+    }
+  }, [theme]);
 
   // Debounced auto-check: fires 800 ms after the user stops typing
   const autoCheckTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1126,15 +1160,15 @@ export function WebIDE() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#0b0f17] text-slate-200 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen bg-slate-100 dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 overflow-hidden font-sans">
       <SiteHeader />
 
       {/* Top Application Bar */}
-      <div className="h-10 bg-[#0e1422] border-b border-slate-800 flex items-center justify-between px-3 text-xs select-none">
+      <div className="h-10 bg-white dark:bg-[#0e1422] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-3 text-xs select-none">
         {/* Left Actions */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 font-mono font-bold text-slate-100 pr-2 border-r border-slate-800">
-            <TerminalIcon className="h-3.5 w-3.5 text-blue-400" />
+          <div className="flex items-center gap-1.5 font-mono font-bold text-slate-800 dark:text-slate-100 pr-2 border-r border-slate-200 dark:border-slate-800">
+            <TerminalIcon className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             <span>jocky IDE</span>
           </div>
 
@@ -1145,19 +1179,19 @@ export function WebIDE() {
               setCheckPassed(null);
               setStatusMessage('Created new investigation');
             }}
-            className="text-slate-400 hover:text-slate-100 px-2 py-1 rounded hover:bg-slate-800 transition-colors"
+            className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             New
           </button>
           <button
             onClick={handleDownloadJy}
-            className="text-slate-400 hover:text-slate-100 px-2 py-1 rounded hover:bg-slate-800 transition-colors"
+            className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             Download .jy
           </button>
           <button
             onClick={handleCopyCode}
-            className="text-slate-400 hover:text-slate-100 px-2 py-1 rounded hover:bg-slate-800 transition-colors"
+            className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             {copied ? 'Copied' : 'Copy'}
           </button>
@@ -1166,15 +1200,15 @@ export function WebIDE() {
         {/* Center Target & Actions */}
         <div className="flex items-center gap-2">
           {/* Target Selector */}
-          <div className="flex items-center gap-1 bg-[#141b2d] border border-slate-700/80 rounded px-2 py-0.5 text-[11px] font-mono">
-            <span className="text-slate-400">Target:</span>
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#141b2d] border border-slate-300 dark:border-slate-700/80 rounded px-2 py-0.5 text-[11px] font-mono">
+            <span className="text-slate-500 dark:text-slate-400">Target:</span>
             <select
               value={selectedTarget}
               onChange={(e) => setSelectedTarget(e.target.value)}
-              className="bg-transparent text-slate-200 outline-none cursor-pointer"
+              className="bg-transparent text-slate-800 dark:text-slate-200 outline-none cursor-pointer"
             >
               {targets.map((t) => (
-                <option key={t.id} value={t.id} className="bg-[#111827] text-slate-200">
+                <option key={t.id} value={t.id} className="bg-white dark:bg-[#111827] text-slate-800 dark:text-slate-200">
                   {t.name} ({t.status})
                 </option>
               ))}
@@ -1185,10 +1219,10 @@ export function WebIDE() {
           <button
             onClick={handleCheckCode}
             disabled={isLoading}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-xs font-medium transition-colors disabled:opacity-50 shadow-sm"
             title="Check syntax and semantic validity"
           >
-            <CheckCircle2 className="h-3.5 w-3.5 text-blue-400" />
+            <CheckCircle2 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             <span>Check</span>
           </button>
 
@@ -1196,10 +1230,10 @@ export function WebIDE() {
           <button
             onClick={handleCompileCode}
             disabled={isLoading || isRunning}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-xs font-medium transition-colors disabled:opacity-50 shadow-sm"
             title="Compile into standalone native binary"
           >
-            <Download className="h-3.5 w-3.5 text-amber-400" />
+            <Download className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
             <span>Compile</span>
           </button>
 
@@ -1207,7 +1241,7 @@ export function WebIDE() {
           <button
             onClick={handleRunExecution}
             disabled={isRunning || isLoading}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors disabled:opacity-50 shadow-sm"
             title="Execute live investigation against target"
           >
             <Play className="h-3.5 w-3.5 fill-current" />
@@ -1217,7 +1251,7 @@ export function WebIDE() {
           <button
             onClick={handleVerifyExecution}
             disabled={isVerifying || isRunning || !executionResult?.evidence_raw || !executionResult.metadata}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-medium transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition-colors disabled:opacity-50 shadow-sm"
             title="Verify the generated evidence against its SHA-256 and Merkle metadata"
           >
             <ShieldCheck className="h-3.5 w-3.5" />
@@ -1227,17 +1261,17 @@ export function WebIDE() {
 
         {/* Right Status */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-400">
+          <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-500 dark:text-slate-400">
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
             <span>{statusMessage}</span>
           </div>
 
-          <div className="flex items-center gap-1 border-l border-slate-800 pl-2">
+          <div className="flex items-center gap-1 border-l border-slate-200 dark:border-slate-800 pl-2">
             <button
               onClick={() => setShowExplorer(!showExplorer)}
               className={clsx(
-                'p-1 rounded text-slate-400 hover:text-slate-200',
-                showExplorer && 'text-blue-400 bg-slate-800'
+                'p-1 rounded text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200',
+                showExplorer && 'text-blue-600 dark:text-blue-400 bg-slate-200 dark:bg-slate-800'
               )}
               title="Toggle File Explorer"
             >
@@ -1246,8 +1280,8 @@ export function WebIDE() {
             <button
               onClick={() => setShowInspector(!showInspector)}
               className={clsx(
-                'p-1 rounded text-slate-400 hover:text-slate-200',
-                showInspector && 'text-blue-400 bg-slate-800'
+                'p-1 rounded text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200',
+                showInspector && 'text-blue-600 dark:text-blue-400 bg-slate-200 dark:bg-slate-800'
               )}
               title="Toggle Inspector"
             >
@@ -1261,8 +1295,8 @@ export function WebIDE() {
       <div className="flex-1 flex overflow-hidden">
         {/* Left Column: File Explorer */}
         {showExplorer && (
-          <aside className="w-56 bg-[#0e1422] border-r border-slate-800 flex flex-col select-none text-xs">
-            <div className="p-2 border-b border-slate-800 flex items-center justify-between text-slate-400 font-semibold tracking-wider uppercase text-[10px]">
+          <aside className="w-56 bg-slate-50 dark:bg-[#0e1422] border-r border-slate-200 dark:border-slate-800 flex flex-col select-none text-xs">
+            <div className="p-2 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase text-[10px]">
               <span>Explorer</span>
               <span className="text-[10px] text-slate-400">jocky</span>
             </div>
@@ -1272,7 +1306,7 @@ export function WebIDE() {
               <div>
                 <button
                   onClick={() => setExamplesOpen(!examplesOpen)}
-                  className="w-full flex items-center gap-1.5 px-2 py-1 text-slate-400 hover:text-slate-200 font-mono text-[11px] rounded hover:bg-slate-800/50"
+                  className="w-full flex items-center gap-1.5 px-2 py-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-mono text-[11px] rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/50"
                 >
                   {examplesOpen ? (
                     <ChevronDown className="h-3.5 w-3.5" />
@@ -1280,15 +1314,15 @@ export function WebIDE() {
                     <ChevronRight className="h-3.5 w-3.5" />
                   )}
                   {examplesOpen ? (
-                    <FolderOpen className="h-3.5 w-3.5 text-blue-400" />
+                    <FolderOpen className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" />
                   ) : (
-                    <Folder className="h-3.5 w-3.5 text-blue-400" />
+                    <Folder className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" />
                   )}
                   <span>examples/</span>
                 </button>
 
                 {examplesOpen && (
-                  <div className="ml-3 pl-2 border-l border-slate-800 space-y-0.5 mt-0.5">
+                  <div className="ml-3 pl-2 border-l border-slate-200 dark:border-slate-800 space-y-0.5 mt-0.5">
                     {EXAMPLES.map((ex) => (
                       <button
                         key={ex.id}
@@ -1296,8 +1330,8 @@ export function WebIDE() {
                         className={clsx(
                           'w-full text-left px-2 py-1 rounded text-[11px] font-mono flex items-center gap-1.5 transition-colors',
                           selectedExample === ex.id
-                            ? 'bg-blue-600/20 text-blue-300 border border-blue-500/30'
-                            : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                            ? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 font-semibold'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200'
                         )}
                         title={ex.description}
                       >
@@ -1311,7 +1345,7 @@ export function WebIDE() {
             </div>
 
             {/* Explorer Footer info */}
-            <div className="p-2 border-t border-slate-800 bg-[#090d15] text-[10px] font-mono text-slate-400">
+            <div className="p-2 border-t border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-[#090d15] text-[10px] font-mono text-slate-500 dark:text-slate-400">
               <div>Target: {selectedTarget}</div>
               <div>Mode: Read-Only Forensic</div>
             </div>
@@ -1319,12 +1353,12 @@ export function WebIDE() {
         )}
 
         {/* Center Column: Code Editor & Bottom Panel */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-[#0c111c]">
+        <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-[#0c111c]">
           {/* Editor Tab Header */}
-          <div className="h-8 bg-[#111827] border-b border-slate-800 flex items-center justify-between px-3 select-none">
+          <div className="h-8 bg-slate-100 dark:bg-[#111827] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-3 select-none">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs text-slate-200 flex items-center gap-1.5">
-                <FileCode className="h-3.5 w-3.5 text-blue-400" />
+              <span className="font-mono text-xs text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <FileCode className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" />
                 {EXAMPLES.find((e) => e.id === selectedExample)?.filename || 'investigation.jy'}
               </span>
               {checkPassed !== null && (
@@ -1332,8 +1366,8 @@ export function WebIDE() {
                   className={clsx(
                     'text-[10px] font-mono px-1.5 py-0.2 rounded border',
                     checkPassed
-                      ? 'bg-emerald-950 text-emerald-400 border-emerald-800'
-                      : 'bg-rose-950 text-rose-400 border-rose-800'
+                      ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800'
+                      : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-800'
                   )}
                 >
                   {checkPassed ? 'VALID' : 'PROBLEMS'}
@@ -1341,7 +1375,7 @@ export function WebIDE() {
               )}
             </div>
 
-            <div className="flex items-center gap-3 text-[11px] font-mono text-slate-400">
+            <div className="flex items-center gap-3 text-[11px] font-mono text-slate-500 dark:text-slate-400">
               <span>Lines: {source.split('\n').length}</span>
               <span>Chars: {source.length}</span>
             </div>
@@ -1353,6 +1387,7 @@ export function WebIDE() {
               height="100%"
               language="jocky"
               value={source}
+              theme={theme === 'dark' ? 'jocky-pro' : 'jocky-light'}
               onChange={(value) => handleSourceChange(value || '')}
               onMount={handleEditorDidMount}
               options={{
@@ -1371,7 +1406,7 @@ export function WebIDE() {
           </div>
 
           {/* Bottom Panel (Collapsible & Resizable) */}
-          <div className="border-t border-slate-800 bg-[#0e1422] flex flex-col flex-shrink-0 relative">
+          <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0e1422] flex flex-col flex-shrink-0 relative">
             {/* Draggable Resize Handle */}
             <div
               onMouseDown={handleMouseDownResize}
@@ -1388,7 +1423,7 @@ export function WebIDE() {
             </div>
 
             {/* Panel Tabs Header */}
-            <div className="h-8 bg-[#111827] border-b border-slate-800 flex items-center justify-between px-3 text-xs select-none">
+            <div className="h-8 bg-slate-100 dark:bg-[#111827] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-3 text-xs select-none">
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => {
@@ -1398,8 +1433,8 @@ export function WebIDE() {
                   className={clsx(
                     'px-2.5 py-1 rounded text-xs font-medium transition-colors flex items-center gap-1.5',
                     bottomPanelTab === 'output' && showBottomPanel
-                      ? 'bg-slate-800 text-blue-400 border border-slate-700'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border border-slate-300 dark:border-slate-700 shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                   )}
                 >
                   <TerminalIcon className="h-3.5 w-3.5" />
@@ -1414,8 +1449,8 @@ export function WebIDE() {
                   className={clsx(
                     'px-2.5 py-1 rounded text-xs font-medium transition-colors flex items-center gap-1.5',
                     bottomPanelTab === 'problems' && showBottomPanel
-                      ? 'bg-slate-800 text-blue-400 border border-slate-700'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border border-slate-300 dark:border-slate-700 shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                   )}
                 >
                   <AlertTriangle className="h-3.5 w-3.5" />
@@ -1430,8 +1465,8 @@ export function WebIDE() {
                   className={clsx(
                     'px-2.5 py-1 rounded text-xs font-medium transition-colors flex items-center gap-1.5',
                     bottomPanelTab === 'evidence' && showBottomPanel
-                      ? 'bg-slate-800 text-blue-400 border border-slate-700'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border border-slate-300 dark:border-slate-700 shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                   )}
                 >
                   <ShieldCheck className="h-3.5 w-3.5" />
@@ -1446,8 +1481,8 @@ export function WebIDE() {
                   className={clsx(
                     'px-2.5 py-1 rounded text-xs font-medium transition-colors flex items-center gap-1.5',
                     bottomPanelTab === 'integrity' && showBottomPanel
-                      ? 'bg-slate-800 text-blue-400 border border-slate-700'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border border-slate-300 dark:border-slate-700 shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                   )}
                 >
                   <Hash className="h-3.5 w-3.5" />
@@ -1462,8 +1497,8 @@ export function WebIDE() {
                   className={clsx(
                     'px-2.5 py-1 rounded text-xs font-medium transition-colors flex items-center gap-1.5',
                     bottomPanelTab === 'artifact' && showBottomPanel
-                      ? 'bg-slate-800 text-amber-400 border border-slate-700'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 border border-slate-300 dark:border-slate-700 shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                   )}
                 >
                   <Download className="h-3.5 w-3.5" />
@@ -1476,7 +1511,7 @@ export function WebIDE() {
                 {showBottomPanel && (
                   <>
                     {/* Quick Size Presets: S, M, L */}
-                    <div className="flex items-center bg-slate-850 rounded p-0.5 border border-slate-700/60 text-[10px] font-mono mr-1">
+                    <div className="flex items-center bg-slate-200/80 dark:bg-slate-850 rounded p-0.5 border border-slate-300 dark:border-slate-700/60 text-[10px] font-mono mr-1">
                       <button
                         onClick={() => {
                           setTerminalHeight(180);
@@ -1487,7 +1522,7 @@ export function WebIDE() {
                           "px-1.5 py-0.5 rounded transition-colors",
                           !isMaximized && terminalHeight <= 200
                             ? "bg-blue-600 text-white font-bold"
-                            : "text-slate-400 hover:text-slate-200"
+                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                         )}
                         title="Small Height (180px)"
                       >
@@ -1503,7 +1538,7 @@ export function WebIDE() {
                           "px-1.5 py-0.5 rounded transition-colors",
                           !isMaximized && terminalHeight > 200 && terminalHeight <= 420
                             ? "bg-blue-600 text-white font-bold"
-                            : "text-slate-400 hover:text-slate-200"
+                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                         )}
                         title="Medium Height (340px)"
                       >
@@ -1519,7 +1554,7 @@ export function WebIDE() {
                           "px-1.5 py-0.5 rounded transition-colors",
                           !isMaximized && terminalHeight > 420
                             ? "bg-blue-600 text-white font-bold"
-                            : "text-slate-400 hover:text-slate-200"
+                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                         )}
                         title="Large Height (540px)"
                       >
@@ -1530,11 +1565,11 @@ export function WebIDE() {
                     {/* Maximize / Restore Toggle */}
                     <button
                       onClick={toggleMaximizeTerminal}
-                      className="text-slate-400 hover:text-slate-200 hover:bg-slate-800 p-1 rounded transition-colors"
+                      className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition-colors"
                       title={isMaximized ? "Restore Terminal Size" : "Maximize Terminal"}
                     >
                       {isMaximized ? (
-                        <Minimize2 className="h-3.5 w-3.5 text-blue-400" />
+                        <Minimize2 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                       ) : (
                         <Maximize2 className="h-3.5 w-3.5" />
                       )}
@@ -1545,7 +1580,7 @@ export function WebIDE() {
                 {/* Panel Collapse Toggle */}
                 <button
                   onClick={() => setShowBottomPanel(!showBottomPanel)}
-                  className="text-slate-400 hover:text-slate-200 hover:bg-slate-800 p-1 rounded transition-colors"
+                  className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition-colors"
                   title={showBottomPanel ? 'Collapse Panel' : 'Expand Panel'}
                 >
                   {showBottomPanel ? (
@@ -1945,14 +1980,14 @@ export function WebIDE() {
 
         {/* Right Column: Inspector Panel */}
         {showInspector && (
-          <aside className="w-64 bg-[#0e1422] border-l border-slate-800 flex flex-col select-none text-xs">
+          <aside className="w-64 bg-slate-50 dark:bg-[#0e1422] border-l border-slate-200 dark:border-slate-800 flex flex-col select-none text-xs">
             {/* Inspector Tabs */}
-            <div className="h-8 bg-[#111827] border-b border-slate-800 flex items-center justify-around px-2 text-[11px] font-medium">
+            <div className="h-8 bg-slate-100 dark:bg-[#111827] border-b border-slate-200 dark:border-slate-800 flex items-center justify-around px-2 text-[11px] font-medium">
               <button
                 onClick={() => setInspectorTab('diagnostics')}
                 className={clsx(
                   'px-2 py-1 rounded transition-colors',
-                  inspectorTab === 'diagnostics' ? 'text-blue-400 border-b-2 border-blue-500 font-semibold' : 'text-slate-400 hover:text-slate-200'
+                  inspectorTab === 'diagnostics' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-500 font-semibold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                 )}
               >
                 Diagnostics
@@ -1961,7 +1996,7 @@ export function WebIDE() {
                 onClick={() => setInspectorTab('capabilities')}
                 className={clsx(
                   'px-2 py-1 rounded transition-colors',
-                  inspectorTab === 'capabilities' ? 'text-blue-400 border-b-2 border-blue-500 font-semibold' : 'text-slate-400 hover:text-slate-200'
+                  inspectorTab === 'capabilities' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-500 font-semibold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                 )}
               >
                 Capabilities
@@ -1970,7 +2005,7 @@ export function WebIDE() {
                 onClick={() => setInspectorTab('artifact')}
                 className={clsx(
                   'px-2 py-1 rounded transition-colors',
-                  inspectorTab === 'artifact' ? 'text-blue-400 border-b-2 border-blue-500 font-semibold' : 'text-slate-400 hover:text-slate-200'
+                  inspectorTab === 'artifact' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-500 font-semibold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                 )}
               >
                 Artifact
@@ -1983,30 +2018,30 @@ export function WebIDE() {
               {inspectorTab === 'diagnostics' && (
                 <div className="space-y-3">
                   <div>
-                    <h4 className="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    <h4 className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                       Compiler State
                     </h4>
-                    <div className="p-2.5 rounded border border-slate-800 bg-[#090d15] space-y-1 font-mono text-[11px]">
+                    <div className="p-2.5 rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090d15] space-y-1 font-mono text-[11px]">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">AST Validation:</span>
-                        <span className={checkPassed ? 'text-emerald-400' : checkPassed === false ? 'text-rose-400' : 'text-slate-400'}>
+                        <span className="text-slate-500 dark:text-slate-400">AST Validation:</span>
+                        <span className={checkPassed ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : checkPassed === false ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}>
                           {checkPassed ? 'Pass' : checkPassed === false ? 'Fail' : 'Unchecked'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-400">Diagnostics:</span>
-                        <span className="text-slate-200">{diagnostics.length}</span>
+                        <span className="text-slate-500 dark:text-slate-400">Diagnostics:</span>
+                        <span className="text-slate-800 dark:text-slate-200">{diagnostics.length}</span>
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    <h4 className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                       Selected Target
                     </h4>
-                    <div className="p-2.5 rounded border border-slate-800 bg-[#090d15] space-y-1 font-mono text-[11px]">
-                      <div className="text-slate-200 font-semibold">{selectedTarget}</div>
-                      <div className="text-emerald-400 text-[10px]">Verified Native Platform</div>
+                    <div className="p-2.5 rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090d15] space-y-1 font-mono text-[11px]">
+                      <div className="text-slate-800 dark:text-slate-200 font-semibold">{selectedTarget}</div>
+                      <div className="text-emerald-600 dark:text-emerald-400 text-[10px]">Verified Native Platform</div>
                     </div>
                   </div>
                 </div>
@@ -2016,14 +2051,14 @@ export function WebIDE() {
               {inspectorTab === 'capabilities' && (
                 <div className="space-y-3">
                   {/* Mode switcher: Required vs Full Registry */}
-                  <div className="flex border-b border-slate-800 pb-2 gap-2 text-xs">
+                  <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 gap-2 text-xs">
                     <button
                       onClick={() => setCapViewMode('required')}
                       className={clsx(
                         'px-2.5 py-1 rounded text-[11px] font-medium transition',
                         capViewMode === 'required'
-                          ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                          ? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 font-semibold'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'
                       )}
                     >
                       Required ({requiredCapabilities.length})
@@ -2033,8 +2068,8 @@ export function WebIDE() {
                       className={clsx(
                         'px-2.5 py-1 rounded text-[11px] font-medium transition',
                         capViewMode === 'all'
-                          ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                          ? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 font-semibold'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'
                       )}
                     >
                       Registry ({Object.keys(capabilitiesRegistry).length || 247})
@@ -2043,10 +2078,10 @@ export function WebIDE() {
 
                   {capViewMode === 'required' ? (
                     <div>
-                      <h4 className="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+                      <h4 className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                         Investigation Permissions
                       </h4>
-                      <p className="text-[11px] text-slate-400 mb-2">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
                         Capabilities required by the current AST and verified against the target platform:
                       </p>
                       <div className="space-y-2">
@@ -2056,19 +2091,19 @@ export function WebIDE() {
                             return (
                               <div
                                 key={cap}
-                                className="p-2.5 rounded bg-[#090d15] border border-slate-800 text-[11px] space-y-1.5"
+                                className="p-2.5 rounded bg-white dark:bg-[#090d15] border border-slate-200 dark:border-slate-800 text-[11px] space-y-1.5"
                               >
                                 <div className="flex items-center justify-between">
-                                  <span className="font-mono text-blue-300 font-semibold">{cap}</span>
+                                  <span className="font-mono text-blue-600 dark:text-blue-300 font-semibold">{cap}</span>
                                   {meta?.status ? (
                                     <span
                                       className={clsx(
                                         'px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider',
-                                        meta.status === 'IMPLEMENTED' && 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-                                        meta.status === 'REQUIRES_ELEVATION' && 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-                                        meta.status === 'PARTIAL' && 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
-                                        meta.status === 'PLATFORM_SPECIFIC' && 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
-                                        meta.status === 'UNSUPPORTED' && 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                        meta.status === 'IMPLEMENTED' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
+                                        meta.status === 'REQUIRES_ELEVATION' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+                                        meta.status === 'PARTIAL' && 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20',
+                                        meta.status === 'PLATFORM_SPECIFIC' && 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20',
+                                        meta.status === 'UNSUPPORTED' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                                       )}
                                     >
                                       {meta.status.replace('_', ' ')}
@@ -2080,21 +2115,21 @@ export function WebIDE() {
 
                                 {meta && (
                                   <>
-                                    <p className="text-slate-300 text-[10px] leading-tight">{meta.description}</p>
+                                    <p className="text-slate-600 dark:text-slate-300 text-[10px] leading-tight">{meta.description}</p>
                                     <div className="flex flex-wrap gap-1 pt-0.5">
-                                      <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[9px]">
+                                      <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[9px]">
                                         Platform: {meta.platforms}
                                       </span>
-                                      <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[9px]">
+                                      <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[9px]">
                                         Privilege: {meta.privilege}
                                       </span>
                                       {meta.category && (
-                                        <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[9px]">
+                                        <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[9px]">
                                           {meta.category}
                                         </span>
                                       )}
                                       {meta.mitre_attack_ids?.map((t) => (
-                                        <span key={t} className="px-1.5 py-0.5 rounded bg-red-950/40 text-red-300 border border-red-800/30 text-[9px]">
+                                        <span key={t} className="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-800/30 text-[9px]">
                                           {t}
                                         </span>
                                       ))}
@@ -2105,8 +2140,8 @@ export function WebIDE() {
                             );
                           })
                         ) : (
-                          <div className="text-slate-400 text-xs py-4 text-center border border-dashed border-slate-800 rounded">
-                            Run <span className="text-blue-400 font-semibold">Check</span> to inspect required capabilities.
+                          <div className="text-slate-500 dark:text-slate-400 text-xs py-4 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded">
+                            Run <span className="text-blue-600 dark:text-blue-400 font-semibold">Check</span> to inspect required capabilities.
                           </div>
                         )}
                       </div>
@@ -2119,12 +2154,12 @@ export function WebIDE() {
                           placeholder="Search capabilities..."
                           value={capSearchQuery}
                           onChange={(e) => setCapSearchQuery(e.target.value)}
-                          className="w-full bg-[#090d15] border border-slate-800 rounded px-2.5 py-1 text-[11px] text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                          className="w-full bg-white dark:bg-[#090d15] border border-slate-300 dark:border-slate-800 rounded px-2.5 py-1 text-[11px] text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
                         />
                         <select
                           value={capCategoryFilter}
                           onChange={(e) => setCapCategoryFilter(e.target.value)}
-                          className="bg-[#090d15] border border-slate-800 rounded px-2 py-1 text-[11px] text-slate-300 focus:outline-none focus:border-blue-500"
+                          className="bg-white dark:bg-[#090d15] border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-[11px] text-slate-800 dark:text-slate-300 focus:outline-none focus:border-blue-500"
                         >
                           <option value="ALL">All Categories</option>
                           <option value="Process">Process</option>
@@ -2158,23 +2193,23 @@ export function WebIDE() {
                           })
                           .slice(0, 50)
                           .map(([id, cap]) => (
-                            <div key={id} className="p-2 rounded bg-[#090d15] border border-slate-800 text-[10px] space-y-1">
+                            <div key={id} className="p-2 rounded bg-white dark:bg-[#090d15] border border-slate-200 dark:border-slate-800 text-[10px] space-y-1">
                               <div className="flex items-center justify-between">
-                                <span className="font-mono text-slate-200 font-semibold">{id}</span>
+                                <span className="font-mono text-slate-800 dark:text-slate-200 font-semibold">{id}</span>
                                 <span
                                   className={clsx(
                                     'px-1 py-0.5 rounded text-[8px] font-semibold uppercase',
-                                    cap.status === 'IMPLEMENTED' && 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-                                    cap.status === 'REQUIRES_ELEVATION' && 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-                                    cap.status === 'PARTIAL' && 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
-                                    cap.status === 'PLATFORM_SPECIFIC' && 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
-                                    cap.status === 'UNSUPPORTED' && 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                    cap.status === 'IMPLEMENTED' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
+                                    cap.status === 'REQUIRES_ELEVATION' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+                                    cap.status === 'PARTIAL' && 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20',
+                                    cap.status === 'PLATFORM_SPECIFIC' && 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20',
+                                    cap.status === 'UNSUPPORTED' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                                   )}
                                 >
                                   {cap.status?.replace('_', ' ')}
                                 </span>
                               </div>
-                              <p className="text-slate-400 leading-tight">{cap.description}</p>
+                              <p className="text-slate-600 dark:text-slate-400 leading-tight">{cap.description}</p>
                               <div className="flex flex-wrap gap-1 text-[8px] text-slate-500">
                                 <span>Platform: {cap.platforms}</span>
                                 <span>•</span>
@@ -2192,8 +2227,8 @@ export function WebIDE() {
                     </div>
                   )}
 
-                  <div className="p-2.5 rounded border border-slate-800 bg-[#090d15] text-[10px] text-slate-400 leading-relaxed">
-                    <span className="font-semibold text-slate-300">Execution boundary: </span>
+                  <div className="p-2.5 rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090d15] text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">Execution boundary: </span>
                     Browser editing does not execute host commands. Run uses the controlled server sandbox.
                   </div>
                 </div>
@@ -2202,26 +2237,26 @@ export function WebIDE() {
               {/* Tab 3: Artifact Metadata */}
               {inspectorTab === 'artifact' && (
                 <div className="space-y-3">
-                  <h4 className="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+                  <h4 className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                     Artifact Information
                   </h4>
 
-                  <div className="p-2.5 rounded border border-slate-800 bg-[#090d15] space-y-2 font-mono text-[11px]">
+                  <div className="p-2.5 rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090d15] space-y-2 font-mono text-[11px]">
                     <div>
-                      <div className="text-slate-400 text-[10px]">Tool Version:</div>
-                      <div className="text-slate-200">0.1.0</div>
+                      <div className="text-slate-500 dark:text-slate-400 text-[10px]">Tool Version:</div>
+                      <div className="text-slate-800 dark:text-slate-200">0.1.0</div>
                     </div>
                     <div>
-                      <div className="text-slate-400 text-[10px]">Target Platform:</div>
-                      <div className="text-slate-200">{selectedTarget}</div>
+                      <div className="text-slate-500 dark:text-slate-400 text-[10px]">Target Platform:</div>
+                      <div className="text-slate-800 dark:text-slate-200">{selectedTarget}</div>
                     </div>
                     <div>
-                      <div className="text-slate-400 text-[10px]">Compiler Hash:</div>
-                      <div className="text-slate-400 truncate">1e539f20b535e97ff4b44a...</div>
+                      <div className="text-slate-500 dark:text-slate-400 text-[10px]">Compiler Hash:</div>
+                      <div className="text-slate-500 dark:text-slate-400 truncate">1e539f20b535e97ff4b44a...</div>
                     </div>
                     <div>
-                      <div className="text-slate-400 text-[10px]">Investigation:</div>
-                      <div className="text-blue-300">{selectedExample}</div>
+                      <div className="text-slate-500 dark:text-slate-400 text-[10px]">Investigation:</div>
+                      <div className="text-blue-600 dark:text-blue-300 font-semibold">{selectedExample}</div>
                     </div>
                   </div>
                 </div>

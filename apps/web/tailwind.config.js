@@ -1,5 +1,15 @@
+function withOpacity(variableName) {
+  return ({ opacityValue }) => {
+    if (opacityValue !== undefined) {
+      return `rgba(var(${variableName}), ${opacityValue})`;
+    }
+    return `rgb(var(${variableName}))`;
+  };
+}
+
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -7,19 +17,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        // jocky dark theme
+        // dynamic forensic theme (adapts seamlessly to dark & light modes)
         forensic: {
-          50: '#f0f4f8',
-          100: '#d9e2ec',
-          200: '#bcccdc',
-          300: '#9fb3c8',
-          400: '#829ab1',
-          500: '#627d98',
-          600: '#486581',
-          700: '#334e68',
-          800: '#243b53',
-          900: '#102a43',
-          950: '#0c1e35',
+          50: withOpacity('--forensic-50'),
+          100: withOpacity('--forensic-100'),
+          200: withOpacity('--forensic-200'),
+          300: withOpacity('--forensic-300'),
+          400: withOpacity('--forensic-400'),
+          500: withOpacity('--forensic-500'),
+          600: withOpacity('--forensic-600'),
+          700: withOpacity('--forensic-700'),
+          800: withOpacity('--forensic-800'),
+          900: withOpacity('--forensic-900'),
+          950: withOpacity('--forensic-950'),
         },
         // Dark backgrounds
         dark: {
