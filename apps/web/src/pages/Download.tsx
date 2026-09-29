@@ -368,7 +368,7 @@ sudo dpkg -P jocky        # purge completely`}
             <span>Official Verifiable Release v0.1.0</span>
           </div>
 
-          <h1 className="text-3xl font-bold font-mono text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold font-mono text-white tracking-tight">
             JOCKY Compiler &amp; Toolchain Downloads
           </h1>
 
@@ -413,7 +413,7 @@ sudo dpkg -P jocky        # purge completely`}
           </p>
 
           {/* Tab bar */}
-          <div className="flex flex-wrap gap-1 mb-6 p-1 rounded-lg bg-[#0e1422] border border-slate-800 w-fit">
+          <div className="flex gap-1 mb-6 p-1 rounded-lg bg-[#0e1422] border border-slate-800 overflow-x-auto w-full sm:w-fit">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
@@ -575,7 +575,7 @@ Get-FileHash .\\jocky_0.1.0_windows_x86_64.zip -Algorithm SHA256
         </section>
 
         {/* ── GitHub Releases link ── */}
-        <div className="p-5 rounded-lg border border-blue-500/20 bg-blue-500/5 flex items-center justify-between">
+        <div className="p-5 rounded-lg border border-blue-500/20 bg-blue-500/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <p className="text-sm font-bold text-white mb-0.5">All versions &amp; release notes</p>
             <p className="text-xs text-slate-400">Find older releases, changelogs, and source code archives on GitHub.</p>
@@ -584,7 +584,7 @@ Get-FileHash .\\jocky_0.1.0_windows_x86_64.zip -Algorithm SHA256
             href={RELEASES_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors whitespace-nowrap ml-4"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0"
           >
             GitHub Releases
             <ChevronRight className="h-3.5 w-3.5" />

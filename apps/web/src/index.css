@@ -234,4 +234,36 @@
   .input::placeholder {
     color: #64748b;
   }
+
+  /* ── App Layout Components ── */
+  .sidebar {
+    width: 240px;
+    min-width: 240px;
+    background-color: #111827;
+    border-right: 1px solid #1e293b;
+    transition: width 0.2s ease, min-width 0.2s ease;
+    overflow: hidden;
+  }
+
+  .sidebar-collapsed {
+    width: 56px;
+    min-width: 56px;
+  }
+
+  .main-content {
+    background-color: #0b0f17;
+    overflow: hidden;
+    transition: none;
+  }
+
+  .main-content-expanded {
+    /* no extra rules needed — flex-1 handles it */
+  }
+
+  .header {
+    height: 56px;
+    background-color: #111827;
+    border-bottom: 1px solid #1e293b;
+    flex-shrink: 0;
+  }
 }

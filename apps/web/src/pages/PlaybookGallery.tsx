@@ -178,25 +178,25 @@ export function PlaybookGallery() {
       {/* Hero */}
       <section className="relative border-b border-slate-800/60 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-950/30 via-[#080d15] to-[#080d15]" />
-        <div className="relative max-w-6xl mx-auto px-6 py-20 text-center">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-20 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/60 border border-blue-800/40 text-blue-300 text-xs font-semibold mb-6">
             <BookOpen className="h-3.5 w-3.5" />
             Playbook Gallery
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
             Forensic Investigation Playbooks
           </h1>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+          <p className="text-slate-400 text-sm sm:text-lg max-w-2xl mx-auto">
             Production-ready jocky investigations for incident response, threat hunting, and digital forensics.
             Click any playbook to open it instantly in the Web IDE.
           </p>
         </div>
       </section>
 
-      {/* Filters */}
-      <section className="sticky top-0 z-10 border-b border-slate-800/60 bg-[#080d15]/95 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-6 py-3 flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[200px]">
+      {/* Filters — sticky below the 56px SiteHeader */}
+      <section className="sticky top-14 z-10 border-b border-slate-800/60 bg-[#080d15]/95 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3">
+          <div className="relative w-full sm:flex-1 sm:min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
             <input
               type="text"
@@ -221,7 +221,7 @@ export function PlaybookGallery() {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
             {['All', 'Beginner', 'Intermediate', 'Advanced'].map((d) => (
               <button
                 key={d}
@@ -240,7 +240,7 @@ export function PlaybookGallery() {
       </section>
 
       {/* Grid */}
-      <main className="max-w-6xl mx-auto px-6 py-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         {filtered.length === 0 ? (
           <div className="text-center py-24 text-slate-500">
             <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-30" />

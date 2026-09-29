@@ -220,7 +220,7 @@ export function LanguageGuide() {
             />
           </div>
 
-          <div className="bg-[#0e1422] border border-slate-800 rounded p-3 space-y-4 max-h-[calc(100vh-220px)] overflow-y-auto">
+          <div className="bg-[#0e1422] border border-slate-800 rounded p-3 space-y-4 max-h-48 md:max-h-[calc(100vh-220px)] overflow-y-auto">
             {categories.map((cat) => {
               const catSections = filteredSections.filter((s) => s.category === cat);
               if (catSections.length === 0) return null;
