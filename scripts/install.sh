@@ -133,11 +133,14 @@ ok "All dependencies present"
 step "Resolving version"
 if [ "$VERSION" = "latest" ]; then
   log "Fetching latest release from GitHub..."
-  VERSION="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
+  VERSION="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" 2>/dev/null \
     | grep '"tag_name"' \
     | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/' \
-    | head -1)"
-  [ -z "$VERSION" ] && err "Could not determine latest version. Check your connection."
+    | head -1 || true)"
+  if [ -z "$VERSION" ]; then
+    warn "No published GitHub release found; defaulting to v0.1.0"
+    VERSION="v0.1.0"
+  fi
 fi
 ok "Version: ${VERSION}"
 
@@ -160,13 +163,36 @@ if [ "$HTTP_CODE" = "200" ]; then
   EXTRACTED_BIN="$(find "${TMP_DIR}" -name "${BINARY_NAME}" -not -name "*.tar.gz" -type f | head -1)"
   [ -z "$EXTRACTED_BIN" ] && err "Binary '${BINARY_NAME}' not found inside archive."
 else
-  # Fallback: try raw binary without tarball
+  # Fallback 1: try raw binary without tarball
   RAW_URL="https://github.com/${REPO}/releases/download/${VERSION}/jocky-${PLATFORM}-${ARCH_TAG}"
   log "Archive not found (${HTTP_CODE}), trying raw binary: ${RAW_URL}"
   HTTP_CODE2="$(curl -fsSL -w "%{http_code}" -o "${TMP_DIR}/${BINARY_NAME}" "${RAW_URL}" 2>/dev/null || echo "000")"
-  [ "$HTTP_CODE2" != "200" ] && err "Download failed (HTTP ${HTTP_CODE2}).\nVisit: https://github.com/${REPO}/releases"
-  ok "Downloaded raw binary"
-  EXTRACTED_BIN="${TMP_DIR}/${BINARY_NAME}"
+  if [ "$HTTP_CODE2" = "200" ]; then
+    ok "Downloaded raw binary"
+    EXTRACTED_BIN="${TMP_DIR}/${BINARY_NAME}"
+  else
+    # Fallback 2: try server download endpoint
+    SERVER_URL="${JOCKY_SERVER:-http://localhost:8080}/api/downloads/${ASSET_NAME}"
+    log "Trying server download: ${SERVER_URL}"
+    HTTP_CODE3="$(curl -fsSL -w "%{http_code}" -o "${TMP_DIR}/${ASSET_NAME}" "${SERVER_URL}" 2>/dev/null || echo "000")"
+    if [ "$HTTP_CODE3" = "200" ]; then
+      ok "Downloaded ${ASSET_NAME} from server"
+      tar -xzf "${TMP_DIR}/${ASSET_NAME}" -C "${TMP_DIR}"
+      EXTRACTED_BIN="$(find "${TMP_DIR}" -name "${BINARY_NAME}" -not -name "*.tar.gz" -type f | head -1)"
+      [ -z "$EXTRACTED_BIN" ] && err "Binary '${BINARY_NAME}' not found inside archive."
+    else
+      # Fallback 3: try raw binary from server
+      SERVER_RAW="${JOCKY_SERVER:-http://localhost:8080}/api/downloads/jocky"
+      log "Trying raw binary from server: ${SERVER_RAW}"
+      HTTP_CODE4="$(curl -fsSL -w "%{http_code}" -o "${TMP_DIR}/${BINARY_NAME}" "${SERVER_RAW}" 2>/dev/null || echo "000")"
+      if [ "$HTTP_CODE4" = "200" ]; then
+        ok "Downloaded jocky from server"
+        EXTRACTED_BIN="${TMP_DIR}/${BINARY_NAME}"
+      else
+        err "Download failed. Visit: https://github.com/${REPO}/releases"
+      fi
+    fi
+  fi
 fi
 
 chmod +x "${EXTRACTED_BIN}"

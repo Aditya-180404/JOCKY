@@ -514,25 +514,38 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
     ]);
     let (win_exe_hash, win_exe_size) = file_sha256_candidates(&[
         "./target/release/jocky.exe",
+        "./jocky.exe",
         "./packaging/windows-stage/jocky.exe",
+        "./packages/jocky.exe",
+    ]);
+    let (linux_tar_hash, linux_tar_size) = file_sha256_candidates(&[
+        "./jocky_0.1.0_linux_x86_64.tar.gz",
+        "./packages/jocky_0.1.0_linux_x86_64.tar.gz",
+    ]);
+    let (linux_bin_hash, linux_bin_size) = file_sha256_candidates(&[
+        "./jocky",
+        "./packages/jocky",
+        "./packaging/linux-stage/usr/bin/jocky",
+        "./target/release/jocky",
+        "./target/debug/jocky",
     ]);
 
     let release_date = chrono::Utc::now().format("%Y-%m-%d").to_string();
     let mut packages = Vec::new();
 
-    if win_zip_size > 0 && win_zip_hash != "unavailable" {
+    if linux_tar_size > 0 && linux_tar_hash != "unavailable" {
         packages.push(DownloadPackage {
-            platform: "Windows".to_string(),
-            arch: "x64".to_string(),
-            name: "jocky Windows Distribution Archive (.zip)".to_string(),
-            filename: "jocky_0.1.0_windows_amd64.zip".to_string(),
+            platform: "Linux".to_string(),
+            arch: "x86_64".to_string(),
+            name: "jocky Linux Distribution Archive (.tar.gz)".to_string(),
+            filename: "jocky_0.1.0_linux_x86_64.tar.gz".to_string(),
             version: "0.1.0".to_string(),
-            size_bytes: win_zip_size,
-            sha256: win_zip_hash,
-            content_type: "application/zip".to_string(),
+            size_bytes: linux_tar_size,
+            sha256: linux_tar_hash,
+            content_type: "application/gzip".to_string(),
             release_date: release_date.clone(),
-            requirements: "Windows 10 / 11 64-bit".to_string(),
-            download_url: "/api/downloads/jocky_0.1.0_windows_amd64.zip".to_string(),
+            requirements: "Linux x86_64 (glibc 2.17+)".to_string(),
+            download_url: "/api/downloads/jocky_0.1.0_linux_x86_64.tar.gz".to_string(),
         });
     }
 
@@ -552,6 +565,22 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
         });
     }
 
+    if win_zip_size > 0 && win_zip_hash != "unavailable" {
+        packages.push(DownloadPackage {
+            platform: "Windows".to_string(),
+            arch: "x64".to_string(),
+            name: "jocky Windows Distribution Archive (.zip)".to_string(),
+            filename: "jocky_0.1.0_windows_amd64.zip".to_string(),
+            version: "0.1.0".to_string(),
+            size_bytes: win_zip_size,
+            sha256: win_zip_hash,
+            content_type: "application/zip".to_string(),
+            release_date: release_date.clone(),
+            requirements: "Windows 10 / 11 64-bit".to_string(),
+            download_url: "/api/downloads/jocky_0.1.0_windows_amd64.zip".to_string(),
+        });
+    }
+
     if win_exe_size > 0 && win_exe_hash != "unavailable" {
         packages.push(DownloadPackage {
             platform: "Windows".to_string(),
@@ -562,9 +591,25 @@ pub async fn downloads_info_handler() -> Json<DownloadInfoResponse> {
             size_bytes: win_exe_size,
             sha256: win_exe_hash,
             content_type: "application/vnd.microsoft.portable-executable".to_string(),
-            release_date,
+            release_date: release_date.clone(),
             requirements: "Windows 10 / 11 64-bit".to_string(),
             download_url: "/api/downloads/jocky.exe".to_string(),
+        });
+    }
+
+    if linux_bin_size > 0 && linux_bin_hash != "unavailable" {
+        packages.push(DownloadPackage {
+            platform: "Linux".to_string(),
+            arch: "x86_64".to_string(),
+            name: "jocky Standalone CLI Executable".to_string(),
+            filename: "jocky".to_string(),
+            version: "0.1.0".to_string(),
+            size_bytes: linux_bin_size,
+            sha256: linux_bin_hash,
+            content_type: "application/octet-stream".to_string(),
+            release_date,
+            requirements: "Linux x86_64 (glibc 2.17+)".to_string(),
+            download_url: "/api/downloads/jocky".to_string(),
         });
     }
 
@@ -594,8 +639,42 @@ pub async fn download_file_handler(Path(filename): Path<String>) -> impl IntoRes
                 "./target/release/jocky.exe",
                 "./jocky.exe",
                 "./packaging/windows-stage/jocky.exe",
+                "./packages/jocky.exe",
             ],
             "application/vnd.microsoft.portable-executable",
+        ),
+        "jocky_0.1.0_linux_x86_64.tar.gz" => (
+            &[
+                "./jocky_0.1.0_linux_x86_64.tar.gz",
+                "./packages/jocky_0.1.0_linux_x86_64.tar.gz",
+            ],
+            "application/gzip",
+        ),
+        "jocky" => (
+            &[
+                "./jocky",
+                "./packages/jocky",
+                "./packaging/linux-stage/usr/bin/jocky",
+                "./target/release/jocky",
+                "./target/debug/jocky",
+            ],
+            "application/octet-stream",
+        ),
+        "install.sh" => (
+            &[
+                "./scripts/install.sh",
+                "../scripts/install.sh",
+                "/app/scripts/install.sh",
+            ],
+            "text/plain; charset=utf-8",
+        ),
+        "install.ps1" => (
+            &[
+                "./scripts/install.ps1",
+                "../scripts/install.ps1",
+                "/app/scripts/install.ps1",
+            ],
+            "text/plain; charset=utf-8",
         ),
         _ => return (StatusCode::NOT_FOUND, "Artifact not currently available").into_response(),
     };

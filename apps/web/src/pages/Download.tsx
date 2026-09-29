@@ -92,6 +92,9 @@ export function DownloadPage() {
         'application/zip',
         'application/vnd.debian.binary-package',
         'application/vnd.microsoft.portable-executable',
+        'application/gzip',
+        'application/x-gzip',
+        'application/octet-stream',
       ].includes(expectedContentType)) {
         throw new Error('The package metadata has an unsupported MIME type');
       }
