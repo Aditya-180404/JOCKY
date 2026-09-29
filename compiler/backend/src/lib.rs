@@ -859,13 +859,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
                 let from_manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../runtime");
                 if from_manifest.exists() {
                     from_manifest.canonicalize().map_err(|e| {
-                        BackendError::TemplateError(format!("Unable to locate runtime crate: {}", e))
+                        BackendError::TemplateError(format!(
+                            "Unable to locate runtime crate: {}",
+                            e
+                        ))
                     })?
                 } else if PathBuf::from("/app/runtime").exists() {
                     PathBuf::from("/app/runtime")
                 } else if PathBuf::from("runtime").exists() {
                     PathBuf::from("runtime").canonicalize().map_err(|e| {
-                        BackendError::TemplateError(format!("Unable to locate runtime crate: {}", e))
+                        BackendError::TemplateError(format!(
+                            "Unable to locate runtime crate: {}",
+                            e
+                        ))
                     })?
                 } else {
                     return Err(BackendError::TemplateError(

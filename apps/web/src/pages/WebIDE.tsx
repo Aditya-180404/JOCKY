@@ -943,7 +943,7 @@ export function WebIDE() {
           const text = await err.response.data.text();
           const parsed = JSON.parse(text);
           if (parsed.message) errorMessage = parsed.message;
-        } catch (_) {}
+        } catch (_) { /* ignore JSON parse errors on blob error responses */ }
       } else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
       }
