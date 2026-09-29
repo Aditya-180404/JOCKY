@@ -180,8 +180,10 @@ enum Commands {
     },
     /// Generate a forensic report from an evidence JSON file
     Report {
+        #[command(subcommand)]
+        command: Option<ReportCommands>,
         /// Evidence JSON file
-        evidence: PathBuf,
+        evidence: Option<PathBuf>,
         /// Metadata sidecar file (default: <evidence>.meta.json)
         #[arg(long)]
         meta: Option<PathBuf>,
@@ -368,6 +370,24 @@ enum EvidenceCommands {
     },
 }
 
+#[derive(Subcommand)]
+enum ReportCommands {
+    /// Generate a forensic report from an evidence JSON file
+    Generate {
+        /// Evidence JSON file
+        evidence: PathBuf,
+        /// Metadata sidecar file (default: <evidence>.meta.json)
+        #[arg(long)]
+        meta: Option<PathBuf>,
+        /// Report format (terminal, markdown, json, csv, html)
+        #[arg(short, long, default_value = "terminal")]
+        format: String,
+        /// Output file to write report to (default: stdout)
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
+}
+
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
@@ -468,11 +488,28 @@ fn main() -> anyhow::Result<()> {
             EvidenceCommands::Inspect { file } => evidence_inspect(&file),
         },
         Commands::Report {
+            command,
             evidence,
             meta,
             format,
             output,
-        } => generate_report(&evidence, meta.as_deref(), &format, output.as_deref()),
+        } => {
+            if let Some(ReportCommands::Generate {
+                evidence,
+                meta,
+                format,
+                output,
+            }) = command
+            {
+                generate_report(&evidence, meta.as_deref(), &format, output.as_deref())
+            } else if let Some(ev) = evidence {
+                generate_report(&ev, meta.as_deref(), &format, output.as_deref())
+            } else {
+                anyhow::bail!(
+                    "No evidence file specified. Usage: jocky report [generate] <EVIDENCE>"
+                )
+            }
+        }
         Commands::Init { name } => init_project(&name),
         Commands::Run {
             file,

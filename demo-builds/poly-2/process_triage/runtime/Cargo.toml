@@ -1,0 +1,34 @@
+[package]
+name = "jocky-runtime"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+[lib]
+name = "jocky_runtime"
+crate-type = ["rlib", "staticlib"]
+
+[dependencies]
+jocky-runtime-system = { path = "system" }
+jocky-runtime-process = { path = "process" }
+jocky-runtime-network = { path = "network" }
+jocky-runtime-filesystem = { path = "filesystem" }
+jocky-runtime-logs = { path = "logs" }
+jocky-runtime-evidence = { path = "evidence" }
+jocky-runtime-drivers = { path = "drivers" }
+jocky-runtime-timeline = { path = "timeline" }
+jocky-runtime-memory = { path = "memory" }
+jocky-runtime-registry = { path = "registry" }
+jocky-runtime-artifacts = { path = "artifacts" }
+jocky-runtime-correlation = { path = "correlation" }
+jocky-runtime-security = { path = "security" }
+jocky-runtime-services = { path = "services" }
+jocky-runtime-users = { path = "users" }
+jocky-runtime-auth = { path = "auth" }
+jocky-runtime-capabilities = { path = "capabilities" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+sha2 = { workspace = true }

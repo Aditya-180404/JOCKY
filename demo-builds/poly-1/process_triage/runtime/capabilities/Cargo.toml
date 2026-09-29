@@ -1,0 +1,28 @@
+[package]
+name = "jocky-runtime-capabilities"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+jocky-runtime-evidence = { path = "../evidence" }
+jocky-runtime-system = { path = "../system" }
+jocky-runtime-process = { path = "../process" }
+jocky-runtime-network = { path = "../network" }
+jocky-runtime-filesystem = { path = "../filesystem" }
+jocky-runtime-users = { path = "../users" }
+jocky-runtime-auth = { path = "../auth" }
+jocky-runtime-services = { path = "../services" }
+jocky-runtime-artifacts = { path = "../artifacts" }
+jocky-runtime-security = { path = "../security" }
+jocky-runtime-logs = { path = "../logs" }
+jocky-runtime-drivers = { path = "../drivers" }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"

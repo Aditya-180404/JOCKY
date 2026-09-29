@@ -1,0 +1,52 @@
+{
+  "architecture": "x64",
+  "artifact_hash": "9835042bb5cfe33ce062cbfc91f10cd1edf439c1ca8ad058c2576b2fe71b5039",
+  "backend": "rust",
+  "capability_provenance": [
+    {
+      "capability": "SYSTEM_INFO_READ",
+      "source_statement": "collect system_info",
+      "span": "3:5-24"
+    },
+    {
+      "capability": "PROCESS_READ",
+      "source_statement": "collect processes",
+      "span": "5:5-12:6"
+    },
+    {
+      "capability": "FILE_HASH",
+      "source_statement": "collect processes: hash requested",
+      "span": "5:5-12:6"
+    },
+    {
+      "capability": "NETWORK_READ",
+      "source_statement": "collect network_connections",
+      "span": "14:5-32"
+    }
+  ],
+  "compiler_capabilities": [
+    "FILE_HASH",
+    "NETWORK_READ",
+    "PROCESS_READ",
+    "SYSTEM_INFO_READ"
+  ],
+  "compiler_identifier": "43f15f9bd5e0ff7c14730562c972b8d117a33b743f515f921f983dd3729ce254",
+  "compiler_version": "0.1.0",
+  "hir_hash": null,
+  "investigation": "process_triage",
+  "language_version": "1.0",
+  "llvm_ir_hash": null,
+  "mir_hash": null,
+  "operations_count": 4,
+  "optimization_level": "speed",
+  "runtime_version": "0.1.0",
+  "safety_invariants": {
+    "credential_access": false,
+    "defensive_only": true,
+    "kernel_modification": false,
+    "network_write": false,
+    "persistence": false
+  },
+  "source_hash": "77dca1d7146536d7ded62aa8c88cb6af921c67284dcf11888af11e68e5a49084",
+  "target": "linux"
+}

@@ -1,0 +1,27 @@
+[package]
+name = "jocky-runtime-correlation"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+jocky-runtime-timeline = { path = "../timeline" }
+jocky-runtime-security = { path = "../security" }
+jocky-runtime-evidence = { path = "../evidence" }
+jocky-runtime-process = { path = "../process" }
+jocky-runtime-network = { path = "../network" }
+jocky-runtime-filesystem = { path = "../filesystem" }
+jocky-runtime-logs = { path = "../logs" }
+jocky-runtime-drivers = { path = "../drivers" }
+jocky-runtime-registry = { path = "../registry" }
+jocky-runtime-memory = { path = "../memory" }
+jocky-runtime-artifacts = { path = "../artifacts" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+indexmap = { workspace = true }
+thiserror = { workspace = true }
+regex = "1.10"

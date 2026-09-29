@@ -9,7 +9,8 @@ if (-not (Test-Path $ZipPath)) {
     throw "Zip file not found at: $ZipPath"
 }
 
-$testDir = Join-Path $env:TEMP ("jocky-pkg-test-" + [System.Guid]::NewGuid().ToString())
+$tempRoot = if ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
+$testDir = Join-Path $tempRoot ("jocky-pkg-test-" + [System.Guid]::NewGuid().ToString())
 New-Item -ItemType Directory -Path $testDir | Out-Null
 
 try {
@@ -19,6 +20,15 @@ try {
     $exePath = Join-Path $testDir "jocky.exe"
     if (-not (Test-Path $exePath)) {
         throw "jocky.exe not found in extracted package root"
+    }
+
+    function Invoke-Jocky {
+        param([string[]]$Arguments)
+        if ($IsWindows -or ($null -eq $IsWindows -and [System.Environment]::OSVersion.Platform -match "Win")) {
+            & $exePath @Arguments
+        } else {
+            & wine $exePath @Arguments
+        }
     }
 
     Write-Host "[2/6] Verifying PE x64 architecture..." -ForegroundColor Cyan
@@ -34,7 +44,7 @@ try {
     Write-Host "      ✓ PE architecture: AMD64 / x86_64 confirmed" -ForegroundColor Green
 
     Write-Host "[3/6] Testing jocky.exe --version..." -ForegroundColor Cyan
-    $ver = & $exePath --version
+    $ver = (Invoke-Jocky @("--version")) -join "`n"
     Write-Host "      Version output: $ver"
     if ($ver -notmatch "jocky 0.1.0") {
         throw "Unexpected version output: $ver"
@@ -42,14 +52,14 @@ try {
     Write-Host "      ✓ Version verified" -ForegroundColor Green
 
     Write-Host "[4/6] Testing jocky.exe doctor..." -ForegroundColor Cyan
-    $doc = (& $exePath doctor) -join "`n"
+    $doc = (Invoke-Jocky @("doctor")) -join "`n"
     if ($doc -notmatch "Total:\s+247") {
         throw "Doctor output does not report 247 capabilities"
     }
     Write-Host "      ✓ Doctor diagnostic passed" -ForegroundColor Green
 
     Write-Host "[5/6] Testing jocky.exe capabilities --format json..." -ForegroundColor Cyan
-    $capsRaw = (& $exePath capabilities --format json) -join "`n"
+    $capsRaw = (Invoke-Jocky @("capabilities", "--format", "json")) -join "`n"
     $caps = $capsRaw | ConvertFrom-Json
     if ($caps.Length -ne 247) {
         throw "Expected 247 capabilities, got: $($caps.Length)"

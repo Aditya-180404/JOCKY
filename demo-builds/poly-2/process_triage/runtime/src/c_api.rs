@@ -1,0 +1,500 @@
+//! C-compatible ABI for jocky LLVM code generation
+//!
+//! Provides `extern "C"` endpoints called directly by the LLVM IR generated
+//! by the jocky compiler.
+
+use jocky_runtime_evidence::{CollectionStatus, EvidenceCollector};
+use std::ffi::CStr;
+use std::os::raw::{c_char, c_int, c_void};
+
+/// Context wrapper holding the collector
+pub struct RuntimeContext {
+    pub collector: EvidenceCollector,
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must ensure `investigation_name` and `source_hash` are valid UTF-8 C string pointers or null.
+pub unsafe extern "C" fn jocky_rt_evidence_init(
+    investigation_name: *const c_char,
+    source_hash: *const c_char,
+) -> *mut c_void {
+    let name_str = if investigation_name.is_null() {
+        "investigation".to_string()
+    } else {
+        CStr::from_ptr(investigation_name)
+            .to_str()
+            .unwrap_or("investigation")
+            .to_string()
+    };
+    let source_hash = if source_hash.is_null() {
+        None
+    } else {
+        CStr::from_ptr(source_hash)
+            .to_str()
+            .ok()
+            .filter(|value| !value.is_empty())
+            .map(str::to_owned)
+    };
+    let artifact_hash = std::env::current_exe()
+        .ok()
+        .and_then(|path| jocky_runtime_evidence::hash_file(&path.to_string_lossy()).ok());
+    let mut collector = EvidenceCollector::new(&name_str);
+    collector.set_build_provenance(source_hash, artifact_hash);
+    let ctx = Box::new(RuntimeContext { collector });
+    Box::into_raw(ctx) as *mut c_void
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context and valid UTF-8 C strings for the capability ID
+/// and options JSON, or null for options.
+pub unsafe extern "C" fn jocky_rt_invoke_capability(
+    ctx_ptr: *mut c_void,
+    capability_id_ptr: *const c_char,
+    options_json_ptr: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() || capability_id_ptr.is_null() {
+        return -1;
+    }
+
+    let capability_id = match CStr::from_ptr(capability_id_ptr).to_str() {
+        Ok(value) => value,
+        Err(_) => return -1,
+    };
+    let mut options = if options_json_ptr.is_null() {
+        serde_json::Map::new()
+    } else {
+        let Ok(json) = CStr::from_ptr(options_json_ptr).to_str() else {
+            return -1;
+        };
+        match serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(json) {
+            Ok(options) => options,
+            Err(error) => {
+                eprintln!("[jocky Runtime] Invalid capability options JSON: {}", error);
+                return -1;
+            }
+        }
+    };
+
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    options.insert(
+        "_evidence_records".to_string(),
+        serde_json::Value::Array(ctx.collector.records().to_vec()),
+    );
+    let result = match crate::capabilities::registry()
+        .invoke_runtime_capability_with_options(capability_id, &options)
+    {
+        Ok(result) => result,
+        Err(error) => {
+            eprintln!(
+                "[jocky Runtime] Capability {} dispatch error: {}",
+                capability_id, error
+            );
+            return -1;
+        }
+    };
+
+    for record in result.evidence_records {
+        ctx.collector.add_record(record);
+    }
+    ctx.collector.record_collector_result(
+        capability_id,
+        result.status,
+        result.records_count,
+        result.error,
+        result.warning,
+    );
+
+    match result.status {
+        CollectionStatus::Success => 0,
+        CollectionStatus::Partial => 1,
+        CollectionStatus::Failed => -1,
+        CollectionStatus::NotFound => -2,
+        CollectionStatus::Unsupported => -3,
+        CollectionStatus::PermissionDenied => -4,
+        CollectionStatus::RequiresElevation => -5,
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid pointer returned by `jocky_rt_evidence_init` and must not
+/// dereference it after calling `jocky_rt_evidence_free`.
+pub unsafe extern "C" fn jocky_rt_collect_system(ctx_ptr: *mut c_void) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    match ctx.collector.collect_system_info() {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[jocky Runtime] System info collection error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must ensure `ctx_ptr` is a valid runtime context pointer and that `fields_json` is a
+/// valid UTF-8 C string pointer or null.
+pub unsafe extern "C" fn jocky_rt_collect_processes(
+    ctx_ptr: *mut c_void,
+    fields_json: *const c_char,
+    _hash_algo: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let fields: Vec<String> = if fields_json.is_null() {
+        vec![]
+    } else if let Ok(s) = CStr::from_ptr(fields_json).to_str() {
+        serde_json::from_str(s).unwrap_or_default()
+    } else {
+        vec![]
+    };
+
+    match ctx.collector.collect_processes(fields) {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[jocky Runtime] Process collection error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer returned by `jocky_rt_evidence_init`.
+pub unsafe extern "C" fn jocky_rt_collect_network(ctx_ptr: *mut c_void) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    match ctx.collector.collect_network_connections() {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[jocky Runtime] Network collection error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer and ensure `path_ptr` and `hash_algo_ptr`
+/// are valid UTF-8 C strings or null.
+pub unsafe extern "C" fn jocky_rt_collect_files(
+    ctx_ptr: *mut c_void,
+    path_ptr: *const c_char,
+    recursive: c_int,
+    hash_algo_ptr: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let path = if path_ptr.is_null() {
+        "/"
+    } else {
+        CStr::from_ptr(path_ptr).to_str().unwrap_or("/")
+    };
+    let hash_algo = if hash_algo_ptr.is_null() {
+        "sha256"
+    } else {
+        CStr::from_ptr(hash_algo_ptr).to_str().unwrap_or("sha256")
+    };
+
+    match ctx.collector.collect_files(path, recursive != 0, hash_algo) {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[jocky Runtime] Filesystem collection error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer and a valid UTF-8 C string pointer for
+/// `source_ptr`, or null.
+pub unsafe extern "C" fn jocky_rt_collect_logs(
+    ctx_ptr: *mut c_void,
+    source_ptr: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let source = if source_ptr.is_null() {
+        "system"
+    } else {
+        CStr::from_ptr(source_ptr).to_str().unwrap_or("system")
+    };
+
+    match ctx.collector.collect_logs(source) {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[jocky Runtime] Logs collection error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer returned by `jocky_rt_evidence_init`.
+pub unsafe extern "C" fn jocky_rt_collect_drivers(ctx_ptr: *mut c_void) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    match crate::drivers::enumerate_drivers() {
+        Ok(driver_records) => {
+            for rec in driver_records {
+                ctx.collector.add_record(rec);
+            }
+            0
+        }
+        Err(e) => {
+            eprintln!("[jocky Runtime] Drivers collection error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer returned by `jocky_rt_evidence_init`.
+pub unsafe extern "C" fn jocky_rt_collect_memory_regions(
+    ctx_ptr: *mut c_void,
+    pid: c_int,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let pid_filter = if pid <= 0 { None } else { Some(pid) };
+    match ctx.collector.collect_memory_regions(pid_filter) {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[jocky Runtime] Memory regions collection error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer and valid UTF-8 strings or null.
+pub unsafe extern "C" fn jocky_rt_collect_registry(
+    ctx_ptr: *mut c_void,
+    hive_ptr: *const c_char,
+    key_ptr: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let hive = if hive_ptr.is_null() {
+        "HKLM"
+    } else {
+        CStr::from_ptr(hive_ptr).to_str().unwrap_or("HKLM")
+    };
+    let key_path = if key_ptr.is_null() {
+        "SOFTWARE"
+    } else {
+        CStr::from_ptr(key_ptr).to_str().unwrap_or("SOFTWARE")
+    };
+
+    match ctx.collector.collect_registry(hive, key_path) {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[jocky Runtime] Registry collection error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer and valid UTF-8 strings or null.
+pub unsafe extern "C" fn jocky_rt_collect_artifacts(
+    ctx_ptr: *mut c_void,
+    type_ptr: *const c_char,
+    path_ptr: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let artifact_type = if type_ptr.is_null() {
+        "all"
+    } else {
+        CStr::from_ptr(type_ptr).to_str().unwrap_or("all")
+    };
+    let path = if path_ptr.is_null() {
+        ""
+    } else {
+        CStr::from_ptr(path_ptr).to_str().unwrap_or("")
+    };
+
+    match ctx.collector.collect_artifacts(artifact_type, path) {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[jocky Runtime] Artifacts collection error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must ensure `ctx_ptr` is valid and `filter_json` is a valid UTF-8 C string pointer.
+pub unsafe extern "C" fn jocky_rt_evidence_filter(
+    ctx_ptr: *mut c_void,
+    filter_json: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() || filter_json.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    if let Ok(s) = CStr::from_ptr(filter_json).to_str() {
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(s) {
+            ctx.collector.add_filter(val);
+            return 0;
+        }
+    }
+    -1
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must ensure `ctx_ptr` is valid and `where_json` is a valid UTF-8 C string pointer.
+pub unsafe extern "C" fn jocky_rt_evidence_where(
+    ctx_ptr: *mut c_void,
+    where_json: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() || where_json.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    if let Ok(s) = CStr::from_ptr(where_json).to_str() {
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(s) {
+            ctx.collector.add_where(val);
+            return 0;
+        }
+    }
+    -1
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer returned by `jocky_rt_evidence_init`.
+pub unsafe extern "C" fn jocky_rt_evidence_limit(ctx_ptr: *mut c_void, limit: usize) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    ctx.collector.set_limit(serde_json::json!(limit));
+    0
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer and valid UTF-8 C string pointers for the
+/// format and output path, or null.
+pub unsafe extern "C" fn jocky_rt_evidence_export(
+    ctx_ptr: *mut c_void,
+    format_ptr: *const c_char,
+    path_ptr: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let format = if format_ptr.is_null() {
+        "json"
+    } else {
+        CStr::from_ptr(format_ptr).to_str().unwrap_or("json")
+    };
+    let path = if path_ptr.is_null() {
+        "evidence.json"
+    } else {
+        CStr::from_ptr(path_ptr).to_str().unwrap_or("evidence.json")
+    };
+
+    ctx.collector.set_output_format(format, path);
+    match ctx.collector.finalize() {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[jocky Runtime] Export error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer and a valid UTF-8 C string pointer for
+/// `algo_ptr`, or null.
+pub unsafe extern "C" fn jocky_rt_evidence_compute_hash(
+    ctx_ptr: *mut c_void,
+    algo_ptr: *const c_char,
+) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let algo = if algo_ptr.is_null() {
+        "sha256"
+    } else {
+        CStr::from_ptr(algo_ptr).to_str().unwrap_or("sha256")
+    };
+    match ctx.collector.compute_hash(algo) {
+        Ok(_) => 0,
+        Err(e) => {
+            eprintln!("[jocky Runtime] Compute hash error: {}", e);
+            -1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must provide a valid runtime context pointer returned by `jocky_rt_evidence_init`.
+pub unsafe extern "C" fn jocky_rt_evidence_generate_timeline(ctx_ptr: *mut c_void) -> c_int {
+    if ctx_ptr.is_null() {
+        return -1;
+    }
+    let ctx = &mut *(ctx_ptr as *mut RuntimeContext);
+    let host = ctx.collector.host_identifier().to_string();
+    let records = ctx.collector.records();
+    let mut timeline_records = Vec::with_capacity(records.len());
+    for (i, rec) in records.iter().enumerate() {
+        let ref_str = format!("ref-{}", i + 1);
+        if let Some(event) = jocky_runtime_timeline::normalize_record(rec, &host, Some(&ref_str)) {
+            if let Ok(v) = serde_json::to_value(&event) {
+                timeline_records.push(v);
+                continue;
+            }
+        }
+        timeline_records.push(rec.clone());
+    }
+    ctx.collector.set_records(timeline_records);
+    ctx.collector
+        .add_metadata("timeline_generated", serde_json::json!(true));
+    0
+}
+
+#[no_mangle]
+/// # Safety
+/// Caller must ensure `ctx_ptr` is either null or a pointer previously returned by
+/// `jocky_rt_evidence_init` and not already freed.
+pub unsafe extern "C" fn jocky_rt_evidence_free(ctx_ptr: *mut c_void) {
+    if !ctx_ptr.is_null() {
+        drop(Box::from_raw(ctx_ptr as *mut RuntimeContext));
+    }
+}

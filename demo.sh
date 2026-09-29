@@ -194,14 +194,15 @@ stage_head 6 "Polymorphic Engine (3 builds → 3 unique SHA-256)"
 if [[ "$FAST" == "fast" ]]; then
   info "FAST mode: using pre-seeded IR diff instead of full compile"
   # Generate three IR JSON files with different build seeds to prove uniqueness
+  SHA_A=""; SHA_B=""; SHA_C=""
   for i in 1 2 3; do
-    SEED=$((RANDOM * i + $(date +%N | cut -c1-6)))
+    SEED=$((RANDOM * i + 10#$(date +%N | cut -c1-6)))
     # Use the compiler in check+IR mode — much faster than a full LLVM compile
     "$BIN" compile "$ROOT/examples/process_triage.jy" \
       --output "$BUILD_DIR/poly-$i/" \
       --polymorphic --cfg-flatten --encrypt-strings \
       --junk-instructions --opaque-predicates \
-      --seed "$SEED" 2>/dev/null || true
+      --evasion-seed "$SEED" 2>/dev/null || true
     sleep 0.3
   done
 
