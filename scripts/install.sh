@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  JOCKY Installer — Linux / macOS                                        ║
+# ║  JOCKY Installer — Linux                                                ║
 # ║                                                                          ║
 # ║  Usage (one-liner):                                                      ║
 # ║    curl -fsSL https://raw.githubusercontent.com/Aditya-180404/JOCKY/   ║
@@ -96,7 +96,7 @@ ARCH="$(uname -m)"
 
 case "$OS" in
   Linux)  PLATFORM="linux" ;;
-  Darwin) PLATFORM="macos" ;;
+  Darwin) err "macOS is not currently supported. JOCKY supports Linux and Windows." ;;
   *)      err "Unsupported OS: $OS. Use install.ps1 on Windows." ;;
 esac
 

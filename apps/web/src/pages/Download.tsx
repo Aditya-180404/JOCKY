@@ -12,7 +12,6 @@ import {
   Loader2,
   AlertCircle,
   Monitor,
-  Apple,
   Package,
   Zap,
   ExternalLink,
@@ -34,7 +33,7 @@ interface PackageInfo {
   download_url: string;
 }
 
-type PlatformTab = 'linux' | 'macos' | 'windows' | 'debian';
+type PlatformTab = 'linux' | 'windows' | 'debian';
 
 const GITHUB_REPO = 'Aditya-180404/JOCKY';
 const RAW_BASE = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/scripts`;
@@ -52,7 +51,6 @@ export function DownloadPage() {
     // Auto-detect platform
     const ua = navigator.userAgent.toLowerCase();
     if (ua.includes('win')) setActiveTab('windows');
-    else if (ua.includes('mac')) setActiveTab('macos');
     else setActiveTab('linux');
 
     loadPackages();
@@ -225,60 +223,6 @@ jocky script.jy           # compile to native binary`}
     </div>
   );
 
-  const MacOSContent = () => (
-    <div className="space-y-6">
-      <div className="p-5 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
-        <div className="flex items-center gap-2 mb-1">
-          <Zap className="h-4 w-4 text-emerald-400" />
-          <span className="text-sm font-bold text-emerald-300">One-liner Install (Recommended)</span>
-        </div>
-        <p className="text-xs text-slate-400 mb-0">
-          Universal binary — runs natively on both Apple Silicon (M1/M2/M3) and Intel Macs.
-        </p>
-        <CodeBlock
-          id="macos-oneliner"
-          code={`curl -fsSL ${RAW_BASE}/install.sh | bash`}
-        />
-      </div>
-
-      <div className="p-5 rounded-lg border border-slate-700/50 bg-[#0e1422]">
-        <h4 className="text-xs font-bold text-white mb-3 font-mono uppercase tracking-wider">Manual Download</h4>
-        <CodeBlock
-          id="macos-manual"
-          code={`# Download universal binary (x86_64 + arm64)
-curl -fsSL https://github.com/${GITHUB_REPO}/releases/latest/download/jocky-macos-universal -o jocky
-chmod +x jocky
-sudo mv jocky /usr/local/bin/
-
-# Or via the tarball
-curl -fsSL https://github.com/${GITHUB_REPO}/releases/latest/download/jocky_0.1.0_macos_universal.tar.gz | tar xz
-sudo mv jocky /usr/local/bin/`}
-        />
-      </div>
-
-      <div className="p-5 rounded-lg border border-slate-700/50 bg-[#0e1422]">
-        <h4 className="text-xs font-bold text-white mb-3 font-mono uppercase tracking-wider">Build from Source</h4>
-        <CodeBlock
-          id="macos-source"
-          code={`# Prerequisites: Rust (rustup.rs) + LLVM via Homebrew
-brew install llvm@21
-export LLVM_SYS_211_PREFIX="$(brew --prefix llvm@21)"
-
-git clone https://github.com/${GITHUB_REPO}.git && cd JOCKY
-
-# Build universal binary (Intel + Apple Silicon)
-rustup target add x86_64-apple-darwin aarch64-apple-darwin
-cargo build --release --target x86_64-apple-darwin
-cargo build --release --target aarch64-apple-darwin
-lipo -create -output jocky \
-  target/x86_64-apple-darwin/release/jocky \
-  target/aarch64-apple-darwin/release/jocky
-sudo mv jocky /usr/local/bin/`}
-        />
-      </div>
-    </div>
-  );
-
   const WindowsContent = () => (
     <div className="space-y-6">
       <div className="p-5 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
@@ -404,7 +348,6 @@ sudo dpkg -P jocky        # purge completely`}
 
   const TABS: { id: PlatformTab; label: string; icon: React.ReactNode }[] = [
     { id: 'linux',   label: 'Linux',   icon: <Terminal className="h-3.5 w-3.5" /> },
-    { id: 'macos',   label: 'macOS',   icon: <Apple className="h-3.5 w-3.5" /> },
     { id: 'windows', label: 'Windows', icon: <Monitor className="h-3.5 w-3.5" /> },
     { id: 'debian',  label: 'Debian / Ubuntu', icon: <Package className="h-3.5 w-3.5" /> },
   ];
@@ -489,7 +432,6 @@ sudo dpkg -P jocky        # purge completely`}
           {/* Tab content */}
           <div className="min-h-0">
             {activeTab === 'linux'   && <LinuxContent />}
-            {activeTab === 'macos'   && <MacOSContent />}
             {activeTab === 'windows' && <WindowsContent />}
             {activeTab === 'debian'  && <DebianContent />}
           </div>
@@ -597,7 +539,7 @@ sudo dpkg -P jocky        # purge completely`}
             <div className="p-5 rounded border border-slate-800 bg-[#0e1422]">
               <div className="flex items-center gap-2 mb-3">
                 <Terminal className="h-4 w-4 text-blue-400" />
-                <h3 className="text-sm font-bold text-white font-mono">Linux / macOS</h3>
+                <h3 className="text-sm font-bold text-white font-mono">Linux</h3>
               </div>
               <div className="relative mt-0">
                 <pre className="p-4 rounded bg-[#060a12] border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto leading-relaxed">

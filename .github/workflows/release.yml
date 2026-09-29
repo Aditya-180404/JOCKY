@@ -136,65 +136,6 @@ jobs:
           retention-days: 1
 
   # ══════════════════════════════════════════════════════════════════════════════
-  # Build — macOS (Universal: x86_64 + arm64)
-  # ══════════════════════════════════════════════════════════════════════════════
-  build-macos:
-    name: Build (macOS Universal)
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-apple-darwin,aarch64-apple-darwin
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: release-macos
-
-      - name: Install LLVM 21 (macOS)
-        run: brew install llvm@21 || brew install llvm
-
-      - name: Set LLVM env (macOS)
-        run: |
-          LLVM_PREFIX="$(brew --prefix llvm@21 2>/dev/null || brew --prefix llvm)"
-          echo "LLVM_SYS_211_PREFIX=${LLVM_PREFIX}" >> "$GITHUB_ENV"
-          echo "${LLVM_PREFIX}/bin" >> "$GITHUB_PATH"
-
-      - name: Build for x86_64
-        run: cargo build --release --target x86_64-apple-darwin
-
-      - name: Build for aarch64
-        run: cargo build --release --target aarch64-apple-darwin
-
-      - name: Create universal binary with lipo
-        run: |
-          VERSION="${{ github.ref_name }}"
-          VER="${VERSION#v}"
-          mkdir -p dist
-
-          X86="$(find target/x86_64-apple-darwin/release -maxdepth 1 -name 'jocky' | head -1)"
-          ARM="$(find target/aarch64-apple-darwin/release -maxdepth 1 -name 'jocky' | head -1)"
-
-          lipo -create -output dist/jocky "$X86" "$ARM"
-          chmod +x dist/jocky
-
-          cd dist
-          tar -czf "jocky_${VER}_macos_universal.tar.gz" jocky
-          shasum -a 256 "jocky_${VER}_macos_universal.tar.gz" > "jocky_${VER}_macos_universal.tar.gz.sha256"
-          cp jocky "jocky-macos-universal"
-
-      - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos
-          path: |
-            dist/jocky_*_macos_universal.tar.gz
-            dist/jocky_*_macos_universal.tar.gz.sha256
-            dist/jocky-macos-universal
-          retention-days: 1
-
-  # ══════════════════════════════════════════════════════════════════════════════
   # Build — Windows x86_64
   # ══════════════════════════════════════════════════════════════════════════════
   build-windows-x64:
@@ -324,7 +265,6 @@ jobs:
     needs:
       - build-linux-x64
       - build-linux-arm64
-      - build-macos
       - build-windows-x64
       - build-deb
 
@@ -350,7 +290,7 @@ jobs:
 
           ### Installation
 
-          #### Linux / macOS (one-liner)
+          #### Linux (one-liner)
           \`\`\`bash
           curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/scripts/install.sh | bash
           \`\`\`
@@ -362,7 +302,7 @@ jobs:
 
           #### Manual download
           Pick the right binary for your platform from the assets below, then:
-          - **Linux/macOS**: Extract and run \`./jocky\` — or use the tarball + install.sh
+          - **Linux**: Extract and run \`./jocky\` — or use the tarball + install.sh
           - **Windows**: Extract the ZIP, run \`install.ps1\` as Administrator (or just \`jocky.exe\`)
           - **Debian/Ubuntu**: \`sudo dpkg -i jocky_${VER}_amd64.deb\`
 
@@ -400,9 +340,6 @@ jobs:
             release-assets/jocky_*_linux_aarch64.tar.gz
             release-assets/jocky_*_linux_aarch64.tar.gz.sha256
             release-assets/jocky-linux-aarch64
-            release-assets/jocky_*_macos_universal.tar.gz
-            release-assets/jocky_*_macos_universal.tar.gz.sha256
-            release-assets/jocky-macos-universal
             release-assets/jocky_*_windows_x86_64.zip
             release-assets/jocky_*_windows_x86_64.zip.sha256
             release-assets/jocky-windows-x86_64.exe

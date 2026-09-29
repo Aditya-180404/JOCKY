@@ -857,7 +857,7 @@ INVESTIGATOR                         TARGET HOST
 
 Download and install JOCKY with a single command — no Rust or LLVM required:
 
-#### Linux / macOS
+#### Linux
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Aditya-180404/JOCKY/main/scripts/install.sh | bash
 ```
@@ -883,7 +883,7 @@ jocky script.jy        # compile a .jy file
 ```
 
 > 💡 Releases are available at [github.com/Aditya-180404/JOCKY/releases](https://github.com/Aditya-180404/JOCKY/releases).  
-> Binaries for **Linux x86_64**, **Linux ARM64**, **macOS Universal**, and **Windows x86_64** are published automatically on each tagged release.
+> Binaries for **Linux x86_64**, **Linux ARM64**, and **Windows x86_64** are published automatically on each tagged release.
 
 ---
 
@@ -908,7 +908,7 @@ cp .env.example .env
 ### Step 2 — Start the API
 
 ```bash
-# Linux / macOS
+# Linux
 JOCKY_API_ADDR="0.0.0.0:8080" cargo run -p jocky-api
 
 # Windows (PowerShell)
