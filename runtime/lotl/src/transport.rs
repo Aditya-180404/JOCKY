@@ -466,33 +466,45 @@ fn deliver_via_http(
     timeout_secs: u64,
     kind: TransportKind,
 ) -> Result<TransportResult, TransportError> {
-    // In a real deployment this uses the `ureq` or `minreq` crate for
-    // sync HTTP without importing the async Tokio runtime (which has a
-    // recognisable syscall pattern). For now we produce a clear stub that
-    // documents what would be done:
-    let _ = (url, host_override, real_target, timeout_secs);
+    let agent = ureq::AgentBuilder::new()
+        .timeout(std::time::Duration::from_secs(timeout_secs.max(1)))
+        .build();
 
-    // TODO: replace stub with ureq::AgentBuilder::new()
-    //   .timeout(Duration::from_secs(timeout_secs))
-    //   .build()
-    //   .post(url)
-    //   .set("Content-Type", "application/json")
-    //   .set("Host", host_override.unwrap_or(parsed_host))
-    //   .set("X-Jocky-Target", real_target.unwrap_or(""))
-    //   .send_bytes(body)
+    let mut req = agent.post(url).set("Content-Type", "application/json");
 
-    Ok(TransportResult {
-        success: true,
-        bytes_transferred: body.len(),
-        response_code: Some(200),
-        transport_kind: kind,
-        note: format!(
-            "[stub] Would POST {} bytes to {} via {:?}",
-            body.len(),
-            url,
-            kind
-        ),
-    })
+    if let Some(host) = host_override {
+        req = req.set("Host", host);
+    }
+    if let Some(target) = real_target {
+        req = req.set("X-Jocky-Target", target);
+    }
+
+    match req.send_bytes(body) {
+        Ok(resp) => {
+            let status = resp.status();
+            Ok(TransportResult {
+                success: (200..300).contains(&status),
+                bytes_transferred: body.len(),
+                response_code: Some(status),
+                transport_kind: kind,
+                note: format!(
+                    "Delivered {} bytes to {} via {:?} (HTTP {})",
+                    body.len(),
+                    url,
+                    kind,
+                    status
+                ),
+            })
+        }
+        Err(ureq::Error::Status(code, resp)) => {
+            let err_body = resp.into_string().unwrap_or_default();
+            Err(TransportError::Http {
+                status: code,
+                body: err_body,
+            })
+        }
+        Err(ureq::Error::Transport(e)) => Err(TransportError::Io(e.to_string())),
+    }
 }
 
 /// Perform a synchronous HTTPS PUT (presigned URL upload).
@@ -502,22 +514,59 @@ fn put_via_http(
     timeout_secs: u64,
     kind: TransportKind,
 ) -> Result<TransportResult, TransportError> {
-    let _ = (url, timeout_secs);
-    // TODO: ureq::put(url).set("Content-Type", "application/octet-stream").send_bytes(body)
-    Ok(TransportResult {
-        success: true,
-        bytes_transferred: body.len(),
-        response_code: Some(200),
-        transport_kind: kind,
-        note: format!("[stub] Would PUT {} bytes to presigned URL", body.len()),
-    })
+    let agent = ureq::AgentBuilder::new()
+        .timeout(std::time::Duration::from_secs(timeout_secs.max(1)))
+        .build();
+
+    match agent
+        .put(url)
+        .set("Content-Type", "application/octet-stream")
+        .send_bytes(body)
+    {
+        Ok(resp) => {
+            let status = resp.status();
+            Ok(TransportResult {
+                success: (200..300).contains(&status),
+                bytes_transferred: body.len(),
+                response_code: Some(status),
+                transport_kind: kind,
+                note: format!(
+                    "Uploaded {} bytes to presigned URL (HTTP {})",
+                    body.len(),
+                    status
+                ),
+            })
+        }
+        Err(ureq::Error::Status(code, resp)) => {
+            let err_body = resp.into_string().unwrap_or_default();
+            Err(TransportError::Http {
+                status: code,
+                body: err_body,
+            })
+        }
+        Err(ureq::Error::Transport(e)) => Err(TransportError::Io(e.to_string())),
+    }
 }
 
 /// Perform a synchronous HTTPS GET (command poll).
 fn http_get(url: &str, timeout_secs: u64) -> Result<String, TransportError> {
-    let _ = (url, timeout_secs);
-    // TODO: ureq::get(url).call()?.into_string()
-    Ok(String::new())
+    let agent = ureq::AgentBuilder::new()
+        .timeout(std::time::Duration::from_secs(timeout_secs.max(1)))
+        .build();
+
+    match agent.get(url).call() {
+        Ok(resp) => resp
+            .into_string()
+            .map_err(|e| TransportError::Io(e.to_string())),
+        Err(ureq::Error::Status(code, resp)) => {
+            let err_body = resp.into_string().unwrap_or_default();
+            Err(TransportError::Http {
+                status: code,
+                body: err_body,
+            })
+        }
+        Err(ureq::Error::Transport(e)) => Err(TransportError::Io(e.to_string())),
+    }
 }
 
 #[cfg(test)]
@@ -614,8 +663,24 @@ mod tests {
     }
 
     #[test]
-    fn test_direct_deliver_evidence_stub() {
-        let config = TransportConfig::default();
+    fn test_direct_deliver_evidence_loopback() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        std::thread::spawn(move || {
+            if let Ok((mut stream, _)) = listener.accept() {
+                use std::io::{Read, Write};
+                let mut buf = [0u8; 1024];
+                let _ = stream.read(&mut buf);
+                let _ = stream.write_all(
+                    b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nOK",
+                );
+            }
+        });
+
+        let config = TransportConfig {
+            relay_url: format!("http://127.0.0.1:{}", port),
+            ..Default::default()
+        };
         let transport = DirectTransport::new(config);
         let result = transport
             .deliver_evidence("test_investigation", b"{}")

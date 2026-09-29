@@ -11,6 +11,7 @@ description = "JOCKY Living-off-the-Land primitives: PEB resolver, direct syscal
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+ureq = { version = "2.10", features = ["json"] }
 
 [dev-dependencies]
 # No extra dev deps needed

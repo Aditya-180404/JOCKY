@@ -7,7 +7,7 @@ function Test-Command($Name) {
     return $false
 }
 
-Write-Host 'TRACEFORGE DEVELOPMENT DOCTOR' -ForegroundColor Cyan
+Write-Host 'JOCKY DEVELOPMENT DOCTOR' -ForegroundColor Cyan
 $null = Test-Command git
 $null = Test-Command cargo
 $null = Test-Command rustc
@@ -19,7 +19,7 @@ if ($dockerOk) {
     docker compose ps
 }
 
-$ports = @(3000, 8080, 5433, 6379, 9000)
+$ports = @(3000, 8080)
 foreach ($port in $ports) {
     $listener = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
     if ($listener) { Write-Host "[PASS] Port $port is listening" -ForegroundColor Green }
@@ -28,22 +28,22 @@ foreach ($port in $ports) {
 
 try {
     $health = Invoke-RestMethod -Uri 'http://localhost:8080/health' -TimeoutSec 3
-    if ($health.status -eq 'ok') { Write-Host '[PASS] TRACEFORGE API health' -ForegroundColor Green }
-    else { Write-Host '[FAIL] TRACEFORGE API returned an unexpected health response' -ForegroundColor Red }
+    if ($health.status -eq 'ok') { Write-Host '[PASS] JOCKY API health' -ForegroundColor Green }
+    else { Write-Host '[FAIL] JOCKY API returned an unexpected health response' -ForegroundColor Red }
 } catch {
-    Write-Host '[INFO] TRACEFORGE API is not reachable' -ForegroundColor Yellow
+    Write-Host '[INFO] JOCKY API is not reachable' -ForegroundColor Yellow
 }
 
 try {
     $frontend = Invoke-WebRequest -UseBasicParsing -Uri 'http://localhost:3000/' -TimeoutSec 3
-    if ($frontend.StatusCode -eq 200) { Write-Host '[PASS] TRACEFORGE frontend' -ForegroundColor Green }
+    if ($frontend.StatusCode -eq 200) { Write-Host '[PASS] JOCKY frontend' -ForegroundColor Green }
 } catch {
-    Write-Host '[INFO] TRACEFORGE frontend is not reachable' -ForegroundColor Yellow
+    Write-Host '[INFO] JOCKY frontend is not reachable' -ForegroundColor Yellow
 }
 
-if (Test-Path '.\target\release\traceforge.exe') {
+if (Test-Path '.\target\release\jocky.exe') {
     Write-Host '[PASS] Release CLI exists' -ForegroundColor Green
-    & .\target\release\traceforge.exe --version
+    & .\target\release\jocky.exe --version
 } else {
     Write-Host '[INFO] Release CLI not built' -ForegroundColor Yellow
 }

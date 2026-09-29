@@ -1,21 +1,18 @@
 # Frontend Web Dockerfile
 FROM node:20-alpine AS builder
 
-WORKDIR /app
+WORKDIR /app/apps/web
 
 # Copy package files
 COPY apps/web/package*.json ./
-COPY packages/shared-types/package*.json ../packages/shared-types/
 
 # Install dependencies
 RUN npm ci
 
-# Copy source
-COPY apps/web ./apps/web
-COPY packages/shared-types ./packages/shared-types
+# Copy web source files
+COPY apps/web ./
 
-# Build
-WORKDIR /app/apps/web
+# Build frontend
 RUN npm run build
 
 # Runtime stage - serve with nginx
