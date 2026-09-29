@@ -11,10 +11,13 @@ if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
 New-Item -ItemType Directory -Force $staging | Out-Null
 
 Write-Host "Setting up staging directory..."
-Copy-Item (Join-Path $root 'target/release/jocky.exe') $staging
+Copy-Item (Join-Path $root 'target/release/jocky.exe')          $staging
+Copy-Item (Join-Path $root 'scripts/install-windows.ps1')        $staging
 
 Write-Host "Creating Windows archive..."
 if (Test-Path $package) { Remove-Item $package -Force }
 Compress-Archive -Path "$staging\*" -DestinationPath $package
 
 Write-Host "Package successfully generated at: $package"
+Write-Host "Contents:"
+Get-ChildItem $staging | Format-Table Name, Length -AutoSize

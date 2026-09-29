@@ -335,6 +335,23 @@ jobs:
           & "C:\LLVM21\bin\llvm-config.exe" --version
           clang --version
 
+      - name: Allow jocky.exe through Windows Firewall (inbound)
+        shell: pwsh
+        run: |
+          # Allow inbound TCP connections to jocky.exe so CI tests are not
+          # blocked by Windows Firewall. The rule is scoped to the process path
+          # once the binary is built; we also pre-allow the release path.
+          $exePath = "$env:GITHUB_WORKSPACE\target\release\jocky.exe"
+          New-NetFirewallRule `
+            -DisplayName  "JOCKY CI – jocky.exe inbound (TCP)" `
+            -Direction    Inbound `
+            -Protocol     TCP `
+            -Action       Allow `
+            -Program      $exePath `
+            -Profile      Any `
+            -ErrorAction  SilentlyContinue | Out-Null
+          Write-Host "Firewall inbound rule created for: $exePath"
+
       # ── Code quality ───────────────────────────────────────────────────────
       - name: fmt check
         run: cargo fmt --all -- --check
@@ -533,8 +550,9 @@ jobs:
       - name: Authenticode Signing Pipeline (Dev / Release)
         shell: pwsh
         run: |
-          $mandatory = if ($env:GITHUB_REF -like "refs/tags/*") { "-Mandatory" } else { "" }
-          powershell.exe -ExecutionPolicy Bypass -File scripts\sign-windows.ps1 $mandatory
+          $args = @("-ExecutionPolicy", "Bypass", "-File", "scripts\sign-windows.ps1")
+          if ($env:GITHUB_REF -like "refs/tags/*") { $args += "-Mandatory" }
+          powershell.exe @args
 
       - name: build Windows distribution archive
         run: powershell.exe -ExecutionPolicy Bypass -File packaging\build-win.ps1
