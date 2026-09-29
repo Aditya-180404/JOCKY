@@ -9,7 +9,7 @@ services:
       JOCKY_BACKEND: rust
       JOCKY_RUNTIME_DIR: /app/runtime
     ports:
-      - "8080:8080"
+      - "0.0.0.0:8080:8080"
     # Optional: mount source for development
     # volumes:
     #   - ./apps/api:/app/apps/api
@@ -25,7 +25,7 @@ services:
     environment:
       VITE_API_URL: http://localhost:8080
     ports:
-      - "3000:3000"
+      - "0.0.0.0:3000:3000"
     depends_on:
       - api
     # Optional: mount source for development
