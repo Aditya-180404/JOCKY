@@ -75,7 +75,7 @@ aws-sdk-s3 = "1.0"
 aws-config = "1.0"
 
 # Compiler
-llvm-sys = "180"
+llvm-sys = "211.1.0"
 inkwell = "0.2"
 clap = { version = "4.5", features = ["derive", "env"] }
 

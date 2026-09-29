@@ -191,11 +191,11 @@ jobs:
       - name: jocky capabilities (table)
         run: ./target/release/jocky capabilities
 
-      - name: jocky capabilities (json) — count >= 172
+      - name: jocky capabilities (json) — count >= 247
         run: |
           COUNT=$(./target/release/jocky capabilities --format json | jq '. | length')
           echo "Capability count: $COUNT"
-          [ "$COUNT" -ge 172 ]
+          [ "$COUNT" -ge 247 ]
 
       # ── Check ALL 14 example .jy files ────────────────────────────────────
       - name: jocky check — all examples
@@ -654,11 +654,11 @@ jobs:
           jocky --version
           jocky doctor
 
-      - name: Verify installed binary — capabilities >= 172
+      - name: Verify installed binary — capabilities >= 247
         run: |
           COUNT=$(jocky capabilities --format json | jq '. | length')
           echo "Capability count: $COUNT"
-          [ "$COUNT" -ge 172 ]
+          [ "$COUNT" -ge 247 ]
 
       - name: Verify installed binary — check all examples
         run: |
