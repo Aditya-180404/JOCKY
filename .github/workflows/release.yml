@@ -1,0 +1,412 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"   # Triggers on version tags like v0.1.0, v1.2.3
+
+permissions:
+  contents: write   # Required to create GitHub Releases and upload assets
+
+# ─── Shared env ───────────────────────────────────────────────────────────────
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE:   1
+  CARGO_INCREMENTAL: 0
+  CARGO_HOME:       ${{ runner.tool_cache }}/cargo
+
+jobs:
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Build — Linux x86_64
+  # ══════════════════════════════════════════════════════════════════════════════
+  build-linux-x64:
+    name: Build (Linux x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-linux-x64
+
+      - name: Setup LLVM 21 (Linux)
+        run: |
+          set -e
+          python3 scripts/setup-llvm-linux.py
+          echo "LLVM_SYS_211_PREFIX=/opt/llvm21" >> "$GITHUB_ENV"
+          echo "/opt/llvm21/bin" >> "$GITHUB_PATH"
+
+      - name: Build release binary (Linux x86_64)
+        run: |
+          cargo build --release -p jocky-compiler-cli --target x86_64-unknown-linux-gnu
+          # Also try the workspace root binary name
+          cargo build --release --target x86_64-unknown-linux-gnu 2>/dev/null || true
+
+      - name: Locate binary
+        id: bin
+        run: |
+          # Find the CLI binary
+          BIN=$(find target/x86_64-unknown-linux-gnu/release -maxdepth 1 -name 'jocky' -o -name 'jocky-cli' 2>/dev/null | head -1)
+          [ -z "$BIN" ] && BIN=$(find target/release -maxdepth 1 -name 'jocky' 2>/dev/null | head -1)
+          echo "path=$BIN" >> "$GITHUB_OUTPUT"
+          echo "Found binary: $BIN"
+          file "$BIN"
+
+      - name: Package tarball
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VER="${VERSION#v}"
+          mkdir -p dist
+          cp "${{ steps.bin.outputs.path }}" dist/jocky
+          chmod +x dist/jocky
+
+          # Create tarball
+          cd dist
+          tar -czf "jocky_${VER}_linux_x86_64.tar.gz" jocky
+          sha256sum "jocky_${VER}_linux_x86_64.tar.gz" > "jocky_${VER}_linux_x86_64.tar.gz.sha256"
+
+          # Also copy raw binary with platform suffix
+          cp jocky "jocky-linux-x86_64"
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: |
+            dist/jocky_*_linux_x86_64.tar.gz
+            dist/jocky_*_linux_x86_64.tar.gz.sha256
+            dist/jocky-linux-x86_64
+          retention-days: 1
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Build — Linux aarch64
+  # ══════════════════════════════════════════════════════════════════════════════
+  build-linux-arm64:
+    name: Build (Linux aarch64)
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-linux-arm64
+
+      - name: Setup LLVM 21 (Linux ARM64)
+        run: |
+          set -e
+          python3 scripts/setup-llvm-linux.py
+          echo "LLVM_SYS_211_PREFIX=/opt/llvm21" >> "$GITHUB_ENV"
+          echo "/opt/llvm21/bin" >> "$GITHUB_PATH"
+
+      - name: Build release binary (Linux aarch64)
+        run: |
+          cargo build --release -p jocky-compiler-cli --target aarch64-unknown-linux-gnu 2>/dev/null || \
+          cargo build --release --target aarch64-unknown-linux-gnu
+
+      - name: Package tarball
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VER="${VERSION#v}"
+          BIN=$(find target -name 'jocky' -path '*/release/*' | head -1)
+          mkdir -p dist
+          cp "$BIN" dist/jocky
+          chmod +x dist/jocky
+          cd dist
+          tar -czf "jocky_${VER}_linux_aarch64.tar.gz" jocky
+          sha256sum "jocky_${VER}_linux_aarch64.tar.gz" > "jocky_${VER}_linux_aarch64.tar.gz.sha256"
+          cp jocky "jocky-linux-aarch64"
+
+      - name: Upload ARM64 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64
+          path: |
+            dist/jocky_*_linux_aarch64.tar.gz
+            dist/jocky_*_linux_aarch64.tar.gz.sha256
+            dist/jocky-linux-aarch64
+          retention-days: 1
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Build — macOS (Universal: x86_64 + arm64)
+  # ══════════════════════════════════════════════════════════════════════════════
+  build-macos:
+    name: Build (macOS Universal)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-macos
+
+      - name: Install LLVM 21 (macOS)
+        run: brew install llvm@21 || brew install llvm
+
+      - name: Set LLVM env (macOS)
+        run: |
+          LLVM_PREFIX="$(brew --prefix llvm@21 2>/dev/null || brew --prefix llvm)"
+          echo "LLVM_SYS_211_PREFIX=${LLVM_PREFIX}" >> "$GITHUB_ENV"
+          echo "${LLVM_PREFIX}/bin" >> "$GITHUB_PATH"
+
+      - name: Build for x86_64
+        run: cargo build --release --target x86_64-apple-darwin
+
+      - name: Build for aarch64
+        run: cargo build --release --target aarch64-apple-darwin
+
+      - name: Create universal binary with lipo
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VER="${VERSION#v}"
+          mkdir -p dist
+
+          X86="$(find target/x86_64-apple-darwin/release -maxdepth 1 -name 'jocky' | head -1)"
+          ARM="$(find target/aarch64-apple-darwin/release -maxdepth 1 -name 'jocky' | head -1)"
+
+          lipo -create -output dist/jocky "$X86" "$ARM"
+          chmod +x dist/jocky
+
+          cd dist
+          tar -czf "jocky_${VER}_macos_universal.tar.gz" jocky
+          shasum -a 256 "jocky_${VER}_macos_universal.tar.gz" > "jocky_${VER}_macos_universal.tar.gz.sha256"
+          cp jocky "jocky-macos-universal"
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: |
+            dist/jocky_*_macos_universal.tar.gz
+            dist/jocky_*_macos_universal.tar.gz.sha256
+            dist/jocky-macos-universal
+          retention-days: 1
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Build — Windows x86_64
+  # ══════════════════════════════════════════════════════════════════════════════
+  build-windows-x64:
+    name: Build (Windows x86_64)
+    runs-on: windows-latest
+    env:
+      LLVM_SYS_211_PREFIX: C:\LLVM21
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-windows-x64
+
+      - name: Setup LLVM 21 (Windows)
+        shell: pwsh
+        run: |
+          python scripts/setup-llvm-win.py
+          echo "C:\LLVM21\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Build release binary (Windows)
+        shell: pwsh
+        run: cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Package ZIP + installer
+        shell: pwsh
+        run: |
+          $VERSION = "${{ github.ref_name }}"
+          $VER = $VERSION.TrimStart("v")
+          $Dist = "dist"
+          New-Item -ItemType Directory -Force -Path $Dist | Out-Null
+
+          $Bin = Get-ChildItem -Path "target\x86_64-pc-windows-msvc\release" -Filter "jocky.exe" | Select-Object -First 1
+          Copy-Item $Bin.FullName -Destination "$Dist\jocky.exe"
+
+          # Copy installer script into zip
+          Copy-Item "scripts\install.ps1" -Destination "$Dist\install.ps1"
+          Copy-Item "scripts\install-windows.ps1" -Destination "$Dist\install-windows.ps1"
+
+          # Create ZIP
+          $ZipName = "jocky_${VER}_windows_x86_64.zip"
+          Compress-Archive -Path "$Dist\jocky.exe", "$Dist\install.ps1", "$Dist\install-windows.ps1" `
+                           -DestinationPath "$Dist\$ZipName"
+          $hash = (Get-FileHash -Path "$Dist\$ZipName" -Algorithm SHA256).Hash
+          Set-Content -Path "$Dist\${ZipName}.sha256" -Value $hash
+
+          # Also copy raw exe with platform suffix
+          Copy-Item "$Dist\jocky.exe" "$Dist\jocky-windows-x86_64.exe"
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: |
+            dist/jocky_*_windows_x86_64.zip
+            dist/jocky_*_windows_x86_64.zip.sha256
+            dist/jocky-windows-x86_64.exe
+          retention-days: 1
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Build Debian Package (.deb)
+  # ══════════════════════════════════════════════════════════════════════════════
+  build-deb:
+    name: Build Debian Package
+    runs-on: ubuntu-latest
+    needs: build-linux-x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Linux x64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-x64
+          path: deb-build/
+
+      - name: Build .deb package
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VER="${VERSION#v}"
+
+          # Extract binary from tarball
+          tar -xzf "deb-build/jocky_${VER}_linux_x86_64.tar.gz" -C deb-build/
+
+          # Create deb structure
+          PKG="jocky_${VER}_amd64"
+          mkdir -p "${PKG}/usr/bin"
+          mkdir -p "${PKG}/DEBIAN"
+
+          cp deb-build/jocky "${PKG}/usr/bin/jocky"
+          chmod +x "${PKG}/usr/bin/jocky"
+
+          cat > "${PKG}/DEBIAN/control" << CONTROL_EOF
+          Package: jocky
+          Version: ${VER}
+          Architecture: amd64
+          Maintainer: JOCKY Team <jocky@example.com>
+          Description: JOCKY Forensic Language Compiler
+           A domain-specific language compiler for digital forensics and
+           incident response, compiling .jy scripts to native binaries.
+          Homepage: https://github.com/${{ github.repository }}
+          Section: devel
+          Priority: optional
+          CONTROL_EOF
+
+          dpkg-deb --build "${PKG}"
+          sha256sum "${PKG}.deb" > "${PKG}.deb.sha256"
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: |
+            jocky_*_amd64.deb
+            jocky_*_amd64.deb.sha256
+          retention-days: 1
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Create GitHub Release
+  # ══════════════════════════════════════════════════════════════════════════════
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs:
+      - build-linux-x64
+      - build-linux-arm64
+      - build-macos
+      - build-windows-x64
+      - build-deb
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets/
+          merge-multiple: true
+
+      - name: List release assets
+        run: find release-assets/ -type f | sort
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VER="${VERSION#v}"
+          cat > RELEASE_NOTES.md << NOTES_EOF
+          ## JOCKY ${VERSION}
+
+          ### Installation
+
+          #### Linux / macOS (one-liner)
+          \`\`\`bash
+          curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/scripts/install.sh | bash
+          \`\`\`
+
+          #### Windows (PowerShell, run as Administrator)
+          \`\`\`powershell
+          irm https://raw.githubusercontent.com/${{ github.repository }}/main/scripts/install.ps1 | iex
+          \`\`\`
+
+          #### Manual download
+          Pick the right binary for your platform from the assets below, then:
+          - **Linux/macOS**: Extract and run \`./jocky\` — or use the tarball + install.sh
+          - **Windows**: Extract the ZIP, run \`install.ps1\` as Administrator (or just \`jocky.exe\`)
+          - **Debian/Ubuntu**: \`sudo dpkg -i jocky_${VER}_amd64.deb\`
+
+          ### Usage after install
+          \`\`\`bash
+          jocky --version
+          jocky --help
+          jocky script.jy                    # Compile a .jy file
+          jocky --target linux-x64 script.jy # Cross-compile
+          \`\`\`
+
+          ### SHA-256 Checksums
+          | File | SHA-256 |
+          |------|---------|
+          $(for f in release-assets/*.sha256; do echo "| $(basename ${f%.sha256}) | \`$(cat $f | awk '{print $1}')\` |"; done)
+
+          ---
+          *Built with LLVM 21 — see [build logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.*
+          NOTES_EOF
+
+          echo "notes_file=RELEASE_NOTES.md" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "JOCKY ${{ github.ref_name }}"
+          tag_name: ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}   # e.g. v1.0.0-beta is pre-release
+          files: |
+            release-assets/jocky_*_linux_x86_64.tar.gz
+            release-assets/jocky_*_linux_x86_64.tar.gz.sha256
+            release-assets/jocky-linux-x86_64
+            release-assets/jocky_*_linux_aarch64.tar.gz
+            release-assets/jocky_*_linux_aarch64.tar.gz.sha256
+            release-assets/jocky-linux-aarch64
+            release-assets/jocky_*_macos_universal.tar.gz
+            release-assets/jocky_*_macos_universal.tar.gz.sha256
+            release-assets/jocky-macos-universal
+            release-assets/jocky_*_windows_x86_64.zip
+            release-assets/jocky_*_windows_x86_64.zip.sha256
+            release-assets/jocky-windows-x86_64.exe
+            release-assets/jocky_*_amd64.deb
+            release-assets/jocky_*_amd64.deb.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

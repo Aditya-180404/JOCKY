@@ -853,12 +853,46 @@ INVESTIGATOR                         TARGET HOST
 
 ## Getting Started
 
-### Prerequisites
+### ⚡ Quick Install (Pre-built Binaries)
+
+Download and install JOCKY with a single command — no Rust or LLVM required:
+
+#### Linux / macOS
+```bash
+curl -fsSL https://raw.githubusercontent.com/Aditya-180404/JOCKY/main/scripts/install.sh | bash
+```
+
+#### Windows (PowerShell — run as Administrator)
+```powershell
+irm https://raw.githubusercontent.com/Aditya-180404/JOCKY/main/scripts/install.ps1 | iex
+```
+
+#### Debian / Ubuntu
+```bash
+# Download .deb from the latest release
+curl -fsSL https://api.github.com/repos/Aditya-180404/JOCKY/releases/latest \
+  | grep "browser_download_url.*\.deb" | cut -d '"' -f 4 | xargs -I {} curl -fsSL {} -o jocky.deb
+sudo dpkg -i jocky.deb
+```
+
+After install:
+```bash
+jocky --version        # verify installation
+jocky --help           # show all commands
+jocky script.jy        # compile a .jy file
+```
+
+> 💡 Releases are available at [github.com/Aditya-180404/JOCKY/releases](https://github.com/Aditya-180404/JOCKY/releases).  
+> Binaries for **Linux x86_64**, **Linux ARM64**, **macOS Universal**, and **Windows x86_64** are published automatically on each tagged release.
+
+---
+
+### Build from Source — Prerequisites
 
 | Requirement | Version | Purpose |
 |---|---|---|
 | [Rust](https://rustup.rs/) | stable (1.75+) | Compiler, API, CLI |
-| [LLVM](https://releases.llvm.org/) | 18+ | LLVM backend (optional) |
+| [LLVM](https://releases.llvm.org/) | 21 | LLVM backend |
 | [Node.js](https://nodejs.org/) | 20+ | Web frontend |
 | [Docker](https://www.docker.com/) | Latest | Optional full-stack |
 | Git | Any | Clone repository |
