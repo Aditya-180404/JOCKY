@@ -560,7 +560,7 @@ jobs:
       - name: validate extracted Windows distribution package
         shell: pwsh
         run: |
-          powershell.exe -ExecutionPolicy Bypass -File tests\verify-windows-package.ps1
+          powershell.exe -ExecutionPolicy Bypass -File tests\verify-windows-package.ps1 -ZipPath .\jocky_0.1.0_windows_amd64.zip
 
       - name: Upload Windows distribution artifact
         uses: actions/upload-artifact@v4
@@ -831,11 +831,11 @@ jobs:
         run: |
           results='${{ toJSON(needs) }}'
           echo "Job results: $results"
-          if echo "$results" | grep -q '"result":"failure"'; then
+          if echo "$results" | grep -qE '"result"\s*:\s*"failure"'; then
             echo "One or more CI jobs failed" >&2
             exit 1
           fi
-          if echo "$results" | grep -q '"result":"cancelled"'; then
+          if echo "$results" | grep -qE '"result"\s*:\s*"cancelled"'; then
             echo "One or more CI jobs were cancelled" >&2
             exit 1
           fi

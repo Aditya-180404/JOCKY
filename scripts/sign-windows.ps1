@@ -64,9 +64,9 @@ Write-Host "Initial SHA-256: $sha256"
 $hasCert = $false
 $tempCertPath = ""
 
-if ($CertificatePath -and (Test-Path $CertificatePath)) {
+if (-not [string]::IsNullOrWhiteSpace($CertificatePath) -and (Test-Path $CertificatePath)) {
     $hasCert = $true
-} elseif ($CertificateBase64 -and $CertificateBase64.Trim().Length -gt 0) {
+} elseif (-not [string]::IsNullOrWhiteSpace($CertificateBase64)) {
     try {
         $certBytes = [Convert]::FromBase64String($CertificateBase64.Trim())
         $tempCertPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "jocky_signing_$([System.Guid]::NewGuid().ToString('N')).pfx")
@@ -120,7 +120,7 @@ try {
     exit 1
 } finally {
     # Clean up temp cert securely
-    if ($tempCertPath -and (Test-Path $tempCertPath)) {
+    if (-not [string]::IsNullOrWhiteSpace($tempCertPath) -and (Test-Path $tempCertPath)) {
         Remove-Item -Path $tempCertPath -Force -ErrorAction SilentlyContinue
     }
 }

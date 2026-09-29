@@ -1,9 +1,23 @@
-# Windows Package Validation Script
 param(
-    [string]$ZipPath = "G:\jocky\jocky_0.1.0_windows_amd64.zip"
+    [string]$ZipPath = ""
 )
 
 $ErrorActionPreference = "Stop"
+
+if ([string]::IsNullOrWhiteSpace($ZipPath)) {
+    $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+    $candidates = @(
+        (Join-Path $repoRoot "jocky_0.1.0_windows_amd64.zip"),
+        (Join-Path (Get-Location) "jocky_0.1.0_windows_amd64.zip"),
+        ".\jocky_0.1.0_windows_amd64.zip"
+    )
+    foreach ($cand in $candidates) {
+        if (Test-Path $cand) {
+            $ZipPath = (Resolve-Path $cand).Path
+            break
+        }
+    }
+}
 
 if (-not (Test-Path $ZipPath)) {
     throw "Zip file not found at: $ZipPath"
