@@ -840,12 +840,41 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
     }
 
     pub fn copy_runtime_bundle(&self, project_dir: &Path) -> Result<(), BackendError> {
-        let runtime_src = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../runtime")
-            .canonicalize()
-            .map_err(|error| {
-                BackendError::TemplateError(format!("Unable to locate runtime crate: {}", error))
-            })?;
+        let candidate = if let Ok(dir) = std::env::var("JOCKY_RUNTIME_DIR") {
+            let p = PathBuf::from(dir);
+            if p.exists() {
+                Some(p)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        let runtime_src = match candidate {
+            Some(p) => p.canonicalize().map_err(|e| {
+                BackendError::TemplateError(format!("Invalid JOCKY_RUNTIME_DIR: {}", e))
+            })?,
+            None => {
+                let from_manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../runtime");
+                if from_manifest.exists() {
+                    from_manifest.canonicalize().map_err(|e| {
+                        BackendError::TemplateError(format!("Unable to locate runtime crate: {}", e))
+                    })?
+                } else if PathBuf::from("/app/runtime").exists() {
+                    PathBuf::from("/app/runtime")
+                } else if PathBuf::from("runtime").exists() {
+                    PathBuf::from("runtime").canonicalize().map_err(|e| {
+                        BackendError::TemplateError(format!("Unable to locate runtime crate: {}", e))
+                    })?
+                } else {
+                    return Err(BackendError::TemplateError(
+                        "Unable to locate runtime crate. Set JOCKY_RUNTIME_DIR environment variable.".to_string(),
+                    ));
+                }
+            }
+        };
+
         let runtime_dest = project_dir.join("runtime");
         if runtime_dest.exists() {
             std::fs::remove_dir_all(&runtime_dest)?;
@@ -884,6 +913,8 @@ members = [
     "runtime/auth",
     "runtime/users",
     "runtime/services",
+    "runtime/lotl",
+    "runtime/persistence",
 ]
 
 [workspace.package]

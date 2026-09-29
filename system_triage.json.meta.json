@@ -3,10 +3,10 @@
   "tool_name": "jocky-tool",
   "tool_version": "0.1.0",
   "host_identifier": "kali",
-  "collection_time": "2026-09-25T07:34:10.335762698Z",
-  "evidence_hash": "cc5b7390ee043fbe6360c104928301b31edadf85d5a11a191ce47961b3dd849f",
-  "evidence_size": 486534,
-  "merkle_root": "4aa23a2569502644889e4a61096a399741efd18b40565beed3ddb12ab6eb353c",
+  "collection_time": "2026-09-29T14:07:46.692854253Z",
+  "evidence_hash": "e631c40d42043a1bc0d39eacbdd630bc93ebd6b31666d193b01c28a0cbd4be0f",
+  "evidence_size": 6687506,
+  "merkle_root": "2130ebf1c70291c1f2d1470dc16b944d417795fa494feeeb5cdb7f33c82bc799",
   "merkle_proof": null,
   "blockchain_anchor": null,
   "evidence_origin": "REAL",
@@ -18,20 +18,20 @@
       "records_count": 1,
       "error": null,
       "warning": null,
-      "timestamp": "2026-09-25T07:34:10.259503696Z"
+      "timestamp": "2026-09-29T14:07:46.391716598Z"
     },
     {
       "collector": "processes",
       "status": "SUCCESS",
-      "records_count": 450,
+      "records_count": 600,
       "error": null,
       "warning": null,
-      "timestamp": "2026-09-25T07:34:10.333697991Z"
+      "timestamp": "2026-09-29T14:07:46.668231130Z"
     }
   ],
   "compiler_version": "0.1.0",
   "source_hash": null,
   "artifact_hash": null,
-  "collection_started_at": "2026-09-25T07:34:10.259325508Z",
-  "collection_finished_at": "2026-09-25T07:34:10.335763018Z"
+  "collection_started_at": "2026-09-29T14:07:46.313599666Z",
+  "collection_finished_at": "2026-09-29T14:07:46.692855175Z"
 }

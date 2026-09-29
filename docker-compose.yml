@@ -6,6 +6,8 @@ services:
       dockerfile: docker/api.Dockerfile
     environment:
       RUST_LOG: info
+      JOCKY_BACKEND: rust
+      JOCKY_RUNTIME_DIR: /app/runtime
     ports:
       - "8080:8080"
     # Optional: mount source for development
