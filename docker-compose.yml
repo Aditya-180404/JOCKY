@@ -8,8 +8,8 @@ services:
       RUST_LOG: info
       JOCKY_BACKEND: rust
       JOCKY_RUNTIME_DIR: /app/runtime
-    ports:
-      - "0.0.0.0:8080:8080"
+    expose:
+      - "8080"
     # Optional: mount source for development
     # volumes:
     #   - ./apps/api:/app/apps/api
@@ -17,15 +17,17 @@ services:
     #   - ./runtime:/app/runtime
     #   - ./packages/shared-types:/app/packages/shared-types
 
-  # Frontend (React + Vite)
+  # Frontend (static React app served by Nginx)
   web:
     build:
       context: .
       dockerfile: docker/web.Dockerfile
     environment:
-      VITE_API_URL: http://localhost:8080
+      JOCKY_TLS_HOST: ${JOCKY_TLS_HOST:-localhost}
     ports:
-      - "0.0.0.0:3000:3000"
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+      - "0.0.0.0:3000:80"
     depends_on:
       - api
     # Optional: mount source for development
