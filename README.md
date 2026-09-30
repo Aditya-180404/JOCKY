@@ -8,7 +8,7 @@ JOCKY helps authorized response teams define, run, and verify repeatable endpoin
 
 ## Architecture
 
-![JOCKY platform architecture](apps/web/public/jocky_architecture_7x7.png)
+![JOCKY platform architecture]
 
 JOCKY brings investigators, the web IDE and CLI, platform services, the compiler, forensic runtime, and evidence-analysis modules together. The diagram is the high-level view; the capability registry tracks implementation status in detail.
 
